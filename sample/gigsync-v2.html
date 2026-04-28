@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GigSync — Dashboard de Giras</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Verde ácido suavizado — más menta que neón */
+  --acid: #a8d800;
+  --acid-light: #c4ef20;
+  --acid-dim: rgba(168,216,0,0.12);
+  --acid-mid: rgba(168,216,0,0.22);
+  --acid-glow: rgba(168,216,0,0.28);
+  --acid-text: #8fb800;
+
+  --blue: #1a8fff;
+  --blue-dim: rgba(26,143,255,0.12);
+  --blue-text: #1a8fff;
+  --orange: #e85d00;
+  --orange-dim: rgba(232,93,0,0.12);
+  --green-wa: #1fad5a;
+  --green-wa-dim: rgba(31,173,90,0.12);
+
+  --bg: #0c0c0f;
+  --bg2: #111115;
+  --bg3: #161619;
+  --bg4: #1b1b20;
+
+  --glass: rgba(255,255,255,0.035);
+  --glass2: rgba(255,255,255,0.055);
+  --glass-hover: rgba(255,255,255,0.065);
+  --glass-active: rgba(168,216,0,0.07);
+
+  --border: rgba(255,255,255,0.075);
+  --border2: rgba(255,255,255,0.11);
+  --border-acid: rgba(168,216,0,0.28);
+
+  --text: #e8e8ec;
+  --text-2: #8a8a9a;
+  --text-3: #50505e;
+  --text-4: #38383f;
+
+  --font: 'Roboto', sans-serif;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-lg: 20px;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+#app { height: 100vh; display: flex; overflow: hidden; position: relative; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── LOGIN SCREEN ── */
+.login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.login-card {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  width: 100%; max-width: 400px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.login-card::before {
+  content: '';
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--acid-dim) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-logo {
+  width: 52px; height: 52px; border-radius: 16px;
+  background: var(--acid);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.login-logo svg { color: #000; }
+.login-brand { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+.login-tagline { font-size: 13px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.login-divider span { font-size: 11px; color: var(--text-3); }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.btn-google {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 16px;
+  background: var(--glass2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-family: var(--font); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; margin-bottom: 10px;
+}
+.btn-google:hover { background: var(--glass-hover); border-color: var(--border2); transform: translateY(-1px); }
+.login-note { font-size: 11px; color: var(--text-3); margin-top: 20px; }
+.login-note a { color: var(--acid-text); text-decoration: none; }
+
+/* ── LAYOUT ── */
+.sidebar {
+  width: 64px; flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; padding: 16px 0; gap: 2px;
+  z-index: 50;
+}
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 11px;
+  background: var(--acid); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 18px; flex-shrink: 0;
+  font-weight: 700; font-size: 13px; letter-spacing: -0.5px;
+}
+.nav-btn {
+  width: 42px; height: 42px; border-radius: 12px;
+  border: none; background: transparent; color: var(--text-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s; position: relative;
+}
+.nav-btn:hover { background: var(--glass-hover); color: var(--text-2); }
+.nav-btn.active { background: var(--glass-active); color: var(--acid); }
+.nav-btn.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; background: var(--acid); border-radius: 0 3px 3px 0;
+}
+.nav-tooltip {
+  position: absolute; left: 52px; top: 50%; transform: translateY(-50%);
+  background: var(--bg4); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 11px; font-weight: 500; white-space: nowrap;
+  color: var(--text); pointer-events: none;
+  opacity: 0; transition: opacity 0.15s; z-index: 100;
+}
+.nav-btn:hover .nav-tooltip { opacity: 1; }
+.sidebar-spacer { flex: 1; }
+.user-pill {
+  width: 36px; height: 36px; border-radius: 50%;
+  overflow: hidden; cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s; flex-shrink: 0;
+}
+.user-pill:hover { border-color: var(--acid); }
+.user-pill img { width: 100%; height: 100%; object-fit: cover; }
+.settings-btn {
+  width: 42px; height: 42px; border-radius: 12px;
+  border: none; background: transparent; color: var(--text-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s; margin-top: 2px;
+}
+.settings-btn:hover { background: var(--glass-hover); color: var(--text-2); }
+
+.main { flex: 1; display: flex; overflow: hidden; }
+
+/* ── LIST PANEL ── */
+.list-panel {
+  width: 320px; flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-head {
+  padding: 18px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-toprow {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 12px;
+}
+.panel-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+.head-actions { display: flex; gap: 5px; }
+.search-wrap {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 9px; padding: 7px 11px; margin-bottom: 10px;
+}
+.search-wrap input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-family: var(--font); font-size: 12px;
+}
+.search-wrap input::placeholder { color: var(--text-4); }
+.tabs { display: flex; gap: 3px; }
+.tab {
+  flex: 1; padding: 5px 0; border: none; border-radius: 7px;
+  background: transparent; color: var(--text-3);
+  font-family: var(--font); font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s; letter-spacing: 0.2px;
+}
+.tab:hover { background: var(--glass); color: var(--text-2); }
+.tab.on { background: var(--glass-active); color: var(--acid); }
+
+.list-body { flex: 1; overflow-y: auto; padding: 6px 8px; }
+.group-label {
+  font-size: 9px; font-weight: 700; color: var(--text-4);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 10px 4px 5px;
+}
+.evt-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px;
+  margin-bottom: 5px;
+  cursor: pointer; transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.evt-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: transparent; border-radius: 0 2px 2px 0;
+  transition: background 0.2s;
+}
+.evt-card:hover { background: var(--glass2); border-color: var(--border2); }
+.evt-card.sel { background: var(--glass-active); border-color: var(--border-acid); }
+.evt-card.sel::before { background: var(--acid); }
+.card-r1 { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 6px; }
+.type-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.type-icon.wa { background: var(--green-wa-dim); color: var(--green-wa); }
+.type-icon.sms { background: var(--acid-dim); color: var(--acid-text); }
+.type-icon.email { background: var(--blue-dim); color: var(--blue-text); }
+.card-info { flex: 1; min-width: 0; }
+.card-title { font-size: 12px; font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sub { font-size: 10px; color: var(--text-2); }
+.card-time { font-size: 10px; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+.card-r2 { display: flex; align-items: center; gap: 5px; }
+.pill {
+  font-size: 9px; font-weight: 700; padding: 2px 6px;
+  border-radius: 20px; letter-spacing: 0.4px;
+}
+.pill.g { background: var(--acid-dim); color: var(--acid-text); }
+.pill.b { background: var(--blue-dim); color: var(--blue-text); }
+.pill.o { background: var(--orange-dim); color: var(--orange); }
+.pill.n { background: var(--glass2); color: var(--text-2); }
+.card-prev { font-size: 10px; color: var(--text-3); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── DETAIL PANEL ── */
+.detail {
+  flex: 1; background: var(--bg3);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.detail-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; color: var(--text-3);
+}
+.empty-ic {
+  width: 48px; height: 48px; border-radius: 15px;
+  background: var(--glass); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.tour-band {
+  padding: 7px 22px; flex-shrink: 0;
+  background: var(--acid-dim); border-bottom: 1px solid var(--border-acid);
+  display: flex; align-items: center; gap: 8px;
+}
+.tour-name { font-size: 11px; font-weight: 700; color: var(--acid-text); }
+.tour-dates { font-size: 10px; color: var(--acid-text); opacity: 0.7; }
+.band-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--acid-text); opacity: 0.5; }
+.detail-top {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.detail-tag { font-size: 9px; font-weight: 700; color: var(--acid-text); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+.detail-h { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; }
+.detail-meta { font-size: 11px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 10px; }
+.meta-item { display: flex; align-items: center; gap: 4px; }
+.x-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--glass);
+  color: var(--text-2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s; flex-shrink: 0; margin-left: 14px;
+}
+.x-btn:hover { background: var(--glass-hover); color: var(--text); }
+.detail-scroll { flex: 1; overflow-y: auto; padding: 18px 22px; }
+
+/* ── GLASS BLOCK ── */
+.gblock {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.block-title {
+  font-size: 9px; font-weight: 700; color: var(--text-3);
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+}
+.msg-body { font-size: 12px; line-height: 1.75; color: var(--text); white-space: pre-line; }
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.scard {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 10px; text-align: center;
+}
+.sval { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.sval.g { color: var(--acid); }
+.sval.b { color: var(--blue); }
+.sval.o { color: var(--orange); }
+.slbl { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.info-item { display: flex; flex-direction: column; gap: 2px; }
+.info-k { font-size: 9px; font-weight: 600; color: var(--text-3); letter-spacing: 0.5px; text-transform: uppercase; }
+.info-v { font-size: 12px; color: var(--text); }
+.contact-list { display: flex; flex-direction: column; gap: 6px; }
+.contact-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 9px; border-radius: 9px; transition: background 0.15s;
+}
+.contact-row:hover { background: var(--glass-hover); }
+.av { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border); }
+.av img { width: 100%; height: 100%; object-fit: cover; }
+.c-name { font-size: 12px; font-weight: 500; }
+.c-role { font-size: 10px; color: var(--text-3); }
+.c-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--acid); flex-shrink: 0; }
+.c-dot.pend { background: var(--text-4); }
+
+/* ── ACTIONS ── */
+.act-row { display: flex; gap: 7px; margin-bottom: 12px; }
+.btn-p {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 13px; border-radius: 9px;
+  background: var(--acid); color: #000;
+  font-family: var(--font); font-size: 11px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.18s;
+}
+.btn-p:hover { background: var(--acid-light); transform: translateY(-1px); }
+.btn-s {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 13px; border-radius: 9px;
+  background: var(--glass); color: var(--text-2);
+  font-family: var(--font); font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border); cursor: pointer; transition: all 0.18s;
+}
+.btn-s:hover { background: var(--glass-hover); color: var(--text); border-color: var(--border2); }
+.btn-full { width: 100%; justify-content: center; }
+
+/* ── NOTIF FORM ── */
+.nform {
+  background: var(--glass); border: 1px solid var(--border-acid);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+}
+.nform-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.nform-title { font-size: 12px; font-weight: 700; }
+
+/* ── FORM ELEMENTS ── */
+.f-label { font-size: 9px; font-weight: 700; color: var(--text-2); letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 5px; }
+.f-input {
+  width: 100%; background: var(--glass);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 8px 11px; color: var(--text); font-family: var(--font); font-size: 12px;
+  outline: none; transition: border-color 0.18s; margin-bottom: 12px;
+}
+.f-input:focus { border-color: var(--acid); }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+textarea.f-input { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+/* ── CHANNEL TABS ── */
+.ch-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.ch-tab {
+  flex: 1; padding: 5px 0; border-radius: 7px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-2); font-family: var(--font); font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s;
+}
+.ch-tab:hover { background: var(--glass); }
+.ch-tab.on { background: var(--glass-active); color: var(--acid-text); border-color: var(--border-acid); }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 22px;
+  width: 100%; max-width: 460px; max-height: 82vh; overflow-y: auto;
+  position: relative;
+}
+.modal-h { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.modal-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.modal-icon.acid { background: var(--acid-dim); color: var(--acid-text); }
+.modal-icon.blue { background: var(--blue-dim); color: var(--blue-text); }
+.modal-icon.orange { background: var(--orange-dim); color: var(--orange); }
+.modal-title { font-size: 14px; font-weight: 700; }
+.modal-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+.m-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 26px; height: 26px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--glass);
+  color: var(--text-2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.m-close:hover { background: var(--glass-hover); color: var(--text); }
+
+/* Cal event row */
+.cal-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px; border-radius: 9px; border: 1px solid var(--border);
+  margin-bottom: 6px; cursor: pointer; transition: all 0.18s;
+}
+.cal-row:hover { background: var(--glass); }
+.cal-row.on { background: var(--glass-active); border-color: var(--border-acid); }
+.cal-dot2 { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.cal-name { font-size: 12px; flex: 1; }
+.cal-date { font-size: 10px; color: var(--text-3); }
+.cbox {
+  width: 17px; height: 17px; border-radius: 5px;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+}
+.cbox.on { background: var(--acid); border-color: var(--acid); }
+
+/* contact import row */
+.ci-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border);
+  margin-bottom: 5px; cursor: pointer; transition: all 0.18s;
+}
+.ci-row:hover { background: var(--glass); }
+.ci-row.on { background: var(--glass-active); border-color: var(--border-acid); }
+
+/* Sim view */
+.sim-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 40px;
+}
+.sim-card {
+  border: 2px dashed var(--border2); border-radius: var(--radius-lg);
+  padding: 40px 28px; text-align: center; max-width: 280px; width: 100%;
+}
+.sim-ic {
+  width: 52px; height: 52px; border-radius: 16px;
+  background: var(--glass); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; color: var(--acid);
+}
+.sim-t { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.sim-s { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+
+/* Lang toggle */
+.lang-toggle {
+  display: flex; gap: 3px;
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 7px; padding: 2px;
+}
+.lang-btn {
+  padding: 3px 8px; border-radius: 5px; border: none;
+  background: transparent; color: var(--text-3);
+  font-family: var(--font); font-size: 10px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;
+}
+.lang-btn.on { background: var(--acid); color: #000; }
+
+/* Settings panel */
+.integration-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.integration-row:last-child { border-bottom: none; }
+
+/* Transitions */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.up-enter-active { transition: all 0.28s cubic-bezier(0.16,1,0.3,1); }
+.up-leave-active { transition: all 0.18s ease; }
+.up-enter-from { transform: translateY(20px); opacity: 0; }
+.up-leave-to { transform: translateY(8px); opacity: 0; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .list-panel { width: 100%; }
+  .detail { display: none; }
+  .mobile-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2); border-top: 1px solid var(--border);
+    display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mob-btn {
+    flex: 1; padding: 10px 0; display: flex; flex-direction: column;
+    align-items: center; gap: 3px; background: none; border: none;
+    color: var(--text-3); cursor: pointer;
+    font-family: var(--font); font-size: 9px; font-weight: 500; transition: color 0.18s;
+  }
+  .mob-btn.on { color: var(--acid-text); }
+  .mob-sheet {
+    position: fixed; inset: 0; z-index: 150; display: flex; flex-direction: column;
+  }
+  .mob-back { flex: 1; background: rgba(0,0,0,0.5); }
+  .mob-panel {
+    background: var(--bg3); border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
+    padding: 12px 16px 32px; max-height: 90vh; overflow-y: auto;
+  }
+  .mob-handle { width: 36px; height: 3px; background: var(--border2); border-radius: 2px; margin: 0 auto 14px; }
+}
+@media (min-width: 769px) { .mobile-bar { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ LOGIN ══ -->
+  <transition name="fade">
+    <div class="login-screen" v-if="screen==='login'">
+      <div class="login-card">
+        <div class="login-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <p class="login-brand">GigSync</p>
+        <p class="login-tagline">{{ t('loginTagline') }}</p>
+
+        <button class="btn-google" @click="doLogin">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          {{ t('continueGoogle') }}
+        </button>
+
+        <div class="login-divider"><span>{{ t('or') }}</span></div>
+
+        <button class="btn-google" @click="doDemo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--acid-text)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          {{ t('viewDemo') }}
+        </button>
+
+        <div style="display:flex;justify-content:center;margin-top:16px;">
+          <div class="lang-toggle">
+            <button class="lang-btn" :class="{on:lang==='es'}" @click="lang='es'">ES</button>
+            <button class="lang-btn" :class="{on:lang==='en'}" @click="lang='en'">EN</button>
+          </div>
+        </div>
+        <p class="login-note">{{ t('loginNote') }} <a href="#">{{ t('privacy') }}</a> {{ t('and') }} <a href="#">{{ t('terms') }}</a></p>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ══ APP SHELL ══ -->
+  <template v-if="screen==='app'">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-mark">GS</div>
+
+      <button class="nav-btn" :class="{active:view==='notif'}" @click="view='notif'">
+        <span class="nav-tooltip">{{ t('nav.notif') }}</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button class="nav-btn" :class="{active:view==='cal'}" @click="view='cal'">
+        <span class="nav-tooltip">{{ t('nav.cal') }}</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </button>
+      <button class="nav-btn" :class="{active:view==='contacts'}" @click="view='contacts'">
+        <span class="nav-tooltip">{{ t('nav.contacts') }}</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </button>
+      <button class="nav-btn" :class="{active:view==='reports'}" @click="view='reports'">
+        <span class="nav-tooltip">{{ t('nav.reports') }}</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </button>
+
+      <div class="sidebar-spacer"></div>
+      <div class="user-pill" @click="showSettings=true" title="Oscar Reyes">
+        <img src="https://i.pravatar.cc/80?img=11" alt="Oscar">
+      </div>
+      <button class="settings-btn" @click="showSettings=true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </aside>
+
+    <div class="main">
+
+      <!-- ══ NOTIFICATIONS VIEW ══ -->
+      <template v-if="view==='notif'">
+        <!-- List -->
+        <div class="list-panel">
+          <div class="panel-head">
+            <div class="panel-toprow">
+              <p class="panel-title">{{ t('notif.title') }}</p>
+              <div class="head-actions">
+                <button class="btn-p" style="padding:5px 9px;font-size:10px;" @click="showImportCal=true">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  {{ t('import') }}
+                </button>
+                <button class="btn-s" style="padding:5px 9px;font-size:10px;" @click="showCreateTour=true">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {{ t('tour') }}
+                </button>
+              </div>
+            </div>
+            <div class="search-wrap">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-4)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input v-model="searchQ" :placeholder="t('search')">
+            </div>
+            <div class="tabs">
+              <button class="tab" :class="{on:ftab==='all'}" @click="ftab='all'">{{ t('all') }}</button>
+              <button class="tab" :class="{on:ftab==='wa'}" @click="ftab='wa'">WhatsApp</button>
+              <button class="tab" :class="{on:ftab==='sms'}" @click="ftab='sms'">SMS</button>
+              <button class="tab" :class="{on:ftab==='email'}" @click="ftab='email'">Email</button>
+            </div>
+          </div>
+          <div class="list-body">
+            <template v-for="g in groupedEvts" :key="g.label">
+              <p class="group-label">{{ g.label }}</p>
+              <div
+                v-for="ev in g.items" :key="ev.id"
+                class="evt-card" :class="{sel:selId===ev.id}"
+                @click="pickEvt(ev)"
+              >
+                <div class="card-r1">
+                  <div class="type-icon" :class="ev.type">
+                    <svg v-if="ev.type==='wa'" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg v-else-if="ev.type==='sms'" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  </div>
+                  <div class="card-info">
+                    <p class="card-title">{{ ev.title }}</p>
+                    <p class="card-sub">{{ ev.venue }} · {{ ev.city }}</p>
+                  </div>
+                  <span class="card-time">{{ ev.time }}</span>
+                </div>
+                <div class="card-r2">
+                  <span class="pill" :class="ev.pc">{{ ev.group }}</span>
+                  <span class="card-prev">{{ ev.preview }}</span>
+                </div>
+              </div>
+            </template>
+            <div v-if="groupedEvts.length===0" style="text-align:center;padding:32px 0;color:var(--text-4);font-size:12px;">
+              {{ t('noResults') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail -->
+        <div class="detail">
+          <div class="detail-empty" v-if="!selEvt">
+            <div class="empty-ic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-4)"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <p style="font-size:12px;">{{ t('selectEvent') }}</p>
+          </div>
+          <template v-else>
+            <div class="tour-band">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--acid-text)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span class="tour-name">{{ selEvt.tour }}</span>
+              <div class="band-dot"></div>
+              <span class="tour-dates">{{ selEvt.tourDates }}</span>
+            </div>
+            <div class="detail-top">
+              <div>
+                <p class="detail-tag">{{ selEvt.type.toUpperCase() }} · {{ selEvt.city }}</p>
+                <p class="detail-h">{{ selEvt.title }}</p>
+                <div class="detail-meta">
+                  <span class="meta-item">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ selEvt.fullDate }}
+                  </span>
+                  <span class="meta-item">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ selEvt.startTime }} – {{ selEvt.endTime }}
+                  </span>
+                  <span class="meta-item">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ selEvt.venue }}
+                  </span>
+                </div>
+              </div>
+              <button class="x-btn" @click="selId=null">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="detail-scroll">
+              <div class="act-row" v-if="!showNForm">
+                <button class="btn-p" @click="showNForm=true">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {{ t('newNotif') }}
+                </button>
+                <button class="btn-s" @click="showImportContacts=true">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+                  {{ t('addContacts') }}
+                </button>
+              </div>
+              <transition name="up">
+                <div class="nform" v-if="showNForm">
+                  <div class="nform-head">
+                    <p class="nform-title">{{ t('newNotif') }}</p>
+                    <button class="x-btn" style="position:static;" @click="showNForm=false">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                  <p class="f-label">{{ t('channel') }}</p>
+                  <div class="ch-tabs">
+                    <button v-for="ch in ['WhatsApp','SMS','Email']" :key="ch" class="ch-tab" :class="{on:nf.ch===ch}" @click="nf.ch=ch">{{ ch }}</button>
+                  </div>
+                  <p class="f-label">{{ t('message') }}</p>
+                  <textarea class="f-input" v-model="nf.msg" :placeholder="t('msgPlaceholder')"></textarea>
+                  <p class="f-label">{{ t('sendWhen') }}</p>
+                  <select class="f-input" v-model="nf.timing">
+                    <option>{{ t('24h') }}</option>
+                    <option>{{ t('2h') }}</option>
+                    <option>{{ t('atStart') }}</option>
+                  </select>
+                  <div style="display:flex;gap:7px;">
+                    <button class="btn-p btn-full" @click="saveNf">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      {{ t('save') }}
+                    </button>
+                    <button class="btn-s" @click="showNForm=false">{{ t('cancel') }}</button>
+                  </div>
+                </div>
+              </transition>
+              <!-- Event info -->
+              <div class="gblock">
+                <p class="block-title">{{ t('eventInfo') }}</p>
+                <div class="info-grid">
+                  <div class="info-item"><span class="info-k">{{ t('venue') }}</span><span class="info-v">{{ selEvt.venue }}</span></div>
+                  <div class="info-item"><span class="info-k">{{ t('city') }}</span><span class="info-v">{{ selEvt.city }}</span></div>
+                  <div class="info-item"><span class="info-k">{{ t('callTime') }}</span><span class="info-v">{{ selEvt.callTime }}</span></div>
+                  <div class="info-item"><span class="info-k">{{ t('doors') }}</span><span class="info-v">{{ selEvt.doors }}</span></div>
+                  <div class="info-item"><span class="info-k">{{ t('showTime') }}</span><span class="info-v">{{ selEvt.startTime }}</span></div>
+                  <div class="info-item"><span class="info-k">{{ t('curfew') }}</span><span class="info-v">{{ selEvt.endTime }}</span></div>
+                </div>
+              </div>
+              <!-- Message -->
+              <div class="gblock">
+                <p class="block-title">{{ t('notifMsg') }}</p>
+                <p class="msg-body">{{ selEvt.message }}</p>
+              </div>
+              <!-- Stats -->
+              <div class="gblock">
+                <p class="block-title">{{ t('stats') }}</p>
+                <div class="stats-row">
+                  <div class="scard"><p class="sval g">{{ selEvt.stats.sent }}</p><p class="slbl">{{ t('sent') }}</p></div>
+                  <div class="scard"><p class="sval b">{{ selEvt.stats.opened }}</p><p class="slbl">{{ t('opened') }}</p></div>
+                  <div class="scard"><p class="sval o">{{ selEvt.stats.clicked }}</p><p class="slbl">{{ t('clicked') }}</p></div>
+                </div>
+              </div>
+              <!-- Recipients -->
+              <div class="gblock">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                  <p class="block-title" style="margin:0;">{{ t('recipients') }}</p>
+                  <span class="pill n">{{ selEvt.contacts.length }} {{ t('contacts') }}</span>
+                </div>
+                <div class="contact-list">
+                  <div class="contact-row" v-for="c in selEvt.contacts" :key="c.id">
+                    <div class="av"><img :src="c.avatar" :alt="c.name"></div>
+                    <div style="flex:1;min-width:0;">
+                      <p class="c-name">{{ c.name }}</p>
+                      <p class="c-role">{{ c.role }}</p>
+                    </div>
+                    <div class="c-dot" :class="{pend:c.status==='pending'}"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- ══ OTHER VIEWS ══ -->
+      <template v-else>
+        <div class="list-panel">
+          <div class="panel-head">
+            <p class="panel-title">{{ t('nav.'+view) }}</p>
+          </div>
+          <div class="sim-wrap">
+            <div class="sim-card">
+              <div class="sim-ic">
+                <svg v-if="view==='cal'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg v-else-if="view==='contacts'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <p class="sim-t">{{ t('nav.'+view) }}</p>
+              <p class="sim-s">{{ t('comingSoon') }}</p>
+              <button class="btn-p" style="margin-top:16px;" @click="view='notif'">← {{ t('backToNotif') }}</button>
+            </div>
+          </div>
+        </div>
+        <div class="detail">
+          <div class="detail-empty">
+            <div class="empty-ic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-4)"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+            </div>
+            <p style="font-size:12px;">{{ t('nothingSelected') }}</p>
+          </div>
+        </div>
+      </template>
+
+    </div><!-- .main -->
+
+    <!-- Mobile nav -->
+    <nav class="mobile-bar">
+      <button class="mob-btn" :class="{on:view==='notif'}" @click="view='notif'">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        {{ t('nav.notif') }}
+      </button>
+      <button class="mob-btn" :class="{on:view==='cal'}" @click="view='cal'">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ t('nav.cal') }}
+      </button>
+      <button class="mob-btn" :class="{on:view==='contacts'}" @click="view='contacts'">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        {{ t('nav.contacts') }}
+      </button>
+      <button class="mob-btn" :class="{on:view==='reports'}" @click="view='reports'">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        {{ t('nav.reports') }}
+      </button>
+    </nav>
+  </template>
+
+  <!-- ══ MODALS ══ -->
+
+  <!-- Create Tour -->
+  <transition name="fade">
+    <div class="overlay" v-if="showCreateTour" @click.self="showCreateTour=false">
+      <transition name="up">
+        <div class="modal" v-if="showCreateTour">
+          <button class="m-close" @click="showCreateTour=false">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="modal-h">
+            <div class="modal-icon acid">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <div>
+              <p class="modal-title">{{ t('createTour') }}</p>
+              <p class="modal-sub">{{ t('createTourSub') }}</p>
+            </div>
+          </div>
+          <p class="f-label">{{ t('tourName') }}</p>
+          <input class="f-input" type="text" v-model="nt.name" :placeholder="t('tourNamePh')">
+          <p class="f-label">{{ t('artist') }}</p>
+          <input class="f-input" type="text" v-model="nt.artist" :placeholder="t('artistPh')">
+          <div class="f-row">
+            <div><p class="f-label">{{ t('startDate') }}</p><input class="f-input" type="date" v-model="nt.start"></div>
+            <div><p class="f-label">{{ t('endDate') }}</p><input class="f-input" type="date" v-model="nt.end"></div>
+          </div>
+          <p class="f-label">{{ t('timezone') }}</p>
+          <select class="f-input" v-model="nt.tz">
+            <option>America/Mexico_City (CST)</option>
+            <option>America/New_York (EST)</option>
+            <option>America/Los_Angeles (PST)</option>
+            <option>Europe/Madrid (CET)</option>
+            <option>Europe/London (GMT)</option>
+            <option>America/Argentina/Buenos_Aires (ART)</option>
+          </select>
+          <div style="display:flex;gap:7px;">
+            <button class="btn-p btn-full" @click="doCreateTour">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              {{ t('createTour') }}
+            </button>
+            <button class="btn-s" @click="showCreateTour=false">{{ t('cancel') }}</button>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </transition>
+
+  <!-- Import Calendar -->
+  <transition name="fade">
+    <div class="overlay" v-if="showImportCal" @click.self="showImportCal=false">
+      <transition name="up">
+        <div class="modal" v-if="showImportCal">
+          <button class="m-close" @click="showImportCal=false">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="modal-h">
+            <div class="modal-icon blue">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div>
+              <p class="modal-title">{{ t('importCal') }}</p>
+              <p class="modal-sub">{{ t('importCalSub') }}</p>
+            </div>
+          </div>
+          <p class="f-label">{{ t('linkTour') }}</p>
+          <select class="f-input">
+            <option>Duki — North America Spring Tour · Apr–May 2025</option>
+            <option>Bizarrap — European Summer Run · Jun–Jul 2025</option>
+          </select>
+          <p class="f-label">{{ t('calendar') }}</p>
+          <select class="f-input">
+            <option>oscar@gigsync.io — Gig Sync Tour Cal</option>
+            <option>oscar@gmail.com — Personal</option>
+          </select>
+          <p class="f-label" style="margin-bottom:8px;">{{ t('availableEvts') }}</p>
+          <div v-for="ev in calEvts" :key="ev.id" class="cal-row" :class="{on:ev.sel}" @click="ev.sel=!ev.sel">
+            <div class="cal-dot2" :style="{background:ev.color}"></div>
+            <div style="flex:1;">
+              <p class="cal-name">{{ ev.name }}</p>
+              <p class="cal-date">{{ ev.date }} · {{ ev.loc }}</p>
+            </div>
+            <div class="cbox" :class="{on:ev.sel}">
+              <svg v-if="ev.sel" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;margin-top:14px;">
+            <button class="btn-p btn-full" @click="doImport">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+              {{ t('importSel') }} ({{ calEvts.filter(e=>e.sel).length }})
+            </button>
+            <button class="btn-s" @click="showImportCal=false">{{ t('cancel') }}</button>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </transition>
+
+  <!-- Import Contacts -->
+  <transition name="fade">
+    <div class="overlay" v-if="showImportContacts" @click.self="showImportContacts=false">
+      <transition name="up">
+        <div class="modal" v-if="showImportContacts">
+          <button class="m-close" @click="showImportContacts=false">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="modal-h">
+            <div class="modal-icon acid">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+            </div>
+            <div>
+              <p class="modal-title">{{ t('importContacts') }}</p>
+              <p class="modal-sub">{{ t('importContactsSub') }}</p>
+            </div>
+          </div>
+          <!-- Source selector -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">
+            <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all 0.18s;" @click="contactSource='google'" :style="contactSource==='google'?'border-color:var(--border-acid);background:var(--glass-active)':''">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue-text)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <p style="font-size:11px;font-weight:600;">Google Contacts</p>
+              <p style="font-size:10px;color:var(--text-3);margin-top:2px;">OAuth sync</p>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all 0.18s;" @click="contactSource='excel'" :style="contactSource==='excel'?'border-color:var(--border-acid);background:var(--glass-active)':''">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--acid-text)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <p style="font-size:11px;font-weight:600;">Excel / CSV</p>
+              <p style="font-size:10px;color:var(--text-3);margin-top:2px;">.xlsx, .csv</p>
+            </div>
+          </div>
+          <!-- Preview contacts if google selected -->
+          <template v-if="contactSource==='google'">
+            <p class="f-label" style="margin-bottom:8px;">{{ t('selectContacts') }}</p>
+            <div v-for="c in previewContacts" :key="c.id" class="ci-row" :class="{on:c.sel}" @click="c.sel=!c.sel">
+              <div class="av"><img :src="c.avatar" :alt="c.name"></div>
+              <div style="flex:1;">
+                <p style="font-size:12px;font-weight:500;">{{ c.name }}</p>
+                <p style="font-size:10px;color:var(--text-3);">{{ c.role }}</p>
+              </div>
+              <div class="cbox" :class="{on:c.sel}">
+                <svg v-if="c.sel" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div style="border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;color:var(--text-3);font-size:12px;margin-bottom:14px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              {{ t('dropFile') }}
+            </div>
+          </template>
+          <div style="display:flex;gap:7px;">
+            <button class="btn-p btn-full" @click="showImportContacts=false">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ t('addSelected') }} ({{ previewContacts.filter(c=>c.sel).length }})
+            </button>
+            <button class="btn-s" @click="showImportContacts=false">{{ t('cancel') }}</button>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </transition>
+
+  <!-- Settings -->
+  <transition name="fade">
+    <div class="overlay" v-if="showSettings" @click.self="showSettings=false">
+      <transition name="up">
+        <div class="modal" v-if="showSettings">
+          <button class="m-close" @click="showSettings=false">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+            <img src="https://i.pravatar.cc/80?img=11" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--acid);" alt="">
+            <div>
+              <p style="font-weight:700;font-size:14px;">Oscar Reyes</p>
+              <p style="font-size:11px;color:var(--text-2);">oscar@gigsync.io · Tour Manager</p>
+            </div>
+            <div class="lang-toggle" style="margin-left:auto;">
+              <button class="lang-btn" :class="{on:lang==='es'}" @click="lang='es'">ES</button>
+              <button class="lang-btn" :class="{on:lang==='en'}" @click="lang='en'">EN</button>
+            </div>
+          </div>
+          <p class="f-label" style="margin-bottom:8px;">{{ t('integrations') }}</p>
+          <div class="gblock" style="padding:4px 14px;">
+            <div class="integration-row">
+              <span style="font-size:12px;">Google Calendar</span>
+              <span class="pill g">{{ t('active') }}</span>
+            </div>
+            <div class="integration-row">
+              <span style="font-size:12px;">WhatsApp (Twilio)</span>
+              <span class="pill g">{{ t('active') }}</span>
+            </div>
+            <div class="integration-row">
+              <span style="font-size:12px;">Mailgun (Email)</span>
+              <span class="pill n">{{ t('configure') }}</span>
+            </div>
+            <div class="integration-row">
+              <span style="font-size:12px;">Apple Wallet Pass</span>
+              <span class="pill o">{{ t('beta') }}</span>
+            </div>
+          </div>
+          <button class="btn-s btn-full" style="margin-top:12px;justify-content:center;" @click="doSignOut">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            {{ t('signOut') }}
+          </button>
+        </div>
+      </transition>
+    </div>
+  </transition>
+
+</div><!-- #app -->
+
+<script>
+const { createApp, ref, reactive, computed } = Vue;
+
+const i18n = {
+  es: {
+    loginTagline: 'Automatiza la comunicación logística de tu gira. Sin caos.',
+    continueGoogle: 'Continuar con Google',
+    or: 'o',
+    viewDemo: 'Ver demo sin iniciar sesión',
+    loginNote: 'Al continuar aceptas nuestra',
+    privacy: 'Política de privacidad',
+    and: 'y',
+    terms: 'Términos de uso',
+    nav: { notif: 'Notifs', cal: 'Calendario', contacts: 'Contactos', reports: 'Reportes' },
+    'notif.title': 'Notificaciones',
+    import: 'Importar',
+    tour: 'Gira',
+    search: 'Buscar eventos...',
+    all: 'Todos',
+    noResults: 'Sin resultados',
+    selectEvent: 'Selecciona un evento para ver el detalle',
+    newNotif: 'Nueva Notificación',
+    addContacts: 'Agregar Contactos',
+    channel: 'Canal',
+    message: 'Mensaje',
+    msgPlaceholder: 'Hola {nombre}, call time {hora} en {venue}...',
+    sendWhen: 'Enviar',
+    '24h': '24h antes del evento',
+    '2h': '2h antes del evento',
+    atStart: 'Al inicio del evento',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    eventInfo: 'Información del Evento',
+    venue: 'Recinto',
+    city: 'Ciudad',
+    callTime: 'Call Time',
+    doors: 'Puertas',
+    showTime: 'Show',
+    curfew: 'Toque de queda',
+    notifMsg: 'Mensaje de Notificación',
+    stats: 'Estadísticas de Entrega',
+    sent: 'Enviados',
+    opened: 'Abiertos',
+    clicked: 'Clicks',
+    recipients: 'Destinatarios',
+    contacts: 'contactos',
+    comingSoon: 'Esta sección estará disponible en el próximo sprint. Los datos se sincronizarán automáticamente.',
+    backToNotif: 'Volver a Notificaciones',
+    nothingSelected: 'Nada seleccionado',
+    createTour: 'Crear Gira',
+    createTourSub: 'Configura una nueva gira para tu artista',
+    tourName: 'Nombre de la Gira',
+    tourNamePh: 'ej. North America Spring Tour 2025',
+    artist: 'Artista / Proyecto',
+    artistPh: 'ej. Duki, Bad Bunny, Bizarrap...',
+    startDate: 'Fecha Inicio',
+    endDate: 'Fecha Fin',
+    timezone: 'Zona Horaria',
+    importCal: 'Importar de Google Calendar',
+    importCalSub: 'Selecciona eventos y vincúlalos a tu gira',
+    linkTour: 'Vincular a Gira',
+    calendar: 'Calendario',
+    availableEvts: 'Eventos Disponibles',
+    importSel: 'Importar Seleccionados',
+    importContacts: 'Agregar Contactos',
+    importContactsSub: 'Importa desde Google Contacts o sube un archivo',
+    selectContacts: 'Seleccionar Contactos',
+    dropFile: 'Arrastra tu archivo .xlsx o .csv aquí',
+    addSelected: 'Agregar Seleccionados',
+    integrations: 'Integraciones',
+    active: 'Activo',
+    configure: 'Configurar',
+    beta: 'Beta',
+    signOut: 'Cerrar Sesión',
+  },
+  en: {
+    loginTagline: 'Automate your tour\'s logistics communication. Zero chaos.',
+    continueGoogle: 'Continue with Google',
+    or: 'or',
+    viewDemo: 'View demo without signing in',
+    loginNote: 'By continuing you agree to our',
+    privacy: 'Privacy Policy',
+    and: 'and',
+    terms: 'Terms of Service',
+    nav: { notif: 'Notifs', cal: 'Calendar', contacts: 'Contacts', reports: 'Reports' },
+    'notif.title': 'Notifications',
+    import: 'Import',
+    tour: 'Tour',
+    search: 'Search events...',
+    all: 'All',
+    noResults: 'No results',
+    selectEvent: 'Select an event to view details',
+    newNotif: 'New Notification',
+    addContacts: 'Add Contacts',
+    channel: 'Channel',
+    message: 'Message',
+    msgPlaceholder: 'Hi {name}, call time {time} at {venue}...',
+    sendWhen: 'Send',
+    '24h': '24h before event',
+    '2h': '2h before event',
+    atStart: 'At event start',
+    save: 'Save',
+    cancel: 'Cancel',
+    eventInfo: 'Event Information',
+    venue: 'Venue',
+    city: 'City',
+    callTime: 'Call Time',
+    doors: 'Doors',
+    showTime: 'Show',
+    curfew: 'Curfew',
+    notifMsg: 'Notification Message',
+    stats: 'Delivery Stats',
+    sent: 'Sent',
+    opened: 'Opened',
+    clicked: 'Clicked',
+    recipients: 'Recipients',
+    contacts: 'contacts',
+    comingSoon: 'This section is coming in the next sprint. Data will sync automatically.',
+    backToNotif: 'Back to Notifications',
+    nothingSelected: 'Nothing selected',
+    createTour: 'Create Tour',
+    createTourSub: 'Set up a new tour for your artist',
+    tourName: 'Tour Name',
+    tourNamePh: 'e.g. North America Spring Tour 2025',
+    artist: 'Artist / Act',
+    artistPh: 'e.g. Duki, Bad Bunny, Bizarrap...',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    timezone: 'Timezone',
+    importCal: 'Import from Google Calendar',
+    importCalSub: 'Select events and link them to your tour',
+    linkTour: 'Link to Tour',
+    calendar: 'Calendar',
+    availableEvts: 'Available Events',
+    importSel: 'Import Selected',
+    importContacts: 'Add Contacts',
+    importContactsSub: 'Import from Google Contacts or upload a file',
+    selectContacts: 'Select Contacts',
+    dropFile: 'Drop your .xlsx or .csv file here',
+    addSelected: 'Add Selected',
+    integrations: 'Integrations',
+    active: 'Active',
+    configure: 'Configure',
+    beta: 'Beta',
+    signOut: 'Sign Out',
+  }
+};
+
+createApp({
+  setup() {
+    const lang = ref('es');
+    const screen = ref('login');
+    const view = ref('notif');
+    const selId = ref(1);
+    const ftab = ref('all');
+    const searchQ = ref('');
+    const showCreateTour = ref(false);
+    const showImportCal = ref(false);
+    const showImportContacts = ref(false);
+    const showSettings = ref(false);
+    const showNForm = ref(false);
+    const contactSource = ref('google');
+
+    const t = (key) => i18n[lang.value][key] ?? i18n['es'][key] ?? key;
+
+    const nt = reactive({ name:'', artist:'', start:'', end:'', tz:'America/Mexico_City (CST)' });
+    const nf = reactive({ ch:'WhatsApp', msg:'', timing:'24h antes del evento' });
+
+    const contacts = [
+      { id:1, name:'Laura Méndez', role:'Stage Manager', avatar:'https://i.pravatar.cc/60?img=5', status:'sent' },
+      { id:2, name:'Marcos Vidal', role:'FOH Engineer', avatar:'https://i.pravatar.cc/60?img=8', status:'sent' },
+      { id:3, name:'Sofía Ruiz', role:'Artist Manager', avatar:'https://i.pravatar.cc/60?img=9', status:'pending' },
+      { id:4, name:'Diego Flores', role:'Lighting Director', avatar:'https://i.pravatar.cc/60?img=12', status:'sent' },
+      { id:5, name:'Ana Torres', role:'Production Asst.', avatar:'https://i.pravatar.cc/60?img=15', status:'pending' },
+    ];
+
+    const previewContacts = reactive([
+      { id:1, name:'Laura Méndez', role:'Stage Manager', avatar:'https://i.pravatar.cc/60?img=5', sel:false },
+      { id:2, name:'Marcos Vidal', role:'FOH Engineer', avatar:'https://i.pravatar.cc/60?img=8', sel:true },
+      { id:3, name:'Carlos Espinoza', role:'Tour Bus Driver', avatar:'https://i.pravatar.cc/60?img=18', sel:false },
+      { id:4, name:'Diana López', role:'Wardrobe', avatar:'https://i.pravatar.cc/60?img=22', sel:true },
+      { id:5, name:'Roberto Sánchez', role:'Security Lead', avatar:'https://i.pravatar.cc/60?img=31', sel:false },
+    ]);
+
+    const events = ref([
+      { id:1, type:'wa', title:'Soundcheck — Palacio Deportes', venue:'Palacio de los Deportes', city:'CDMX', group:'Crew Completo', pc:'g', time:'09:00', preview:'Call time 14:00. Doors 20:00.', fullDate:'Sáb, 5 Abr 2025', startTime:'22:00', endTime:'00:30', callTime:'14:00', doors:'20:00', tour:'Duki — MTZ Tour', tourDates:'1 Abr – 20 May 2025', message:'📍 Palacio de los Deportes — CDMX\nCall time: 14:00 | Puertas: 20:00 | Show: 22:00\nParking abre 13:00. Todos con laminados visibles. Checkout hotel 11:00 — guardaequipaje disponible.', stats:{ sent:28, opened:24, clicked:11 }, contacts, dateGroup:'Hoy — 5 Abr' },
+      { id:2, type:'sms', title:'Night-Off — Traslado Guadalajara', venue:'Gran Hotel GDL', city:'Guadalajara', group:'Banda & Crew', pc:'n', time:'18:30', preview:'Lobby call 08:00. Bus sale 08:30.', fullDate:'Dom, 6 Abr 2025', startTime:'08:30', endTime:'14:00', callTime:'08:00', doors:'N/A', tour:'Duki — MTZ Tour', tourDates:'1 Abr – 20 May 2025', message:'🌙 Night-Off Report — 6 Abr\nDía de traslado a Guadalajara. Bus sale del lobby a las 08:30 EN PUNTO. Check-in Gran Hotel GDL desde las 14:00. Cena por cuenta propia esta noche.', stats:{ sent:28, opened:28, clicked:0 }, contacts:contacts.slice(0,3), dateGroup:'Hoy — 5 Abr' },
+      { id:3, type:'email', title:'Rider-Alert — Arena VFG', venue:'Arena VFG', city:'Guadalajara', group:'Promotor', pc:'b', time:'11:00', preview:'Confirmación de rider requerida.', fullDate:'Lun, 7 Abr 2025', startTime:'21:00', endTime:'23:30', callTime:'15:00', doors:'19:30', tour:'Duki — MTZ Tour', tourDates:'1 Abr – 20 May 2025', message:'Equipo Arena VFG,\n\nFavor confirmar los siguientes items del rider antes del mediodía:\n• 3 cajas agua natural (backstage)\n• Temperatura camerino 22°C\n• 2 espejos de cuerpo completo\n• Catering 32 pax (opciones veganas requeridas)\n\nGracias — GigSync Automatizado', stats:{ sent:3, opened:3, clicked:2 }, contacts:contacts.slice(1,2), dateGroup:'Esta Semana' },
+      { id:4, type:'wa', title:'Show Day — Arena VFG Guadalajara', venue:'Arena VFG', city:'Guadalajara', group:'Crew Completo', pc:'g', time:'09:00', preview:'Call 15:00. Soundcheck 17:30.', fullDate:'Lun, 7 Abr 2025', startTime:'21:00', endTime:'23:30', callTime:'15:00', doors:'19:30', tour:'Duki — MTZ Tour', tourDates:'1 Abr – 20 May 2025', message:'🎤 SHOW DAY — Arena VFG, Guadalajara\nCall: 15:00 | Soundcheck: 17:30 | Puertas: 19:30 | Show: 21:00\nTodo el backline debe estar en escenario antes de las 17:00. Catering abre 16:00–20:30. Shuttle del artista desde hotel a las 19:00.', stats:{ sent:28, opened:22, clicked:7 }, contacts, dateGroup:'Esta Semana' },
+      { id:5, type:'sms', title:'Flight Alert — GDL → MTY', venue:'Aeropuerto GDL T2', city:'Guadalajara', group:'Lista de Viaje', pc:'o', time:'06:00', preview:'Check-in cierra 06:00. Gate B12.', fullDate:'Mar, 8 Abr 2025', startTime:'08:00', endTime:'09:15', callTime:'05:30', doors:'N/A', tour:'Duki — MTZ Tour', tourDates:'1 Abr – 20 May 2025', message:'✈️ Vuelo AM 501 — GDL a MTY\nSalida: 08:00 | Gate: B12\nLobby call: 05:30. Shuttle al aeropuerto: 05:45. Link de check-in online en el grupo. Equipaje: 2 maletas + 1 carry-on por persona.', stats:{ sent:14, opened:14, clicked:14 }, contacts:contacts.slice(0,4), dateGroup:'Próximamente' },
+    ]);
+
+    const calEvts = reactive([
+      { id:1, name:'Soundcheck — Palacio de los Deportes', date:'5 Abr · 14:00', loc:'CDMX', color:'#a8d800', sel:false },
+      { id:2, name:'Night-Off — Traslado Guadalajara', date:'6 Abr · 08:30', loc:'GDL', color:'#666', sel:false },
+      { id:3, name:'Arena VFG — Show Day', date:'7 Abr · 21:00', loc:'Guadalajara', color:'#a8d800', sel:true },
+      { id:4, name:'Vuelo GDL → MTY', date:'8 Abr · 08:00', loc:'Aeropuerto', color:'#1a8fff', sel:false },
+      { id:5, name:'Rueda de prensa — Monterrey', date:'8 Abr · 14:00', loc:'Monterrey', color:'#e85d00', sel:false },
+    ]);
+
+    const filtered = computed(() => {
+      let list = events.value;
+      if (ftab.value !== 'all') list = list.filter(e => e.type === ftab.value);
+      if (searchQ.value) {
+        const q = searchQ.value.toLowerCase();
+        list = list.filter(e => e.title.toLowerCase().includes(q) || e.city.toLowerCase().includes(q) || e.venue.toLowerCase().includes(q));
+      }
+      return list;
+    });
+
+    const groupedEvts = computed(() => {
+      const map = {};
+      filtered.value.forEach(e => {
+        if (!map[e.dateGroup]) map[e.dateGroup] = [];
+        map[e.dateGroup].push(e);
+      });
+      return Object.entries(map).map(([label, items]) => ({ label, items }));
+    });
+
+    const selEvt = computed(() => events.value.find(e => e.id === selId.value) ?? null);
+
+    function pickEvt(ev) { selId.value = ev.id; showNForm.value = false; }
+    function doLogin() { screen.value = 'app'; }
+    function doDemo() { screen.value = 'app'; }
+    function doSignOut() { showSettings.value = false; screen.value = 'login'; }
+    function doCreateTour() { showCreateTour.value = false; }
+    function doImport() { showImportCal.value = false; }
+    function saveNf() { showNForm.value = false; Object.assign(nf, { ch:'WhatsApp', msg:'', timing:'24h antes del evento' }); }
+
+    return {
+      lang, screen, view, selId, ftab, searchQ,
+      showCreateTour, showImportCal, showImportContacts, showSettings, showNForm,
+      contactSource, nt, nf, calEvts, previewContacts,
+      groupedEvts, selEvt, t,
+      pickEvt, doLogin, doDemo, doSignOut, doCreateTour, doImport, saveNf
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
