@@ -9,7 +9,7 @@ import type { SpotifyArtist } from '@/composables/useSpotifySearch'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
 
-defineProps<{ show: boolean }>()
+const props = defineProps<{ show: boolean; mobile?: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const toursStore = useToursStore()
@@ -329,11 +329,14 @@ async function confirmDelete(uuid: string) {
     </Transition>
 
     <!-- Panel -->
-    <Transition name="tp-slide">
+    <Transition :name="props.mobile ? 'tp-slide-up' : 'tp-slide'">
       <div
         v-if="show"
-        class="sidebar-dark fixed left-16 top-0 h-screen w-[256px] bg-bg-2 border-r border-line z-[56] flex flex-col"
-        style="box-shadow: 4px 0 28px var(--shadow-md)"
+        class="sidebar-dark fixed bg-bg-2 z-[56] flex flex-col"
+        :class="props.mobile
+          ? 'left-0 right-0 bottom-[56px] rounded-t-2xl border-t border-line max-h-[75vh] overflow-hidden'
+          : 'left-16 top-0 h-screen w-[256px] border-r border-line'"
+        :style="props.mobile ? 'box-shadow: 0 -4px 28px var(--shadow-md)' : 'box-shadow: 4px 0 28px var(--shadow-md)'"
       >
         <!-- ═══════════════════════════════ LIST MODE ═══════════════════════════════ -->
         <template v-if="mode === 'list'">
@@ -733,6 +736,17 @@ async function confirmDelete(uuid: string) {
 .tp-slide-enter-from,
 .tp-slide-leave-to {
   transform: translateX(-10px);
+  opacity: 0;
+}
+
+/* mobile bottom-sheet variant — applied via inline style when mobile=true */
+.tp-slide-up-enter-active,
+.tp-slide-up-leave-active {
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.tp-slide-up-enter-from,
+.tp-slide-up-leave-to {
+  transform: translateY(12px);
   opacity: 0;
 }
 </style>

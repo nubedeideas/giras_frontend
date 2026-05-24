@@ -1,5 +1,5 @@
 export default {
-  loginTagline: 'Automatiza la comunicación logística de tu gira. Sin caos.',
+  loginTagline: 'Automatiza la comunicación logística de tu gira.',
   continueGoogle: 'Continuar con Google',
   or: 'o',
   viewDemo: 'Ver demo sin iniciar sesión',

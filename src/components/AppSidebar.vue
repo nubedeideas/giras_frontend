@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
 import { useI18n } from 'vue-i18n'
 import TourMenuPanel from '@/components/TourMenuPanel.vue'
+import logoIcon from '@/assets/logo-icon.svg'
+import { useUIState } from '@/composables/useUIState'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -12,6 +14,7 @@ const toursStore = useToursStore()
 const { t } = useI18n()
 
 const emit = defineEmits<{ openSettings: [] }>()
+const { openWizard } = useUIState()
 const showTours = ref(false)
 
 const navItems = [
@@ -52,12 +55,35 @@ function isActive(to: string) {
     class="sidebar-dark hidden md:flex w-16 flex-shrink-0 bg-bg-2 border-r border-line flex-col items-center py-4 gap-0.5 z-50"
   >
     <!-- Logo -->
-    <RouterLink
-      to="/notifs"
-      class="w-9 h-9 rounded-[11px] bg-acid text-black flex items-center justify-center mb-[18px] flex-shrink-0 font-bold text-[13px] tracking-[-0.5px] no-underline"
-    >
-      GS
+    <RouterLink to="/notifs" class="w-9 h-9 flex-shrink-0 block no-underline">
+      <img
+        :src="logoIcon"
+        class="w-full h-full"
+        alt="Giras Pro"
+      >
     </RouterLink>
+
+    <!-- New tour wizard button -->
+    <button
+      class="w-9 h-9 mb-[14px] mt-2 flex-shrink-0 flex items-center justify-center rounded-[11px] border border-dashed border-line-2 text-ink-4 bg-transparent cursor-pointer transition-all duration-200 hover:border-acid hover:text-acid hover:bg-glass-active group"
+      title="Nueva gira"
+      @click="openWizard"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="transition-transform duration-200 group-hover:rotate-90"
+      >
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
 
     <!-- Nav items -->
     <div v-for="item in navItems" :key="item.key" class="relative group">

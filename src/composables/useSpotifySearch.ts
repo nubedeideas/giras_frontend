@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/stores/auth'
+
 export interface SpotifyArtist {
   id: string
   name: string
@@ -7,49 +9,21 @@ export interface SpotifyArtist {
   genres: string[]
 }
 
-// ─── Token cache (module-level, persists across uses) ─────────────────────────
-
-let cachedToken: string | null = null
-let tokenExpiry = 0
-
-async function fetchToken(): Promise<string> {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken
-
-  const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID as string
-  const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET as string
-  if (!clientId || !clientSecret) throw new Error('Spotify credentials not configured')
-
-  // Credentials in body (not Authorization header) avoids CORS preflight
-  const body = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: clientId,
-    client_secret: clientSecret,
-  })
-
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
-  })
-  if (!res.ok) throw new Error(`Spotify auth error: ${res.status}`)
-
-  const data = await res.json()
-  cachedToken = data.access_token as string
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
-  return cachedToken
-}
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function searchSpotifyArtists(query: string): Promise<SpotifyArtist[]> {
-  const token = await fetchToken()
-  const res = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
-    { headers: { Authorization: `Bearer ${token}` } },
+  const auth = useAuthStore()
+  const res = await auth.fetchWithAuth(
+    `${API_BASE}/tours/spotify_search/?q=${encodeURIComponent(query)}`,
   )
-  if (!res.ok) throw new Error(`Spotify search error: ${res.status}`)
-  const data = await res.json()
-  return (data.artists?.items ?? []) as SpotifyArtist[]
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error ?? `Error ${res.status}`)
+  }
+  return (await res.json()) as SpotifyArtist[]
 }
 
 export function formatFollowers(n: number): string {

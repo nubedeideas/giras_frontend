@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import logoIcon from '@/assets/logo-icon.svg'
 
 const { t, locale } = useI18n()
 const auth = useAuthStore()
@@ -55,28 +56,14 @@ function doDemo() {
       <div class="absolute top-[-60px] left-1/2 -translate-x-1/2 w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(168,216,0,0.12)_0%,transparent_70%)] pointer-events-none" />
 
       <!-- Logo -->
-      <div class="w-[52px] h-[52px] rounded-[16px] bg-acid flex items-center justify-center mx-auto mb-5">
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#000"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="3"
-          />
-          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-        </svg>
-      </div>
+      <img
+        :src="logoIcon"
+        class="w-[52px] h-[52px] mx-auto mb-5"
+        alt="Giras Pro"
+      >
 
       <p class="text-[24px] font-bold tracking-[-0.5px] mb-1.5 text-ink">
-        GigSync
+        Giras Pro
       </p>
       <p class="text-[13px] text-ink-2 mb-8 leading-relaxed">
         {{ t('loginTagline') }}

@@ -1,16 +1,15 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import TourMenuPanel from '@/components/TourMenuPanel.vue'
 
 const route = useRoute()
 const { t } = useI18n()
 
+const showTours = ref(false)
+
 const navItems = [
-  {
-    to: '/notifs',
-    key: 'notif',
-    icon: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`,
-  },
   {
     to: '/events',
     key: 'events',
@@ -44,12 +43,35 @@ const navItems = [
     class="sidebar-dark md:hidden fixed bottom-0 left-0 right-0 bg-bg-2 border-t border-line flex z-[100]"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
+    <!-- Giras button (tour selector) -->
+    <button
+      class="flex-1 py-2.5 flex flex-col items-center gap-[3px] transition-colors duration-200 bg-transparent border-none cursor-pointer"
+      :class="showTours ? 'text-acid' : 'text-acid-nav hover:text-acid'"
+      @click="showTours = !showTours"
+    >
+      <svg
+        width="19"
+        height="19"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+      </svg>
+      <span class="text-[9px] font-medium">{{ t('nav.tours') }}</span>
+    </button>
+
+    <!-- Regular nav links -->
     <RouterLink
       v-for="item in navItems"
       :key="item.key"
       :to="item.to"
       class="flex-1 py-2.5 flex flex-col items-center gap-[3px] no-underline text-acid-nav transition-colors duration-200"
-      :class="route.path.startsWith(item.to) ? 'text-acid' : 'hover:text-acid'">
+      :class="route.path.startsWith(item.to) ? 'text-acid' : 'hover:text-acid'"
+    >
       <svg
         width="19"
         height="19"
@@ -64,4 +86,7 @@ const navItems = [
       <span class="text-[9px] font-medium">{{ t(`nav.${item.key}`) }}</span>
     </RouterLink>
   </nav>
+
+  <!-- Tour selector panel (mobile bottom sheet) -->
+  <TourMenuPanel :show="showTours" :mobile="true" @close="showTours = false" />
 </template>
