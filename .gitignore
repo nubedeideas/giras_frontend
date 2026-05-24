@@ -7,6 +7,9 @@ dist
 dist-ssr
 *.local
 
+# TypeScript
+*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -18,10 +21,12 @@ dist-ssr
 *.sln
 *.sw?
 
+# Claude Code (local settings — project settings.json should be committed)
+.claude/settings.local.json
+
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
 
 # Logs
 logs
@@ -31,11 +36,14 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Linting cache
+.eslintcache
+
 # Testing
 coverage
 .nyc_output
 
-# Temp files
+# Temp / Vite cache
 *.tmp
 *.temp
 .cache
