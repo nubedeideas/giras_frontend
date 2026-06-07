@@ -5,6 +5,8 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Landing page accent — distinct from dashboard's --acid token
+        'acid-green': '#c0ff00',
         acid: {
           DEFAULT: 'var(--acid)',
           light: 'var(--acid-light)',

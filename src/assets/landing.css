@@ -1,0 +1,92 @@
+/* ─── Landing page styles ────────────────────────────────────────────────────
+   All rules are scoped to .landing-body to prevent leaking into the dashboard.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.landing-body {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.landing-body .font-header {
+  font-family: 'Bebas Neue', cursive;
+}
+
+.landing-body .glass {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.landing-body .acid-green {
+  color: #c0ff00;
+}
+
+.landing-body .bg-acid-green {
+  background-color: #c0ff00;
+}
+
+.landing-body .border-acid-green {
+  border-color: #c0ff00;
+}
+
+.landing-body .shadow-hard {
+  box-shadow: 8px 8px 0px 0px #c0ff00;
+}
+
+.landing-body .shadow-hard-loading {
+  animation: hard-shadow-orbit 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transition: transform 0.1s ease;
+}
+
+@keyframes hard-shadow-orbit {
+  0%, 100% {
+    box-shadow: 8px 8px 0px 0px #c0ff00, inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #c0ff00;
+  }
+  25% {
+    box-shadow: -8px 8px 0px 0px #a6dd00, inset 2px -2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #b3ee00;
+  }
+  50% {
+    box-shadow: -8px -8px 0px 0px #8ebc00, inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #a6dd00;
+  }
+  75% {
+    box-shadow: 8px -8px 0px 0px #a6dd00, inset -2px 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #b3ee00;
+  }
+}
+
+.landing-body .grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.landing-body .reveal-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.landing-body .reveal-up.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.landing-body .animate-marquee {
+  animation: marquee 30s linear infinite;
+}

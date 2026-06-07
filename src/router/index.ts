@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', redirect: '/notifs' },
+    { path: '/', name: 'landing', component: () => import('@/views/LandingView.vue'), meta: { public: true } },
     {
       path: '/login',
       name: 'login',
@@ -48,7 +48,7 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) return '/login'
-  if (to.name === 'login' && auth.isLoggedIn) return '/notifs'
+  if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) return '/notifs'
 })
 
 export default router
