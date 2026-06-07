@@ -5,7 +5,7 @@ import OnbCrewStep from './OnbCrewStep.vue'
 import OnbCalendarStep from './OnbCalendarStep.vue'
 import OnbDoneStep from './OnbDoneStep.vue'
 
-const emit = defineEmits<{ complete: [tourId: number | null] }>()
+const emit = defineEmits<{ complete: [tourId: number | null]; close: [] }>()
 
 type Step = 'tour' | 'crew' | 'calendar' | 'done'
 
@@ -67,20 +67,32 @@ function onFinish() {
                 Paso {{ stepIndex + 1 }} de {{ STEPS.length }} — {{ STEP_LABELS[currentStep] }}
               </p>
             </div>
-            <!-- Step dots -->
-            <div class="flex items-center gap-1.5">
-              <div
-                v-for="(s, i) in STEPS"
-                :key="s"
-                class="rounded-full transition-all duration-300"
-                :class="
-                  i < stepIndex
-                    ? 'w-2 h-2 bg-acid'
-                    : i === stepIndex
-                      ? 'w-5 h-2 bg-acid'
-                      : 'w-2 h-2 bg-line-2'
-                "
-              />
+            <div class="flex items-center gap-3">
+              <!-- Step dots -->
+              <div class="flex items-center gap-1.5">
+                <div
+                  v-for="(s, i) in STEPS"
+                  :key="s"
+                  class="rounded-full transition-all duration-300"
+                  :class="
+                    i < stepIndex
+                      ? 'w-2 h-2 bg-acid'
+                      : i === stepIndex
+                        ? 'w-5 h-2 bg-acid'
+                        : 'w-2 h-2 bg-line-2'
+                  "
+                />
+              </div>
+              <!-- Close button -->
+              <button
+                class="w-7 h-7 flex items-center justify-center rounded-lg text-ink-4 hover:text-ink hover:bg-glass-hover transition-all bg-transparent border-none cursor-pointer"
+                title="Cerrar"
+                @click="emit('close')"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
           </div>
 

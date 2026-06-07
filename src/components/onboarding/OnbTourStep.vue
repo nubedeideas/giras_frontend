@@ -16,6 +16,8 @@ const artists = ref<SpotifyArtist[]>([])
 const searching = ref(false)
 const searchError = ref('')
 const selectedArtist = ref<SpotifyArtist | null>(null)
+const spotifyUnavailable = ref(false)
+const manualArtistInput = ref('')
 
 let debounceTimer: ReturnType<typeof setTimeout>
 
@@ -33,8 +35,15 @@ async function doSearch() {
   searching.value = true
   try {
     artists.value = await searchSpotifyArtists(query.value.trim())
-  } catch {
-    searchError.value = 'No se pudo conectar con Spotify'
+    spotifyUnavailable.value = false
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg.includes('502') || msg.includes('503')) {
+      spotifyUnavailable.value = true
+      manualArtistInput.value = query.value.trim()
+    } else {
+      searchError.value = 'No se pudo conectar con Spotify'
+    }
     artists.value = []
   } finally {
     searching.value = false
@@ -52,6 +61,23 @@ function selectArtist(a: SpotifyArtist) {
 function clearArtist() {
   selectedArtist.value = null
   form.artist_name = ''
+  if (spotifyUnavailable.value) manualArtistInput.value = form.artist_name
+}
+
+function confirmManualArtist() {
+  const name = manualArtistInput.value.trim()
+  if (!name) return
+  selectedArtist.value = {
+    id: '',
+    name,
+    external_urls: { spotify: '' },
+    images: [],
+    followers: { total: 0 },
+    genres: [],
+  }
+  form.artist_name = name
+  if (!form.name) form.name = `${name} Tour`
+  manualArtistInput.value = ''
 }
 
 // deterministic gradient from artist name
@@ -107,7 +133,7 @@ async function submit() {
         end_city: form.end_city.trim(),
       },
     }
-    if (selectedArtist.value) {
+    if (selectedArtist.value?.id) {
       payload.spotify_artist_id = selectedArtist.value.id
       payload.spotify_artist_url = selectedArtist.value.external_urls.spotify
       payload.spotify_followers = selectedArtist.value.followers.total
@@ -154,8 +180,11 @@ async function submit() {
         <div class="flex-1 min-w-0">
           <p class="text-[13px] font-bold text-ink leading-tight">{{ selectedArtist.name }}</p>
           <div class="flex items-center gap-2 mt-1 flex-wrap">
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium">
+            <span v-if="selectedArtist.followers.total > 0" class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium">
               {{ formatFollowers(selectedArtist.followers.total) }} seguidores
+            </span>
+            <span v-else class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium">
+              Artista manual
             </span>
             <span
               v-for="g in selectedArtist.genres.slice(0, 2)"
@@ -174,6 +203,33 @@ async function submit() {
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
+      </div>
+
+      <!-- Manual mode (Spotify unavailable) -->
+      <div v-else-if="spotifyUnavailable" class="space-y-2">
+        <div class="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <p class="text-[11px] text-amber-400 leading-tight">
+            Spotify no disponible — ingresa el nombre del artista manualmente
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <input
+            v-model="manualArtistInput"
+            placeholder="Nombre del artista"
+            class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            @keydown.enter="confirmManualArtist"
+          >
+          <button
+            class="flex-shrink-0 px-3 py-2 rounded bg-acid text-black text-[11px] font-bold disabled:opacity-40 transition-opacity"
+            :disabled="!manualArtistInput.trim()"
+            @click="confirmManualArtist"
+          >
+            Agregar
+          </button>
+        </div>
       </div>
 
       <!-- Search input -->

@@ -10,7 +10,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUIState } from '@/composables/useUIState'
 import { useUIStore } from '@/stores/ui'
 
-const { openSettings, wizardOpen, closeWizard } = useUIState()
+const { openSettings, wizardOpen, wizardDismissed, closeWizard, dismissWizard } = useUIState()
 const toursStore = useToursStore()
 const authStore = useAuthStore()
 // Instantiating the store here triggers the watcher that applies data-theme to <html>
@@ -18,21 +18,26 @@ useUIStore()
 
 const toursLoaded = ref(false)
 
-const firstLoginOnboarding = computed(
+// Auto-show only when: tours loaded successfully, user is real (not demo), and has no tours yet
+const autoShowWizard = computed(
   () =>
     toursLoaded.value &&
     authStore.isLoggedIn &&
     !authStore.isDemoMode &&
-    !localStorage.getItem('giras_onboarding_done') &&
-    toursStore.tours.length === 0,
+    toursStore.error === null &&
+    toursStore.tours.length === 0 &&
+    !wizardDismissed.value,
 )
 
-const showWizard = computed(() => firstLoginOnboarding.value || wizardOpen.value)
+const showWizard = computed(() => autoShowWizard.value || wizardOpen.value)
 
 function onOnboardingComplete(tourId: number | null) {
-  if (firstLoginOnboarding.value) localStorage.setItem('giras_onboarding_done', '1')
   closeWizard()
   if (tourId !== null) toursStore.setActiveTour(tourId)
+}
+
+function onWizardClose() {
+  dismissWizard()
 }
 
 onMounted(async () => {
@@ -57,6 +62,7 @@ onMounted(async () => {
     <OnboardingWizard
       v-if="showWizard"
       @complete="onOnboardingComplete"
+      @close="onWizardClose"
     />
   </div>
 </template>

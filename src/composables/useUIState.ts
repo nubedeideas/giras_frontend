@@ -3,8 +3,9 @@ import { useRouter } from 'vue-router'
 
 export type SettingsTab = 'general' | 'calendars' | 'activities' | 'roles' | 'templates'
 
-// Module-level: shared across all useUIState() calls
+// Module-level: shared across all useUIState() calls, reset on page reload
 const wizardOpen = ref(false)
+const wizardDismissed = ref(false)
 
 export function useUIState() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export function useUIState() {
   }
 
   function openWizard() {
+    wizardDismissed.value = false
     wizardOpen.value = true
   }
 
@@ -21,5 +23,10 @@ export function useUIState() {
     wizardOpen.value = false
   }
 
-  return { openSettings, wizardOpen, openWizard, closeWizard }
+  function dismissWizard() {
+    wizardDismissed.value = true
+    wizardOpen.value = false
+  }
+
+  return { openSettings, wizardOpen, wizardDismissed, openWizard, closeWizard, dismissWizard }
 }
