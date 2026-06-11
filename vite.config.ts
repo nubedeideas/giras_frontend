@@ -9,4 +9,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  preview: {
+    allowedHosts: ['giras.pro', 'www.giras.pro'],
+    port: 4173,
+    host: true,
+  },
 })
