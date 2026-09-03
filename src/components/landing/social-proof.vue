@@ -6,10 +6,22 @@ import Stat from './stat.vue'
   <section class="py-16 mt-16 sm:mt-32 bg-acid-green text-black">
     <div class="max-w-7xl mx-auto px-6">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center items-center">
-        <Stat value="+500" label="Tours Gestionados" />
-        <Stat value="12k" label="Lobby Calls Enviados" />
-        <Stat value="99.9%" label="Uptime del Bot" />
-        <Stat value="0" label="Vuelos Perdidos" />
+        <Stat
+          value="+500"
+          label="Tours Gestionados"
+        />
+        <Stat
+          value="12k"
+          label="Lobby Calls Enviados"
+        />
+        <Stat
+          value="99.9%"
+          label="Uptime del Bot"
+        />
+        <Stat
+          value="0"
+          label="Vuelos Perdidos"
+        />
       </div>
 
       <div class="mt-12 border-t border-black/10 pt-12">

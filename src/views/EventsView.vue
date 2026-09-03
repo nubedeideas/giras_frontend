@@ -58,16 +58,39 @@ onMounted(() => {
               stroke-linejoin="round"
               class="text-ink-4"
             >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="16" y1="2" x2="16" y2="6" />
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="18"
+                rx="2"
+              />
+              <line
+                x1="3"
+                y1="10"
+                x2="21"
+                y2="10"
+              />
+              <line
+                x1="8"
+                y1="2"
+                x2="8"
+                y2="6"
+              />
+              <line
+                x1="16"
+                y1="2"
+                x2="16"
+                y2="6"
+              />
             </svg>
           </div>
 
           <!-- No tour selected -->
           <template v-if="!toursStore.activeTour">
-            <p class="text-[12px]">Selecciona una gira para ver sus actividades</p>
+            <p class="text-[12px]">
+              Selecciona una gira para ver sus actividades
+            </p>
             <select
               class="mt-1 bg-bg-4 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 cursor-pointer transition-colors w-56"
               :value="''"
@@ -76,15 +99,29 @@ onMounted(() => {
                 if (id) { toursStore.setActiveTour(id); store.loadActivities() }
               }"
             >
-              <option value="" disabled>— Elige una gira —</option>
-              <option v-for="t in toursStore.tours" :key="t.id" :value="t.id">
+              <option
+                value=""
+                disabled
+              >
+                — Elige una gira —
+              </option>
+              <option
+                v-for="t in toursStore.tours"
+                :key="t.id"
+                :value="t.id"
+              >
                 {{ t.name }}
               </option>
             </select>
           </template>
 
           <!-- Tour selected, no activity selected -->
-          <p v-else class="text-[12px]">Selecciona una actividad para ver el detalle</p>
+          <p
+            v-else
+            class="text-[12px]"
+          >
+            Selecciona una actividad para ver el detalle
+          </p>
         </div>
       </Transition>
     </div>

@@ -3,10 +3,13 @@ import BentoBox from './bento-box.vue'
 </script>
 
 <template>
-  <section id="features" class="py-16 mt-16 px-6">
+  <section
+    id="features"
+    class="py-16 mt-16 px-6"
+  >
     <div class="max-w-7xl mx-auto">
       <h2 class="font-header text-6xl uppercase mb-16 reveal-up">
-        Diferenciadores <br />
+        Diferenciadores <br>
         <span class="opacity-40 italic underline decoration-acid-green">Técnicos</span>
       </h2>
 
