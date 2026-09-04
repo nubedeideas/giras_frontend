@@ -31,13 +31,12 @@ onUnmounted(() => {
         <h1
           class="font-header text-7xl md:text-9xl leading-[0.85] tracking-tighter uppercase italic"
         >
-          El Caos del <span class="acid-green">Backstage</span> <br />
+          El Caos del <span class="acid-green">Backstage</span> <br/>
           Se Acabó.
         </h1>
         <p class="max-w-lg text-white/60 text-sm md:text-base leading-relaxed">
-          Sincroniza tu Google Calendar. Automatiza tus Lobby Calls. <br />
-          Notifica a todo el crew vía WhatsApp sin mover un dedo. <br />
-          Logística musical para Tour Managers que no duermen.
+          Sincroniza tu Google Calendar. <br/>Automatiza tus Lobby Calls. <br/>
+          Notifica a todo el crew vía WhatsApp sin mover un dedo. <br/>
         </p>
         <div class="flex flex-col sm:flex-row gap-4 pt-4">
           <RouterLink

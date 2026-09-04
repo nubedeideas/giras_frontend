@@ -133,7 +133,7 @@
                           <div class="flex items-end justify-between gap-4">
                             <div>
                               <h4 class="font-header text-4xl uppercase leading-none md:text-5xl">
-                                Marzo 2025
+                                {{ currentMonthLabel }}
                               </h4>
                               <p class="font-mono text-[9px] tracking-tight text-white/40">
                                 Sincronizacion: Activa (G-Suite)
@@ -322,11 +322,31 @@
   </section>
 </template>
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import FeatureStep from './feature-step.vue'
 import DemoScheduleItem from './demo-schedule-item.vue'
 
 defineOptions({ name: 'LandingShowcase' })
+
+const MONTH_NAMES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+]
+
+const currentMonthLabel = computed(() => {
+  const now = new Date()
+  return `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`
+})
 
 type ShowcaseStep = { number: string; title: string; desc: string; mobileHint: string }
 
@@ -334,7 +354,7 @@ const steps: ShowcaseStep[] = [
   {
     number: '01',
     title: 'Lectura de Calendario',
-    desc: 'Giras detecta tus eventos de Google Calendar en milisegundos. Sin importar el huso horario.',
+    desc: 'Giras detecta tus eventos de Google Calendar automáticamente. Sin importar el huso horario.',
     mobileHint: 'Calendario',
   },
   {

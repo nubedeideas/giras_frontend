@@ -11,30 +11,20 @@ const currentYear = new Date().getFullYear()
           src="/assets/giras_logo.svg"
           alt="Giras Logo"
           class="h-8 group-hover:scale-105 transition-transform"
-        >
+        />
       </div>
 
       <div class="text-[10px] uppercase opacity-30 tracking-[0.3em] font-bold">
-        &copy; {{ currentYear }} GIRAS MICRO-SAAS // MADE FOR THE ROAD
+        &copy; {{ currentYear }} GIRAS // MADE FOR THE ROAD
       </div>
 
       <div class="flex gap-6 text-[10px] uppercase font-bold tracking-widest">
-        <RouterLink
-          to="/terminos-y-condiciones"
-          class="hover:text-acid-green transition-colors"
-        >
-          Términos
+        <RouterLink to="/terminos-y-condiciones" class="hover:text-acid-green transition-colors">
+          Términos &amp; Condiciones
         </RouterLink>
-        <RouterLink
-          to="/politica-de-privacidad"
-          class="hover:text-acid-green transition-colors"
-        >
-          Privacidad
+        <RouterLink to="/soporte" class="hover:text-acid-green transition-colors">
+          Soporte
         </RouterLink>
-        <a
-          href="#"
-          class="hover:text-acid-green transition-colors"
-        >Soporte</a>
       </div>
     </div>
   </footer>

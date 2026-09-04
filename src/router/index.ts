@@ -3,8 +3,18 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    return { top: 0 }
+  },
   routes: [
-    { path: '/', name: 'landing', component: () => import('@/views/LandingView.vue'), meta: { public: true } },
+    {
+      path: '/',
+      name: 'landing',
+      component: () => import('@/views/LandingView.vue'),
+      meta: { public: true },
+    },
     {
       path: '/login',
       name: 'login',
@@ -24,16 +34,32 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/terminos-y-condiciones',
+      name: 'terms',
+      component: () => import('@/views/TermsView.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/soporte',
+      name: 'support',
+      component: () => import('@/views/SupportView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
-        { path: 'notifs',    name: 'notifs',    component: () => import('@/views/NotificationsView.vue') },
-        { path: 'events',    name: 'events',    component: () => import('@/views/EventsView.vue') },
-        { path: 'calendar',  name: 'calendar',  component: () => import('@/views/CalendarView.vue') },
-        { path: 'contacts',  name: 'contacts',  component: () => import('@/views/ContactsView.vue') },
-        { path: 'reports',   name: 'reports',   component: () => import('@/views/ReportsView.vue') },
-        { path: 'settings',  name: 'settings',  component: () => import('@/views/SettingsView.vue') },
+        {
+          path: 'notifs',
+          name: 'notifs',
+          component: () => import('@/views/NotificationsView.vue'),
+        },
+        { path: 'events', name: 'events', component: () => import('@/views/EventsView.vue') },
+        { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
+        { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },
+        { path: 'reports', name: 'reports', component: () => import('@/views/ReportsView.vue') },
+        { path: 'settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
       ],
     },
   ],

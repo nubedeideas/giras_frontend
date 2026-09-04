@@ -43,7 +43,7 @@ const handleSubmit = async () => {
         ¿Listo Para El <br /><span class="acid-green">Lobby Call?</span>
       </h2>
       <p class="text-white/60 mb-12 max-w-xl mx-auto uppercase text-xs tracking-widest font-bold">
-        Empieza gratis con tu primer tour. Sin tarjetas, sin fricción. <br />
+        Empieza con tu primer tour.<br />
         Solo tú, tu calendario y tu equipo conectado.
       </p>
 
@@ -57,7 +57,7 @@ const handleSubmit = async () => {
           <input
             v-model="email"
             type="email"
-            placeholder="TU-EMAIL@PROFESIONAL.COM"
+            placeholder="TU-EMAIL"
             :disabled="isLoading"
             autocomplete="email"
             inputmode="email"
@@ -74,7 +74,7 @@ const handleSubmit = async () => {
               isLoading ? 'shadow-hard-loading cursor-wait' : 'shadow-hard hover:scale-105',
             ]"
           >
-            {{ isLoading ? 'Validando...' : 'Acceso Prioritario' }}
+            {{ isLoading ? 'Validando...' : 'Solicitar Acceso' }}
           </button>
         </div>
         <p v-if="emailError" class="mt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-red-400">

@@ -8,10 +8,14 @@
   >
     <div
       :class="[
-        'w-8 h-1 mb-6 transition-all group-hover:w-full',
-        accent ? 'bg-acid-green' : 'bg-white/20',
+        'mb-6 flex h-11 w-11 items-center justify-center rounded-lg border transition-colors',
+        accent
+          ? 'border-acid-green/40 bg-acid-green/10 text-acid-green'
+          : 'border-white/10 bg-white/5 text-white/70 group-hover:border-acid-green/40 group-hover:text-acid-green',
       ]"
-    ></div>
+    >
+      <slot name="icon" />
+    </div>
     <h3 :class="['font-header text-3xl uppercase mb-2', accent ? 'acid-green' : '']">
       {{ title }}
     </h3>
@@ -27,6 +31,6 @@ withDefaults(
     className?: string
     accent?: boolean
   }>(),
-  { className: '', accent: false },
+  { className: '', accent: false }
 )
 </script>
