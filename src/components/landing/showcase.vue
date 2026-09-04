@@ -22,7 +22,9 @@
             <div class="order-2 space-y-4 md:space-y-5 lg:order-1">
               <div class="text-[10px] uppercase tracking-[0.35em] text-white/40">Paso activo</div>
 
+              <!-- Desktop/tablet: vertical interactive list -->
               <div
+                v-if="!isMobile"
                 role="list"
                 aria-label="Flujo automatizado en tres pasos"
                 class="space-y-2 md:space-y-3 relative"
@@ -30,10 +32,8 @@
                 <TransitionGroup name="fade-step">
                   <FeatureStep
                     v-for="(feature, index) in steps"
-                    v-show="!isMobile || index === activeStep"
                     :key="feature.number"
                     :active="index === activeStep"
-                    :compact="isMobile"
                     :number="feature.number"
                     :title="feature.title"
                     :desc="feature.desc"
@@ -42,6 +42,50 @@
                     @click="goToStep(index)"
                   />
                 </TransitionGroup>
+              </div>
+
+              <!-- Mobile: tab navigation -->
+              <div v-else class="space-y-4">
+                <div
+                  role="tablist"
+                  aria-label="Flujo automatizado en tres pasos"
+                  class="grid grid-cols-3 gap-2"
+                >
+                  <button
+                    v-for="(feature, index) in steps"
+                    :key="feature.number"
+                    type="button"
+                    role="tab"
+                    :aria-selected="index === activeStep"
+                    :aria-label="`Paso ${index + 1} de ${steps.length}: ${feature.title}`"
+                    :class="[
+                      'flex flex-col items-center gap-1.5 border-b-2 py-3 text-center outline-none transition-all focus-visible:ring-2 focus-visible:ring-acid-green focus-visible:ring-offset-2 focus-visible:ring-offset-black',
+                      index === activeStep
+                        ? 'border-acid-green text-acid-green'
+                        : 'border-white/10 text-white/40 active:text-white/70',
+                    ]"
+                    @click="goToStep(index)"
+                  >
+                    <span class="text-[10px] font-bold tracking-[0.3em]">{{ feature.number }}</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tight leading-tight">{{
+                      feature.mobileHint
+                    }}</span>
+                  </button>
+                </div>
+
+                <Transition name="fade-step" mode="out-in">
+                  <div
+                    :key="activeStep"
+                    class="border-l-2 border-acid-green bg-acid-green/5 py-4 pl-4"
+                  >
+                    <h3 class="font-header text-3xl uppercase italic mb-1.5">
+                      {{ steps[activeStep].title }}
+                    </h3>
+                    <p class="text-[11px] leading-relaxed font-mono text-white/70">
+                      {{ steps[activeStep].desc }}
+                    </p>
+                  </div>
+                </Transition>
               </div>
             </div>
 
@@ -291,19 +335,19 @@ const steps: ShowcaseStep[] = [
     number: '01',
     title: 'Lectura de Calendario',
     desc: 'Giras detecta tus eventos de Google Calendar en milisegundos. Sin importar el huso horario.',
-    mobileHint: '',
+    mobileHint: 'Calendario',
   },
   {
     number: '02',
     title: 'Procesamiento de Reglas',
     desc: 'El motor de IA formatea el mensaje perfecto basado en el tipo de actividad y el crew asignado.',
-    mobileHint: '',
+    mobileHint: 'Reglas',
   },
   {
     number: '03',
     title: 'Notificacion Instantanea',
     desc: 'Envio masivo por WhatsApp Business con confirmacion de entrega en tiempo real.',
-    mobileHint: '',
+    mobileHint: 'Notificación',
   },
 ]
 

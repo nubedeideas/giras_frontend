@@ -1,21 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import ScheduleItem from './schedule-item.vue'
 import { RouterLink } from 'vue-router'
+import WhatsappMockup from './whatsapp-mockup.vue'
+import TrafficControlPanel from './traffic-control-panel.vue'
 
-const time = ref(new Date())
-const timeString = ref(time.value.toLocaleTimeString())
+const isMobile = ref(false)
 
-let timer: ReturnType<typeof setInterval>
+const updateViewportState = () => {
+  isMobile.value = window.innerWidth < 1024
+}
 
 onMounted(() => {
-  timer = setInterval(() => {
-    time.value = new Date()
-    timeString.value = time.value.toLocaleTimeString()
-  }, 1000)
+  updateViewportState()
+  window.addEventListener('resize', updateViewportState)
 })
 
-onUnmounted(() => clearInterval(timer))
+onUnmounted(() => {
+  window.removeEventListener('resize', updateViewportState)
+})
 </script>
 
 <template>
@@ -54,75 +56,37 @@ onUnmounted(() => clearInterval(timer))
       </div>
 
       <div
-        class="relative flex items-center justify-center min-h-[480px] sm:min-h-[540px] lg:col-span-5 lg:min-h-[600px]"
+        class="relative lg:col-span-5 lg:flex lg:min-h-[600px] lg:items-center lg:justify-center"
       >
-        <!-- WhatsApp Mockup -->
-        <div
-          class="absolute left-1/2 top-0 z-10 w-full max-w-[200px] -translate-x-1/2 reveal-up shadow-[0_40px_100px_rgba(0,0,0,0.6)] sm:max-w-[230px] lg:left-0 lg:max-w-[260px] lg:translate-x-0"
-        >
+        <!-- Desktop: phone top-left, panel offset bottom-right of the whole column -->
+        <template v-if="!isMobile">
           <div
-            class="w-full glass rounded-[2.5rem] border-[10px] border-white/10 p-4 aspect-[9/18.5] relative overflow-hidden"
+            class="absolute left-0 top-0 z-10 w-full max-w-[260px] reveal-up shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
           >
-            <div
-              class="bg-[#075e54] -mt-4 -mx-4 p-5 rounded-t-[1.8rem] mb-4 flex items-center gap-3"
-            >
-              <div
-                class="w-10 h-10 rounded-full bg-white/20 border border-white/10 flex items-center justify-center text-xs"
-              >
-                G
-              </div>
-              <div>
-                <div class="text-[11px] font-bold text-white tracking-tight">Giras Manager</div>
-                <div class="text-[9px] text-acid-green flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-acid-green rounded-full animate-pulse"></span>
-                  En línea
-                </div>
-              </div>
-            </div>
-            <div class="space-y-4 px-1">
-              <div
-                class="bg-[#dcf8c6] text-black p-4 rounded-2xl rounded-tl-none text-[11px] w-[90%] shadow-lg"
-              >
-                <div class="flex items-center gap-2 mb-2 font-bold uppercase text-[9px]">
-                  <span>📍</span> LOBBY CALL: MADRID
-                </div>
-                <p class="leading-relaxed opacity-80">
-                  Hola Equipo 👋. Mañana el transporte sale a las <b>08:00 AM</b> puntual.
-                </p>
-              </div>
-              <div
-                class="bg-[#dcf8c6] text-black p-4 rounded-2xl rounded-tl-none text-[11px] w-[90%] shadow-lg"
-              >
-                <div
-                  class="flex items-center gap-2 mb-2 font-bold uppercase text-[9px] text-red-600"
-                >
-                  <span>🚨</span> URGENTE
-                </div>
-                <p class="leading-relaxed opacity-80">
-                  La prueba de sonido se adelanta a las <b>16:15</b>.
-                </p>
-              </div>
-            </div>
+            <WhatsappMockup />
           </div>
-        </div>
 
-        <!-- Traffic Control Panel -->
-        <div
-          class="glass absolute left-1/2 top-1/2 z-20 w-[85%] max-w-[280px] -translate-x-1/2 border-white/20 p-4 reveal-up shadow-[0_30px_60px_rgba(0,0,0,0.8)] sm:max-w-[300px] sm:p-5 lg:relative lg:left-auto lg:top-auto lg:w-full lg:max-w-[300px] lg:translate-x-20 lg:translate-y-40"
-        >
-          <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
-            <span class="text-[9px] uppercase text-acid-green font-bold tracking-widest"
-              >Control de Tráfico</span
+          <div
+            class="glass relative z-20 w-full max-w-[300px] translate-x-20 translate-y-40 border-white/20 p-5 reveal-up shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
+          >
+            <TrafficControlPanel />
+          </div>
+        </template>
+
+        <!-- Mobile/tablet: phone fills the available width; panel's top-left corner
+             is pinned to the phone's own center so the header + first message stay readable -->
+        <template v-else>
+          <!-- no reveal-up here: this branch mounts async (after isMobile flips), missing the
+               one-time IntersectionObserver pass in LandingView.vue and staying opacity:0 forever -->
+          <div class="relative mx-auto w-full max-w-[320px]">
+            <WhatsappMockup />
+            <div
+              class="glass absolute left-1/2 top-1/2 z-20 w-[72%] max-w-[260px] -translate-x-1/4 border-white/20 p-3 shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
             >
-            <span class="text-[9px] uppercase opacity-50 font-mono">{{ timeString }}</span>
+              <TrafficControlPanel compact />
+            </div>
           </div>
-          <div class="space-y-3">
-            <ScheduleItem time="14:00" label="Check-in en Hotel" status="SENT" />
-            <ScheduleItem time="16:30" label="Soundcheck" status="PENDING" />
-            <ScheduleItem time="19:00" label="Dinner Call" status="PENDING" />
-            <ScheduleItem time="21:00" label="Showtime" status="QUEUED" :active="true" />
-          </div>
-        </div>
+        </template>
 
         <div class="absolute -top-20 -right-20 w-64 h-64 bg-acid-green/10 blur-[100px]"></div>
         <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/5 blur-[100px]"></div>
