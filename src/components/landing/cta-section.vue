@@ -37,7 +37,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <section class="py-16 px-6 relative overflow-hidden">
+  <section id="cta" class="py-16 px-6 relative overflow-hidden scroll-mt-24">
     <div class="max-w-4xl mx-auto text-center relative z-10 reveal-up">
       <h2 class="font-header text-7xl md:text-[10rem] leading-[0.8] uppercase mb-12">
         ¿Listo Para El <br /><span class="acid-green">Lobby Call?</span>

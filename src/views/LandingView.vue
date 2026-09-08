@@ -6,6 +6,7 @@ import LandingHero from '@/components/landing/hero.vue'
 import LandingNarrative from '@/components/landing/narrative.vue'
 import LandingShowcase from '@/components/landing/showcase.vue'
 import LandingSocialProof from '@/components/landing/social-proof.vue'
+import LandingPricing from '@/components/landing/pricing-section.vue'
 import LandingBentoFeatures from '@/components/landing/bento-features.vue'
 import LandingCTASection from '@/components/landing/cta-section.vue'
 import LandingFooter from '@/components/landing/footer.vue'
@@ -54,6 +55,7 @@ onUnmounted(() => {
         <LandingNarrative />
         <LandingShowcase />
         <LandingSocialProof />
+        <LandingPricing />
         <LandingBentoFeatures />
         <LandingCTASection />
       </main>

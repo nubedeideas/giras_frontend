@@ -96,7 +96,7 @@
               <!-- bg-acid-green/18 → bg-[rgba(192,255,0,0.18)] | bg-white/6 → bg-white/[0.06] -->
               <div
                 class="pointer-events-none absolute inset-x-[5%] top-1/2 -z-10 aspect-square -translate-y-1/2 rounded-full blur-[120px] transition-all duration-500 md:blur-[150px]"
-                :class="activeStep === 2 ? 'bg-[rgba(192,255,0,0.18)]' : 'bg-white/[0.06]'"
+                :class="activeStep === 0 ? 'bg-[rgba(192,255,0,0.18)]' : 'bg-white/[0.06]'"
                 aria-hidden="true"
               ></div>
 
@@ -110,8 +110,8 @@
                     :key="'card-' + activeStep"
                     class="pointer-events-none absolute inset-0 flex items-center justify-center will-change-transform"
                   >
-                    <!-- Card 0: Calendar view -->
-                    <div v-if="activeStep === 0" class="w-full">
+                    <!-- Card 1: Calendar view -->
+                    <div v-if="activeStep === 1" class="w-full">
                       <div
                         class="glass overflow-hidden border-white/20 shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
                       >
@@ -205,8 +205,8 @@
                       </div>
                     </div>
 
-                    <!-- Card 1: Rules system -->
-                    <div v-else-if="activeStep === 1" class="w-full">
+                    <!-- Card 2: Rules system -->
+                    <div v-else-if="activeStep === 2" class="w-full">
                       <div
                         class="glass border-white/20 p-6 shadow-[0_40px_100px_rgba(0,0,0,0.6)] md:p-8"
                       >
@@ -240,7 +240,7 @@
                       </div>
                     </div>
 
-                    <!-- Card 2: WhatsApp delivery -->
+                    <!-- Card 0: WhatsApp delivery -->
                     <!-- height-driven: h-full + aspect-ratio keeps the phone within the stage's bounds instead of overflowing it -->
                     <div
                       v-else
@@ -353,21 +353,21 @@ type ShowcaseStep = { number: string; title: string; desc: string; mobileHint: s
 const steps: ShowcaseStep[] = [
   {
     number: '01',
+    title: 'Notificación Automática',
+    desc: 'Envío automático por WhatsApp Business en el momento exacto, con confirmación de entrega en tiempo real.',
+    mobileHint: 'Notificación',
+  },
+  {
+    number: '02',
     title: 'Lectura de Calendario',
     desc: 'Giras detecta tus eventos de Google Calendar automáticamente. Sin importar el huso horario.',
     mobileHint: 'Calendario',
   },
   {
-    number: '02',
+    number: '03',
     title: 'Procesamiento de Reglas',
     desc: 'El motor de IA formatea el mensaje perfecto basado en el tipo de actividad y el crew asignado.',
     mobileHint: 'Reglas',
-  },
-  {
-    number: '03',
-    title: 'Notificacion Instantanea',
-    desc: 'Envio masivo por WhatsApp Business con confirmacion de entrega en tiempo real.',
-    mobileHint: 'Notificación',
   },
 ]
 
