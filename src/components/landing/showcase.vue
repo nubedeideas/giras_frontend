@@ -20,13 +20,15 @@
             class="grid items-center gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)] lg:gap-12"
           >
             <div class="order-2 space-y-4 md:space-y-5 lg:order-1">
-              <div class="text-[10px] uppercase tracking-[0.35em] text-white/40">Paso activo</div>
+              <div class="text-[10px] uppercase tracking-[0.35em] text-white/40">
+                {{ t('landing.showcase.activeStepLabel') }}
+              </div>
 
               <!-- Desktop/tablet: vertical interactive list -->
               <div
                 v-if="!isMobile"
                 role="list"
-                aria-label="Flujo automatizado en tres pasos"
+                :aria-label="t('landing.showcase.flowAriaLabel')"
                 class="space-y-2 md:space-y-3 relative"
               >
                 <TransitionGroup name="fade-step">
@@ -38,7 +40,13 @@
                     :title="feature.title"
                     :desc="feature.desc"
                     :aria-current="index === activeStep ? 'step' : undefined"
-                    :aria-label="`Paso ${index + 1} de ${steps.length}: ${feature.title}`"
+                    :aria-label="
+                      t('landing.showcase.stepAriaLabel', {
+                        n: index + 1,
+                        total: steps.length,
+                        title: feature.title,
+                      })
+                    "
                     @click="goToStep(index)"
                   />
                 </TransitionGroup>
@@ -48,7 +56,7 @@
               <div v-else class="space-y-4">
                 <div
                   role="tablist"
-                  aria-label="Flujo automatizado en tres pasos"
+                  :aria-label="t('landing.showcase.flowAriaLabel')"
                   class="grid grid-cols-3 gap-2"
                 >
                   <button
@@ -57,7 +65,13 @@
                     type="button"
                     role="tab"
                     :aria-selected="index === activeStep"
-                    :aria-label="`Paso ${index + 1} de ${steps.length}: ${feature.title}`"
+                    :aria-label="
+                      t('landing.showcase.stepAriaLabel', {
+                        n: index + 1,
+                        total: steps.length,
+                        title: feature.title,
+                      })
+                    "
                     :class="[
                       'flex flex-col items-center gap-1.5 border-b-2 py-3 text-center outline-none transition-all focus-visible:ring-2 focus-visible:ring-acid-green focus-visible:ring-offset-2 focus-visible:ring-offset-black',
                       index === activeStep
@@ -136,7 +150,7 @@
                                 {{ currentMonthLabel }}
                               </h4>
                               <p class="font-mono text-[9px] tracking-tight text-white/40">
-                                Sincronizacion: Activa (G-Suite)
+                                {{ t('landing.showcase.calendarCard.syncStatus') }}
                               </p>
                             </div>
                             <div class="flex gap-2 text-[10px] text-white/45">
@@ -323,53 +337,32 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import FeatureStep from './feature-step.vue'
 import DemoScheduleItem from './demo-schedule-item.vue'
 
 defineOptions({ name: 'LandingShowcase' })
 
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
+const { t } = useI18n()
 
 const currentMonthLabel = computed(() => {
   const now = new Date()
-  return `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`
+  const monthNames = t('landing.showcase.monthNames') as unknown as string[]
+  return `${monthNames[now.getMonth()]} ${now.getFullYear()}`
 })
 
 type ShowcaseStep = { number: string; title: string; desc: string; mobileHint: string }
 
-const steps: ShowcaseStep[] = [
-  {
-    number: '01',
-    title: 'Notificación Automática',
-    desc: 'Envío automático por WhatsApp Business en el momento exacto, con confirmación de entrega en tiempo real.',
-    mobileHint: 'Notificación',
-  },
-  {
-    number: '02',
-    title: 'Lectura de Calendario',
-    desc: 'Giras detecta tus eventos de Google Calendar automáticamente. Sin importar el huso horario.',
-    mobileHint: 'Calendario',
-  },
-  {
-    number: '03',
-    title: 'Procesamiento de Reglas',
-    desc: 'El motor de IA formatea el mensaje perfecto basado en el tipo de actividad y el crew asignado.',
-    mobileHint: 'Reglas',
-  },
-]
+const STEP_IDS = ['notification', 'calendar', 'rules'] as const
+
+const steps = computed<ShowcaseStep[]>(() =>
+  STEP_IDS.map((id, index) => ({
+    number: String(index + 1).padStart(2, '0'),
+    title: t(`landing.showcase.steps.${id}.title`),
+    desc: t(`landing.showcase.steps.${id}.desc`),
+    mobileHint: t(`landing.showcase.steps.${id}.mobileHint`),
+  }))
+)
 
 const sectionRef = ref<HTMLElement | null>(null)
 const isMobile = ref(false)

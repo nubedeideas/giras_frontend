@@ -12,7 +12,7 @@
         <div class="text-[11px] font-bold tracking-tight text-white">Giras Manager</div>
         <div class="flex items-center gap-1 text-[9px] text-acid-green">
           <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-acid-green"></span>
-          En línea
+          {{ t('landing.hero.whatsapp.online') }}
         </div>
       </div>
     </div>
@@ -42,5 +42,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineOptions({ name: 'WhatsappMockup' })
+
+const { t } = useI18n()
 </script>

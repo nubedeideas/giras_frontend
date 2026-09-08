@@ -203,4 +203,301 @@ export default {
     back: 'Volver',
     loading: 'Cargando...',
   },
+
+  landing: {
+    header: {
+      cta: 'Empezar',
+      // Deliberately identical (or near-identical) in es.ts/en.ts: it's the label of the
+      // control that changes the language, so it must read in both languages at once.
+      langSwitcher: { label: 'Idioma / Language' },
+    },
+    hero: {
+      headlinePart1: 'El Caos del ',
+      headlineHighlight: 'Backstage',
+      headlineLine2: 'Se Acabó.',
+      subheadLine1: 'Sincroniza tu Google Calendar.',
+      subheadLine2: 'Automatiza tus Lobby Calls.',
+      subheadLine3: 'Notifica a todo el crew vía WhatsApp sin mover un dedo.',
+      ctaPrimary: 'Automatizar Mi Crew',
+      ctaSecondary: 'Ver Demo Live',
+      whatsapp: { online: 'En línea' },
+      trafficControl: { title: 'Control de Tráfico', checkin: 'Check-in en Hotel' },
+    },
+    narrative: {
+      step1Eyebrow: '01 / El Problema',
+      step1Part1: 'Perder tiempo enviando',
+      step1Quote: '"Lobby Call a las 8am"',
+      step1Part2: 'individualmente a 15 personas no es management.',
+      step1Highlight: 'Es esclavitud técnica.',
+      step2Eyebrow: '02 / El Método',
+      step2Part1: 'Tu calendario manda. Giras escucha.',
+      step2Part2: 'Cada evento en Google Calendar activa una',
+      step2Quote: 'notificación programada',
+      step2Part3: 'para el equipo correcto.',
+      beforeTitle: 'Antes: El Caos',
+      beforeItems: [
+        'Copiar y pegar textos a las 2 AM.',
+        'Músicos que "no vieron el mensaje".',
+        'Errores manuales en horarios.',
+        'Pánico en el lobby del hotel.',
+      ],
+      afterTitle: 'Ahora: Giras',
+      afterItems: [
+        'Sincronización instantánea GCal.',
+        'Confirmación de lectura automática.',
+        'Reglas de equipo inteligentes.',
+        'Paz mental absoluta.',
+      ],
+    },
+    showcase: {
+      sectionHeading1: 'De la Grilla al',
+      sectionHeadingHighlight: 'Bolsillo del Crew',
+      activeStepLabel: 'Paso activo',
+      flowAriaLabel: 'Flujo automatizado en tres pasos',
+      stepAriaLabel: 'Paso {n} de {total}: {title}',
+      monthNames: [
+        'Enero',
+        'Febrero',
+        'Marzo',
+        'Abril',
+        'Mayo',
+        'Junio',
+        'Julio',
+        'Agosto',
+        'Septiembre',
+        'Octubre',
+        'Noviembre',
+        'Diciembre',
+      ],
+      steps: {
+        notification: {
+          title: 'Notificación Automática',
+          desc: 'Envío automático por WhatsApp Business en el momento exacto, con confirmación de entrega en tiempo real.',
+          mobileHint: 'Notificación',
+        },
+        calendar: {
+          title: 'Lectura de Calendario',
+          desc: 'Giras detecta tus eventos de Google Calendar automáticamente. Sin importar el huso horario.',
+          mobileHint: 'Calendario',
+        },
+        rules: {
+          title: 'Procesamiento de Reglas',
+          desc: 'El motor de IA formatea el mensaje perfecto basado en el tipo de actividad y el crew asignado.',
+          mobileHint: 'Reglas',
+        },
+      },
+      calendarCard: { syncStatus: 'Sincronizacion: Activa (G-Suite)' },
+    },
+    socialProof: {
+      stat1Label: 'Tours Gestionados',
+      stat2Label: 'Lobby Calls Enviados',
+      stat3Label: 'Uptime del Bot',
+      stat4Label: 'Vuelos Perdidos',
+      testimonial:
+        'Giras es el miembro del crew que nunca duerme, nunca se equivoca y nunca se queja. Ha transformado por completo la forma en que manejamos la logística.',
+    },
+    pricing: {
+      heading: 'Un Plan Para',
+      headingHighlight: 'Cada Tamaño De Gira',
+      subhead:
+        'Todos los planes incluyen sincronización con Google Calendar, envío por WhatsApp Business oficial y el motor de reglas de notificación.',
+      featuredBadge: 'Más elegido',
+      perTourSuffix: '/gira',
+      plans: {
+        starter: {
+          tagline: 'Para artistas y promotores que arrancan su primera gira',
+          limit: 'Hasta 10 shows por gira',
+          notifications: '500 notificaciones incluidas',
+          features: [
+            'Sincronización automática con Google Calendar',
+            'Envío por WhatsApp Business (API oficial)',
+            'Motor de reglas de notificación',
+            'Gestión de contactos y crew',
+            '1 gira activa',
+            'Soporte por email',
+          ],
+          cta: 'Empezar con Starter',
+        },
+        premium: {
+          tagline: 'Para giras grandes con crew multidisciplinar',
+          limit: 'Hasta 20 shows por gira',
+          notifications: '1.000 notificaciones incluidas',
+          features: [
+            'Todo lo incluido en Starter',
+            'Formateo inteligente de mensajes con IA',
+            'Grupos multi-crew (backline, catering, iluminación...)',
+            'Envío de Day-Sheet automático night-before',
+            'Confirmación de entrega en tiempo real',
+            'Reportes y analítica de gira',
+            'Soporte prioritario',
+          ],
+          cta: 'Empezar con Premium',
+        },
+        custom: {
+          priceLabel: 'A Medida',
+          tagline: 'Para agencias con varias giras en simultáneo',
+          limit: 'Más de 20 shows por gira',
+          notifications: 'Volumen de notificaciones a medida',
+          features: [
+            'Todo lo incluido en Premium',
+            'Giras y usuarios ilimitados',
+            'Panel multi-gira con roles y permisos por agencia',
+            'Integraciones y onboarding a medida',
+            'Gestor de cuenta dedicado',
+            'SLA y soporte prioritario',
+          ],
+          cta: 'Consultar',
+        },
+      },
+    },
+    bentoFeatures: {
+      heading: 'Diferenciadores',
+      headingHighlight: 'Técnicos',
+      deepSync: {
+        title: 'Sincronización Profunda',
+        desc: 'No solo leemos el evento. Analizamos con nuestro motor de AI descripciones, ubicaciones y notas para automatizar el contenido del mensaje.',
+      },
+      whatsappApi: {
+        title: 'WhatsApp Business API',
+        desc: 'Sin bloqueos de cuenta. Usamos canales oficiales para asegurar que el 100% de los mensajes lleguen.',
+      },
+      multiCrew: {
+        title: 'Multi-Crew',
+        desc: 'Crea grupos para Backline, Catering, Iluminación y Músicos.',
+      },
+      rulesEngine: {
+        title: 'Reglas de Notificación',
+        desc: "Programación flexible: 'X horas antes del evento', 'A la hora exacta', 'Recordatorio 10 mins después si no hay OK'.",
+      },
+    },
+    cta: {
+      heading: '¿Listo Para El',
+      headingHighlight: 'Lobby Call?',
+      subheadLine1: 'Empieza con tu primer tour.',
+      subheadLine2: 'Solo tú, tu calendario y tu equipo conectado.',
+      successTitle: '¡Estás dentro!',
+      successSub: 'Te avisamos cuando tu acceso esté listo.',
+      emailPlaceholder: 'TU-EMAIL',
+      emailAriaLabel: 'Correo profesional',
+      submitLabel: 'Solicitar Acceso',
+      submitLoadingLabel: 'Validando...',
+      urgency: 'Urgencia real: Solo 10 nuevos managers aceptados esta semana.',
+      errors: {
+        required: 'Ingresa tu correo profesional.',
+        consecutiveDots: 'El correo no puede contener puntos consecutivos.',
+        invalid: 'Ingresa un correo profesional válido.',
+      },
+    },
+    footer: {
+      tagline: 'MADE FOR THE ROAD',
+      termsLink: 'Términos & Condiciones',
+      supportLink: 'Soporte',
+    },
+  },
+
+  termsPage: {
+    lastUpdated: 'Septiembre 2026',
+    lastUpdatedLabel: 'Última actualización:',
+    eyebrow: 'Legal',
+    titleLine1: 'Términos',
+    titleHighlight: '& Condiciones',
+    sections: [
+      {
+        title: '1. Aceptación de los Términos',
+        body: 'Al crear una cuenta o utilizar Giras (GigSync), aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debes utilizar el servicio.',
+      },
+      {
+        title: '2. Descripción del Servicio',
+        body: 'Giras es una plataforma de gestión logística para giras musicales. Permite sincronizar calendarios (Google Calendar), automatizar notificaciones al crew vía WhatsApp Business, e importar contactos, entre otras funcionalidades.',
+      },
+      {
+        title: '3. Cuentas de Usuario',
+        body: 'Eres responsable de mantener la confidencialidad de tus credenciales de acceso y de toda actividad realizada bajo tu cuenta. Debes notificarnos de inmediato ante cualquier uso no autorizado.',
+      },
+      {
+        title: '4. Integraciones de Terceros',
+        body: 'Giras se conecta con servicios externos como Google Calendar, Google Contacts, WhatsApp Business API y Spotify para brindar sus funcionalidades. El uso de estas integraciones también está sujeto a los términos y políticas de privacidad de esos proveedores.',
+      },
+      {
+        title: '5. Uso de Datos y Privacidad',
+        body: 'Recopilamos y procesamos los datos estrictamente necesarios para operar el servicio: eventos de calendario, contactos del crew y mensajes de notificación. No vendemos ni compartimos tu información con terceros salvo lo necesario para el funcionamiento de las integraciones que tú mismo autorizas.',
+      },
+      {
+        title: '6. Propiedad Intelectual',
+        body: 'El software, diseño, marca y contenido de Giras son propiedad de sus creadores. No está permitida su reproducción o distribución sin autorización expresa.',
+      },
+      {
+        title: '7. Limitación de Responsabilidad',
+        body: 'Giras se ofrece "tal cual". No garantizamos disponibilidad ininterrumpida del servicio ni nos hacemos responsables por fallas de terceros (Google, WhatsApp, Spotify) que puedan afectar la sincronización o el envío de notificaciones.',
+      },
+      {
+        title: '8. Cambios a estos Términos',
+        body: 'Podemos actualizar estos Términos y Condiciones periódicamente. Notificaremos cambios relevantes a través de la aplicación o por correo electrónico.',
+      },
+      {
+        title: '9. Contacto',
+        body: 'Ante cualquier consulta sobre estos términos, escríbenos a legal@gigsync.app o visita nuestra sección de Soporte.',
+      },
+    ],
+  },
+
+  support: {
+    eyebrow: '// README.md',
+    title: 'Centro de',
+    titleHighlight: 'Soporte',
+    intro:
+      'Todo lo que necesitas para sacarle el máximo provecho a Giras, directo del manual del equipo.',
+    tocHeading: 'Índice',
+    toc: {
+      'primeros-pasos': 'Primeros pasos',
+      integraciones: 'Integraciones',
+      faq: 'Preguntas frecuentes',
+      contacto: 'Contacto',
+    },
+    gettingStarted: {
+      heading: '01 / Primeros Pasos',
+      body: 'Al iniciar sesión por primera vez, el asistente te guía en 3 pasos: crear tu primera gira, armar el crew (manual o importado desde Google Contacts) y conectar tu Google Calendar. Puedes reabrir el asistente en cualquier momento desde el botón "+" del menú lateral.',
+    },
+    integrations: {
+      heading: '02 / Integraciones',
+      items: {
+        googleCalendar: 'sincronización de eventos en tiempo real.',
+        whatsapp: 'notificaciones automáticas al crew.',
+        googleContacts: 'importación masiva de contactos.',
+        spotify: 'búsqueda de artistas al crear una gira.',
+      },
+    },
+    faq: {
+      heading: '03 / Preguntas Frecuentes',
+      items: [
+        {
+          q: '¿Cómo conecto mi Google Calendar?',
+          a: 'Desde el asistente de configuración inicial (o en Ajustes → Integraciones) autoriza el acceso a tu cuenta de Google. Giras sincroniza automáticamente los eventos de la gira que elijas.',
+        },
+        {
+          q: '¿Por qué no llegan las notificaciones por WhatsApp?',
+          a: 'Verifica que el número de WhatsApp Business esté activo en Ajustes y que los contactos del crew tengan su número cargado correctamente. Los envíos usan canales oficiales de WhatsApp Business API, por lo que pueden tardar unos segundos en confirmarse.',
+        },
+        {
+          q: '¿Puedo importar mis contactos existentes?',
+          a: 'Sí. Durante el onboarding o desde la sección Contactos puedes importar tu lista desde Google Contacts en un solo paso.',
+        },
+        {
+          q: '¿Cómo busco artistas al crear una gira?',
+          a: 'El buscador de artistas usa la API de Spotify a través de nuestro backend, así que no necesitas credenciales propias: solo escribe el nombre y elige el resultado correcto.',
+        },
+        {
+          q: '¿Qué pasa si cambio un evento en Google Calendar?',
+          a: 'Los cambios se sincronizan automáticamente y se reflejan en Giras. Si una notificación ya fue enviada, puedes reenviar una actualización manualmente desde el detalle del evento.',
+        },
+      ],
+    },
+    contact: {
+      heading: '04 / Contacto',
+      body: '¿No has encontrado lo que buscabas? Escríbenos y te respondemos en menos de 24 horas.',
+      emailLabel: 'email:',
+      hoursLabel: 'horario:',
+      hoursValue: 'Lun-Vie 09:00-18:00 (CET)',
+    },
+  },
 }

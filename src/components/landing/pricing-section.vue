@@ -1,73 +1,50 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 defineOptions({ name: 'LandingPricing' })
 
-type Plan = {
+const { t } = useI18n()
+
+type PlanId = 'starter' | 'premium' | 'custom'
+
+type PlanBase = {
+  id: PlanId
   name: string
   price: string
   priceSuffix: string
+  featured?: boolean
+}
+
+type Plan = PlanBase & {
   tagline: string
   limit: string
   notifications: string
   features: string[]
   cta: string
-  featured?: boolean
 }
 
-const plans: Plan[] = [
-  {
-    name: 'Starter',
-    price: '179€',
-    priceSuffix: '/gira',
-    tagline: 'Para artistas y promotores que arrancan su primera gira',
-    limit: 'Hasta 10 shows por gira',
-    notifications: '500 notificaciones incluidas',
-    features: [
-      'Sincronización automática con Google Calendar',
-      'Envío por WhatsApp Business (API oficial)',
-      'Motor de reglas de notificación',
-      'Gestión de contactos y crew',
-      '1 gira activa',
-      'Soporte por email',
-    ],
-    cta: 'Empezar con Starter',
-  },
-  {
-    name: 'Premium',
-    price: '300€',
-    priceSuffix: '/gira',
-    tagline: 'Para giras grandes con crew multidisciplinar',
-    limit: 'Hasta 20 shows por gira',
-    notifications: '1.000 notificaciones incluidas',
-    features: [
-      'Todo lo incluido en Starter',
-      'Formateo inteligente de mensajes con IA',
-      'Grupos multi-crew (backline, catering, iluminación...)',
-      'Envío de Day-Sheet automático night-before',
-      'Confirmación de entrega en tiempo real',
-      'Reportes y analítica de gira',
-      'Soporte prioritario',
-    ],
-    cta: 'Empezar con Premium',
-    featured: true,
-  },
-  {
-    name: 'Custom',
-    price: 'A Medida',
-    priceSuffix: '',
-    tagline: 'Para agencias con varias giras en simultáneo',
-    limit: 'Más de 20 shows por gira',
-    notifications: 'Volumen de notificaciones a medida',
-    features: [
-      'Todo lo incluido en Premium',
-      'Giras y usuarios ilimitados',
-      'Panel multi-gira con roles y permisos por agencia',
-      'Integraciones y onboarding a medida',
-      'Gestor de cuenta dedicado',
-      'SLA y soporte prioritario',
-    ],
-    cta: 'Consultar',
-  },
+const planBases: PlanBase[] = [
+  { id: 'starter', name: 'Starter', price: '179€', priceSuffix: '/gira' },
+  { id: 'premium', name: 'Premium', price: '300€', priceSuffix: '/gira', featured: true },
+  { id: 'custom', name: 'Custom', price: '', priceSuffix: '' },
 ]
+
+const plans = computed<Plan[]>(() =>
+  planBases.map((base) => ({
+    ...base,
+    // "Custom" has no fixed number — its price slot is display text, so unlike the
+    // literal 179€/300€ amounts (currency, locale-independent) it must be translated.
+    price: base.id === 'custom' ? t('landing.pricing.plans.custom.priceLabel') : base.price,
+    // "/gira" is Spanish prose ("per tour"), not part of the currency amount — translate it.
+    priceSuffix: base.id === 'custom' ? '' : t('landing.pricing.perTourSuffix'),
+    tagline: t(`landing.pricing.plans.${base.id}.tagline`),
+    limit: t(`landing.pricing.plans.${base.id}.limit`),
+    notifications: t(`landing.pricing.plans.${base.id}.notifications`),
+    features: t(`landing.pricing.plans.${base.id}.features`) as unknown as string[],
+    cta: t(`landing.pricing.plans.${base.id}.cta`),
+  }))
+)
 </script>
 
 <template>
@@ -75,18 +52,19 @@ const plans: Plan[] = [
     <div class="mx-auto max-w-7xl">
       <div class="reveal-up mb-14 text-center md:mb-20">
         <h2 class="font-header text-5xl leading-none uppercase sm:text-6xl md:text-8xl">
-          Un Plan Para <br /><span class="acid-green italic">Cada Tamaño De Gira</span>
+          {{ t('landing.pricing.heading') }} <br /><span class="acid-green italic">{{
+            t('landing.pricing.headingHighlight')
+          }}</span>
         </h2>
         <p class="mx-auto mt-6 max-w-2xl text-xs uppercase tracking-widest text-white/50">
-          Todos los planes incluyen sincronización con Google Calendar, envío por WhatsApp
-          Business oficial y el motor de reglas de notificación.
+          {{ t('landing.pricing.subhead') }}
         </p>
       </div>
 
       <div class="reveal-up grid grid-cols-1 gap-6 md:grid-cols-3 md:items-stretch">
         <div
           v-for="plan in plans"
-          :key="plan.name"
+          :key="plan.id"
           :class="[
             'relative flex flex-col p-8 glass border transition-all',
             plan.featured
@@ -98,7 +76,7 @@ const plans: Plan[] = [
             v-if="plan.featured"
             class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-acid-green px-4 py-1 text-[9px] font-bold uppercase tracking-widest text-black"
           >
-            Más elegido
+            {{ t('landing.pricing.featuredBadge') }}
           </span>
 
           <div class="mb-6">

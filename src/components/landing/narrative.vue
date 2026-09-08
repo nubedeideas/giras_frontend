@@ -6,49 +6,43 @@
     <div class="max-w-4xl mx-auto space-y-24">
       <div class="reveal-up">
         <h2 class="text-[10px] uppercase tracking-[0.5em] text-acid-green mb-8">
-          01 / El Problema
+          {{ t('landing.narrative.step1Eyebrow') }}
         </h2>
         <p class="text-3xl md:text-5xl font-header leading-tight uppercase">
-          Perder tiempo enviando
-          <span class="opacity-40 italic">"Lobby Call a las 8am"</span>
-          individualmente a 15 personas no es management. <br>
-          <span class="acid-green">Es esclavitud técnica.</span>
+          {{ t('landing.narrative.step1Part1') }}
+          <span class="opacity-40 italic">{{ t('landing.narrative.step1Quote') }}</span>
+          {{ t('landing.narrative.step1Part2') }} <br />
+          <span class="acid-green">{{ t('landing.narrative.step1Highlight') }}</span>
         </p>
       </div>
 
       <div class="reveal-up">
         <h2 class="text-[10px] uppercase tracking-[0.5em] text-acid-green mb-8">
-          02 / El Método
+          {{ t('landing.narrative.step2Eyebrow') }}
         </h2>
         <p class="text-3xl md:text-5xl font-header leading-tight uppercase">
-          Tu calendario manda. Giras escucha. <br>
-          Cada evento en Google Calendar activa una
-          <span class="opacity-40 italic">notificación programada</span>
-          para el equipo correcto.
+          {{ t('landing.narrative.step2Part1') }} <br />
+          {{ t('landing.narrative.step2Part2') }}
+          <span class="opacity-40 italic">{{ t('landing.narrative.step2Quote') }}</span>
+          {{ t('landing.narrative.step2Part3') }}
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal-up">
         <div class="glass p-8 border-white/10 hover:border-acid-green/40 transition-all">
           <h3 class="font-header text-3xl mb-4">
-            Antes: El Caos
+            {{ t('landing.narrative.beforeTitle') }}
           </h3>
           <ul class="space-y-2 text-xs opacity-60 uppercase list-disc list-inside">
-            <li>Copiar y pegar textos a las 2 AM.</li>
-            <li>Músicos que "no vieron el mensaje".</li>
-            <li>Errores manuales en horarios.</li>
-            <li>Pánico en el lobby del hotel.</li>
+            <li v-for="item in t('landing.narrative.beforeItems')" :key="item">{{ item }}</li>
           </ul>
         </div>
         <div class="glass p-8 border-acid-green/40 bg-acid-green/5 shadow-[0_0_30px_rgba(192,255,0,0.05)]">
           <h3 class="font-header text-3xl mb-4 acid-green">
-            Ahora: Giras
+            {{ t('landing.narrative.afterTitle') }}
           </h3>
           <ul class="space-y-2 text-xs uppercase list-disc list-inside font-bold">
-            <li>Sincronización instantánea GCal.</li>
-            <li>Confirmación de lectura automática.</li>
-            <li>Reglas de equipo inteligentes.</li>
-            <li>Paz mental absoluta.</li>
+            <li v-for="item in t('landing.narrative.afterItems')" :key="item">{{ item }}</li>
           </ul>
         </div>
       </div>
@@ -56,4 +50,8 @@
   </section>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>

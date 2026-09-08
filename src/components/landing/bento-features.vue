@@ -1,20 +1,25 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import BentoBox from './bento-box.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
   <section id="features" class="py-16 mt-16 px-6">
     <div class="max-w-7xl mx-auto">
       <h2 class="font-header text-6xl uppercase mb-16 reveal-up">
-        Diferenciadores <br />
-        <span class="opacity-40 italic underline decoration-acid-green">Técnicos</span>
+        {{ t('landing.bentoFeatures.heading') }} <br />
+        <span class="opacity-40 italic underline decoration-acid-green">{{
+          t('landing.bentoFeatures.headingHighlight')
+        }}</span>
       </h2>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[250px] reveal-up">
         <BentoBox
           class-name="md:col-span-2 md:row-span-1"
-          title="Sincronización Profunda"
-          desc="No solo leemos el evento. Analizamos con nuestro motor de AI descripciones, ubicaciones y notas para automatizar el contenido del mensaje."
+          :title="t('landing.bentoFeatures.deepSync.title')"
+          :desc="t('landing.bentoFeatures.deepSync.desc')"
         >
           <template #icon>
             <svg
@@ -35,8 +40,8 @@ import BentoBox from './bento-box.vue'
           </template>
         </BentoBox>
         <BentoBox
-          title="WhatsApp Business API"
-          desc="Sin bloqueos de cuenta. Usamos canales oficiales para asegurar que el 100% de los mensajes lleguen."
+          :title="t('landing.bentoFeatures.whatsappApi.title')"
+          :desc="t('landing.bentoFeatures.whatsappApi.desc')"
           :accent="true"
         >
           <template #icon>
@@ -57,8 +62,8 @@ import BentoBox from './bento-box.vue'
           </template>
         </BentoBox>
         <BentoBox
-          title="Multi-Crew"
-          desc="Crea grupos para Backline, Catering, Iluminación y Músicos."
+          :title="t('landing.bentoFeatures.multiCrew.title')"
+          :desc="t('landing.bentoFeatures.multiCrew.desc')"
         >
           <template #icon>
             <svg
@@ -80,8 +85,8 @@ import BentoBox from './bento-box.vue'
         </BentoBox>
         <BentoBox
           class-name="md:col-span-2"
-          title="Reglas de Notificación"
-          desc="Programación flexible: 'X horas antes del evento', 'A la hora exacta', 'Recordatorio 10 mins después si no hay OK'."
+          :title="t('landing.bentoFeatures.rulesEngine.title')"
+          :desc="t('landing.bentoFeatures.rulesEngine.desc')"
         >
           <template #icon>
             <svg

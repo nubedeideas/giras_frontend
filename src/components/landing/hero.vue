@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import WhatsappMockup from './whatsapp-mockup.vue'
 import TrafficControlPanel from './traffic-control-panel.vue'
+
+const { t } = useI18n()
 
 const isMobile = ref(false)
 
@@ -31,25 +34,28 @@ onUnmounted(() => {
         <h1
           class="font-header text-7xl md:text-9xl leading-[0.85] tracking-tighter uppercase italic"
         >
-          El Caos del <span class="acid-green">Backstage</span> <br/>
-          Se Acabó.
+          {{ t('landing.hero.headlinePart1') }}<span class="acid-green">{{
+            t('landing.hero.headlineHighlight')
+          }}</span>
+          <br />
+          {{ t('landing.hero.headlineLine2') }}
         </h1>
         <p class="max-w-lg text-white/60 text-sm md:text-base leading-relaxed">
-          Sincroniza tu Google Calendar. <br/>Automatiza tus Lobby Calls. <br/>
-          Notifica a todo el crew vía WhatsApp sin mover un dedo. <br/>
+          {{ t('landing.hero.subheadLine1') }} <br />{{ t('landing.hero.subheadLine2') }} <br />
+          {{ t('landing.hero.subheadLine3') }} <br />
         </p>
         <div class="flex flex-col sm:flex-row gap-4 pt-4">
           <RouterLink
             to="/login"
             class="bg-acid-green text-black px-8 py-4 font-bold text-lg uppercase tracking-tighter shadow-hard hover:translate-x-1 hover:translate-y-1 hover:!shadow-none transition-all text-center"
           >
-            Automatizar Mi Crew
+            {{ t('landing.hero.ctaPrimary') }}
           </RouterLink>
           <a
             href="#funcionalidades"
             class="border border-white/20 hover:border-acid-green px-8 py-4 font-bold text-lg uppercase tracking-tighter transition-all glass text-center"
           >
-            Ver Demo Live
+            {{ t('landing.hero.ctaSecondary') }}
           </a>
         </div>
       </div>

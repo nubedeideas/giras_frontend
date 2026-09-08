@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import Stat from './stat.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -8,26 +11,25 @@ import Stat from './stat.vue'
       <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center items-center">
         <Stat
           value="+500"
-          label="Tours Gestionados"
+          :label="t('landing.socialProof.stat1Label')"
         />
         <Stat
           value="12k"
-          label="Lobby Calls Enviados"
+          :label="t('landing.socialProof.stat2Label')"
         />
         <Stat
           value="99.9%"
-          label="Uptime del Bot"
+          :label="t('landing.socialProof.stat3Label')"
         />
         <Stat
           value="0"
-          label="Vuelos Perdidos"
+          :label="t('landing.socialProof.stat4Label')"
         />
       </div>
 
       <div class="mt-12 border-t border-black/10 pt-12">
         <div class="max-w-3xl mx-auto italic text-xl md:text-3xl text-center font-header uppercase tracking-tight">
-          "Giras es el miembro del crew que nunca duerme, nunca se equivoca y nunca se queja. Ha
-          transformado por completo la forma en que manejamos la logística."
+          "{{ t('landing.socialProof.testimonial') }}"
         </div>
       </div>
     </div>

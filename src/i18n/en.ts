@@ -203,4 +203,300 @@ export default {
     back: 'Back',
     loading: 'Loading...',
   },
+
+  landing: {
+    header: {
+      cta: 'Get Started',
+      // Deliberately identical (or near-identical) in es.ts/en.ts: it's the label of the
+      // control that changes the language, so it must read in both languages at once.
+      langSwitcher: { label: 'Idioma / Language' },
+    },
+    hero: {
+      headlinePart1: 'The ',
+      headlineHighlight: 'Backstage',
+      headlineLine2: 'Chaos Is Over.',
+      subheadLine1: 'Sync your Google Calendar.',
+      subheadLine2: 'Automate your Lobby Calls.',
+      subheadLine3: 'Notify the whole crew via WhatsApp without lifting a finger.',
+      ctaPrimary: 'Automate My Crew',
+      ctaSecondary: 'See Live Demo',
+      whatsapp: { online: 'Online' },
+      trafficControl: { title: 'Traffic Control', checkin: 'Hotel Check-in' },
+    },
+    narrative: {
+      step1Eyebrow: '01 / The Problem',
+      step1Part1: 'Wasting time sending',
+      step1Quote: '"Lobby Call at 8am"',
+      step1Part2: "individually to 15 people isn't management.",
+      step1Highlight: "It's technical slavery.",
+      step2Eyebrow: '02 / The Method',
+      step2Part1: 'Your calendar leads. Giras listens.',
+      step2Part2: 'Every event on Google Calendar triggers a',
+      step2Quote: 'scheduled notification',
+      step2Part3: 'for the right team.',
+      beforeTitle: 'Before: The Chaos',
+      beforeItems: [
+        'Copy-pasting texts at 2 AM.',
+        'Musicians who "never saw the message".',
+        'Manual scheduling errors.',
+        'Panic in the hotel lobby.',
+      ],
+      afterTitle: 'Now: Giras',
+      afterItems: [
+        'Instant GCal sync.',
+        'Automatic read confirmation.',
+        'Smart crew rules.',
+        'Total peace of mind.',
+      ],
+    },
+    showcase: {
+      sectionHeading1: 'From The Grid To The',
+      sectionHeadingHighlight: "Crew's Pocket",
+      activeStepLabel: 'Active step',
+      flowAriaLabel: 'Three-step automated flow',
+      stepAriaLabel: 'Step {n} of {total}: {title}',
+      monthNames: [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ],
+      steps: {
+        notification: {
+          title: 'Automatic Notification',
+          desc: 'Automatic delivery via WhatsApp Business at the exact moment, with real-time delivery confirmation.',
+          mobileHint: 'Notification',
+        },
+        calendar: {
+          title: 'Calendar Reading',
+          desc: 'Giras detects your Google Calendar events automatically. No matter the time zone.',
+          mobileHint: 'Calendar',
+        },
+        rules: {
+          title: 'Rules Processing',
+          desc: 'The AI engine formats the perfect message based on the activity type and assigned crew.',
+          mobileHint: 'Rules',
+        },
+      },
+      calendarCard: { syncStatus: 'Sync Status: Active (G-Suite)' },
+    },
+    socialProof: {
+      stat1Label: 'Tours Managed',
+      stat2Label: 'Lobby Calls Sent',
+      stat3Label: 'Bot Uptime',
+      stat4Label: 'Missed Flights',
+      testimonial:
+        'Giras is the crew member who never sleeps, never makes a mistake, and never complains. It has completely transformed the way we handle logistics.',
+    },
+    pricing: {
+      heading: 'A Plan For',
+      headingHighlight: 'Every Tour Size',
+      subhead:
+        'Every plan includes Google Calendar sync, official WhatsApp Business delivery, and the notification rules engine.',
+      featuredBadge: 'Most Popular',
+      perTourSuffix: '/tour',
+      plans: {
+        starter: {
+          tagline: 'For artists and promoters starting their first tour',
+          limit: 'Up to 10 shows per tour',
+          notifications: '500 notifications included',
+          features: [
+            'Automatic Google Calendar sync',
+            'WhatsApp Business delivery (official API)',
+            'Notification rules engine',
+            'Contact and crew management',
+            '1 active tour',
+            'Email support',
+          ],
+          cta: 'Start with Starter',
+        },
+        premium: {
+          tagline: 'For big tours with a multidisciplinary crew',
+          limit: 'Up to 20 shows per tour',
+          notifications: '1,000 notifications included',
+          features: [
+            'Everything in Starter',
+            'AI-powered smart message formatting',
+            'Multi-crew groups (backline, catering, lighting...)',
+            'Automatic night-before Day Sheet delivery',
+            'Real-time delivery confirmation',
+            'Tour reports and analytics',
+            'Priority support',
+          ],
+          cta: 'Start with Premium',
+        },
+        custom: {
+          priceLabel: 'Custom Pricing',
+          tagline: 'For agencies running several tours at once',
+          limit: 'More than 20 shows per tour',
+          notifications: 'Custom notification volume',
+          features: [
+            'Everything in Premium',
+            'Unlimited tours and users',
+            'Multi-tour dashboard with agency roles and permissions',
+            'Custom integrations and onboarding',
+            'Dedicated account manager',
+            'SLA and priority support',
+          ],
+          cta: 'Get in Touch',
+        },
+      },
+    },
+    bentoFeatures: {
+      heading: 'Technical',
+      headingHighlight: 'Differentiators',
+      deepSync: {
+        title: 'Deep Sync',
+        desc: "We don't just read the event. Our AI engine analyzes descriptions, locations, and notes to automate the message content.",
+      },
+      whatsappApi: {
+        title: 'WhatsApp Business API',
+        desc: 'No account blocks. We use official channels to make sure 100% of messages get delivered.',
+      },
+      multiCrew: {
+        title: 'Multi-Crew',
+        desc: 'Create groups for Backline, Catering, Lighting, and Musicians.',
+      },
+      rulesEngine: {
+        title: 'Notification Rules',
+        desc: "Flexible scheduling: 'X hours before the event', 'At the exact time', 'Reminder 10 mins later if no OK'.",
+      },
+    },
+    cta: {
+      heading: 'Ready For The',
+      headingHighlight: 'Lobby Call?',
+      subheadLine1: 'Start with your first tour.',
+      subheadLine2: 'Just you, your calendar, and your connected team.',
+      successTitle: "You're In!",
+      successSub: "We'll let you know as soon as your access is ready.",
+      emailPlaceholder: 'YOUR-EMAIL',
+      emailAriaLabel: 'Professional email',
+      submitLabel: 'Request Access',
+      submitLoadingLabel: 'Validating...',
+      urgency: 'Real urgency: Only 10 new managers accepted this week.',
+      errors: {
+        required: 'Enter your professional email.',
+        consecutiveDots: "Email can't contain consecutive dots.",
+        invalid: 'Enter a valid professional email.',
+      },
+    },
+    footer: {
+      tagline: 'MADE FOR THE ROAD',
+      termsLink: 'Terms & Conditions',
+      supportLink: 'Support',
+    },
+  },
+
+  termsPage: {
+    lastUpdated: 'September 2026',
+    lastUpdatedLabel: 'Last updated:',
+    eyebrow: 'Legal',
+    titleLine1: 'Terms',
+    titleHighlight: '& Conditions',
+    sections: [
+      {
+        title: '1. Acceptance of Terms',
+        body: 'By creating an account or using Giras (GigSync), you accept these Terms and Conditions in full. If you do not agree with any part, you must not use the service.',
+      },
+      {
+        title: '2. Service Description',
+        body: 'Giras is a logistics management platform for music tours. It lets you sync calendars (Google Calendar), automate crew notifications via WhatsApp Business, and import contacts, among other features.',
+      },
+      {
+        title: '3. User Accounts',
+        body: 'You are responsible for keeping your access credentials confidential and for all activity carried out under your account. You must notify us immediately of any unauthorized use.',
+      },
+      {
+        title: '4. Third-Party Integrations',
+        body: 'Giras connects with external services such as Google Calendar, Google Contacts, the WhatsApp Business API, and Spotify to provide its features. Use of these integrations is also subject to those providers’ own terms and privacy policies.',
+      },
+      {
+        title: '5. Data Use and Privacy',
+        body: 'We collect and process only the data strictly necessary to operate the service: calendar events, crew contacts, and notification messages. We do not sell or share your information with third parties beyond what is necessary for the integrations you yourself authorize.',
+      },
+      {
+        title: '6. Intellectual Property',
+        body: 'The software, design, brand, and content of Giras are the property of its creators. Reproduction or distribution without express authorization is not permitted.',
+      },
+      {
+        title: '7. Limitation of Liability',
+        body: 'Giras is provided "as is". We do not guarantee uninterrupted service availability and are not responsible for third-party failures (Google, WhatsApp, Spotify) that may affect syncing or notification delivery.',
+      },
+      {
+        title: '8. Changes to These Terms',
+        body: 'We may update these Terms and Conditions periodically. We will notify relevant changes through the app or by email.',
+      },
+      {
+        title: '9. Contact',
+        body: 'For any questions about these terms, write to us at legal@gigsync.app or visit our Support section.',
+      },
+    ],
+  },
+
+  support: {
+    eyebrow: '// README.md',
+    title: 'Support',
+    titleHighlight: 'Center',
+    intro: 'Everything you need to get the most out of Giras, straight from the team manual.',
+    tocHeading: 'Index',
+    toc: {
+      'primeros-pasos': 'Getting Started',
+      integraciones: 'Integrations',
+      faq: 'FAQ',
+      contacto: 'Contact',
+    },
+    gettingStarted: {
+      heading: '01 / Getting Started',
+      body: 'The first time you sign in, the wizard walks you through 3 steps: create your first tour, build your crew (manually or imported from Google Contacts), and connect your Google Calendar. You can reopen the wizard anytime from the "+" button in the side menu.',
+    },
+    integrations: {
+      heading: '02 / Integrations',
+      items: {
+        googleCalendar: 'real-time event sync.',
+        whatsapp: 'automatic crew notifications.',
+        googleContacts: 'bulk contact import.',
+        spotify: 'artist search when creating a tour.',
+      },
+    },
+    faq: {
+      heading: '03 / FAQ',
+      items: [
+        {
+          q: 'How do I connect my Google Calendar?',
+          a: 'From the initial setup wizard (or under Settings → Integrations) authorize access to your Google account. Giras automatically syncs the tour events you choose.',
+        },
+        {
+          q: "Why aren't WhatsApp notifications arriving?",
+          a: 'Check that your WhatsApp Business number is active under Settings and that crew contacts have their number entered correctly. Deliveries go through official WhatsApp Business API channels, so confirmation can take a few seconds.',
+        },
+        {
+          q: 'Can I import my existing contacts?',
+          a: 'Yes. During onboarding or from the Contacts section you can import your list from Google Contacts in a single step.',
+        },
+        {
+          q: 'How do I search for artists when creating a tour?',
+          a: "The artist search uses the Spotify API through our backend, so you don't need your own credentials: just type the name and pick the right result.",
+        },
+        {
+          q: 'What happens if I change an event in Google Calendar?',
+          a: 'Changes sync automatically and show up in Giras. If a notification was already sent, you can manually resend an update from the event detail view.',
+        },
+      ],
+    },
+    contact: {
+      heading: '04 / Contact',
+      body: "Didn't find what you were looking for? Write to us and we'll get back to you in under 24 hours.",
+      emailLabel: 'email:',
+      hoursLabel: 'hours:',
+      hoursValue: 'Mon-Fri 09:00-18:00 (CET)',
+    },
+  },
 }

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const currentYear = new Date().getFullYear()
 </script>
 
@@ -15,15 +18,15 @@ const currentYear = new Date().getFullYear()
       </div>
 
       <div class="text-[10px] uppercase opacity-30 tracking-[0.3em] font-bold">
-        &copy; {{ currentYear }} GIRAS // MADE FOR THE ROAD
+        &copy; {{ currentYear }} GIRAS // {{ t('landing.footer.tagline') }}
       </div>
 
       <div class="flex gap-6 text-[10px] uppercase font-bold tracking-widest">
         <RouterLink to="/terminos-y-condiciones" class="hover:text-acid-green transition-colors">
-          Términos &amp; Condiciones
+          {{ t('landing.footer.termsLink') }}
         </RouterLink>
         <RouterLink to="/soporte" class="hover:text-acid-green transition-colors">
-          Soporte
+          {{ t('landing.footer.supportLink') }}
         </RouterLink>
       </div>
     </div>

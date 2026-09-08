@@ -3,6 +3,10 @@
 // import NavItem from './nav-item.vue'
 // import MobileMenu from './mobile-menu.vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from './language-switcher.vue'
+
+const { t } = useI18n()
 
 // const mobileMenuOpen = ref(false)
 </script>
@@ -37,11 +41,13 @@ import { RouterLink } from 'vue-router'
           Log in
         </RouterLink>
         -->
+        <LanguageSwitcher />
+
         <RouterLink
           to="/login"
           class="border-2 border-acid-green text-acid-green bg-transparent px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:scale-105 hover:bg-acid-green hover:text-black transition-all shadow-lg active:scale-95"
         >
-          Empezar
+          {{ t('landing.header.cta') }}
         </RouterLink>
 
         <!--

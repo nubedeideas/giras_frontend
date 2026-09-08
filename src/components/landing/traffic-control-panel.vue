@@ -11,14 +11,19 @@
           'font-bold uppercase tracking-widest text-acid-green',
           compact ? 'text-[8px]' : 'text-[9px]',
         ]"
-        >Control de Tráfico</span
+        >{{ t('landing.hero.trafficControl.title') }}</span
       >
       <span :class="['font-mono uppercase opacity-50', compact ? 'text-[7px]' : 'text-[9px]']">{{
         timeString
       }}</span>
     </div>
     <div :class="compact ? 'space-y-1.5' : 'space-y-3'">
-      <ScheduleItem time="14:00" label="Check-in en Hotel" status="SENT" :compact="compact" />
+      <ScheduleItem
+        time="14:00"
+        :label="t('landing.hero.trafficControl.checkin')"
+        status="SENT"
+        :compact="compact"
+      />
       <ScheduleItem time="16:30" label="Soundcheck" status="PENDING" :compact="compact" />
       <ScheduleItem time="19:00" label="Dinner Call" status="PENDING" :compact="compact" />
       <ScheduleItem
@@ -34,7 +39,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ScheduleItem from './schedule-item.vue'
+
+const { t } = useI18n()
 
 withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 
