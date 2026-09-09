@@ -8,9 +8,10 @@ import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
 import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue'
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
+import NotificationGroupsManager from '@/components/settings/NotificationGroupsManager.vue'
 import NotificationTemplatesView from '@/views/NotificationTemplatesView.vue'
 
-type SettingsTab = 'general' | 'calendars' | 'activities' | 'roles' | 'templates'
+type SettingsTab = 'general' | 'calendars' | 'activities' | 'roles' | 'groups' | 'templates'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,6 +39,11 @@ const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
     key: 'roles',
     label: 'Roles',
     iconPath: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  },
+  {
+    key: 'groups',
+    label: 'Grupos',
+    iconPath: `<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>`,
   },
   {
     key: 'templates',
@@ -332,6 +338,17 @@ function signOut() {
               </p>
             </div>
             <RolesManager />
+          </template>
+
+          <!-- ── Grupos de notificación ─────────────────────────────────────── -->
+          <template v-else-if="activeTab === 'groups'">
+            <div class="mb-6">
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">Grupos de notificación</h2>
+              <p class="text-[12px] text-ink-3 mt-1">
+                Agrupa contactos para aplicarlos con un click al notificar una actividad.
+              </p>
+            </div>
+            <NotificationGroupsManager />
           </template>
 
         </div>

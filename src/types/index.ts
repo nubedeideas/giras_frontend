@@ -163,6 +163,9 @@ export interface Tour {
   events_count?: number
   // Google Calendar assignment
   default_calendar_id?: number | null
+  // Default notification group (fallback recipients when an Activity is created without a rule)
+  default_notification_group_id?: string | null
+  default_notification_group_name?: string | null
   // Spotify integration
   spotify_artist_id?: string
   spotify_artist_url?: string

@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import AppModal from '@/components/ui/AppModal.vue'
-import { useNotifications, type ContactListItem, type NotificationChannel } from '@/composables/useNotifications'
-import { useNotificationGroups, type NotificationGroupListItem } from '@/composables/useNotificationGroups'
+import { useNotifications, type ContactListItem } from '@/composables/useNotifications'
+import { useNotificationGroups } from '@/composables/useNotificationGroups'
 
-const props = defineProps<{
-  show: boolean
-  notificationUuid: string
-  channel: NotificationChannel
-}>()
-const emit = defineEmits<{ close: []; added: [] }>()
+const props = defineProps<{ show: boolean; groupUuid: string | null }>()
+const emit = defineEmits<{ close: []; saved: [contactCount: number] }>()
 
-const api = useNotifications()
+const notifApi = useNotifications()
 const groupsApi = useNotificationGroups()
 
+const groupName = ref('')
+const originalUuids = ref<Set<string>>(new Set())
 const contacts = ref<ContactListItem[]>([])
 const loading = ref(false)
 const loadError = ref('')
@@ -22,33 +20,8 @@ const selected = ref<Set<string>>(new Set())
 const saving = ref(false)
 const saveError = ref('')
 
-// ─── Notification groups ("Aplicar grupo" shortcut) ──────────────────────────
-
-const groups = ref<NotificationGroupListItem[]>([])
-
-async function loadGroups() {
-  groups.value = []
-  try {
-    const notif = await api.getNotification(props.notificationUuid)
-    groups.value = await groupsApi.listGroups(notif.tour ?? undefined)
-  } catch {
-    // Non-critical — the manual contact picker still works without this
-  }
-}
-
-async function applyGroup(groupUuid: string) {
-  try {
-    const group = await groupsApi.getGroup(groupUuid)
-    group.contacts.forEach((c) => selected.value.add(c.uuid))
-    selected.value = new Set(selected.value)
-  } catch {
-    // Non-critical — user can still select contacts manually
-  }
-}
-
 // ─── Roles ────────────────────────────────────────────────────────────────────
 
-// All roles derived from loaded contacts
 const availableRoles = computed(() => {
   const seen = new Map<string, { uuid: string; name: string; color: string }>()
   for (const c of contacts.value) {
@@ -59,14 +32,12 @@ const availableRoles = computed(() => {
   return [...seen.values()]
 })
 
-// For each role: how many contacts total and how many are selected
 function roleStats(roleUuid: string) {
   const roleContacts = contacts.value.filter((c) => c.role?.uuid === roleUuid)
   const selectedCount = roleContacts.filter((c) => selected.value.has(c.uuid)).length
   return { total: roleContacts.length, selectedCount }
 }
 
-// State: 'none' | 'partial' | 'all'
 function roleSelectionState(roleUuid: string): 'none' | 'partial' | 'all' {
   const { total, selectedCount } = roleStats(roleUuid)
   if (selectedCount === 0) return 'none'
@@ -78,10 +49,8 @@ function toggleRoleSelection(roleUuid: string) {
   const roleContacts = contacts.value.filter((c) => c.role?.uuid === roleUuid)
   const state = roleSelectionState(roleUuid)
   if (state === 'all') {
-    // Deselect all from this role
     roleContacts.forEach((c) => selected.value.delete(c.uuid))
   } else {
-    // Select all from this role
     roleContacts.forEach((c) => selected.value.add(c.uuid))
   }
   selected.value = new Set(selected.value)
@@ -104,22 +73,28 @@ const filtered = computed(() => {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 watch(
-  () => props.show,
-  async (v) => {
-    if (v) {
-      selected.value = new Set()
+  () => [props.show, props.groupUuid] as const,
+  async ([show, uuid]) => {
+    if (show && uuid) {
       search.value = ''
       saveError.value = ''
-      await Promise.all([loadContacts(), loadGroups()])
+      await load(uuid)
     }
   },
 )
 
-async function loadContacts() {
+async function load(uuid: string) {
   loading.value = true
   loadError.value = ''
   try {
-    contacts.value = await api.listGlobalContacts()
+    const [group, allContacts] = await Promise.all([
+      groupsApi.getGroup(uuid),
+      notifApi.listGlobalContacts(),
+    ])
+    groupName.value = group.name
+    originalUuids.value = new Set(group.contacts.map((c) => c.uuid))
+    selected.value = new Set(originalUuids.value)
+    contacts.value = allContacts
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Error al cargar contactos'
   } finally {
@@ -135,24 +110,27 @@ function toggle(uuid: string) {
   selected.value = new Set(selected.value)
 }
 
-function missingContactInfo(c: ContactListItem): boolean {
-  if (props.channel === 'email') return !c.primary_email
-  if (props.channel === 'sms' || props.channel === 'whatsapp') return !c.primary_phone
-  return false
-}
+// ─── Save (diff against original membership) ─────────────────────────────────
 
-// ─── Save ─────────────────────────────────────────────────────────────────────
-
-async function addSelected() {
-  if (selected.value.size === 0) return
+async function save() {
+  if (!props.groupUuid) return
   saving.value = true
   saveError.value = ''
   try {
-    await api.addContacts(props.notificationUuid, Array.from(selected.value))
-    emit('added')
-    emit('close')
+    const toAdd = [...selected.value].filter((uuid) => !originalUuids.value.has(uuid))
+    const toRemove = [...originalUuids.value].filter((uuid) => !selected.value.has(uuid))
+    let total = originalUuids.value.size
+    if (toAdd.length > 0) {
+      const res = await groupsApi.addContacts(props.groupUuid, toAdd)
+      total = res.total_contacts
+    }
+    if (toRemove.length > 0) {
+      const res = await groupsApi.removeContacts(props.groupUuid, toRemove)
+      total = res.total_contacts
+    }
+    emit('saved', total)
   } catch (e) {
-    saveError.value = e instanceof Error ? e.message : 'Error al agregar contactos'
+    saveError.value = e instanceof Error ? e.message : 'Error al guardar los cambios'
   } finally {
     saving.value = false
   }
@@ -164,9 +142,9 @@ async function addSelected() {
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Agregar Contactos</p>
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">Gestionar Contactos</p>
         <p class="text-[10px] text-ink-3 mt-0.5">
-          {{ selected.size }} seleccionado{{ selected.size !== 1 ? 's' : '' }}
+          {{ groupName }} · {{ selected.size }} seleccionado{{ selected.size !== 1 ? 's' : '' }}
         </p>
       </div>
       <button
@@ -179,31 +157,7 @@ async function addSelected() {
       </button>
     </div>
 
-    <!-- ── Apply notification group ─────────────────────────────────────────── -->
-    <div v-if="!loading && groups.length > 0" class="mb-3">
-      <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
-        Aplicar grupo
-      </p>
-      <div class="flex flex-wrap gap-1.5">
-        <button
-          v-for="group in groups"
-          :key="group.uuid"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border border-line-acid text-acid bg-[rgba(168,216,0,0.08)] transition-all cursor-pointer select-none hover:bg-[rgba(168,216,0,0.15)]"
-          @click="applyGroup(group.uuid)"
-        >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          <span>{{ group.name }}</span>
-          <span class="text-[9px] font-bold px-1 py-0.5 rounded min-w-[18px] text-center leading-none bg-[rgba(168,216,0,0.15)]">
-            {{ group.contact_count }}
-          </span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ── Role group-select chips ──────────────────────────────────────────── -->
+    <!-- Role group-select chips -->
     <div v-if="!loading && availableRoles.length > 0" class="mb-3">
       <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
         Seleccionar por rol
@@ -220,16 +174,11 @@ async function addSelected() {
               : { background: 'transparent', borderColor: 'var(--line)', color: 'var(--ink-3)' }"
           @click="toggleRoleSelection(role.uuid)"
         >
-          <!-- Color dot -->
           <span
             class="w-2 h-2 rounded-full flex-shrink-0 transition-opacity"
             :style="{ background: role.color, opacity: roleSelectionState(role.uuid) === 'none' ? '0.45' : '1' }"
           />
-
-          <!-- Name -->
           <span>{{ role.name }}</span>
-
-          <!-- Counter badge -->
           <span
             class="text-[9px] font-bold px-1 py-0.5 rounded min-w-[18px] text-center leading-none transition-colors"
             :style="roleSelectionState(role.uuid) === 'all'
@@ -240,8 +189,6 @@ async function addSelected() {
           >
             {{ roleStats(role.uuid).selectedCount }}/{{ roleStats(role.uuid).total }}
           </span>
-
-          <!-- Check icon when all selected -->
           <svg
             v-if="roleSelectionState(role.uuid) === 'all'"
             width="9" height="9" viewBox="0 0 24 24" fill="none"
@@ -267,7 +214,6 @@ async function addSelected() {
 
     <!-- Contact list -->
     <div class="max-h-[42vh] overflow-y-auto -mx-1 px-1">
-
       <div v-if="loading" class="flex justify-center py-8">
         <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
@@ -288,7 +234,6 @@ async function addSelected() {
           :class="selected.has(c.uuid) ? 'bg-acid/10' : 'bg-transparent hover:bg-glass'"
           @click="toggle(c.uuid)"
         >
-          <!-- Checkbox -->
           <span
             class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors"
             :class="selected.has(c.uuid) ? 'bg-acid border-acid' : 'border-line bg-glass'"
@@ -298,7 +243,6 @@ async function addSelected() {
             </svg>
           </span>
 
-          <!-- Info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
               <p class="text-[12px] font-medium text-ink truncate">{{ c.full_name || c.company_name || '—' }}</p>
@@ -315,13 +259,6 @@ async function addSelected() {
               <span v-if="!c.primary_email && !c.primary_phone" class="text-ink-4">Sin contacto</span>
             </p>
           </div>
-
-          <!-- Missing info warning -->
-          <span
-            v-if="missingContactInfo(c)"
-            class="text-[10px] text-[#f59e0b] flex-shrink-0"
-            title="Falta información de contacto para este canal"
-          >⚠</span>
         </button>
       </template>
     </div>
@@ -333,11 +270,11 @@ async function addSelected() {
     <div class="flex gap-2 mt-4">
       <button
         class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-        :class="saving || selected.size === 0 ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
-        :disabled="saving || selected.size === 0"
-        @click="addSelected"
+        :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+        :disabled="saving"
+        @click="save"
       >
-        {{ saving ? 'Agregando…' : `Agregar ${selected.size > 0 ? selected.size : ''} contacto${selected.size !== 1 ? 's' : ''}` }}
+        {{ saving ? 'Guardando…' : 'Guardar' }}
       </button>
       <button
         class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"

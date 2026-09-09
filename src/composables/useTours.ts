@@ -42,6 +42,8 @@ export interface TourFull extends TourListItem {
   is_active: boolean
   has_spotify_integration: boolean
   default_calendar: number | null
+  default_notification_group: string | null
+  default_notification_group_name: string | null
 }
 
 export interface CreateTourPayload {
@@ -82,6 +84,7 @@ export interface UpdateTourPayload {
   spotify_followers?: number | null
   spotify_synced_at?: string | null
   default_calendar?: number | null
+  default_notification_group?: string | null
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────

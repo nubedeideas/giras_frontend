@@ -38,6 +38,8 @@ function mapTour(data: TourFull | TourListItem): Tour {
     // color is stored in settings JSONField
     color: (full.settings?.color as string) || '#a8d800',
     default_calendar_id: full.default_calendar ?? null,
+    default_notification_group_id: full.default_notification_group ?? null,
+    default_notification_group_name: full.default_notification_group_name ?? null,
     spotify_artist_id: full.spotify_artist_id || undefined,
     spotify_artist_url: full.spotify_artist_url || undefined,
     spotify_image_url: data.spotify_image_url || undefined,

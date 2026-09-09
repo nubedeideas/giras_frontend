@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToursStore } from '@/stores/tours'
 import { useTours as useToursApi } from '@/composables/useTours'
+import { useNotificationGroups, type NotificationGroupListItem } from '@/composables/useNotificationGroups'
 import type { Tour, TourStatus } from '@/types'
 import { searchSpotifyArtists, formatFollowers } from '@/composables/useSpotifySearch'
 import type { SpotifyArtist } from '@/composables/useSpotifySearch'
@@ -14,6 +15,7 @@ const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const toursStore = useToursStore()
 const toursApi = useToursApi()
+const groupsApi = useNotificationGroups()
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ const form = reactive({
   team_size: '' as number | '',
   notes: '',
   color: COLORS[0],
+  default_notification_group: '',
   spotify_artist_id: '',
   spotify_artist_url: '',
   spotify_image_url: '',
@@ -61,6 +64,7 @@ const form = reactive({
 const formError = ref('')
 const saving = ref(false)
 const loadingEdit = ref(false)
+const notificationGroups = ref<NotificationGroupListItem[]>([])
 
 // ─── Spotify search ───────────────────────────────────────────────────────────
 
@@ -189,6 +193,7 @@ async function openEdit(tour: Tour) {
     team_size: tour.team_size ?? '',
     notes: tour.notes ?? '',
     color: tour.color,
+    default_notification_group: tour.default_notification_group_id ?? '',
     spotify_artist_id: tour.spotify_artist_id ?? '',
     spotify_artist_url: tour.spotify_artist_url ?? '',
     spotify_image_url: tour.spotify_image_url ?? '',
@@ -209,6 +214,7 @@ async function openEdit(tour: Tour) {
       currency: full.currency || 'EUR',
       team_size: full.team_size ?? '',
       notes: full.notes ?? '',
+      default_notification_group: full.default_notification_group ?? '',
       spotify_artist_id: full.spotify_artist_id ?? '',
       spotify_artist_url: full.spotify_artist_url ?? '',
       spotify_followers: full.spotify_followers ?? undefined,
@@ -219,6 +225,13 @@ async function openEdit(tour: Tour) {
     // Silently continue with list data if detail fetch fails
   } finally {
     loadingEdit.value = false
+  }
+
+  // Load groups this tour can use as default (scoped to this tour + globals)
+  try {
+    notificationGroups.value = await groupsApi.listGroups(tour.uuid)
+  } catch {
+    notificationGroups.value = []
   }
 }
 
@@ -291,9 +304,21 @@ async function submitEdit() {
         spotify_image_url: form.spotify_image_url || null,
         spotify_followers: form.spotify_followers ?? null,
         spotify_synced_at: form.spotify_synced_at || null,
+        default_notification_group: form.default_notification_group || null,
       },
       form.color,
     )
+    // PATCH /tours/{uuid}/ (TourUpdateSerializer) returns the group uuid but not its
+    // name — only the GET/retrieve serializer includes default_notification_group_name.
+    // Resolve it locally from the already-loaded groups list so the UI doesn't show a
+    // stale/blank name until the next full reload.
+    const updatedTour = toursStore.tours.find((t) => t.uuid === editTarget.value!.uuid)
+    if (updatedTour) {
+      updatedTour.default_notification_group_name = form.default_notification_group
+        ? (notificationGroups.value.find((g) => g.uuid === form.default_notification_group)
+            ?.name ?? null)
+        : null
+    }
     backToList()
   } catch (e) {
     formError.value = e instanceof Error ? e.message : 'Error al guardar gira'
@@ -664,6 +689,25 @@ async function confirmDelete(uuid: string) {
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.notes') }}</label>
               <textarea v-model="form.notes" :placeholder="t('modal.notesPh')" rows="2" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none" />
+            </div>
+
+            <!-- Default notification group (edit only) -->
+            <div v-if="mode === 'edit'">
+              <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">
+                Grupo de notificación por defecto
+              </label>
+              <select
+                v-model="form.default_notification_group"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
+              >
+                <option value="">Sin grupo por defecto</option>
+                <option v-for="g in notificationGroups" :key="g.uuid" :value="g.uuid">
+                  {{ g.name }}{{ g.tour ? '' : ' (Global)' }}
+                </option>
+              </select>
+              <p class="text-[9px] text-ink-4 mt-1">
+                Se usa como destinatarios automáticos cuando una actividad se crea sin una regla de notificación explícita.
+              </p>
             </div>
 
             <!-- Color -->
