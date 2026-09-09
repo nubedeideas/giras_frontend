@@ -34,7 +34,7 @@
             {{ t('landing.narrative.beforeTitle') }}
           </h3>
           <ul class="space-y-2 text-xs opacity-60 uppercase list-disc list-inside">
-            <li v-for="item in t('landing.narrative.beforeItems')" :key="item">{{ item }}</li>
+            <li v-for="item in beforeItems" :key="item">{{ item }}</li>
           </ul>
         </div>
         <div class="glass p-8 border-acid-green/40 bg-acid-green/5 shadow-[0_0_30px_rgba(192,255,0,0.05)]">
@@ -42,7 +42,7 @@
             {{ t('landing.narrative.afterTitle') }}
           </h3>
           <ul class="space-y-2 text-xs uppercase list-disc list-inside font-bold">
-            <li v-for="item in t('landing.narrative.afterItems')" :key="item">{{ item }}</li>
+            <li v-for="item in afterItems" :key="item">{{ item }}</li>
           </ul>
         </div>
       </div>
@@ -51,7 +51,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
+
+// tm() (not t()) is required for array-valued keys — t() only resolves compiled
+// string leaves and returns the key itself unresolved when it points at an array.
+const beforeItems = computed(() => tm('landing.narrative.beforeItems') as unknown as string[])
+const afterItems = computed(() => tm('landing.narrative.afterItems') as unknown as string[])
 </script>

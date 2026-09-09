@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/layouts/PublicLayout.vue'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 const TOC_IDS = ['primeros-pasos', 'integraciones', 'faq', 'contacto'] as const
 
@@ -11,8 +11,10 @@ const toc = computed(() =>
   TOC_IDS.map((id) => ({ id, label: t(`support.toc.${id}`) }))
 )
 
+// tm() (not t()) is required here — t() only resolves compiled string leaves
+// and returns the key itself unresolved when it points at an array.
 const faqs = computed(
-  () => t('support.faq.items') as unknown as { q: string; a: string }[]
+  () => tm('support.faq.items') as unknown as { q: string; a: string }[]
 )
 </script>
 

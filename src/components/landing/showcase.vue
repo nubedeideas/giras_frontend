@@ -343,11 +343,13 @@ import DemoScheduleItem from './demo-schedule-item.vue'
 
 defineOptions({ name: 'LandingShowcase' })
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 const currentMonthLabel = computed(() => {
   const now = new Date()
-  const monthNames = t('landing.showcase.monthNames') as unknown as string[]
+  // tm() (not t()) is required for array-valued keys — t() only resolves compiled
+  // string leaves and returns the key itself unresolved when it points at an array.
+  const monthNames = tm('landing.showcase.monthNames') as unknown as string[]
   return `${monthNames[now.getMonth()]} ${now.getFullYear()}`
 })
 

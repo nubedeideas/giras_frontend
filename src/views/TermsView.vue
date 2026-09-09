@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/layouts/PublicLayout.vue'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 const lastUpdated = computed(() => t('termsPage.lastUpdated'))
+// tm() (not t()) is required here — t() only resolves compiled string leaves
+// and returns the key itself unresolved when it points at an array.
 const sections = computed(
-  () => t('termsPage.sections') as unknown as { title: string; body: string }[]
+  () => tm('termsPage.sections') as unknown as { title: string; body: string }[]
 )
 </script>
 

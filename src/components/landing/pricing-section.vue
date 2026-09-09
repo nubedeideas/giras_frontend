@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'LandingPricing' })
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 type PlanId = 'starter' | 'premium' | 'custom'
 
@@ -41,7 +41,9 @@ const plans = computed<Plan[]>(() =>
     tagline: t(`landing.pricing.plans.${base.id}.tagline`),
     limit: t(`landing.pricing.plans.${base.id}.limit`),
     notifications: t(`landing.pricing.plans.${base.id}.notifications`),
-    features: t(`landing.pricing.plans.${base.id}.features`) as unknown as string[],
+    // tm() (not t()) is required here — t() only resolves compiled string leaves
+    // and returns the key itself unresolved when it points at an array.
+    features: tm(`landing.pricing.plans.${base.id}.features`) as unknown as string[],
     cta: t(`landing.pricing.plans.${base.id}.cta`),
   }))
 )
