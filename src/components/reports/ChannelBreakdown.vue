@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import GlassBlock from '@/components/ui/GlassBlock.vue'
+
 defineProps<{
   channels: Array<{
     name: string
@@ -14,8 +16,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-glass border border-line rounded p-5 mb-4">
-    <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-4">{{ title }}</p>
+  <GlassBlock :title="title" class="mb-4">
     <div class="space-y-5">
       <div v-for="ch in channels" :key="ch.name">
         <div class="flex items-center justify-between mb-2">
@@ -46,5 +47,5 @@ defineProps<{
         </div>
       </div>
     </div>
-  </div>
+  </GlassBlock>
 </template>

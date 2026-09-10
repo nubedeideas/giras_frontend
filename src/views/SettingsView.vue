@@ -71,12 +71,14 @@ function signOut() {
 </script>
 
 <template>
-  <div class="flex h-full overflow-hidden">
-    <!-- ── Left sidebar ─────────────────────────────────────────────────────── -->
-    <div class="w-52 flex-shrink-0 bg-bg-2 border-r border-line flex flex-col overflow-hidden">
+  <div class="flex flex-col lg:flex-row h-full overflow-hidden">
+    <!-- ── Left sidebar / mobile top bar ───────────────────────────────────── -->
+    <div
+      class="flex-shrink-0 bg-bg-2 border-b lg:border-b-0 lg:border-r border-line flex flex-col overflow-hidden lg:w-52"
+    >
       <!-- User profile block -->
-      <div class="px-4 pt-5 pb-4 border-b border-line flex-shrink-0">
-        <div class="flex items-center gap-2.5 mb-3">
+      <div class="flex items-center gap-2.5 px-4 py-3 lg:pt-5 lg:pb-4 lg:flex-col lg:items-stretch border-b border-line flex-shrink-0">
+        <div class="flex items-center gap-2.5 lg:mb-3 flex-1 min-w-0">
           <div
             class="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-[13px] font-bold text-black border-2 border-acid"
             :style="{ background: auth.user?.avatar ? 'transparent' : 'var(--acid)' }"
@@ -98,15 +100,28 @@ function signOut() {
             <p class="text-[10px] text-ink-4 truncate mt-0.5">{{ auth.user?.email }}</p>
           </div>
         </div>
-        <p class="text-[13px] font-bold text-ink tracking-[-0.2px]">Configuración</p>
+        <p class="hidden lg:block text-[13px] font-bold text-ink tracking-[-0.2px]">Configuración</p>
+
+        <!-- Sign out (mobile: compact icon next to profile) -->
+        <button
+          class="lg:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+          title="Cerrar sesión"
+          @click="signOut"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Tab navigation -->
-      <nav class="flex-1 overflow-y-auto py-2 px-2">
+      <!-- Tab navigation: horizontal scroll on mobile, vertical list on desktop -->
+      <nav class="flex lg:flex-col overflow-x-auto lg:overflow-y-auto lg:flex-1 gap-1 lg:gap-0 px-2 py-2">
         <button
           v-for="tab in TABS"
           :key="tab.key"
-          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-0.5 text-left border-none relative cursor-pointer transition-all duration-150"
+          class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150"
           :class="
             activeTab === tab.key
               ? 'bg-glass-active text-acid'
@@ -114,10 +129,10 @@ function signOut() {
           "
           @click="activeTab = tab.key"
         >
-          <!-- Active indicator bar -->
+          <!-- Active indicator bar (desktop only — mobile uses the fill instead) -->
           <div
             v-if="activeTab === tab.key"
-            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-acid rounded-r"
+            class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-acid rounded-r"
           />
           <svg
             width="14"
@@ -134,8 +149,8 @@ function signOut() {
         </button>
       </nav>
 
-      <!-- Sign out -->
-      <div class="px-2 py-3 border-t border-line flex-shrink-0">
+      <!-- Sign out (desktop only) -->
+      <div class="hidden lg:block px-2 py-3 border-t border-line flex-shrink-0">
         <button
           class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
           @click="signOut"
@@ -205,7 +220,7 @@ function signOut() {
                   <div>
                     <p class="text-[13px] font-semibold text-ink">Tema de color</p>
                     <p class="text-[10px] text-ink-4 mt-0.5">
-                      La barra de navegación siempre permanece en modo oscuro.
+                      Afecta a toda la aplicación, incluida la barra de navegación.
                     </p>
                   </div>
                 </div>
@@ -259,8 +274,8 @@ function signOut() {
                   >
                     <!-- Mini preview -->
                     <div class="rounded-lg overflow-hidden mb-2.5 border border-black/8" style="background: #eaeaef; height: 52px; display: flex;">
-                      <!-- Sidebar strip (always dark) -->
-                      <div style="width: 12px; background: #0c0c0f; border-right: 1px solid rgba(255,255,255,0.07); flex-shrink: 0;" />
+                      <!-- Sidebar strip -->
+                      <div style="width: 12px; background: #ffffff; border-right: 1px solid rgba(0,0,0,0.09); flex-shrink: 0;" />
                       <!-- Content area -->
                       <div class="flex-1 p-1.5 flex flex-col gap-1">
                         <div style="height: 5px; width: 55%; background: rgba(0,0,0,0.15); border-radius: 3px;" />

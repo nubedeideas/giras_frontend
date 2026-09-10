@@ -40,7 +40,7 @@ const navItems = [
 
 <template>
   <nav
-    class="sidebar-dark md:hidden fixed bottom-0 left-0 right-0 bg-bg-2 border-t border-line flex z-[100]"
+    class="lg:hidden fixed bottom-0 left-0 right-0 bg-bg-2 border-t border-line flex z-[100]"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
     <!-- Giras button (tour selector) -->
@@ -72,17 +72,22 @@ const navItems = [
       class="flex-1 py-2.5 flex flex-col items-center gap-[3px] no-underline text-acid-nav transition-colors duration-200"
       :class="route.path.startsWith(item.to) ? 'text-acid' : 'hover:text-acid'"
     >
-      <svg
-        width="19"
-        height="19"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        v-html="item.icon"
-      />
+      <span
+        class="flex items-center justify-center w-8 h-6 rounded-full transition-colors duration-200"
+        :class="route.path.startsWith(item.to) ? 'bg-acid text-black' : ''"
+      >
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          v-html="item.icon"
+        />
+      </span>
       <span class="text-[9px] font-medium">{{ t(`nav.${item.key}`) }}</span>
     </RouterLink>
   </nav>

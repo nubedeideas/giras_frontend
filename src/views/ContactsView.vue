@@ -31,12 +31,28 @@ const availableRoles = computed(() => {
 
 // Exit edit mode when selection changes
 watch(() => store.selectedId, () => { editMode.value = false })
+
+// Alphabetical grouping (by first letter of full_name), same shape as
+// activities/notifications' groupedActivities/groupedEvents.
+const groupedContacts = computed(() => {
+  const map = new Map<string, typeof store.filtered>()
+  for (const c of store.filtered) {
+    const letter = (c.full_name || c.company_name || '#').trim().charAt(0).toUpperCase() || '#'
+    if (!map.has(letter)) map.set(letter, [])
+    map.get(letter)!.push(c)
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, items]) => ({ label, items }))
+})
 </script>
 
 <template>
   <div class="flex h-full overflow-hidden">
     <!-- List panel -->
-    <div class="w-80 flex-shrink-0 bg-bg-2 border-r border-line flex flex-col overflow-hidden">
+    <div
+      class="w-80 flex-shrink-0 my-3 ml-3 mr-1.5 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
+    >
       <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
         <div class="flex items-center justify-between mb-3">
           <p class="text-base font-bold tracking-[-0.2px] text-ink">{{ t('contacts.title') }}</p>
@@ -180,13 +196,18 @@ watch(() => store.selectedId, () => { editMode.value = false })
           </svg>
         </div>
         <template v-else>
-          <div class="relative" v-for="c in store.filtered" :key="c.uuid">
-            <ContactCard
-              :contact="c"
-              :selected="store.selectedId === c.uuid"
-              @select="store.selectContact"
-            />
-          </div>
+          <template v-for="group in groupedContacts" :key="group.label">
+            <p class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5">
+              {{ group.label }}
+            </p>
+            <div class="relative" v-for="c in group.items" :key="c.uuid">
+              <ContactCard
+                :contact="c"
+                :selected="store.selectedId === c.uuid"
+                @select="store.selectContact"
+              />
+            </div>
+          </template>
           <div v-if="store.filtered.length === 0" class="text-center py-8 text-ink-4 text-xs">
             {{ t('contacts.noContacts') }}
           </div>

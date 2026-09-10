@@ -10,8 +10,24 @@ import type { SpotifyArtist } from '@/composables/useSpotifySearch'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
 
-const props = defineProps<{ show: boolean; mobile?: boolean }>()
+type Anchor = { top: number; left: number; bottom: number; width: number }
+
+const props = defineProps<{ show: boolean; mobile?: boolean; anchor?: Anchor | null }>()
 const emit = defineEmits<{ close: [] }>()
+
+// Desktop: anchored dropdown positioned right next to the trigger button that opened it,
+// sized to content instead of the full viewport height.
+const desktopPanelStyle = computed(() => {
+  if (props.mobile || !props.anchor) return {}
+  const gap = 8
+  const maxHeight = Math.min(window.innerHeight - props.anchor.bottom - gap - 16, 520)
+  return {
+    top: `${props.anchor.bottom + gap}px`,
+    left: `${props.anchor.left}px`,
+    width: `${Math.max(props.anchor.width, 280)}px`,
+    maxHeight: `${Math.max(maxHeight, 240)}px`,
+  }
+})
 const { t } = useI18n()
 const toursStore = useToursStore()
 const toursApi = useToursApi()
@@ -166,6 +182,7 @@ function validateDates(): boolean {
 
 function selectTour(id: number | null) {
   toursStore.setActiveTour(id)
+  emit('close')
 }
 
 function openCreate() {
@@ -357,11 +374,13 @@ async function confirmDelete(uuid: string) {
     <Transition :name="props.mobile ? 'tp-slide-up' : 'tp-slide'">
       <div
         v-if="show"
-        class="sidebar-dark fixed bg-bg-2 z-[56] flex flex-col"
+        class="fixed bg-bg-3 z-[56] flex flex-col"
         :class="props.mobile
           ? 'left-0 right-0 bottom-[56px] rounded-t-2xl border-t border-line max-h-[75vh] overflow-hidden'
-          : 'left-16 top-0 h-screen w-[256px] border-r border-line'"
-        :style="props.mobile ? 'box-shadow: 0 -4px 28px var(--shadow-md)' : 'box-shadow: 4px 0 28px var(--shadow-md)'"
+          : 'rounded-2xl border border-line overflow-hidden'"
+        :style="props.mobile
+          ? 'box-shadow: 0 -4px 28px var(--shadow-md)'
+          : { boxShadow: '0 12px 40px var(--shadow-md)', ...desktopPanelStyle }"
       >
         <!-- ═══════════════════════════════ LIST MODE ═══════════════════════════════ -->
         <template v-if="mode === 'list'">
@@ -396,17 +415,48 @@ async function confirmDelete(uuid: string) {
           </div>
 
           <template v-else>
+            <!-- Active tour summary block -->
+            <div
+              class="px-3.5 py-3 border-b border-line flex-shrink-0"
+              :style="
+                toursStore.activeTour
+                  ? { background: `color-mix(in srgb, ${toursStore.activeTour.color} 8%, transparent)` }
+                  : {}
+              "
+            >
+              <p class="text-[9px] font-bold text-ink-4 tracking-[1px] uppercase mb-1.5">
+                Gira activa
+              </p>
+              <div v-if="toursStore.activeTour" class="flex items-center gap-2.5">
+                <div
+                  class="w-3 h-3 rounded-full flex-shrink-0"
+                  :style="{ background: toursStore.activeTour.color }"
+                />
+                <div class="min-w-0 flex-1">
+                  <p class="text-[13px] font-bold text-ink truncate leading-snug">
+                    {{ toursStore.activeTour.artist_name }} — {{ toursStore.activeTour.name }}
+                  </p>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ background: statusDot(toursStore.activeTour.status) }" />
+                    <p class="text-[10px] text-ink-3 leading-tight">{{ statusLabel(toursStore.activeTour.status) }}</p>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="text-[12px] text-ink-3">Sin gira seleccionada</p>
+            </div>
+
             <!-- Tour list -->
             <div class="flex-1 overflow-y-auto py-1">
               <!-- All tours -->
               <button
-                class="w-full flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:bg-glass-hover cursor-pointer border-none bg-transparent"
-                :class="!toursStore.activeTourId ? 'text-acid' : 'text-ink-2'"
+                class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl mx-1.5 transition-colors hover:bg-glass-hover cursor-pointer border-none"
+                :class="!toursStore.activeTourId ? 'bg-acid text-black' : 'text-ink-2 bg-transparent'"
+                style="width: calc(100% - 12px)"
                 @click="selectTour(null)"
               >
                 <div
                   class="w-2 h-2 rounded-full flex-shrink-0 border transition-colors"
-                  :class="!toursStore.activeTourId ? 'bg-acid border-acid' : 'border-line-2'"
+                  :class="!toursStore.activeTourId ? 'bg-black border-black' : 'border-line-2'"
                 />
                 <span class="text-[12px] font-medium flex-1 text-left">{{ t('tours.allTours') }}</span>
                 <svg v-if="!toursStore.activeTourId" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -445,8 +495,9 @@ async function confirmDelete(uuid: string) {
                 <!-- Normal row -->
                 <div v-else class="group/row">
                   <button
-                    class="w-full flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:bg-glass-hover cursor-pointer border-none bg-transparent"
-                    :class="toursStore.activeTourId === tour.id ? 'bg-glass' : ''"
+                    class="flex items-center gap-2.5 px-3.5 py-2.5 mx-1.5 rounded-xl transition-colors hover:bg-glass-hover cursor-pointer border-none bg-transparent"
+                    style="width: calc(100% - 12px)"
+                    :class="toursStore.activeTourId === tour.id ? 'bg-glass-active' : ''"
                     @click="selectTour(tour.id)"
                   >
                     <div class="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" :style="{ background: tour.color }" />
@@ -779,7 +830,7 @@ async function confirmDelete(uuid: string) {
 }
 .tp-slide-enter-from,
 .tp-slide-leave-to {
-  transform: translateX(-10px);
+  transform: translateY(-6px) scale(0.98);
   opacity: 0;
 }
 

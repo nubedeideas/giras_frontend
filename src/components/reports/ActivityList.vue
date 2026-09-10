@@ -17,7 +17,7 @@ const typeClass: Record<string, string> = {
 </script>
 
 <template>
-  <div class="bg-glass border border-line rounded overflow-hidden">
+  <div class="bg-bg-3 border border-line rounded-lg overflow-hidden shadow-[0_1px_3px_var(--shadow-sm)]">
     <div class="px-5 py-3 border-b border-line flex items-center justify-between">
       <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase">{{ title }}</p>
       <div class="flex gap-6 text-[10px] text-ink-3">

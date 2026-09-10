@@ -8,7 +8,9 @@ const cal = useCalendarStore()
 </script>
 
 <template>
-  <div class="w-72 flex-shrink-0 bg-bg-2 border-l border-line flex flex-col overflow-hidden">
+  <div
+    class="w-72 flex-shrink-0 my-3 ml-1.5 mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
+  >
     <!-- Header -->
     <div class="px-4 pt-5 pb-3 border-b border-line flex-shrink-0 flex items-center justify-between">
       <p class="text-[13px] font-bold text-ink">

@@ -9,7 +9,9 @@ const tours = useToursStore()
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col overflow-hidden bg-bg-3">
+  <div
+    class="flex-1 flex flex-col overflow-hidden bg-bg-3 my-3 ml-3 mr-1.5 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)]"
+  >
     <!-- Calendar header -->
     <div class="px-6 pt-5 pb-4 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-4">

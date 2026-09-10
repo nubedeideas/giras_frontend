@@ -51,36 +51,39 @@
 }
 
 /* ─── Light theme ────────────────────────────────────────────────────────── */
+/* Neutral-warm gray family (not cool blue-violet) so the grays don't compete
+   with the lime-green brand accent — same kind of shift as Tailwind's "stone"
+   vs "slate" scales. Brand green (--acid*) is intentionally untouched. */
 :root[data-theme="light"] {
-  --bg: #f3f3f7;
-  --bg-2: #eaeaef;
+  --bg: #f7f7f4;
+  --bg-2: #f0f0ec;
   --bg-3: #ffffff;
-  --bg-4: #f0f0f5;
+  --bg-4: #ecece7;
 
-  --glass: rgba(0, 0, 0, 0.04);
-  --glass-2: rgba(0, 0, 0, 0.06);
-  --glass-hover: rgba(0, 0, 0, 0.07);
+  --glass: rgba(28, 28, 25, 0.035);
+  --glass-2: rgba(28, 28, 25, 0.055);
+  --glass-hover: rgba(28, 28, 25, 0.065);
   --glass-active: rgba(168, 216, 0, 0.16);
 
-  --line: rgba(0, 0, 0, 0.09);
-  --line-2: rgba(0, 0, 0, 0.13);
+  --line: rgba(28, 28, 25, 0.08);
+  --line-2: rgba(28, 28, 25, 0.12);
   --line-acid: rgba(100, 130, 0, 0.35);
 
-  --ink: #18181f;
-  --ink-2: #44445a;
-  --ink-3: #7878a0;
-  --ink-4: #aaaacc;
+  --ink: #1c1c19;
+  --ink-2: #57574f;
+  --ink-3: #85857a;
+  --ink-4: #b0b0a5;
 
   /* Shadow tokens */
-  --shadow-sm: rgba(0, 0, 0, 0.10);
-  --shadow-md: rgba(0, 0, 0, 0.15);
-  --shadow-lg: rgba(0, 0, 0, 0.22);
+  --shadow-sm: rgba(28, 28, 25, 0.08);
+  --shadow-md: rgba(28, 28, 25, 0.14);
+  --shadow-lg: rgba(28, 28, 25, 0.20);
 
   /* Avatar/icon fallback — visible on light bg */
-  --avatar-bg: #d0d0e0;
+  --avatar-bg: #dcdcd4;
 
   /* Scrollbar */
-  --scrollbar-thumb: rgba(0, 0, 0, 0.13);
+  --scrollbar-thumb: rgba(28, 28, 25, 0.13);
 
   /* Acid stays the same — used as background, not text */
   /* --acid-muted becomes slightly darker for better contrast */

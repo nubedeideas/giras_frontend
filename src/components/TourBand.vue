@@ -43,7 +43,7 @@ const dateRange = computed(() => {
   <Transition name="tb">
     <div
       v-if="tour"
-      class="sidebar-dark flex-shrink-0 flex items-center gap-2.5 px-4 border-b"
+      class="flex-shrink-0 flex items-center gap-2.5 px-4 border-b"
       style="padding-top: 6px; padding-bottom: 6px"
       :style="{
         background: `color-mix(in srgb, ${tour.color} 8%, transparent)`,

@@ -16,6 +16,16 @@ const { t } = useI18n()
 const emit = defineEmits<{ openSettings: [] }>()
 const { openWizard } = useUIState()
 const showTours = ref(false)
+const toursTriggerRef = ref<HTMLButtonElement | null>(null)
+const toursAnchor = ref<{ top: number; left: number; bottom: number; width: number } | null>(null)
+
+function toggleTours() {
+  if (!showTours.value && toursTriggerRef.value) {
+    const r = toursTriggerRef.value.getBoundingClientRect()
+    toursAnchor.value = { top: r.top, left: r.left, bottom: r.bottom, width: r.width }
+  }
+  showTours.value = !showTours.value
+}
 
 const navItems = [
   {
@@ -52,182 +62,186 @@ function isActive(to: string) {
 
 <template>
   <aside
-    class="sidebar-dark hidden md:flex w-16 flex-shrink-0 bg-bg-2 border-r border-line flex-col items-center py-4 gap-0.5 z-50"
+    class="hidden lg:flex w-60 flex-shrink-0 bg-bg-3 flex-col py-4 px-3 gap-0.5 z-50"
   >
-    <!-- Logo -->
-    <RouterLink to="/notifs" class="w-9 h-9 flex-shrink-0 block no-underline">
-      <img
-        :src="logoIcon"
-        class="w-full h-full"
-        alt="Giras Pro"
-      >
-    </RouterLink>
+    <!-- Logo + wordmark -->
+    <div class="flex items-center gap-2 px-2 mb-2">
+      <RouterLink to="/notifs" class="flex items-center gap-2 no-underline flex-1 min-w-0">
+        <img :src="logoIcon" class="w-8 h-8 flex-shrink-0" alt="Giras Pro" />
+        <span class="text-[14px] font-bold text-ink tracking-[-0.2px] truncate">Giras</span>
+      </RouterLink>
 
-    <!-- New tour wizard button -->
-    <button
-      class="w-9 h-9 mb-[14px] mt-2 flex-shrink-0 flex items-center justify-center rounded-[11px] border border-dashed border-line-2 text-ink-4 bg-transparent cursor-pointer transition-all duration-200 hover:border-acid hover:text-acid hover:bg-glass-active group"
-      title="Nueva gira"
-      @click="openWizard"
+      <!-- New tour wizard button -->
+      <button
+        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[10px] border border-dashed border-line-2 text-ink-4 bg-transparent cursor-pointer transition-all duration-200 hover:border-acid hover:text-acid hover:bg-glass-active group"
+        :title="t('tours.newTour')"
+        @click="openWizard"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="transition-transform duration-200 group-hover:rotate-90"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Nav items -->
+    <RouterLink
+      v-for="item in navItems"
+      :key="item.key"
+      :to="item.to"
+      class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 no-underline"
+      :class="
+        isActive(item.to)
+          ? 'bg-acid text-black shadow-[0_4px_14px_var(--acid-glow)]'
+          : 'text-ink-2 hover:bg-glass-hover hover:text-ink'
+      "
     >
       <svg
-        width="14"
-        height="14"
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="flex-shrink-0"
+        v-html="item.icon"
+      />
+      <span class="text-[13px] font-medium truncate">{{ t(`nav.${item.key}`) }}</span>
+    </RouterLink>
+
+    <!-- Divider -->
+    <div class="h-px bg-line my-2 mx-1" />
+
+    <!-- Giras (tour switcher) button -->
+    <button
+      ref="toursTriggerRef"
+      class="relative flex items-center gap-2.5 px-3 py-2.5 my-1 rounded-xl border transition-all duration-200 cursor-pointer bg-transparent text-left"
+      :class="!toursStore.activeTourId ? 'border-line-2 border-dashed text-ink-2 hover:border-acid hover:text-acid' : 'border-transparent'"
+      :style="
+        toursStore.activeTourId
+          ? {
+              background: `color-mix(in srgb, ${toursStore.activeTour?.color} 14%, var(--bg-3))`,
+              borderColor: `color-mix(in srgb, ${toursStore.activeTour?.color} 30%, transparent)`,
+              color: toursStore.activeTour?.color,
+            }
+          : {}
+      "
+      @click="toggleTours"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="flex-shrink-0"
+      >
+        <circle cx="6" cy="19" r="3" />
+        <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+        <circle cx="18" cy="5" r="3" />
+      </svg>
+      <span class="text-[13px] font-semibold truncate flex-1 min-w-0">
+        {{
+          toursStore.activeTour
+            ? `${toursStore.activeTour.artist_name} — ${toursStore.activeTour.name}`
+            : t('nav.tours')
+        }}
+      </span>
+      <!-- Active tour color dot -->
+      <div
+        v-if="toursStore.activeTourId"
+        class="w-[7px] h-[7px] rounded-full flex-shrink-0"
+        :style="{ background: toursStore.activeTour?.color }"
+      />
+      <svg
+        width="11"
+        height="11"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
         stroke-width="2.5"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="transition-transform duration-200 group-hover:rotate-90"
+        class="flex-shrink-0 opacity-60 transition-transform duration-200"
+        :class="showTours ? 'rotate-180' : ''"
       >
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
 
-    <!-- Nav items -->
-    <div v-for="item in navItems" :key="item.key" class="relative group">
-      <RouterLink
-        :to="item.to"
-        class="flex items-center justify-center w-[42px] h-[42px] rounded-xl transition-all duration-200 no-underline"
-        :class="
-          isActive(item.to)
-            ? 'bg-glass-active text-acid'
-            : 'text-acid-nav hover:bg-glass-hover hover:text-acid'
-        "
-      >
-        <!-- Active indicator bar -->
-        <div
-          v-if="isActive(item.to)"
-          class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-acid rounded-r"
-        />
-        <svg
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          v-html="item.icon"
-        />
-      </RouterLink>
-      <!-- Tooltip -->
-      <div
-        class="absolute left-[52px] top-1/2 -translate-y-1/2 bg-bg-4 border border-line-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-ink pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[100]"
-      >
-        {{ t(`nav.${item.key}`) }}
-      </div>
-    </div>
-
-    <!-- Divider -->
-    <div class="w-[28px] h-px bg-line my-1.5" />
-
-    <!-- Giras (tour switcher) button -->
-    <div class="relative group">
-      <button
-        class="flex items-center justify-center w-[42px] h-[42px] rounded-xl transition-all duration-200 relative border-none cursor-pointer"
-        :class="
-          showTours || toursStore.activeTourId
-            ? 'bg-glass-active text-acid'
-            : 'text-acid-nav hover:bg-glass-hover hover:text-acid'
-        "
-        @click="showTours = !showTours"
-      >
-        <!-- Active indicator bar (uses tour color) -->
-        <div
-          v-if="toursStore.activeTourId"
-          class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] rounded-r"
-          :style="{ background: toursStore.activeTour?.color ?? 'var(--acid)' }"
-        />
-        <!-- Route / tour icon -->
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="6" cy="19" r="3" />
-          <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-          <circle cx="18" cy="5" r="3" />
-        </svg>
-        <!-- Active tour color dot -->
-        <div
-          v-if="toursStore.activeTourId"
-          class="absolute top-[7px] right-[7px] w-[6px] h-[6px] rounded-full border border-bg-2"
-          :style="{ background: toursStore.activeTour?.color }"
-        />
-      </button>
-      <!-- Tooltip -->
-      <div
-        class="absolute left-[52px] top-1/2 -translate-y-1/2 bg-bg-4 border border-line-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-ink pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[100]"
-      >
-        {{
-          toursStore.activeTour
-            ? `${toursStore.activeTour.artist_name} — ${toursStore.activeTour.name}`
-            : t('nav.tours')
-        }}
-      </div>
-    </div>
+    <div class="h-px bg-line my-2 mx-1" />
 
     <div class="flex-1" />
 
-    <!-- User avatar (links to settings) -->
+    <!-- Settings -->
     <button
-      class="w-9 h-9 rounded-full overflow-hidden cursor-pointer border-2 transition-colors duration-200 flex-shrink-0 flex items-center justify-center bg-acid"
-      :class="isActive('/settings') ? 'border-acid' : 'border-transparent hover:border-acid'"
+      class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 border-none bg-transparent text-left"
+      :class="
+        isActive('/settings')
+          ? 'bg-acid text-black shadow-[0_4px_14px_var(--acid-glow)]'
+          : 'text-ink-2 hover:bg-glass-hover hover:text-ink'
+      "
       @click="emit('openSettings')"
     >
-      <img v-if="auth.user?.avatar" :src="auth.user.avatar" :alt="auth.user.full_name" class="w-full h-full object-cover" />
-      <span v-else class="text-[12px] font-bold text-black">{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span>
+      <svg
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="flex-shrink-0"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+        />
+      </svg>
+      <span class="text-[13px] font-medium truncate">{{ t('settings.title') }}</span>
     </button>
 
-    <!-- Settings button -->
-    <div class="relative group">
-      <button
-        class="flex items-center justify-center w-[42px] h-[42px] rounded-xl cursor-pointer transition-all duration-200 border-none mt-0.5 relative"
-        :class="
-          isActive('/settings')
-            ? 'bg-glass-active text-acid'
-            : 'bg-transparent text-acid-nav hover:bg-glass-hover hover:text-acid'
-        "
-        @click="emit('openSettings')"
-      >
-        <!-- Active indicator bar -->
-        <div
-          v-if="isActive('/settings')"
-          class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-acid rounded-r"
-        />
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="12" cy="12" r="3" />
-          <path
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-          />
-        </svg>
-      </button>
-      <!-- Tooltip -->
+    <!-- User footer -->
+    <button
+      class="flex items-center gap-2.5 px-2 py-2 mt-1 rounded-xl cursor-pointer transition-colors duration-200 border-none bg-transparent text-left hover:bg-glass-hover"
+      @click="emit('openSettings')"
+    >
       <div
-        class="absolute left-[52px] top-1/2 -translate-y-1/2 bg-bg-4 border border-line-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-ink pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[100]"
+        class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-acid"
       >
-        {{ t('settings.title') }}
+        <img
+          v-if="auth.user?.avatar"
+          :src="auth.user.avatar"
+          :alt="auth.user.full_name"
+          class="w-full h-full object-cover"
+        />
+        <span v-else class="text-[11px] font-bold text-black"
+          >{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span
+        >
       </div>
-    </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[12px] font-semibold text-ink truncate">{{ auth.user?.full_name }}</p>
+        <p class="text-[10px] text-ink-3 truncate">{{ auth.user?.email }}</p>
+      </div>
+    </button>
   </aside>
 
   <!-- Tour menu panel (Teleported to body) -->
-  <TourMenuPanel :show="showTours" @close="showTours = false" />
+  <TourMenuPanel :show="showTours" :anchor="toursAnchor" @close="showTours = false" />
 </template>

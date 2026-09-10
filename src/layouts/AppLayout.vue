@@ -4,6 +4,7 @@ import { RouterView } from 'vue-router'
 import AppSidebar from '@/components/AppSidebar.vue'
 import MobileNav from '@/components/MobileNav.vue'
 import TourBand from '@/components/TourBand.vue'
+import DashboardHeader from '@/components/DashboardHeader.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import { useToursStore } from '@/stores/tours'
 import { useAuthStore } from '@/stores/auth'
@@ -47,22 +48,27 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-bg">
-    <AppSidebar @open-settings="openSettings('general')" />
+  <div class="h-screen overflow-hidden bg-bg lg:p-4">
+    <div
+      class="flex h-full overflow-hidden bg-bg-3 lg:rounded-3xl lg:shadow-[0_8px_40px_var(--shadow-md)]"
+    >
+      <AppSidebar @open-settings="openSettings('general')" />
 
-    <div class="flex-1 overflow-hidden flex flex-col">
-      <TourBand />
-      <div class="flex-1 overflow-hidden">
-        <RouterView />
+      <div class="flex-1 overflow-hidden flex flex-col">
+        <DashboardHeader />
+        <TourBand />
+        <div class="flex-1 overflow-hidden">
+          <RouterView />
+        </div>
       </div>
+
+      <MobileNav />
+
+      <OnboardingWizard
+        v-if="showWizard"
+        @complete="onOnboardingComplete"
+        @close="onWizardClose"
+      />
     </div>
-
-    <MobileNav />
-
-    <OnboardingWizard
-      v-if="showWizard"
-      @complete="onOnboardingComplete"
-      @close="onWizardClose"
-    />
   </div>
 </template>
