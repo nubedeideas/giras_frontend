@@ -8,6 +8,13 @@ export default {
   and: 'y',
   terms: 'Términos de uso',
 
+  consent: {
+    message: 'Usamos cookies de analítica para entender cómo se usa la plataforma y mejorarla.',
+    more: 'Más información',
+    accept: 'Aceptar',
+    reject: 'Rechazar',
+  },
+
   nav: {
     notif: 'Notifs',
     events: 'Actividades',

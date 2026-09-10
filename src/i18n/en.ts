@@ -8,6 +8,13 @@ export default {
   and: 'and',
   terms: 'Terms of Service',
 
+  consent: {
+    message: 'We use analytics cookies to understand how the platform is used and improve it.',
+    more: 'Learn more',
+    accept: 'Accept',
+    reject: 'Reject',
+  },
+
   nav: {
     notif: 'Notifs',
     events: 'Activities',

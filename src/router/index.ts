@@ -77,4 +77,14 @@ router.beforeEach(async (to) => {
   if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) return '/notifs'
 })
 
+// Virtual pageviews for GTM — SPA navigations don't trigger a native page load
+router.afterEach((to) => {
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({
+    event: 'page_view',
+    page_path: to.fullPath,
+    page_title: document.title,
+  })
+})
+
 export default router

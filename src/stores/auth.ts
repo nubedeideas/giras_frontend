@@ -76,6 +76,11 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.user
   }
 
+  function trackLogin(method: 'google' | 'magic_link' | 'demo', userId: string) {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'login', method, user_id: userId })
+  }
+
   // ─── Token refresh ───────────────────────────────────────────────────────────
 
   let refreshPromise: Promise<boolean> | null = null
@@ -158,6 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al autenticar con Google')
       applyLoginResponse(data as LoginResponse)
+      trackLogin('google', (data as LoginResponse).user.uuid)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error desconocido'
       throw e
@@ -202,6 +208,7 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Token inválido o expirado')
       applyLoginResponse(data as LoginResponse)
+      trackLogin('magic_link', (data as LoginResponse).user.uuid)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error desconocido'
       throw e
@@ -258,6 +265,7 @@ export const useAuthStore = defineStore('auth', () => {
       is_active: true,
       is_staff: false,
     }
+    trackLogin('demo', 'demo-user')
     // Demo session is not persisted — resets on page reload
   }
 
