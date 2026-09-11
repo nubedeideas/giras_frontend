@@ -151,6 +151,14 @@ export const NOTIF_STATUS_COLORS: Record<NotificationStatus, { bg: string; text:
   cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
 }
 
+// Populated by the backend in `metadata.auto_cancelled_reason` when a reminder is
+// cancelled automatically (e.g. the linked Activity was rescheduled into the past)
+// instead of by a user action — lets the UI explain why, not just that it happened.
+export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
+  activity_rescheduled_past:
+    'Cancelada automáticamente: el evento se reprogramó y este recordatorio quedó en el pasado.',
+}
+
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────
 
 /**

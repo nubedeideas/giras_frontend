@@ -5,6 +5,7 @@ import {
   useNotifications,
   CHANNEL_LABELS,
   NOTIF_STATUS_LABELS,
+  AUTO_CANCEL_REASON_LABELS,
   type Notification,
   type NotificationPriority,
   type NotificationChannel,
@@ -175,6 +176,13 @@ function formatScheduled(iso: string | null | undefined) {
   return formatInZone(iso, scheduleTimezone.value)
 }
 
+const autoCancelledMessage = computed(() => {
+  if (original.value?.status !== 'cancelled') return null
+  const reason = original.value.metadata?.auto_cancelled_reason
+  if (typeof reason !== 'string') return null
+  return AUTO_CANCEL_REASON_LABELS[reason] ?? 'Cancelada automáticamente por el sistema.'
+})
+
 const inputClass =
   'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
 const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
@@ -197,10 +205,14 @@ const selectClass =
           <span
             class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
             :style="{ background: statusColor.bg, color: statusColor.text }"
+            :title="autoCancelledMessage ?? undefined"
           >
             {{ NOTIF_STATUS_LABELS[original.status] }}
           </span>
         </div>
+        <p v-if="autoCancelledMessage" class="text-[10px] text-ink-4 mt-1 max-w-xs">
+          {{ autoCancelledMessage }}
+        </p>
       </div>
       <button
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
