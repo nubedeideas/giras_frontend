@@ -188,6 +188,28 @@ function isActive(to: string) {
 
     <div class="flex-1" />
 
+    <!-- Panel Admin (solo superusers) -->
+    <RouterLink
+      v-if="auth.user?.is_superuser"
+      to="/admin"
+      class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 no-underline text-brand-orange hover:bg-brand-orange-dim"
+    >
+      <svg
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="flex-shrink-0"
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+      <span class="text-[13px] font-medium truncate">Panel Admin</span>
+    </RouterLink>
+
     <!-- Settings -->
     <button
       class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 border-none bg-transparent text-left"

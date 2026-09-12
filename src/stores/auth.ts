@@ -19,6 +19,7 @@ export interface AuthUser {
   is_verified: boolean
   is_active: boolean
   is_staff: boolean
+  is_superuser: boolean
 }
 
 interface LoginResponse {
@@ -264,6 +265,7 @@ export const useAuthStore = defineStore('auth', () => {
       is_verified: true,
       is_active: true,
       is_staff: false,
+      is_superuser: false,
     }
     trackLogin('demo', 'demo-user')
     // Demo session is not persisted — resets on page reload

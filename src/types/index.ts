@@ -1,6 +1,14 @@
 export type Channel = 'wa' | 'sms' | 'email'
 export type PillVariant = 'g' | 'b' | 'o' | 'n'
 
+/** Raw DRF pagination envelope — used as-is (no fetch-all loop) by the admin panel's list endpoints */
+export interface Paginated<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 // ─── Contact sub-types ────────────────────────────────────────────────────────
 
 export type ContactType = 'person' | 'company'

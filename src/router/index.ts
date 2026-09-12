@@ -46,6 +46,12 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAuth: true, requiresSuperuser: true },
+    },
+    {
       path: '/',
       component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
@@ -74,6 +80,7 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) return '/login'
+  if (to.meta.requiresSuperuser && !auth.user?.is_superuser) return '/notifs'
   if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) return '/notifs'
 })
 
