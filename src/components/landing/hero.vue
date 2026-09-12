@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import WhatsappMockup from './whatsapp-mockup.vue'
 import TrafficControlPanel from './traffic-control-panel.vue'
