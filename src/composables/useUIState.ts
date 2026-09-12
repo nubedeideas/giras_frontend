@@ -1,7 +1,14 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-export type SettingsTab = 'general' | 'calendars' | 'activities' | 'roles' | 'templates'
+export type SettingsTab =
+  | 'general'
+  | 'calendars'
+  | 'activities'
+  | 'roles'
+  | 'templates'
+  | 'subscription'
+  | 'billing'
 
 // Module-level: shared across all useUIState() calls, reset on page reload
 const wizardOpen = ref(false)

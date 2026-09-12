@@ -10,8 +10,18 @@ import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
 import NotificationGroupsManager from '@/components/settings/NotificationGroupsManager.vue'
 import NotificationTemplatesView from '@/views/NotificationTemplatesView.vue'
+import SubscriptionManager from '@/components/settings/SubscriptionManager.vue'
+import BillingManager from '@/components/settings/BillingManager.vue'
 
-type SettingsTab = 'general' | 'calendars' | 'activities' | 'roles' | 'groups' | 'templates'
+type SettingsTab =
+  | 'general'
+  | 'calendars'
+  | 'activities'
+  | 'roles'
+  | 'groups'
+  | 'templates'
+  | 'subscription'
+  | 'billing'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,6 +59,16 @@ const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
     key: 'templates',
     label: 'Templates',
     iconPath: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`,
+  },
+  {
+    key: 'subscription',
+    label: 'Suscripción',
+    iconPath: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  },
+  {
+    key: 'billing',
+    label: 'Facturación',
+    iconPath: `<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
   },
 ]
 
@@ -178,6 +198,10 @@ function signOut() {
     <div class="flex-1 overflow-hidden">
       <!-- Templates: full-height 2-panel layout (reuses NotificationTemplatesView) -->
       <NotificationTemplatesView v-if="activeTab === 'templates'" />
+
+      <!-- Subscription / Billing: self-contained, own scroll wrapper -->
+      <SubscriptionManager v-else-if="activeTab === 'subscription'" />
+      <BillingManager v-else-if="activeTab === 'billing'" />
 
       <!-- Other tabs: centered scrollable content -->
       <div v-else class="h-full overflow-y-auto bg-bg-3">

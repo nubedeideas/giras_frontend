@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useAdminPlans, type Plan } from '@/composables/useAdminPlans'
+import type { PlanCode } from '@/composables/useAdminSubscriptions'
 
 const props = defineProps<{ show: boolean; plan: Plan | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
 const api = useAdminPlans()
+const PLAN_CODES: PlanCode[] = ['free', 'starter', 'premium', 'custom']
+
+const code = ref<PlanCode>('free')
 const name = ref('')
 const description = ref('')
 const notificationLimit = ref(0)
@@ -14,33 +18,37 @@ const maxShows = ref(0)
 const price = ref('')
 const currency = ref('EUR')
 const isActive = ref(true)
+const isDefault = ref(false)
 const displayOrder = ref(0)
 const saving = ref(false)
 const error = ref('')
 
+const isEdit = computed(() => !!props.plan)
+
 watch(
-  () => props.plan,
-  (p) => {
-    if (!p) return
-    name.value = p.name
-    description.value = p.description
-    notificationLimit.value = p.notification_limit
-    maxShows.value = p.max_shows
-    price.value = p.price
-    currency.value = p.currency
-    isActive.value = p.is_active
-    displayOrder.value = p.display_order
+  () => [props.show, props.plan] as const,
+  ([show, p]) => {
+    if (!show) return
+    code.value = p?.code ?? 'free'
+    name.value = p?.name ?? ''
+    description.value = p?.description ?? ''
+    notificationLimit.value = p?.notification_limit ?? 0
+    maxShows.value = p?.max_shows ?? 0
+    price.value = p?.price ?? '0.00'
+    currency.value = p?.currency ?? 'EUR'
+    isActive.value = p?.is_active ?? true
+    isDefault.value = p?.is_default ?? false
+    displayOrder.value = p?.display_order ?? 0
     error.value = ''
   },
   { immediate: true },
 )
 
 async function submit() {
-  if (!props.plan) return
   saving.value = true
   error.value = ''
   try {
-    await api.update(props.plan.uuid, {
+    const payload = {
       name: name.value.trim(),
       description: description.value.trim(),
       notification_limit: notificationLimit.value,
@@ -48,8 +56,14 @@ async function submit() {
       price: price.value,
       currency: currency.value,
       is_active: isActive.value,
+      is_default: isDefault.value,
       display_order: displayOrder.value,
-    })
+    }
+    if (isEdit.value && props.plan) {
+      await api.update(props.plan.uuid, payload)
+    } else {
+      await api.create({ code: code.value, ...payload })
+    }
     emit('saved')
     emit('close')
   } catch (e) {
@@ -66,11 +80,19 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 
 <template>
   <AppModal :show="show" @close="emit('close')">
-    <template v-if="plan">
-      <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">Editar plan</p>
-      <p class="text-[11px] text-ink-4 mb-4 uppercase tracking-[0.4px]">{{ plan.code }}</p>
+    <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">{{ isEdit ? 'Editar plan' : 'Nuevo plan' }}</p>
+    <p v-if="isEdit && plan" class="text-[11px] text-ink-4 mb-4 uppercase tracking-[0.4px]">{{ plan.code }}</p>
+    <p v-else class="text-[11px] text-ink-4 mb-4">
+      El código debe ser único — si los 4 planes base ya existen, el backend rechaza el duplicado.
+    </p>
 
-      <div class="space-y-3">
+    <div class="space-y-3">
+        <div v-if="!isEdit">
+          <label :class="labelClass">Código</label>
+          <select v-model="code" :class="inputClass">
+            <option v-for="c in PLAN_CODES" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </div>
         <div>
           <label :class="labelClass">Nombre</label>
           <input v-model="name" :class="inputClass" />
@@ -107,6 +129,10 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           <input v-model="isActive" type="checkbox" class="cursor-pointer" />
           <span class="text-[12px] text-ink-2">Plan activo (visible en el catálogo)</span>
         </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input v-model="isDefault" type="checkbox" class="cursor-pointer" />
+          <span class="text-[12px] text-ink-2">Plan por defecto (preseleccionado para giras nuevas)</span>
+        </label>
 
         <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
 
@@ -121,7 +147,6 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             @click="submit"
           >{{ saving ? 'Guardando…' : 'Guardar' }}</button>
         </div>
-      </div>
-    </template>
+    </div>
   </AppModal>
 </template>

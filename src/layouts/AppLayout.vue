@@ -4,6 +4,7 @@ import { RouterView } from 'vue-router'
 import AppSidebar from '@/components/AppSidebar.vue'
 import MobileNav from '@/components/MobileNav.vue'
 import TourBand from '@/components/TourBand.vue'
+import SubscriptionUsageBanner from '@/components/SubscriptionUsageBanner.vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import { useToursStore } from '@/stores/tours'
@@ -57,6 +58,7 @@ onMounted(async () => {
       <div class="flex-1 overflow-hidden flex flex-col">
         <DashboardHeader />
         <TourBand />
+        <SubscriptionUsageBanner />
         <div class="flex-1 overflow-hidden">
           <RouterView />
         </div>
