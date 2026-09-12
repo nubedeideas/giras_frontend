@@ -23,7 +23,7 @@
         <p class="text-3xl md:text-5xl font-header leading-tight uppercase">
           {{ t('landing.narrative.step2Part1') }} <br />
           {{ t('landing.narrative.step2Part2') }}
-          <span class="opacity-40 italic">{{ t('landing.narrative.step2Quote') }}</span>
+          <span class="acid-green italic">{{ t('landing.narrative.step2Quote') }}</span>
           {{ t('landing.narrative.step2Part3') }}
         </p>
       </div>

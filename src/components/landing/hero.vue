@@ -4,8 +4,10 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import WhatsappMockup from './whatsapp-mockup.vue'
 import TrafficControlPanel from './traffic-control-panel.vue'
+import { useCtaSource } from '@/composables/useCtaSource'
 
 const { t } = useI18n()
+const { setCtaSource } = useCtaSource()
 
 const isMobile = ref(false)
 
@@ -45,12 +47,14 @@ onUnmounted(() => {
           {{ t('landing.hero.subheadLine3') }} <br />
         </p>
         <div class="flex flex-col sm:flex-row gap-4 pt-4">
-          <RouterLink
-            to="/login"
+          <a
+            href="#cta"
             class="bg-acid-green text-black px-8 py-4 font-bold text-lg uppercase tracking-tighter shadow-hard hover:translate-x-1 hover:translate-y-1 hover:!shadow-none transition-all text-center"
+            @click="setCtaSource('hero')"
           >
+          
             {{ t('landing.hero.ctaPrimary') }}
-          </RouterLink>
+          </a>
           <a
             href="#funcionalidades"
             class="border border-white/20 hover:border-acid-green px-8 py-4 font-bold text-lg uppercase tracking-tighter transition-all glass text-center"

@@ -222,9 +222,9 @@ export default {
       headlinePart1: 'El Caos del ',
       headlineHighlight: 'Backstage',
       headlineLine2: 'Se Acabó.',
-      subheadLine1: 'Sincroniza tu Google Calendar.',
-      subheadLine2: 'Automatiza tus Lobby Calls.',
-      subheadLine3: 'Notifica a todo el crew vía WhatsApp sin mover un dedo.',
+      subheadLine1: 'Automatiza tus Lobby Calls',
+      subheadLine2: 'Sincroniza tu Google Calendar',
+      subheadLine3: 'Giras notifica a todo el crew vía WhatsApp',
       ctaPrimary: 'Automatizar Mi Crew',
       ctaSecondary: 'Ver Demo Live',
       whatsapp: { online: 'En línea' },
@@ -279,7 +279,7 @@ export default {
       steps: {
         notification: {
           title: 'Notificación Automática',
-          desc: 'Envío automático por WhatsApp Business en el momento exacto, con confirmación de entrega en tiempo real.',
+          desc: 'Envío automático por WhatsApp Business (API) en el momento exacto, con confirmación de entrega en tiempo real.',
           mobileHint: 'Notificación',
         },
         calendar: {
@@ -301,13 +301,13 @@ export default {
       stat3Label: 'Uptime del Bot',
       stat4Label: 'Vuelos Perdidos',
       testimonial:
-        'Giras es el miembro del crew que nunca duerme, nunca se equivoca y nunca se queja. Ha transformado por completo la forma en que manejamos la logística.',
+        'Giras es el miembro del crew que nunca duerme, nunca se equivoca y nunca se queja. Transforma completamente la forma en que manejas la logística.',
     },
     pricing: {
       heading: 'Un Plan Para',
       headingHighlight: 'Cada Tamaño De Gira',
       subhead:
-        'Todos los planes incluyen sincronización con Google Calendar, envío por WhatsApp Business oficial y el motor de reglas de notificación.',
+        'Todos los planes incluyen sincronización con Google Calendar, envío por WhatsApp Business API y el motor AI de notificación.',
       featuredBadge: 'Más elegido',
       perTourSuffix: '/gira',
       plans: {
@@ -362,7 +362,7 @@ export default {
       headingHighlight: 'Técnicos',
       deepSync: {
         title: 'Sincronización Profunda',
-        desc: 'No solo leemos el evento. Analizamos con nuestro motor de AI descripciones, ubicaciones y notas para automatizar el contenido del mensaje.',
+        desc: 'No solo leemos el calendario. Analizamos con nuestro motor de AI descripciones, ubicaciones y notas para automatizar el contenido del mensaje.',
       },
       whatsappApi: {
         title: 'WhatsApp Business API',
