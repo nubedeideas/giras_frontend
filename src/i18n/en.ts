@@ -393,6 +393,8 @@ export default {
         required: 'Enter your professional email.',
         consecutiveDots: "Email can't contain consecutive dots.",
         invalid: 'Enter a valid professional email.',
+        rateLimit: 'Too many attempts — try again in a few minutes.',
+        generic: 'Something went wrong. Please try again.',
       },
     },
     footer: {

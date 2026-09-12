@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useCtaSource } from '@/composables/useCtaSource'
+import type { CtaSource } from '@/composables/useCtaSource'
 
 defineOptions({ name: 'LandingPricing' })
 
 const { t, tm } = useI18n()
+const { setCtaSource } = useCtaSource()
 
 type PlanId = 'starter' | 'premium' | 'custom'
+
+const CTA_SOURCE_BY_PLAN: Record<PlanId, CtaSource> = {
+  starter: 'pricing_starter',
+  premium: 'pricing_premium',
+  custom: 'pricing_custom',
+}
 
 type PlanBase = {
   id: PlanId
@@ -129,6 +138,7 @@ const plans = computed<Plan[]>(() =>
 
           <a
             href="#cta"
+            @click="setCtaSource(CTA_SOURCE_BY_PLAN[plan.id])"
             :class="[
               'inline-flex w-full items-center justify-center px-6 py-4 text-xs font-bold uppercase tracking-tighter transition-all duration-200 hover:scale-105',
               plan.featured
