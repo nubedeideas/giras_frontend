@@ -212,6 +212,10 @@ export default {
   },
 
   landing: {
+    meta: {
+      title: 'Giras — Automate Your Music Tour Logistics',
+      description: 'Giras syncs your Google Calendar and automatically notifies your whole crew via WhatsApp. No manual lobby calls, no backstage chaos.',
+    },
     header: {
       cta: 'Get Started',
       // Deliberately identical (or near-identical) in es.ts/en.ts: it's the label of the
@@ -404,9 +408,18 @@ export default {
     },
   },
 
+  marketingLanding: {
+    eyebrow: 'Giras',
+    titleLine1: 'The Backstage,',
+    titleHighlight: 'Organized.',
+    intro: "Automate your tour's logistics communication with Giras.",
+    placeholder: 'This page is customized for whichever marketing campaign links to it — final content is filled in before each launch.',
+  },
+
   termsPage: {
     lastUpdated: 'September 2026',
     lastUpdatedLabel: 'Last updated:',
+    metaDescription: "Terms and conditions of use for Giras, the logistics management platform for music tours.",
     eyebrow: 'Legal',
     titleLine1: 'Terms',
     titleHighlight: '& Conditions',

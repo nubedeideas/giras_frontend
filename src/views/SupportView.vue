@@ -2,8 +2,16 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/layouts/PublicLayout.vue'
+import { usePageMeta, useJsonLd } from '@/composables/usePageMeta'
+import { faqPageSchema } from '@/utils/structuredData'
 
 const { t, tm } = useI18n()
+
+usePageMeta({
+  title: `${t('support.title')} ${t('support.titleHighlight')} — Giras`,
+  description: t('support.intro'),
+  path: '/soporte',
+})
 
 const TOC_IDS = ['primeros-pasos', 'integraciones', 'faq', 'contacto'] as const
 
@@ -16,6 +24,8 @@ const toc = computed(() =>
 const faqs = computed(
   () => tm('support.faq.items') as unknown as { q: string; a: string }[]
 )
+
+useJsonLd(faqPageSchema(faqs.value))
 </script>
 
 <template>

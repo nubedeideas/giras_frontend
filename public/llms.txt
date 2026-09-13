@@ -1,0 +1,23 @@
+# Giras
+
+> Giras (GigSync) es una plataforma de gestión logística para giras musicales. Sincroniza Google Calendar y notifica automáticamente al equipo de la gira (tour manager, crew, músicos) vía WhatsApp cuando hay eventos, cambios de horario o información logística relevante.
+
+## Qué resuelve
+
+- Elimina el envío manual y repetitivo de "lobby calls" y avisos de horarios al equipo de una gira.
+- Sincroniza automáticamente los eventos de Google Calendar de la gira.
+- Envía notificaciones por WhatsApp Business a los contactos correctos según el tipo de evento.
+- Permite importar contactos masivamente desde Google Contacts.
+- Busca artistas vía Spotify al crear una gira.
+
+## Planes
+
+- **Starter** — 179€ por gira, límite de notificaciones y shows para giras chicas.
+- **Premium** — 300€ por gira, el plan más elegido, mayor límite de notificaciones y shows.
+- **Custom** — precio a medida para giras grandes, cupo de notificaciones/shows asignado por el equipo de Giras.
+
+## Páginas
+
+- Landing principal: https://giras.pro/
+- Términos y condiciones: https://giras.pro/terminos-y-condiciones
+- Centro de soporte / FAQ: https://giras.pro/soporte

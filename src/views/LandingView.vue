@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import '@/assets/landing.css'
+import { usePageMeta, useJsonLd } from '@/composables/usePageMeta'
+import { organizationSchema, softwareApplicationSchema } from '@/utils/structuredData'
 import LandingHeader from '@/components/landing/header.vue'
 import LandingHero from '@/components/landing/hero.vue'
 import LandingNarrative from '@/components/landing/narrative.vue'
@@ -10,6 +13,23 @@ import LandingPricing from '@/components/landing/pricing-section.vue'
 import LandingBentoFeatures from '@/components/landing/bento-features.vue'
 import LandingCTASection from '@/components/landing/cta-section.vue'
 import LandingFooter from '@/components/landing/footer.vue'
+
+const { t } = useI18n()
+
+usePageMeta({
+  title: t('landing.meta.title'),
+  description: t('landing.meta.description'),
+  path: '/',
+})
+
+useJsonLd(organizationSchema('https://giras.pro/favicon.svg', t('landing.meta.description')))
+
+useJsonLd(
+  softwareApplicationSchema(t('landing.meta.description'), [
+    { name: 'Starter', price: '179', priceCurrency: 'EUR' },
+    { name: 'Premium', price: '300', priceCurrency: 'EUR' },
+  ])
+)
 
 let observer: IntersectionObserver
 

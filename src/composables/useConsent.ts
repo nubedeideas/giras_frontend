@@ -4,8 +4,12 @@ export type ConsentStatus = 'granted' | 'denied'
 
 const STORAGE_KEY = 'gs_cookie_consent'
 
+// Module-level init runs during SSR too (vite-ssg prerender pass) — localStorage doesn't
+// exist in Node, so guard it. The real value is re-read client-side on hydration anyway.
 const status = ref<ConsentStatus | null>(
-  (localStorage.getItem(STORAGE_KEY) as ConsentStatus | null) ?? null
+  typeof localStorage === 'undefined'
+    ? null
+    : ((localStorage.getItem(STORAGE_KEY) as ConsentStatus | null) ?? null)
 )
 
 function pushConsentUpdate(value: ConsentStatus) {

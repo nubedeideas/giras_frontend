@@ -8,6 +8,9 @@ import CustomPoolsTab from '@/components/admin/CustomPoolsTab.vue'
 import PaymentsTab from '@/components/admin/PaymentsTab.vue'
 import UsageLogTab from '@/components/admin/UsageLogTab.vue'
 import AllowlistTab from '@/components/admin/AllowlistTab.vue'
+import { useNoIndex } from '@/composables/usePageMeta'
+
+useNoIndex()
 
 type AdminTab = 'subscriptions' | 'plans' | 'pools' | 'payments' | 'usage' | 'allowlist'
 

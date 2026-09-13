@@ -2,8 +2,15 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PublicLayout from '@/layouts/PublicLayout.vue'
+import { usePageMeta } from '@/composables/usePageMeta'
 
 const { t, tm } = useI18n()
+
+usePageMeta({
+  title: `${t('termsPage.titleLine1')} ${t('termsPage.titleHighlight')} — Giras`,
+  description: t('termsPage.metaDescription'),
+  path: '/terminos-y-condiciones',
+})
 
 const lastUpdated = computed(() => t('termsPage.lastUpdated'))
 // tm() (not t()) is required here — t() only resolves compiled string leaves

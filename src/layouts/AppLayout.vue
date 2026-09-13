@@ -11,6 +11,9 @@ import { useToursStore } from '@/stores/tours'
 import { useAuthStore } from '@/stores/auth'
 import { useUIState } from '@/composables/useUIState'
 import { useUIStore } from '@/stores/ui'
+import { useNoIndex } from '@/composables/usePageMeta'
+
+useNoIndex()
 
 const { openSettings, wizardOpen, wizardDismissed, closeWizard, dismissWizard } = useUIState()
 const toursStore = useToursStore()

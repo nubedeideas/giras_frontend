@@ -3,7 +3,9 @@ import { watch } from 'vue'
 import es from './es'
 import en from './en'
 
-const stored = localStorage.getItem('locale')
+// Module-level init runs during SSR too (vite-ssg prerender pass) — localStorage/document
+// don't exist in Node, so guard them here and in the watcher below.
+const stored = typeof localStorage === 'undefined' ? null : localStorage.getItem('locale')
 const initialLocale = stored === 'es' || stored === 'en' ? stored : 'es'
 
 export const i18n = createI18n({
@@ -15,7 +17,11 @@ export const i18n = createI18n({
 
 watch(
   () => i18n.global.locale.value,
-  (l) => localStorage.setItem('locale', l)
+  (l) => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem('locale', l)
+    if (typeof document !== 'undefined') document.documentElement.lang = l
+  },
+  { immediate: true }
 )
 
 export default i18n

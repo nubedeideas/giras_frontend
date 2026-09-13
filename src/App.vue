@@ -5,5 +5,7 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
 
 <template>
   <RouterView />
-  <ConsentBanner />
+  <ClientOnly>
+    <ConsentBanner />
+  </ClientOnly>
 </template>
