@@ -251,7 +251,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn.value = true
     user.value = {
       uuid: 'demo-user',
-      email: 'demo@gigsync.io',
+      email: 'demo@giras.pro',
       first_name: 'Demo',
       last_name: 'User',
       full_name: 'Demo User',

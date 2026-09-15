@@ -43,7 +43,7 @@ function doImport() {
 
     <label class="text-[9px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-[5px]">{{ t('modal.calendar') }}</label>
     <select class="w-full bg-glass border border-line rounded-sm px-[11px] py-2 text-ink text-[12px] outline-none focus:border-acid mb-3 cursor-pointer">
-      <option>oscar@gigsync.io — Gig Sync Tour Cal</option>
+      <option>oscar@giras.pro — Giras Tour Cal</option>
       <option>oscar@gmail.com — Personal</option>
     </select>
 

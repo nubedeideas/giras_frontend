@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 
 export type AppTheme = 'dark' | 'light'
 
-const STORAGE_KEY = 'gigsync-theme'
+const STORAGE_KEY = 'giras-theme'
 
 function getInitialTheme(): AppTheme {
   const stored = localStorage.getItem(STORAGE_KEY) as AppTheme | null

@@ -402,9 +402,10 @@ export default {
       },
     },
     footer: {
-      tagline: 'MADE FOR THE ROAD',
       termsLink: 'Terms & Conditions',
       supportLink: 'Support',
+      instagramLabel: 'Follow us on Instagram',
+      xLabel: 'Follow us on X',
     },
   },
 
@@ -426,7 +427,7 @@ export default {
     sections: [
       {
         title: '1. Acceptance of Terms',
-        body: 'By creating an account or using Giras (GigSync), you accept these Terms and Conditions in full. If you do not agree with any part, you must not use the service.',
+        body: 'By creating an account or using Giras, you accept these Terms and Conditions in full. If you do not agree with any part, you must not use the service.',
       },
       {
         title: '2. Service Description',
@@ -458,7 +459,7 @@ export default {
       },
       {
         title: '9. Contact',
-        body: 'For any questions about these terms, write to us at legal@gigsync.app or visit our Support section.',
+        body: 'For any questions about these terms, write to us at legal@giras.pro or visit our Support section.',
       },
     ],
   },

@@ -1,6 +1,6 @@
 # Giras
 
-> Giras (GigSync) es una plataforma de gestión logística para giras musicales. Sincroniza Google Calendar y notifica automáticamente al equipo de la gira (tour manager, crew, músicos) vía WhatsApp cuando hay eventos, cambios de horario o información logística relevante.
+> Giras es una plataforma de gestión logística para giras musicales. Sincroniza Google Calendar y notifica automáticamente al equipo de la gira (tour manager, crew, músicos) vía WhatsApp cuando hay eventos, cambios de horario o información logística relevante.
 
 ## Qué resuelve
 

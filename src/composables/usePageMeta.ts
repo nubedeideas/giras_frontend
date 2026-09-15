@@ -1,7 +1,7 @@
 import { useHead } from '@unhead/vue'
 
 const SITE_URL = 'https://giras.pro'
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.jpg`
 
 export interface PageMetaOptions {
   title: string

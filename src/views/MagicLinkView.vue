@@ -87,7 +87,7 @@ onMounted(async () => {
       <!-- Success -->
       <template v-else-if="status === 'success'">
         <p class="text-[14px] font-semibold text-ink mb-1">¡Acceso confirmado!</p>
-        <p class="text-[12px] text-ink-3">Entrando a GigSync...</p>
+        <p class="text-[12px] text-ink-3">Entrando a Giras...</p>
       </template>
 
       <!-- Error -->

@@ -400,9 +400,10 @@ export default {
       },
     },
     footer: {
-      tagline: 'MADE FOR THE ROAD',
       termsLink: 'Términos & Condiciones',
       supportLink: 'Soporte',
+      instagramLabel: 'Seguinos en Instagram',
+      xLabel: 'Seguinos en X',
     },
   },
 
@@ -424,7 +425,7 @@ export default {
     sections: [
       {
         title: '1. Aceptación de los Términos',
-        body: 'Al crear una cuenta o utilizar Giras (GigSync), aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debes utilizar el servicio.',
+        body: 'Al crear una cuenta o utilizar Giras, aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debes utilizar el servicio.',
       },
       {
         title: '2. Descripción del Servicio',
@@ -456,7 +457,7 @@ export default {
       },
       {
         title: '9. Contacto',
-        body: 'Ante cualquier consulta sobre estos términos, escríbenos a legal@gigsync.app o visita nuestra sección de Soporte.',
+        body: 'Ante cualquier consulta sobre estos términos, escríbenos a legal@giras.pro o visita nuestra sección de Soporte.',
       },
     ],
   },

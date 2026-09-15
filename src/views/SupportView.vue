@@ -125,7 +125,7 @@ useJsonLd(faqPageSchema(faqs.value))
             <div class="border border-white/10 bg-black/40 p-4 font-mono text-xs text-white/70">
               <div>
                 {{ t('support.contact.emailLabel') }}
-                <span class="acid-green">soporte@gigsync.app</span>
+                <span class="acid-green">soporte@giras.pro</span>
               </div>
               <div>{{ t('support.contact.hoursLabel') }} {{ t('support.contact.hoursValue') }}</div>
             </div>
