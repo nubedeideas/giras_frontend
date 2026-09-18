@@ -3,6 +3,7 @@ Allow: /
 Disallow: /notifs
 Disallow: /calendar
 Disallow: /contacts
+Disallow: /tour
 Disallow: /reports
 Disallow: /settings
 Disallow: /admin

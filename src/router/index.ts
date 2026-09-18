@@ -63,6 +63,7 @@ export const routes: RouteRecordRaw[] = [
       { path: 'events', name: 'events', component: () => import('@/views/EventsView.vue') },
       { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },
+      { path: 'tour', name: 'tour', component: () => import('@/views/TourView.vue') },
       { path: 'reports', name: 'reports', component: () => import('@/views/ReportsView.vue') },
       { path: 'settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
     ],

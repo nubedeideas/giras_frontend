@@ -167,6 +167,7 @@ export interface Tour {
   team_size?: number
   notes?: string
   color: string         // stored in backend settings JSONField
+  owner_email: string
   members_count?: number
   events_count?: number
   // Google Calendar assignment

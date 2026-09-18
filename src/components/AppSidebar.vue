@@ -49,6 +49,11 @@ const navItems = [
     icon: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
   },
   {
+    to: '/tour',
+    key: 'tourHub',
+    icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`,
+  },
+  {
     to: '/reports',
     key: 'reports',
     icon: `<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`,
@@ -66,8 +71,15 @@ function isActive(to: string) {
   >
     <!-- Logo + wordmark -->
     <div class="flex items-center gap-2 px-2 mb-2">
-      <RouterLink to="/notifs" class="flex items-center gap-2 no-underline flex-1 min-w-0">
-        <img :src="logoIcon" class="w-8 h-8 flex-shrink-0" alt="Giras Pro" />
+      <RouterLink
+        to="/notifs"
+        class="flex items-center gap-2 no-underline flex-1 min-w-0"
+      >
+        <img
+          :src="logoIcon"
+          class="w-8 h-8 flex-shrink-0"
+          alt="Giras Pro"
+        >
         <span class="text-[14px] font-bold text-ink tracking-[-0.2px] truncate">Giras</span>
       </RouterLink>
 
@@ -88,8 +100,18 @@ function isActive(to: string) {
           stroke-linejoin="round"
           class="transition-transform duration-200 group-hover:rotate-90"
         >
-          <line x1="12" y1="5" x2="12" y2="19"/>
-          <line x1="5" y1="12" x2="19" y2="12"/>
+          <line
+            x1="12"
+            y1="5"
+            x2="12"
+            y2="19"
+          />
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
         </svg>
       </button>
     </div>
@@ -132,10 +154,10 @@ function isActive(to: string) {
       :style="
         toursStore.activeTourId
           ? {
-              background: `color-mix(in srgb, ${toursStore.activeTour?.color} 14%, var(--bg-3))`,
-              borderColor: `color-mix(in srgb, ${toursStore.activeTour?.color} 30%, transparent)`,
-              color: toursStore.activeTour?.color,
-            }
+            background: `color-mix(in srgb, ${toursStore.activeTour?.color} 14%, var(--bg-3))`,
+            borderColor: `color-mix(in srgb, ${toursStore.activeTour?.color} 30%, transparent)`,
+            color: toursStore.activeTour?.color,
+          }
           : {}
       "
       @click="toggleTours"
@@ -151,9 +173,17 @@ function isActive(to: string) {
         stroke-linejoin="round"
         class="flex-shrink-0"
       >
-        <circle cx="6" cy="19" r="3" />
+        <circle
+          cx="6"
+          cy="19"
+          r="3"
+        />
         <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-        <circle cx="18" cy="5" r="3" />
+        <circle
+          cx="18"
+          cy="5"
+          r="3"
+        />
       </svg>
       <span class="text-[13px] font-semibold truncate flex-1 min-w-0">
         {{
@@ -231,7 +261,11 @@ function isActive(to: string) {
         stroke-linejoin="round"
         class="flex-shrink-0"
       >
-        <circle cx="12" cy="12" r="3" />
+        <circle
+          cx="12"
+          cy="12"
+          r="3"
+        />
         <path
           d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
         />
@@ -252,18 +286,27 @@ function isActive(to: string) {
           :src="auth.user.avatar"
           :alt="auth.user.full_name"
           class="w-full h-full object-cover"
-        />
-        <span v-else class="text-[11px] font-bold text-black"
-          >{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span
         >
+        <span
+          v-else
+          class="text-[11px] font-bold text-black"
+        >{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="text-[12px] font-semibold text-ink truncate">{{ auth.user?.full_name }}</p>
-        <p class="text-[10px] text-ink-3 truncate">{{ auth.user?.email }}</p>
+        <p class="text-[12px] font-semibold text-ink truncate">
+          {{ auth.user?.full_name }}
+        </p>
+        <p class="text-[10px] text-ink-3 truncate">
+          {{ auth.user?.email }}
+        </p>
       </div>
     </button>
   </aside>
 
   <!-- Tour menu panel (Teleported to body) -->
-  <TourMenuPanel :show="showTours" :anchor="toursAnchor" @close="showTours = false" />
+  <TourMenuPanel
+    :show="showTours"
+    :anchor="toursAnchor"
+    @close="showTours = false"
+  />
 </template>

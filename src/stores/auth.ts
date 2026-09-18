@@ -48,8 +48,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
-  function authHeaders(): Record<string, string> {
-    const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  function authHeaders(opts: { json?: boolean } = {}): Record<string, string> {
+    const h: Record<string, string> = {}
+    if (opts.json !== false) h['Content-Type'] = 'application/json'
     if (accessToken.value) h['Authorization'] = `Bearer ${accessToken.value}`
     return h
   }
@@ -111,14 +112,17 @@ export const useAuthStore = defineStore('auth', () => {
     return refreshPromise
   }
 
-  // Fetch wrapper that auto-retries once after refreshing on 401
+  // Fetch wrapper that auto-retries once after refreshing on 401.
+  // Skips the JSON Content-Type header for FormData bodies (multipart uploads) —
+  // the browser must set its own boundary, so we can't fix the header ourselves.
   async function fetchWithAuth(input: string, init: RequestInit = {}): Promise<Response> {
-    const h = authHeaders()
+    const isMultipart = init.body instanceof FormData
+    const h = authHeaders({ json: !isMultipart })
     let res = await fetch(input, { ...init, headers: { ...h, ...(init.headers as Record<string, string> ?? {}) } })
     if (res.status === 401 && refreshToken.value && !isDemoMode.value) {
       const ok = await refreshAccessToken()
       if (ok) {
-        const h2 = authHeaders()
+        const h2 = authHeaders({ json: !isMultipart })
         res = await fetch(input, { ...init, headers: { ...h2, ...(init.headers as Record<string, string> ?? {}) } })
       }
     }

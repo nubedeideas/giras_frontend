@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useToursStore } from '@/stores/tours'
 import { useTours as useToursApi } from '@/composables/useTours'
 import { useNotificationGroups, type NotificationGroupListItem } from '@/composables/useNotificationGroups'
@@ -29,6 +30,7 @@ const desktopPanelStyle = computed(() => {
   }
 })
 const { t } = useI18n()
+const router = useRouter()
 const toursStore = useToursStore()
 const toursApi = useToursApi()
 const groupsApi = useNotificationGroups()
@@ -182,6 +184,11 @@ function validateDates(): boolean {
 
 function selectTour(id: number | null) {
   toursStore.setActiveTour(id)
+  emit('close')
+}
+
+function goToTourHub() {
+  router.push('/tour')
   emit('close')
 }
 
@@ -367,7 +374,11 @@ async function confirmDelete(uuid: string) {
   <Teleport to="body">
     <!-- Backdrop -->
     <Transition name="tp-fade">
-      <div v-if="show" class="fixed inset-0 z-[55]" @click="emit('close')" />
+      <div
+        v-if="show"
+        class="fixed inset-0 z-[55]"
+        @click="emit('close')"
+      />
     </Transition>
 
     <!-- Panel -->
@@ -390,9 +401,31 @@ async function confirmDelete(uuid: string) {
               {{ t('tours.title') }}
             </span>
             <div class="flex items-center gap-1.5">
-              <BtnPrimary small @click="openCreate">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              <BtnPrimary
+                small
+                @click="openCreate"
+              >
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line
+                    x1="12"
+                    y1="5"
+                    x2="12"
+                    y2="19"
+                  /><line
+                    x1="5"
+                    y1="12"
+                    x2="19"
+                    y2="12"
+                  />
                 </svg>
                 {{ t('tours.newTour') }}
               </BtnPrimary>
@@ -400,17 +433,53 @@ async function confirmDelete(uuid: string) {
                 class="w-[22px] h-[22px] flex items-center justify-center rounded-md text-ink-3 hover:text-ink hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
                 @click="emit('close')"
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line
+                    x1="18"
+                    y1="6"
+                    x2="6"
+                    y2="18"
+                  /><line
+                    x1="6"
+                    y1="6"
+                    x2="18"
+                    y2="18"
+                  />
                 </svg>
               </button>
             </div>
           </div>
 
           <!-- Loading -->
-          <div v-if="toursStore.loading" class="flex-1 flex items-center justify-center">
-            <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+          <div
+            v-if="toursStore.loading"
+            class="flex-1 flex items-center justify-center"
+          >
+            <svg
+              class="animate-spin text-ink-4"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-dasharray="40 22"
+                stroke-linecap="round"
+              />
             </svg>
           </div>
 
@@ -427,7 +496,10 @@ async function confirmDelete(uuid: string) {
               <p class="text-[9px] font-bold text-ink-4 tracking-[1px] uppercase mb-1.5">
                 Gira activa
               </p>
-              <div v-if="toursStore.activeTour" class="flex items-center gap-2.5">
+              <div
+                v-if="toursStore.activeTour"
+                class="flex items-center gap-2.5"
+              >
                 <div
                   class="w-3 h-3 rounded-full flex-shrink-0"
                   :style="{ background: toursStore.activeTour.color }"
@@ -437,12 +509,38 @@ async function confirmDelete(uuid: string) {
                     {{ toursStore.activeTour.artist_name }} — {{ toursStore.activeTour.name }}
                   </p>
                   <div class="flex items-center gap-1.5 mt-0.5">
-                    <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ background: statusDot(toursStore.activeTour.status) }" />
-                    <p class="text-[10px] text-ink-3 leading-tight">{{ statusLabel(toursStore.activeTour.status) }}</p>
+                    <div
+                      class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      :style="{ background: statusDot(toursStore.activeTour.status) }"
+                    />
+                    <p class="text-[10px] text-ink-3 leading-tight">
+                      {{ statusLabel(toursStore.activeTour.status) }}
+                    </p>
                   </div>
                 </div>
+                <button
+                  class="flex-shrink-0 flex items-center gap-1 text-[10px] font-medium text-ink-2 hover:text-acid transition-colors px-2 py-1 rounded-md hover:bg-glass-hover cursor-pointer border border-line bg-transparent"
+                  @click="goToTourHub"
+                >
+                  {{ t('tours.viewTour') }}
+                  <svg
+                    width="9"
+                    height="9"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
               </div>
-              <p v-else class="text-[12px] text-ink-3">Sin gira seleccionada</p>
+              <p
+                v-else
+                class="text-[12px] text-ink-3"
+              >
+                Sin gira seleccionada
+              </p>
             </div>
 
             <!-- Tour list -->
@@ -459,7 +557,17 @@ async function confirmDelete(uuid: string) {
                   :class="!toursStore.activeTourId ? 'bg-black border-black' : 'border-line-2'"
                 />
                 <span class="text-[12px] font-medium flex-1 text-left">{{ t('tours.allTours') }}</span>
-                <svg v-if="!toursStore.activeTourId" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  v-if="!toursStore.activeTourId"
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </button>
@@ -467,12 +575,27 @@ async function confirmDelete(uuid: string) {
               <div class="h-px bg-line mx-3 my-0.5" />
 
               <!-- Tour rows -->
-              <div v-for="tour in toursStore.activeTours" :key="tour.uuid">
+              <div
+                v-for="tour in toursStore.activeTours"
+                :key="tour.uuid"
+              >
                 <!-- Delete confirm -->
-                <div v-if="deletingUuid === tour.uuid" class="px-3.5 py-3 bg-glass-hover">
-                  <p class="text-[11px] font-medium text-ink-2 mb-1">{{ t('tours.deleteConfirm') }}</p>
-                  <p class="text-[10px] text-ink-3 mb-2 truncate">{{ tour.artist_name }} — {{ tour.name }}</p>
-                  <p v-if="deleteError" class="text-[10px] text-red-400 mb-2">{{ deleteError }}</p>
+                <div
+                  v-if="deletingUuid === tour.uuid"
+                  class="px-3.5 py-3 bg-glass-hover"
+                >
+                  <p class="text-[11px] font-medium text-ink-2 mb-1">
+                    {{ t('tours.deleteConfirm') }}
+                  </p>
+                  <p class="text-[10px] text-ink-3 mb-2 truncate">
+                    {{ tour.artist_name }} — {{ tour.name }}
+                  </p>
+                  <p
+                    v-if="deleteError"
+                    class="text-[10px] text-red-400 mb-2"
+                  >
+                    {{ deleteError }}
+                  </p>
                   <div class="flex gap-1.5">
                     <button
                       class="flex-1 py-1.5 rounded text-[11px] font-medium transition-colors cursor-pointer border-none"
@@ -493,27 +616,52 @@ async function confirmDelete(uuid: string) {
                 </div>
 
                 <!-- Normal row -->
-                <div v-else class="group/row">
+                <div
+                  v-else
+                  class="group/row"
+                >
                   <button
                     class="flex items-center gap-2.5 px-3.5 py-2.5 mx-1.5 rounded-xl transition-colors hover:bg-glass-hover cursor-pointer border-none bg-transparent"
                     style="width: calc(100% - 12px)"
                     :class="toursStore.activeTourId === tour.id ? 'bg-glass-active' : ''"
                     @click="selectTour(tour.id)"
                   >
-                    <div class="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" :style="{ background: tour.color }" />
+                    <div
+                      class="w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
+                      :style="{ background: tour.color }"
+                    />
                     <div class="flex-1 min-w-0">
                       <p class="text-[12px] font-medium text-ink truncate leading-snug">
                         {{ tour.artist_name }} — {{ tour.name }}
                       </p>
                       <div class="flex items-center gap-1.5 mt-0.5">
-                        <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ background: statusDot(tour.status) }" />
-                        <p class="text-[10px] text-ink-3 leading-tight">{{ statusLabel(tour.status) }}</p>
-                        <span v-if="tour.members_count" class="text-[10px] text-ink-4">
+                        <div
+                          class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          :style="{ background: statusDot(tour.status) }"
+                        />
+                        <p class="text-[10px] text-ink-3 leading-tight">
+                          {{ statusLabel(tour.status) }}
+                        </p>
+                        <span
+                          v-if="tour.members_count"
+                          class="text-[10px] text-ink-4"
+                        >
                           · {{ tour.members_count }} miembros
                         </span>
                       </div>
                     </div>
-                    <svg v-if="toursStore.activeTourId === tour.id" class="flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      v-if="toursStore.activeTourId === tour.id"
+                      class="flex-shrink-0"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </button>
@@ -523,7 +671,16 @@ async function confirmDelete(uuid: string) {
                       class="flex items-center gap-1 text-[10px] text-ink-3 hover:text-ink-2 transition-colors px-1.5 py-1 rounded hover:bg-glass cursor-pointer border-none bg-transparent"
                       @click.stop="openEdit(tour)"
                     >
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
@@ -534,10 +691,40 @@ async function confirmDelete(uuid: string) {
                       :class="tour.default_calendar_id ? 'text-acid hover:text-acid' : 'text-ink-3 hover:text-ink-2'"
                       @click.stop="assignCalTour = tour"
                     >
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+                      <svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="18"
+                          rx="2"
+                        />
+                        <line
+                          x1="3"
+                          y1="10"
+                          x2="21"
+                          y2="10"
+                        />
+                        <line
+                          x1="8"
+                          y1="2"
+                          x2="8"
+                          y2="6"
+                        /><line
+                          x1="16"
+                          y1="2"
+                          x2="16"
+                          y2="6"
+                        />
                       </svg>
                       {{ tour.default_calendar_id ? 'Cal ●' : 'Cal' }}
                     </button>
@@ -545,7 +732,16 @@ async function confirmDelete(uuid: string) {
                       class="flex items-center gap-1 text-[10px] text-ink-3 hover:text-red-400 transition-colors px-1.5 py-1 rounded hover:bg-glass cursor-pointer border-none bg-transparent"
                       @click.stop="deletingUuid = tour.uuid; deleteError = ''"
                     >
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
                         <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                         <path d="M10 11v6" /><path d="M14 11v6" />
                         <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
@@ -557,13 +753,23 @@ async function confirmDelete(uuid: string) {
               </div>
 
               <!-- Empty state -->
-              <div v-if="!toursStore.activeTours.length && !toursStore.loading" class="px-3.5 py-8 text-center">
-                <p class="text-[11px] text-ink-3">{{ t('tours.noTours') }}</p>
+              <div
+                v-if="!toursStore.activeTours.length && !toursStore.loading"
+                class="px-3.5 py-8 text-center"
+              >
+                <p class="text-[11px] text-ink-3">
+                  {{ t('tours.noTours') }}
+                </p>
               </div>
 
               <!-- API error -->
-              <div v-if="toursStore.error" class="px-3.5 py-2 text-center">
-                <p class="text-[10px] text-red-400">{{ toursStore.error }}</p>
+              <div
+                v-if="toursStore.error"
+                class="px-3.5 py-2 text-center"
+              >
+                <p class="text-[10px] text-red-400">
+                  {{ toursStore.error }}
+                </p>
                 <button
                   class="mt-1 text-[10px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
                   @click="toursStore.loadTours()"
@@ -572,7 +778,6 @@ async function confirmDelete(uuid: string) {
                 </button>
               </div>
             </div>
-
           </template>
         </template>
 
@@ -584,25 +789,57 @@ async function confirmDelete(uuid: string) {
               class="flex items-center justify-center w-[22px] h-[22px] rounded-md text-ink-3 hover:text-ink hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent flex-shrink-0"
               @click="backToList"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
             <span class="text-[12px] font-bold text-ink flex-1 truncate">
               {{ mode === 'create' ? t('tours.newTour') : t('tours.editTitle') }}
             </span>
-            <div class="w-[10px] h-[10px] rounded-full flex-shrink-0" :style="{ background: form.color }" />
+            <div
+              class="w-[10px] h-[10px] rounded-full flex-shrink-0"
+              :style="{ background: form.color }"
+            />
           </div>
 
           <!-- Loading full detail -->
-          <div v-if="loadingEdit" class="flex-1 flex items-center justify-center">
-            <svg class="animate-spin text-ink-4" width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+          <div
+            v-if="loadingEdit"
+            class="flex-1 flex items-center justify-center"
+          >
+            <svg
+              class="animate-spin text-ink-4"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-dasharray="40 22"
+                stroke-linecap="round"
+              />
             </svg>
           </div>
 
           <!-- Form body -->
-          <div v-else class="flex-1 overflow-y-auto px-3.5 py-3 space-y-2.5">
+          <div
+            v-else
+            class="flex-1 overflow-y-auto px-3.5 py-3 space-y-2.5"
+          >
             <!-- Name -->
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">
@@ -612,7 +849,7 @@ async function confirmDelete(uuid: string) {
                 v-model="form.name"
                 :placeholder="t('modal.tourNamePh')"
                 class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-              />
+              >
             </div>
 
             <!-- Artist + Spotify search -->
@@ -628,15 +865,41 @@ async function confirmDelete(uuid: string) {
                   :class="form.spotify_artist_id ? 'pr-7' : spotifyLoading ? 'pr-7' : ''"
                   @input="handleArtistInput"
                   @blur="closeDropdown"
-                />
-                <div v-if="form.spotify_artist_id" class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" title="Vinculado con Spotify">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="#1fad5a">
-                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                >
+                <div
+                  v-if="form.spotify_artist_id"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                  title="Vinculado con Spotify"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="#1fad5a"
+                  >
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
                   </svg>
                 </div>
-                <div v-else-if="spotifyLoading" class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg class="animate-spin text-ink-4" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round"/>
+                <div
+                  v-else-if="spotifyLoading"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                >
+                  <svg
+                    class="animate-spin text-ink-4"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-dasharray="31.4 31.4"
+                      stroke-linecap="round"
+                    />
                   </svg>
                 </div>
                 <!-- Results dropdown -->
@@ -645,7 +908,10 @@ async function confirmDelete(uuid: string) {
                   class="absolute left-0 right-0 top-full mt-1 bg-bg border border-line rounded-lg overflow-hidden z-[60]"
                   style="box-shadow: 0 8px 24px var(--shadow-md)"
                 >
-                  <div v-if="spotifyLoading && !spotifyResults.length" class="px-3 py-3 text-[11px] text-ink-3 text-center">
+                  <div
+                    v-if="spotifyLoading && !spotifyResults.length"
+                    class="px-3 py-3 text-[11px] text-ink-3 text-center"
+                  >
                     Buscando artistas...
                   </div>
                   <button
@@ -656,27 +922,70 @@ async function confirmDelete(uuid: string) {
                     @mousedown.prevent="selectArtist(artist)"
                   >
                     <div class="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden bg-glass-2 border border-line flex items-center justify-center">
-                      <img v-if="artist.images[0]" :src="artist.images[0].url" :alt="artist.name" class="w-full h-full object-cover" />
-                      <svg v-else width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-ink-4">
-                        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                      <img
+                        v-if="artist.images[0]"
+                        :src="artist.images[0].url"
+                        :alt="artist.name"
+                        class="w-full h-full object-cover"
+                      >
+                      <svg
+                        v-else
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        class="text-ink-4"
+                      >
+                        <path d="M9 18V5l12-2v13" /><circle
+                          cx="6"
+                          cy="18"
+                          r="3"
+                        /><circle
+                          cx="18"
+                          cy="16"
+                          r="3"
+                        />
                       </svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <p class="text-[12px] font-medium text-ink truncate leading-snug">{{ artist.name }}</p>
-                      <p class="text-[10px] text-ink-3 leading-tight">{{ formatFollowers(artist.followers.total) }} seguidores</p>
+                      <p class="text-[12px] font-medium text-ink truncate leading-snug">
+                        {{ artist.name }}
+                      </p>
+                      <p class="text-[10px] text-ink-3 leading-tight">
+                        {{ formatFollowers(artist.followers.total) }} seguidores
+                      </p>
                     </div>
                   </button>
                 </div>
               </div>
-              <p v-if="spotifyError" class="text-[10px] text-red-400 mt-1">{{ spotifyError }}</p>
-              <div v-if="form.spotify_artist_id" class="flex items-center gap-1.5 mt-1">
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="#1fad5a" class="flex-shrink-0">
-                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+              <p
+                v-if="spotifyError"
+                class="text-[10px] text-red-400 mt-1"
+              >
+                {{ spotifyError }}
+              </p>
+              <div
+                v-if="form.spotify_artist_id"
+                class="flex items-center gap-1.5 mt-1"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="10"
+                  height="10"
+                  fill="#1fad5a"
+                  class="flex-shrink-0"
+                >
+                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
                 </svg>
                 <p class="text-[10px] text-ink-3">
                   <span style="color: #1fad5a">{{ formatFollowers(form.spotify_followers!) }}</span> seguidores · Spotify
                 </p>
-                <button class="ml-auto text-[9px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent" @click="clearSpotifyLink">
+                <button
+                  class="ml-auto text-[9px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent"
+                  @click="clearSpotifyLink"
+                >
                   desvincular
                 </button>
               </div>
@@ -685,32 +994,56 @@ async function confirmDelete(uuid: string) {
             <!-- Genre -->
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.genre') }}</label>
-              <input v-model="form.genre" :placeholder="t('modal.genrePh')" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors" />
+              <input
+                v-model="form.genre"
+                :placeholder="t('modal.genrePh')"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+              >
             </div>
 
             <!-- Description -->
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.description') }}</label>
-              <textarea v-model="form.description" :placeholder="t('modal.descriptionPh')" rows="2" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none" />
+              <textarea
+                v-model="form.description"
+                :placeholder="t('modal.descriptionPh')"
+                rows="2"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none"
+              />
             </div>
 
             <!-- Dates -->
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.startDate') }}</label>
-                <input v-model="form.start_date" type="date" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[10px] outline-none focus:border-acid transition-colors" />
+                <input
+                  v-model="form.start_date"
+                  type="date"
+                  class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[10px] outline-none focus:border-acid transition-colors"
+                >
               </div>
               <div>
                 <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.endDate') }}</label>
-                <input v-model="form.end_date" type="date" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[10px] outline-none focus:border-acid transition-colors" />
+                <input
+                  v-model="form.end_date"
+                  type="date"
+                  class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[10px] outline-none focus:border-acid transition-colors"
+                >
               </div>
             </div>
 
             <!-- Status (edit only) -->
             <div v-if="mode === 'edit'">
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.status') }}</label>
-              <select v-model="form.status" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors">
-                <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">
+              <select
+                v-model="form.status"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
+              >
+                <option
+                  v-for="s in STATUS_OPTIONS"
+                  :key="s.value"
+                  :value="s.value"
+                >
                   {{ t(s.labelKey) }}
                 </option>
               </select>
@@ -720,12 +1053,28 @@ async function confirmDelete(uuid: string) {
             <div class="grid grid-cols-[1fr_80px] gap-2">
               <div>
                 <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.budget') }}</label>
-                <input v-model="form.budget" type="number" min="0" step="0.01" :placeholder="t('modal.budgetPh')" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors" />
+                <input
+                  v-model="form.budget"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  :placeholder="t('modal.budgetPh')"
+                  class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+                >
               </div>
               <div>
                 <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.currency') }}</label>
-                <select v-model="form.currency" class="w-full bg-glass border border-line rounded px-2 py-1.5 text-ink text-[11px] outline-none focus:border-acid cursor-pointer transition-colors">
-                  <option v-for="c in CURRENCIES" :key="c" :value="c">{{ c }}</option>
+                <select
+                  v-model="form.currency"
+                  class="w-full bg-glass border border-line rounded px-2 py-1.5 text-ink text-[11px] outline-none focus:border-acid cursor-pointer transition-colors"
+                >
+                  <option
+                    v-for="c in CURRENCIES"
+                    :key="c"
+                    :value="c"
+                  >
+                    {{ c }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -733,13 +1082,25 @@ async function confirmDelete(uuid: string) {
             <!-- Team size -->
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.teamSize') }}</label>
-              <input v-model.number="form.team_size" type="number" min="1" max="500" :placeholder="t('modal.teamSizePh')" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors" />
+              <input
+                v-model.number="form.team_size"
+                type="number"
+                min="1"
+                max="500"
+                :placeholder="t('modal.teamSizePh')"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+              >
             </div>
 
             <!-- Notes -->
             <div>
               <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.notes') }}</label>
-              <textarea v-model="form.notes" :placeholder="t('modal.notesPh')" rows="2" class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none" />
+              <textarea
+                v-model="form.notes"
+                :placeholder="t('modal.notesPh')"
+                rows="2"
+                class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none"
+              />
             </div>
 
             <!-- Default notification group (edit only) -->
@@ -751,8 +1112,14 @@ async function confirmDelete(uuid: string) {
                 v-model="form.default_notification_group"
                 class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
               >
-                <option value="">Sin grupo por defecto</option>
-                <option v-for="g in notificationGroups" :key="g.uuid" :value="g.uuid">
+                <option value="">
+                  Sin grupo por defecto
+                </option>
+                <option
+                  v-for="g in notificationGroups"
+                  :key="g.uuid"
+                  :value="g.uuid"
+                >
                   {{ g.name }}{{ g.tour ? '' : ' (Global)' }}
                 </option>
               </select>
@@ -776,7 +1143,12 @@ async function confirmDelete(uuid: string) {
               </div>
             </div>
 
-            <p v-if="formError" class="text-[10px] text-red-400">{{ formError }}</p>
+            <p
+              v-if="formError"
+              class="text-[10px] text-red-400"
+            >
+              {{ formError }}
+            </p>
           </div>
 
           <!-- Form footer -->
@@ -786,9 +1158,26 @@ async function confirmDelete(uuid: string) {
               :disabled="!isFormValid || saving || loadingEdit"
               @click="mode === 'create' ? submitCreate() : submitEdit()"
             >
-              <span v-if="saving" class="flex items-center justify-center gap-1.5">
-                <svg class="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+              <span
+                v-if="saving"
+                class="flex items-center justify-center gap-1.5"
+              >
+                <svg
+                  class="animate-spin"
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-dasharray="40 22"
+                    stroke-linecap="round"
+                  />
                 </svg>
                 {{ mode === 'create' ? 'Creando…' : 'Guardando…' }}
               </span>

@@ -259,6 +259,7 @@ export const mockTours: Tour[] = [
     team_size: 28,
     notes: '',
     color: '#a8d800',
+    owner_email: 'demo@giras.pro',
   },
   {
     id: 2,
@@ -275,6 +276,7 @@ export const mockTours: Tour[] = [
     team_size: 35,
     notes: '',
     color: '#1a8fff',
+    owner_email: 'demo@giras.pro',
   },
 ]
 
