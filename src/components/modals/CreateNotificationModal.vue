@@ -186,30 +186,71 @@ const selectClass =
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
-
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- ── STEP: done ──────────────────────────────────────────────────────── -->
     <template v-if="step === 'done'">
       <div class="flex flex-col items-center py-6 gap-4">
         <!-- Icon -->
-        <div class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: rgba(168,216,0,0.12)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a8d800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
+        <div
+          class="w-12 h-12 rounded-full flex items-center justify-center"
+          style="background: rgba(168,216,0,0.12)"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a8d800"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <div class="text-center">
-          <p class="text-[15px] font-bold text-ink">Notificación creada</p>
-          <p class="text-[11px] text-ink-3 mt-1">¿Deseas agregar contactos ahora?</p>
+          <p class="text-[15px] font-bold text-ink">
+            Notificación creada
+          </p>
+          <p class="text-[11px] text-ink-3 mt-1">
+            ¿Deseas agregar contactos ahora?
+          </p>
         </div>
         <div class="flex gap-2 w-full mt-1">
           <button
             class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] bg-acid text-black cursor-pointer border-none transition-all hover:bg-[#b8e800]"
             @click="goAddContacts"
           >
-            <svg class="inline mr-1.5 -mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/>
+            <svg
+              class="inline mr-1.5 -mt-0.5"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle
+                cx="9"
+                cy="7"
+                r="4"
+              />
+              <line
+                x1="23"
+                y1="11"
+                x2="17"
+                y2="11"
+              /><line
+                x1="20"
+                y1="8"
+                x2="20"
+                y2="14"
+              />
             </svg>
             Agregar contactos
           </button>
@@ -228,8 +269,13 @@ const selectClass =
       <!-- Header -->
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="text-base font-bold text-ink tracking-[-0.2px]">Nueva Notificación</p>
-          <p v-if="activity" class="text-[10px] text-ink-3 mt-0.5 truncate max-w-[260px]">
+          <p class="text-base font-bold text-ink tracking-[-0.2px]">
+            Nueva Notificación
+          </p>
+          <p
+            v-if="activity"
+            class="text-[10px] text-ink-3 mt-0.5 truncate max-w-[260px]"
+          >
             {{ activity.title }}
           </p>
         </div>
@@ -237,32 +283,72 @@ const selectClass =
           class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
           @click="emit('close')"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+            /><line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+            />
           </svg>
         </button>
       </div>
 
       <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
-
         <!-- Title -->
         <div>
           <label :class="labelClass">Título *</label>
-          <input v-model="title" :class="inputClass" placeholder="Título de la notificación" />
+          <input
+            v-model="title"
+            :class="inputClass"
+            placeholder="Título de la notificación"
+          >
         </div>
 
         <!-- Channel + Priority -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label :class="labelClass">Canal</label>
-            <select v-model="channel" :class="selectClass">
-              <option v-for="c in CHANNELS" :key="c" :value="c">{{ CHANNEL_LABELS[c] }}</option>
+            <select
+              v-model="channel"
+              :class="selectClass"
+            >
+              <option
+                v-for="c in CHANNELS"
+                :key="c"
+                :value="c"
+              >
+                {{ CHANNEL_LABELS[c] }}
+              </option>
             </select>
           </div>
           <div>
             <label :class="labelClass">Prioridad</label>
-            <select v-model="priority" :class="selectClass">
-              <option v-for="p in PRIORITIES" :key="p" :value="p">{{ PRIORITY_LABELS[p] }}</option>
+            <select
+              v-model="priority"
+              :class="selectClass"
+            >
+              <option
+                v-for="p in PRIORITIES"
+                :key="p"
+                :value="p"
+              >
+                {{ PRIORITY_LABELS[p] }}
+              </option>
             </select>
           </div>
         </div>
@@ -270,15 +356,29 @@ const selectClass =
         <!-- WhatsApp template -->
         <div v-if="channel === 'whatsapp'">
           <label :class="labelClass">Template WhatsApp *</label>
-          <select v-model="selectedTemplateUuid" :class="selectClass" :disabled="templatesLoading">
-            <option value="" disabled>
+          <select
+            v-model="selectedTemplateUuid"
+            :class="selectClass"
+            :disabled="templatesLoading"
+          >
+            <option
+              value=""
+              disabled
+            >
               {{ templatesLoading ? 'Cargando templates…' : 'Selecciona un template' }}
             </option>
-            <option v-for="t in waTemplates" :key="t.uuid" :value="t.uuid">
+            <option
+              v-for="t in waTemplates"
+              :key="t.uuid"
+              :value="t.uuid"
+            >
               {{ t.name }}{{ t.is_default ? ' (predeterminado)' : '' }}
             </option>
           </select>
-          <p v-if="!templatesLoading && waTemplates.length === 0" class="text-[11px] text-[#f59e0b] mt-1">
+          <p
+            v-if="!templatesLoading && waTemplates.length === 0"
+            class="text-[11px] text-[#f59e0b] mt-1"
+          >
             No hay templates de WhatsApp activos. Crea uno en Configuración → Templates.
           </p>
         </div>
@@ -286,7 +386,13 @@ const selectClass =
         <!-- Message (email/sms) -->
         <div v-if="channel !== 'whatsapp'">
           <label :class="labelClass">Mensaje</label>
-          <textarea v-model="message" :class="inputClass" rows="3" placeholder="Contenido del mensaje…" style="resize: vertical;" />
+          <textarea
+            v-model="message"
+            :class="inputClass"
+            rows="3"
+            placeholder="Contenido del mensaje…"
+            style="resize: vertical;"
+          />
         </div>
 
         <!-- Scheduling -->
@@ -305,8 +411,16 @@ const selectClass =
               {{ mode === 'reminder' ? 'Recordatorio' : mode === 'datetime' ? 'Fecha exacta' : 'Borrador' }}
             </button>
           </div>
-          <select v-if="scheduleMode === 'reminder'" v-model="reminderMinutes" :class="selectClass">
-            <option v-for="opt in REMINDER_OPTIONS" :key="opt.value" :value="opt.value">
+          <select
+            v-if="scheduleMode === 'reminder'"
+            v-model="reminderMinutes"
+            :class="selectClass"
+          >
+            <option
+              v-for="opt in REMINDER_OPTIONS"
+              :key="opt.value"
+              :value="opt.value"
+            >
               {{ opt.label }}
             </option>
           </select>
@@ -315,16 +429,29 @@ const selectClass =
             v-model="scheduledAt"
             type="datetime-local"
             :class="inputClass"
-          />
-          <p v-else class="text-[11px] text-ink-3">
+          >
+          <p
+            v-else
+            class="text-[11px] text-ink-3"
+          >
             Se guardará como borrador. Podrás programarla o enviarla manualmente después.
           </p>
 
           <!-- Timezone selector — visible for reminder and datetime modes -->
-          <div v-if="scheduleMode !== 'now'" class="mt-2">
+          <div
+            v-if="scheduleMode !== 'now'"
+            class="mt-2"
+          >
             <label :class="labelClass">Zona horaria</label>
-            <select v-model="scheduleTimezone" :class="selectClass">
-              <option v-for="tz in COMMON_TIMEZONES" :key="tz.value" :value="tz.value">
+            <select
+              v-model="scheduleTimezone"
+              :class="selectClass"
+            >
+              <option
+                v-for="tz in COMMON_TIMEZONES"
+                :key="tz.value"
+                :value="tz.value"
+              >
                 {{ tz.label }}
               </option>
             </select>
@@ -334,12 +461,16 @@ const selectClass =
             </p>
           </div>
         </div>
-
       </div>
 
       <!-- Error -->
-      <div v-if="saveError" class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">{{ saveError }}</p>
+      <div
+        v-if="saveError"
+        class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+      >
+        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+          {{ saveError }}
+        </p>
       </div>
 
       <!-- Actions -->
@@ -360,6 +491,5 @@ const selectClass =
         </button>
       </div>
     </template>
-
   </AppModal>
 </template>

@@ -138,11 +138,16 @@ async function save() {
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Gestionar Contactos</p>
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Gestionar Contactos
+        </p>
         <p class="text-[10px] text-ink-3 mt-0.5">
           {{ groupName }} · {{ selected.size }} seleccionado{{ selected.size !== 1 ? 's' : '' }}
         </p>
@@ -151,14 +156,36 @@ async function save() {
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
         @click="emit('close')"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
 
     <!-- Role group-select chips -->
-    <div v-if="!loading && availableRoles.length > 0" class="mb-3">
+    <div
+      v-if="!loading && availableRoles.length > 0"
+      class="mb-3"
+    >
       <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
         Seleccionar por rol
       </p>
@@ -191,10 +218,16 @@ async function save() {
           </span>
           <svg
             v-if="roleSelectionState(role.uuid) === 'all'"
-            width="9" height="9" viewBox="0 0 24 24" fill="none"
-            :stroke="role.color" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            width="9"
+            height="9"
+            viewBox="0 0 24 24"
+            fill="none"
+            :stroke="role.color"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <polyline points="20 6 9 17 4 12"/>
+            <polyline points="20 6 9 17 4 12" />
           </svg>
         </button>
       </div>
@@ -202,27 +235,71 @@ async function save() {
 
     <!-- Search -->
     <div class="relative mb-3">
-      <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <svg
+        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4"
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle
+          cx="11"
+          cy="11"
+          r="8"
+        /><line
+          x1="21"
+          y1="21"
+          x2="16.65"
+          y2="16.65"
+        />
       </svg>
       <input
         v-model="search"
         class="w-full bg-glass border border-line rounded-lg pl-8 pr-3 py-[7px] text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors"
         placeholder="Buscar contactos…"
-      />
+      >
     </div>
 
     <!-- Contact list -->
     <div class="max-h-[42vh] overflow-y-auto -mx-1 px-1">
-      <div v-if="loading" class="flex justify-center py-8">
-        <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+      <div
+        v-if="loading"
+        class="flex justify-center py-8"
+      >
+        <svg
+          class="animate-spin text-ink-4"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-dasharray="40 22"
+            stroke-linecap="round"
+          />
         </svg>
       </div>
 
-      <p v-else-if="loadError" class="text-[11px] text-red-400 py-4 text-center">{{ loadError }}</p>
+      <p
+        v-else-if="loadError"
+        class="text-[11px] text-red-400 py-4 text-center"
+      >
+        {{ loadError }}
+      </p>
 
-      <p v-else-if="filtered.length === 0" class="text-[11px] text-ink-4 py-4 text-center">
+      <p
+        v-else-if="filtered.length === 0"
+        class="text-[11px] text-ink-4 py-4 text-center"
+      >
         Sin resultados
       </p>
 
@@ -238,14 +315,26 @@ async function save() {
             class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors"
             :class="selected.has(c.uuid) ? 'bg-acid border-acid' : 'border-line bg-glass'"
           >
-            <svg v-if="selected.has(c.uuid)" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
+            <svg
+              v-if="selected.has(c.uuid)"
+              width="9"
+              height="9"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="black"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-medium text-ink truncate">{{ c.full_name || c.company_name || '—' }}</p>
+              <p class="text-[12px] font-medium text-ink truncate">
+                {{ c.full_name || c.company_name || '—' }}
+              </p>
               <span
                 v-if="c.role"
                 class="text-[9px] font-semibold px-1 py-0.5 rounded flex-shrink-0"
@@ -256,7 +345,10 @@ async function save() {
               <span v-if="c.primary_email">{{ c.primary_email }}</span>
               <span v-if="c.primary_email && c.primary_phone"> · </span>
               <span v-if="c.primary_phone">{{ c.primary_phone }}</span>
-              <span v-if="!c.primary_email && !c.primary_phone" class="text-ink-4">Sin contacto</span>
+              <span
+                v-if="!c.primary_email && !c.primary_phone"
+                class="text-ink-4"
+              >Sin contacto</span>
             </p>
           </div>
         </button>
@@ -264,7 +356,12 @@ async function save() {
     </div>
 
     <!-- Error -->
-    <p v-if="saveError" class="text-[11px] text-red-400 mt-2">{{ saveError }}</p>
+    <p
+      v-if="saveError"
+      class="text-[11px] text-red-400 mt-2"
+    >
+      {{ saveError }}
+    </p>
 
     <!-- Actions -->
     <div class="flex gap-2 mt-4">

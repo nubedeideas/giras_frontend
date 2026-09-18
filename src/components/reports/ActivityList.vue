@@ -19,7 +19,9 @@ const typeClass: Record<string, string> = {
 <template>
   <div class="bg-bg-3 border border-line rounded-lg overflow-hidden shadow-[0_1px_3px_var(--shadow-sm)]">
     <div class="px-5 py-3 border-b border-line flex items-center justify-between">
-      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase">{{ title }}</p>
+      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase">
+        {{ title }}
+      </p>
       <div class="flex gap-6 text-[10px] text-ink-3">
         <span>{{ labels.sent }}</span>
         <span>{{ labels.opened }}</span>
@@ -39,19 +41,31 @@ const typeClass: Record<string, string> = {
           {{ typeLabel[ev.type].slice(0, 2).toUpperCase() }}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-[12px] font-semibold text-ink truncate">{{ ev.title }}</p>
-          <p class="text-[10px] text-ink-3">{{ ev.fullDate }} · {{ ev.city }}</p>
+          <p class="text-[12px] font-semibold text-ink truncate">
+            {{ ev.title }}
+          </p>
+          <p class="text-[10px] text-ink-3">
+            {{ ev.fullDate }} · {{ ev.city }}
+          </p>
         </div>
-        <Pill :variant="ev.pc">{{ ev.group }}</Pill>
+        <Pill :variant="ev.pc">
+          {{ ev.group }}
+        </Pill>
         <div class="flex gap-6 text-right flex-shrink-0">
           <div>
-            <p class="text-[12px] font-bold text-acid">{{ ev.stats.sent }}</p>
+            <p class="text-[12px] font-bold text-acid">
+              {{ ev.stats.sent }}
+            </p>
           </div>
           <div>
-            <p class="text-[12px] font-bold text-brand-blue">{{ ev.stats.opened }}</p>
+            <p class="text-[12px] font-bold text-brand-blue">
+              {{ ev.stats.opened }}
+            </p>
           </div>
           <div>
-            <p class="text-[12px] font-bold text-brand-orange">{{ ev.stats.clicked }}</p>
+            <p class="text-[12px] font-bold text-brand-orange">
+              {{ ev.stats.clicked }}
+            </p>
           </div>
         </div>
       </div>

@@ -79,74 +79,141 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
-    <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">{{ isEdit ? 'Editar plan' : 'Nuevo plan' }}</p>
-    <p v-if="isEdit && plan" class="text-[11px] text-ink-4 mb-4 uppercase tracking-[0.4px]">{{ plan.code }}</p>
-    <p v-else class="text-[11px] text-ink-4 mb-4">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
+    <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
+      {{ isEdit ? 'Editar plan' : 'Nuevo plan' }}
+    </p>
+    <p
+      v-if="isEdit && plan"
+      class="text-[11px] text-ink-4 mb-4 uppercase tracking-[0.4px]"
+    >
+      {{ plan.code }}
+    </p>
+    <p
+      v-else
+      class="text-[11px] text-ink-4 mb-4"
+    >
       El código debe ser único — si los 4 planes base ya existen, el backend rechaza el duplicado.
     </p>
 
     <div class="space-y-3">
-        <div v-if="!isEdit">
-          <label :class="labelClass">Código</label>
-          <select v-model="code" :class="inputClass">
-            <option v-for="c in PLAN_CODES" :key="c" :value="c">{{ c }}</option>
-          </select>
+      <div v-if="!isEdit">
+        <label :class="labelClass">Código</label>
+        <select
+          v-model="code"
+          :class="inputClass"
+        >
+          <option
+            v-for="c in PLAN_CODES"
+            :key="c"
+            :value="c"
+          >
+            {{ c }}
+          </option>
+        </select>
+      </div>
+      <div>
+        <label :class="labelClass">Nombre</label>
+        <input
+          v-model="name"
+          :class="inputClass"
+        >
+      </div>
+      <div>
+        <label :class="labelClass">Descripción</label>
+        <textarea
+          v-model="description"
+          :class="inputClass"
+          rows="2"
+          style="resize: vertical"
+        />
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label :class="labelClass">Límite notifs. (0 = ilimitado)</label>
+          <input
+            v-model.number="notificationLimit"
+            type="number"
+            min="0"
+            :class="inputClass"
+          >
         </div>
         <div>
-          <label :class="labelClass">Nombre</label>
-          <input v-model="name" :class="inputClass" />
+          <label :class="labelClass">Límite shows (0 = ilimitado)</label>
+          <input
+            v-model.number="maxShows"
+            type="number"
+            min="0"
+            :class="inputClass"
+          >
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label :class="labelClass">Precio</label>
+          <input
+            v-model="price"
+            :class="inputClass"
+          >
         </div>
         <div>
-          <label :class="labelClass">Descripción</label>
-          <textarea v-model="description" :class="inputClass" rows="2" style="resize: vertical" />
+          <label :class="labelClass">Moneda</label>
+          <input
+            v-model="currency"
+            :class="inputClass"
+          >
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label :class="labelClass">Límite notifs. (0 = ilimitado)</label>
-            <input v-model.number="notificationLimit" type="number" min="0" :class="inputClass" />
-          </div>
-          <div>
-            <label :class="labelClass">Límite shows (0 = ilimitado)</label>
-            <input v-model.number="maxShows" type="number" min="0" :class="inputClass" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label :class="labelClass">Precio</label>
-            <input v-model="price" :class="inputClass" />
-          </div>
-          <div>
-            <label :class="labelClass">Moneda</label>
-            <input v-model="currency" :class="inputClass" />
-          </div>
-        </div>
-        <div>
-          <label :class="labelClass">Orden de visualización</label>
-          <input v-model.number="displayOrder" type="number" :class="inputClass" />
-        </div>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input v-model="isActive" type="checkbox" class="cursor-pointer" />
-          <span class="text-[12px] text-ink-2">Plan activo (visible en el catálogo)</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input v-model="isDefault" type="checkbox" class="cursor-pointer" />
-          <span class="text-[12px] text-ink-2">Plan por defecto (preseleccionado para giras nuevas)</span>
-        </label>
+      </div>
+      <div>
+        <label :class="labelClass">Orden de visualización</label>
+        <input
+          v-model.number="displayOrder"
+          type="number"
+          :class="inputClass"
+        >
+      </div>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          v-model="isActive"
+          type="checkbox"
+          class="cursor-pointer"
+        >
+        <span class="text-[12px] text-ink-2">Plan activo (visible en el catálogo)</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          v-model="isDefault"
+          type="checkbox"
+          class="cursor-pointer"
+        >
+        <span class="text-[12px] text-ink-2">Plan por defecto (preseleccionado para giras nuevas)</span>
+      </label>
 
-        <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400"
+      >
+        {{ error }}
+      </p>
 
-        <div class="flex justify-end gap-2 pt-1">
-          <button
-            class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
-            @click="emit('close')"
-          >Cancelar</button>
-          <button
-            class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
-            :disabled="saving"
-            @click="submit"
-          >{{ saving ? 'Guardando…' : 'Guardar' }}</button>
-        </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button
+          class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+          @click="emit('close')"
+        >
+          Cancelar
+        </button>
+        <button
+          class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
+          :disabled="saving"
+          @click="submit"
+        >
+          {{ saving ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
     </div>
   </AppModal>
 </template>

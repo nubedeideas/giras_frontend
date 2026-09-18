@@ -50,15 +50,21 @@ const typeIconClass: Record<string, string> = {
       </div>
 
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-semibold mb-px truncate text-ink">{{ event.title }}</p>
-        <p class="text-[10px] text-ink-2">{{ event.venue }} · {{ event.city }}</p>
+        <p class="text-[12px] font-semibold mb-px truncate text-ink">
+          {{ event.title }}
+        </p>
+        <p class="text-[10px] text-ink-2">
+          {{ event.venue }} · {{ event.city }}
+        </p>
       </div>
 
       <span class="text-[10px] text-ink-3 flex-shrink-0 mt-px">{{ event.time }}</span>
     </div>
 
     <div class="flex items-center gap-[5px]">
-      <Pill :variant="event.pc">{{ event.group }}</Pill>
+      <Pill :variant="event.pc">
+        {{ event.group }}
+      </Pill>
       <span class="text-[10px] text-ink-3 flex-1 truncate">{{ event.preview }}</span>
     </div>
   </div>

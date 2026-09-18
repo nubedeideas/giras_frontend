@@ -82,121 +82,204 @@ const barColor = computed(() => {
 
 <template>
   <div class="h-full overflow-y-auto bg-bg-3">
-  <div class="max-w-2xl mx-auto px-8 py-8">
-    <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">Suscripción</h2>
+    <div class="max-w-2xl mx-auto px-8 py-8">
+      <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">
+        Suscripción
+      </h2>
 
-    <div v-if="!activeTourUuid" class="text-center py-10 text-ink-4 text-[12px]">
-      Elegí una gira desde el menú "Giras" para ver su suscripción.
-    </div>
+      <div
+        v-if="!activeTourUuid"
+        class="text-center py-10 text-ink-4 text-[12px]"
+      >
+        Elegí una gira desde el menú "Giras" para ver su suscripción.
+      </div>
 
-    <div v-else-if="loading" class="flex justify-center py-10">
-      <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round" />
-      </svg>
-    </div>
+      <div
+        v-else-if="loading"
+        class="flex justify-center py-10"
+      >
+        <svg
+          class="animate-spin text-ink-4"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-dasharray="40 22"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
 
-    <p v-else-if="error" class="text-[12px] text-red-400">{{ error }}</p>
+      <p
+        v-else-if="error"
+        class="text-[12px] text-red-400"
+      >
+        {{ error }}
+      </p>
 
-    <template v-else-if="usage && subscription">
-      <!-- Plan actual + consumo -->
-      <section class="mb-8">
-        <div class="bg-glass border border-line rounded-lg px-4 py-3.5 mb-3">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <p class="text-[13px] font-bold text-ink">{{ usage.plan_name }}</p>
-              <p class="text-[10px] text-ink-4 uppercase tracking-[0.4px]">{{ subscription.status }}</p>
+      <template v-else-if="usage && subscription">
+        <!-- Plan actual + consumo -->
+        <section class="mb-8">
+          <div class="bg-glass border border-line rounded-lg px-4 py-3.5 mb-3">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-[13px] font-bold text-ink">
+                  {{ usage.plan_name }}
+                </p>
+                <p class="text-[10px] text-ink-4 uppercase tracking-[0.4px]">
+                  {{ subscription.status }}
+                </p>
+              </div>
+              <button
+                class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-acid text-black cursor-pointer"
+                @click="showChoosePlan = true"
+              >
+                Cambiar plan
+              </button>
             </div>
-            <button
-              class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-acid text-black cursor-pointer"
-              @click="showChoosePlan = true"
+
+            <!-- Usage bar -->
+            <div
+              v-if="!usage.is_unlimited"
+              class="mb-1"
             >
-              Cambiar plan
-            </button>
-          </div>
+              <div class="flex items-center justify-between text-[10px] text-ink-4 mb-1">
+                <span>{{ usage.notifications_used }} / {{ usage.notification_limit }} notificaciones</span>
+                <span>{{ usage.usage_percentage }}%</span>
+              </div>
+              <div class="h-1.5 rounded-full bg-glass-2 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all"
+                  :style="{ width: `${Math.min(usage.usage_percentage, 100)}%`, background: barColor }"
+                />
+              </div>
+              <p
+                v-if="usage.usage_percentage >= 90"
+                class="text-[10px] mt-1"
+                style="color: #f87171"
+              >
+                Te queda poco consumo disponible — considerá cambiar de plan para no quedarte sin notificaciones.
+              </p>
+            </div>
+            <p
+              v-else
+              class="text-[11px] text-ink-3"
+            >
+              Notificaciones ilimitadas en este plan.
+            </p>
 
-          <!-- Usage bar -->
-          <div v-if="!usage.is_unlimited" class="mb-1">
-            <div class="flex items-center justify-between text-[10px] text-ink-4 mb-1">
-              <span>{{ usage.notifications_used }} / {{ usage.notification_limit }} notificaciones</span>
-              <span>{{ usage.usage_percentage }}%</span>
-            </div>
-            <div class="h-1.5 rounded-full bg-glass-2 overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all"
-                :style="{ width: `${Math.min(usage.usage_percentage, 100)}%`, background: barColor }"
-              />
-            </div>
-            <p v-if="usage.usage_percentage >= 90" class="text-[10px] mt-1" style="color: #f87171">
-              Te queda poco consumo disponible — considerá cambiar de plan para no quedarte sin notificaciones.
+            <p class="text-[10px] text-ink-4 mt-2">
+              Shows: {{ usage.shows_used }}/{{ usage.shows_limit === 0 ? '∞' : usage.shows_limit }}
             </p>
           </div>
-          <p v-else class="text-[11px] text-ink-3">Notificaciones ilimitadas en este plan.</p>
 
-          <p class="text-[10px] text-ink-4 mt-2">Shows: {{ usage.shows_used }}/{{ usage.shows_limit === 0 ? '∞' : usage.shows_limit }}</p>
-        </div>
-
-        <button
-          v-if="usage.plan_code !== 'free' && !showCancelConfirm"
-          class="text-[11px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent"
-          @click="showCancelConfirm = true"
-        >
-          Cancelar suscripción
-        </button>
-        <div v-if="showCancelConfirm" class="mt-1.5 space-y-1.5">
-          <p class="text-[11px] text-ink-3">¿Confirmás la cancelación de la suscripción de esta gira?</p>
-          <p v-if="cancelError" class="text-[11px] text-red-400">{{ cancelError }}</p>
-          <div class="flex gap-1.5">
-            <button
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-              style="background: rgba(239,68,68,0.15); color: #f87171"
-              :disabled="cancelling"
-              @click="doCancel"
-            >{{ cancelling ? '…' : 'Confirmar cancelación' }}</button>
-            <button
-              class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
-              @click="showCancelConfirm = false"
-            >Volver</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Pagos de esta gira -->
-      <section class="mb-8">
-        <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Pagos</label>
-        <p v-if="payments.length === 0" class="text-[11px] text-ink-4">Sin pagos registrados todavía.</p>
-        <div v-else class="space-y-1.5">
-          <div
-            v-for="p in payments"
-            :key="p.uuid"
-            class="flex items-center justify-between bg-glass border border-line rounded-lg px-3 py-2"
+          <button
+            v-if="usage.plan_code !== 'free' && !showCancelConfirm"
+            class="text-[11px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent"
+            @click="showCancelConfirm = true"
           >
-            <div>
-              <p class="text-[12px] text-ink">{{ p.amount }} {{ p.currency }}</p>
-              <p class="text-[10px] text-ink-4">{{ formatDate(p.payment_date ?? p.created_at) }}</p>
+            Cancelar suscripción
+          </button>
+          <div
+            v-if="showCancelConfirm"
+            class="mt-1.5 space-y-1.5"
+          >
+            <p class="text-[11px] text-ink-3">
+              ¿Confirmás la cancelación de la suscripción de esta gira?
+            </p>
+            <p
+              v-if="cancelError"
+              class="text-[11px] text-red-400"
+            >
+              {{ cancelError }}
+            </p>
+            <div class="flex gap-1.5">
+              <button
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
+                style="background: rgba(239,68,68,0.15); color: #f87171"
+                :disabled="cancelling"
+                @click="doCancel"
+              >
+                {{ cancelling ? '…' : 'Confirmar cancelación' }}
+              </button>
+              <button
+                class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+                @click="showCancelConfirm = false"
+              >
+                Volver
+              </button>
             </div>
-            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 capitalize">{{ p.status }}</span>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Historial de uso -->
-      <section>
-        <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Historial de uso</label>
-        <p v-if="history.length === 0" class="text-[11px] text-ink-4">Sin notificaciones registradas todavía.</p>
-        <div v-else class="space-y-1.5">
-          <UsageLogCard v-for="entry in history" :key="entry.uuid" :entry="entry" />
-        </div>
-      </section>
-    </template>
+        <!-- Pagos de esta gira -->
+        <section class="mb-8">
+          <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Pagos</label>
+          <p
+            v-if="payments.length === 0"
+            class="text-[11px] text-ink-4"
+          >
+            Sin pagos registrados todavía.
+          </p>
+          <div
+            v-else
+            class="space-y-1.5"
+          >
+            <div
+              v-for="p in payments"
+              :key="p.uuid"
+              class="flex items-center justify-between bg-glass border border-line rounded-lg px-3 py-2"
+            >
+              <div>
+                <p class="text-[12px] text-ink">
+                  {{ p.amount }} {{ p.currency }}
+                </p>
+                <p class="text-[10px] text-ink-4">
+                  {{ formatDate(p.payment_date ?? p.created_at) }}
+                </p>
+              </div>
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 capitalize">{{ p.status }}</span>
+            </div>
+          </div>
+        </section>
 
-    <ChoosePlanModal
-      v-if="activeTourUuid"
-      :show="showChoosePlan"
-      :tour-uuid="activeTourUuid"
-      :current-plan-code="usage?.plan_code ?? null"
-      @close="showChoosePlan = false"
-      @changed="load(); showChoosePlan = false"
-    />
-  </div>
+        <!-- Historial de uso -->
+        <section>
+          <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Historial de uso</label>
+          <p
+            v-if="history.length === 0"
+            class="text-[11px] text-ink-4"
+          >
+            Sin notificaciones registradas todavía.
+          </p>
+          <div
+            v-else
+            class="space-y-1.5"
+          >
+            <UsageLogCard
+              v-for="entry in history"
+              :key="entry.uuid"
+              :entry="entry"
+            />
+          </div>
+        </section>
+      </template>
+
+      <ChoosePlanModal
+        v-if="activeTourUuid"
+        :show="showChoosePlan"
+        :tour-uuid="activeTourUuid"
+        :current-plan-code="usage?.plan_code ?? null"
+        @close="showChoosePlan = false"
+        @changed="load(); showChoosePlan = false"
+      />
+    </div>
   </div>
 </template>

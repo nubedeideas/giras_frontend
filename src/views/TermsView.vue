@@ -28,7 +28,7 @@ const sections = computed(
           {{ t('termsPage.eyebrow') }}
         </h2>
         <h1 class="font-header text-6xl md:text-8xl leading-none uppercase">
-          {{ t('termsPage.titleLine1') }} <br />
+          {{ t('termsPage.titleLine1') }} <br>
           <span class="acid-green italic">{{ t('termsPage.titleHighlight') }}</span>
         </h1>
         <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono">
@@ -42,8 +42,12 @@ const sections = computed(
           :key="section.title"
           class="space-y-3 border-b border-white/5 pb-8 last:border-b-0 last:pb-0"
         >
-          <h3 class="font-header text-2xl md:text-3xl uppercase">{{ section.title }}</h3>
-          <p class="text-sm leading-relaxed text-white/60 font-mono">{{ section.body }}</p>
+          <h3 class="font-header text-2xl md:text-3xl uppercase">
+            {{ section.title }}
+          </h3>
+          <p class="text-sm leading-relaxed text-white/60 font-mono">
+            {{ section.body }}
+          </p>
         </section>
       </div>
     </div>

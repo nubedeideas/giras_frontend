@@ -54,7 +54,9 @@ const channelStats = computed(() => {
     <div class="max-w-6xl mx-auto px-6 py-6">
       <!-- Sub-header: subtitle + tour filter -->
       <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
-        <p class="text-[12px] text-ink-3">Resumen de actividad de notificaciones</p>
+        <p class="text-[12px] text-ink-3">
+          Resumen de actividad de notificaciones
+        </p>
 
         <!-- Tour filter -->
         <select
@@ -62,8 +64,14 @@ const channelStats = computed(() => {
           :value="selectedTourId ?? ''"
           @change="selectedTourId = ($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : null"
         >
-          <option value="">{{ t('reports.allTours') }}</option>
-          <option v-for="tour in toursStore.tours" :key="tour.id" :value="tour.id">
+          <option value="">
+            {{ t('reports.allTours') }}
+          </option>
+          <option
+            v-for="tour in toursStore.tours"
+            :key="tour.id"
+            :value="tour.id"
+          >
             {{ tour.artist_name }} — {{ tour.name }}
           </option>
         </select>
@@ -84,7 +92,9 @@ const channelStats = computed(() => {
 
           <!-- Tour breakdown -->
           <div class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-5">
-            <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-4">{{ t('reports.byTour') }}</p>
+            <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-4">
+              {{ t('reports.byTour') }}
+            </p>
             <div class="space-y-3">
               <div
                 v-for="tour in toursStore.tours"
@@ -94,10 +104,17 @@ const channelStats = computed(() => {
                 @click="selectedTourId = selectedTourId === tour.id ? null : tour.id"
               >
                 <div class="flex items-center gap-2 mb-1.5">
-                  <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: tour.color }" />
-                  <p class="text-[12px] font-semibold text-ink truncate">{{ tour.artist_name }}</p>
+                  <div
+                    class="w-2 h-2 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: tour.color }"
+                  />
+                  <p class="text-[12px] font-semibold text-ink truncate">
+                    {{ tour.artist_name }}
+                  </p>
                 </div>
-                <p class="text-[10px] text-ink-3 mb-2">{{ tour.name }}</p>
+                <p class="text-[10px] text-ink-3 mb-2">
+                  {{ tour.name }}
+                </p>
                 <div class="flex gap-3 text-[10px]">
                   <span class="text-ink-3">{{ notifStore.events.filter(e => e.tourId === tour.id).length }} eventos</span>
                   <span class="text-acid font-semibold">

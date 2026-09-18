@@ -191,12 +191,20 @@ const selectClass =
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Editar Notificación</p>
-        <div v-if="original" class="flex items-center gap-2 mt-1">
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Editar Notificación
+        </p>
+        <div
+          v-if="original"
+          class="flex items-center gap-2 mt-1"
+        >
           <!-- Channel badge -->
           <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-glass border border-line text-ink-3">
             {{ CHANNEL_LABELS[channel] }}
@@ -210,7 +218,10 @@ const selectClass =
             {{ NOTIF_STATUS_LABELS[original.status] }}
           </span>
         </div>
-        <p v-if="autoCancelledMessage" class="text-[10px] text-ink-4 mt-1 max-w-xs">
+        <p
+          v-if="autoCancelledMessage"
+          class="text-[10px] text-ink-4 mt-1 max-w-xs"
+        >
           {{ autoCancelledMessage }}
         </p>
       </div>
@@ -218,44 +229,107 @@ const selectClass =
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
         @click="emit('close')"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="flex justify-center py-8">
-      <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+    <div
+      v-if="loading"
+      class="flex justify-center py-8"
+    >
+      <svg
+        class="animate-spin text-ink-4"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="40 22"
+          stroke-linecap="round"
+        />
       </svg>
     </div>
 
-    <p v-else-if="loadError" class="text-[11px] text-red-400 py-4 text-center">{{ loadError }}</p>
+    <p
+      v-else-if="loadError"
+      class="text-[11px] text-red-400 py-4 text-center"
+    >
+      {{ loadError }}
+    </p>
 
     <template v-else-if="original">
       <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-
         <!-- Title -->
         <div>
           <label :class="labelClass">Título *</label>
-          <input v-model="title" :class="inputClass" placeholder="Título de la notificación" />
+          <input
+            v-model="title"
+            :class="inputClass"
+            placeholder="Título de la notificación"
+          >
         </div>
 
         <!-- Priority -->
         <div>
           <label :class="labelClass">Prioridad</label>
-          <select v-model="priority" :class="selectClass">
-            <option v-for="p in PRIORITIES" :key="p" :value="p">{{ PRIORITY_LABELS[p] }}</option>
+          <select
+            v-model="priority"
+            :class="selectClass"
+          >
+            <option
+              v-for="p in PRIORITIES"
+              :key="p"
+              :value="p"
+            >
+              {{ PRIORITY_LABELS[p] }}
+            </option>
           </select>
         </div>
 
         <!-- WhatsApp template -->
         <div v-if="channel === 'whatsapp'">
           <label :class="labelClass">Template WhatsApp</label>
-          <select v-model="selectedTemplateUuid" :class="selectClass" :disabled="templatesLoading">
-            <option value="">{{ templatesLoading ? 'Cargando…' : 'Sin template' }}</option>
-            <option v-for="t in waTemplates" :key="t.uuid" :value="t.uuid">
+          <select
+            v-model="selectedTemplateUuid"
+            :class="selectClass"
+            :disabled="templatesLoading"
+          >
+            <option value="">
+              {{ templatesLoading ? 'Cargando…' : 'Sin template' }}
+            </option>
+            <option
+              v-for="t in waTemplates"
+              :key="t.uuid"
+              :value="t.uuid"
+            >
               {{ t.name }}{{ t.is_default ? ' (predeterminado)' : '' }}
             </option>
           </select>
@@ -287,12 +361,18 @@ const selectClass =
           </div>
 
           <!-- Current scheduled time (read-only display) -->
-          <p v-if="!changeSchedule" class="text-[12px] text-ink">
+          <p
+            v-if="!changeSchedule"
+            class="text-[12px] text-ink"
+          >
             {{ formatScheduled(original.scheduled_for) }}
           </p>
 
           <!-- New datetime picker + timezone -->
-          <div v-else class="mt-1.5 space-y-2">
+          <div
+            v-else
+            class="mt-1.5 space-y-2"
+          >
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[9px] text-ink-4 uppercase tracking-[0.4px] block mb-1">Fecha y hora</label>
@@ -300,26 +380,39 @@ const selectClass =
                   v-model="scheduledAt"
                   type="datetime-local"
                   :class="inputClass"
-                />
+                >
               </div>
               <div>
                 <label class="text-[9px] text-ink-4 uppercase tracking-[0.4px] block mb-1">Zona horaria</label>
-                <select v-model="scheduleTimezone" :class="selectClass">
-                  <option v-for="tz in COMMON_TIMEZONES" :key="tz.value" :value="tz.value">
+                <select
+                  v-model="scheduleTimezone"
+                  :class="selectClass"
+                >
+                  <option
+                    v-for="tz in COMMON_TIMEZONES"
+                    :key="tz.value"
+                    :value="tz.value"
+                  >
                     {{ tz.label }}
                   </option>
                 </select>
               </div>
             </div>
-            <p class="text-[10px] text-ink-4">Deja la fecha en blanco para guardar como borrador sin programar.</p>
+            <p class="text-[10px] text-ink-4">
+              Deja la fecha en blanco para guardar como borrador sin programar.
+            </p>
           </div>
         </div>
-
       </div>
 
       <!-- Error -->
-      <div v-if="saveError" class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">{{ saveError }}</p>
+      <div
+        v-if="saveError"
+        class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+      >
+        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+          {{ saveError }}
+        </p>
       </div>
 
       <!-- Actions -->

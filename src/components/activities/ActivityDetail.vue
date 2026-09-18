@@ -139,11 +139,27 @@ async function confirmDelete() {
 
 <template>
   <div class="flex-1 bg-bg-3 flex flex-col overflow-hidden">
-
     <!-- Loading detail -->
-    <div v-if="store.loadingDetail" class="flex-1 flex items-center justify-center">
-      <svg class="animate-spin text-ink-4" width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+    <div
+      v-if="store.loadingDetail"
+      class="flex-1 flex items-center justify-center"
+    >
+      <svg
+        class="animate-spin text-ink-4"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="40 22"
+          stroke-linecap="round"
+        />
       </svg>
     </div>
 
@@ -157,31 +173,87 @@ async function confirmDelete() {
               class="w-2 h-2 rounded-full flex-shrink-0"
               :style="{ background: activity.activity_type?.color ?? 'var(--ink-3)' }"
             />
-            <p class="text-[9px] font-bold tracking-[1px] uppercase"
-              :style="{ color: activity.activity_type?.color ?? 'var(--ink-3)' }">
+            <p
+              class="text-[9px] font-bold tracking-[1px] uppercase"
+              :style="{ color: activity.activity_type?.color ?? 'var(--ink-3)' }"
+            >
               {{ activity.activity_type?.name ?? '—' }} · {{ CATEGORY_LABELS[activity.activity_type?.category ?? ''] ?? '—' }}
             </p>
           </div>
-          <p class="text-lg font-bold tracking-[-0.3px] mb-1.5 text-ink">{{ activity.title }}</p>
+          <p class="text-lg font-bold tracking-[-0.3px] mb-1.5 text-ink">
+            {{ activity.title }}
+          </p>
           <div class="flex flex-wrap gap-2.5 text-[11px] text-ink-2">
             <!-- Date/time -->
             <span class="flex items-center gap-1">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="18"
+                  rx="2"
+                /><line
+                  x1="3"
+                  y1="10"
+                  x2="21"
+                  y2="10"
+                />
               </svg>
               {{ formatDateTime(activity.scheduled_at, activity.all_day) }}
             </span>
             <!-- End time -->
-            <span v-if="activity.end_at && !activity.all_day" class="flex items-center gap-1">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            <span
+              v-if="activity.end_at && !activity.all_day"
+              class="flex items-center gap-1"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                /><polyline points="12 6 12 12 16 14" />
               </svg>
               {{ new Date(activity.end_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false }) }}
             </span>
             <!-- Location -->
-            <span v-if="activity.location_name" class="flex items-center gap-1">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            <span
+              v-if="activity.location_name"
+              class="flex items-center gap-1"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
               </svg>
               {{ activity.location_name }}
               <span v-if="activity.destination_name"> → {{ activity.destination_name }}</span>
@@ -193,34 +265,78 @@ async function confirmDelete() {
           class="flex items-center justify-center w-7 h-7 rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink ml-3.5 flex-shrink-0"
           @click="emit('close')"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+            /><line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Scrollable content -->
       <div class="flex-1 overflow-y-auto px-[22px] py-[18px]">
-
         <!-- Error -->
-        <p v-if="actionError" class="text-[11px] text-red-400 mb-3">{{ actionError }}</p>
+        <p
+          v-if="actionError"
+          class="text-[11px] text-red-400 mb-3"
+        >
+          {{ actionError }}
+        </p>
 
         <!-- Actions -->
         <div class="flex gap-[7px] mb-4">
           <!-- Edit -->
           <BtnSecondary @click="showEdit = true">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
             Editar
           </BtnSecondary>
 
           <!-- Status change -->
           <div class="relative">
-            <BtnPrimary :class="actionLoading ? 'opacity-50' : ''" @click="showStatusMenu = !showStatusMenu">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            <BtnPrimary
+              :class="actionLoading ? 'opacity-50' : ''"
+              @click="showStatusMenu = !showStatusMenu"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
               Estado
             </BtnPrimary>
@@ -244,17 +360,36 @@ async function confirmDelete() {
               </button>
             </div>
             <!-- Backdrop -->
-            <div v-if="showStatusMenu" class="fixed inset-0 z-40" @click="showStatusMenu = false" />
+            <div
+              v-if="showStatusMenu"
+              class="fixed inset-0 z-40"
+              @click="showStatusMenu = false"
+            />
           </div>
 
           <!-- Delete -->
-          <BtnSecondary v-if="!showDeleteConfirm" @click="showDeleteConfirm = true">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <BtnSecondary
+            v-if="!showDeleteConfirm"
+            @click="showDeleteConfirm = true"
+          >
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
             </svg>
             Eliminar
           </BtnSecondary>
-          <div v-else class="flex gap-1.5">
+          <div
+            v-else
+            class="flex gap-1.5"
+          >
             <button
               class="px-3 py-[6px] rounded-lg text-[11px] font-semibold cursor-pointer border-none transition-opacity"
               style="background: rgba(239,68,68,0.15); color: #f87171"
@@ -286,15 +421,24 @@ async function confirmDelete() {
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Prioridad</span>
-              <span class="text-[12px] text-ink font-medium" :style="{ color: PRIORITY_COLORS[activity.priority] }">
+              <span
+                class="text-[12px] text-ink font-medium"
+                :style="{ color: PRIORITY_COLORS[activity.priority] }"
+              >
                 {{ PRIORITY_LABELS[activity.priority] }}
               </span>
             </div>
-            <div v-if="activity.location_name" class="flex flex-col gap-0.5">
+            <div
+              v-if="activity.location_name"
+              class="flex flex-col gap-0.5"
+            >
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Ubicación</span>
               <span class="text-[12px] text-ink">{{ activity.location_name }}</span>
             </div>
-            <div v-if="activity.destination_name" class="flex flex-col gap-0.5">
+            <div
+              v-if="activity.destination_name"
+              class="flex flex-col gap-0.5"
+            >
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Destino</span>
               <span class="text-[12px] text-ink">{{ activity.destination_name }}</span>
             </div>
@@ -302,15 +446,42 @@ async function confirmDelete() {
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Zona Horaria</span>
               <span class="text-[12px] text-ink">{{ activity.timezone || 'UTC' }}</span>
             </div>
-            <div v-if="activity.duration" class="flex flex-col gap-0.5">
+            <div
+              v-if="activity.duration"
+              class="flex flex-col gap-0.5"
+            >
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Duración</span>
               <span class="text-[12px] text-ink">{{ formatDuration(activity.duration) }}</span>
             </div>
-            <div v-if="activity.external_source" class="flex flex-col gap-0.5 col-span-2">
+            <div
+              v-if="activity.external_source"
+              class="flex flex-col gap-0.5 col-span-2"
+            >
               <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Fuente</span>
               <span class="text-[11px] text-ink-3 flex items-center gap-1">
-                <svg v-if="activity.external_source === 'google_calendar'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+                <svg
+                  v-if="activity.external_source === 'google_calendar'"
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="18"
+                    rx="2"
+                  /><line
+                    x1="3"
+                    y1="10"
+                    x2="21"
+                    y2="10"
+                  />
                 </svg>
                 {{ activity.external_source === 'google_calendar' ? 'Google Calendar' : activity.external_source }}
               </span>
@@ -319,22 +490,49 @@ async function confirmDelete() {
         </GlassBlock>
 
         <!-- Notes -->
-        <GlassBlock v-if="activity.notes" title="Notas">
-          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">{{ activity.notes }}</p>
+        <GlassBlock
+          v-if="activity.notes"
+          title="Notas"
+        >
+          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">
+            {{ activity.notes }}
+          </p>
         </GlassBlock>
 
         <!-- Description -->
-        <GlassBlock v-if="activity.description" title="Descripción">
-          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">{{ activity.description }}</p>
+        <GlassBlock
+          v-if="activity.description"
+          title="Descripción"
+        >
+          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">
+            {{ activity.description }}
+          </p>
         </GlassBlock>
 
         <!-- Notifications -->
         <GlassBlock title="Notificaciones">
           <div class="space-y-2">
             <!-- Loading -->
-            <div v-if="loadingNotifs" class="flex items-center justify-center py-3">
-              <svg class="animate-spin text-ink-4" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+            <div
+              v-if="loadingNotifs"
+              class="flex items-center justify-center py-3"
+            >
+              <svg
+                class="animate-spin text-ink-4"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-dasharray="40 22"
+                  stroke-linecap="round"
+                />
               </svg>
             </div>
 
@@ -348,7 +546,10 @@ async function confirmDelete() {
             />
 
             <!-- Empty state -->
-            <p v-if="!loadingNotifs && notifications.length === 0" class="text-[11px] text-ink-4 text-center py-2">
+            <p
+              v-if="!loadingNotifs && notifications.length === 0"
+              class="text-[11px] text-ink-4 text-center py-2"
+            >
               Sin notificaciones creadas
             </p>
 
@@ -357,8 +558,27 @@ async function confirmDelete() {
               class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 cursor-pointer bg-transparent transition-colors"
               @click="showCreateNotif = true"
             >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                /><line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                />
               </svg>
               Crear notificación
             </button>

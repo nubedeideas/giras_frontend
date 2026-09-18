@@ -265,31 +265,56 @@ const labelClass =
             v-model="name"
             :class="fe('name') ? inputErrorClass : inputClass"
             placeholder="ej. Recordatorio de show"
-          />
-          <p v-if="fe('name')" class="text-[10px] text-red-400 mt-0.5">{{ fe('name') }}</p>
+          >
+          <p
+            v-if="fe('name')"
+            class="text-[10px] text-red-400 mt-0.5"
+          >
+            {{ fe('name') }}
+          </p>
         </div>
 
         <!-- Type + Channel -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label :class="labelClass">Tipo de notificación *</label>
-            <select v-model="notifType" :class="selectClass">
-              <option v-for="t in TEMPLATE_TYPES" :key="t" :value="t">
+            <select
+              v-model="notifType"
+              :class="selectClass"
+            >
+              <option
+                v-for="t in TEMPLATE_TYPES"
+                :key="t"
+                :value="t"
+              >
                 {{ TEMPLATE_TYPE_LABELS[t] }}
               </option>
             </select>
-            <p v-if="fe('notification_type')" class="text-[10px] text-red-400 mt-0.5">
+            <p
+              v-if="fe('notification_type')"
+              class="text-[10px] text-red-400 mt-0.5"
+            >
               {{ fe('notification_type') }}
             </p>
           </div>
           <div>
             <label :class="labelClass">Canal *</label>
-            <select v-model="channel" :class="selectClass">
-              <option v-for="c in TEMPLATE_CHANNELS" :key="c" :value="c">
+            <select
+              v-model="channel"
+              :class="selectClass"
+            >
+              <option
+                v-for="c in TEMPLATE_CHANNELS"
+                :key="c"
+                :value="c"
+              >
                 {{ TEMPLATE_CHANNEL_LABELS[c] }}
               </option>
             </select>
-            <p v-if="fe('channel')" class="text-[10px] text-red-400 mt-0.5">
+            <p
+              v-if="fe('channel')"
+              class="text-[10px] text-red-400 mt-0.5"
+            >
               {{ fe('channel') }}
             </p>
           </div>
@@ -323,9 +348,14 @@ const labelClass =
               :class="fe('twilio_template_sid') ? inputErrorClass : inputClass"
               placeholder="HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
               spellcheck="false"
-            />
-            <p class="text-[10px] text-ink-4 mt-0.5">Formato: HX seguido de 32 caracteres hex</p>
-            <p v-if="fe('twilio_template_sid')" class="text-[10px] text-red-400 mt-0.5">
+            >
+            <p class="text-[10px] text-ink-4 mt-0.5">
+              Formato: HX seguido de 32 caracteres hex
+            </p>
+            <p
+              v-if="fe('twilio_template_sid')"
+              class="text-[10px] text-red-400 mt-0.5"
+            >
               {{ fe('twilio_template_sid') }}
             </p>
           </div>
@@ -348,17 +378,27 @@ const labelClass =
                     :class="inputClass"
                     placeholder="Pos"
                     style="text-align: center"
-                  />
+                  >
                 </div>
                 <!-- Canonical var select -->
-                <select v-model="v.varKey" :class="selectClass" class="flex-1">
-                  <option value="">— Variable —</option>
+                <select
+                  v-model="v.varKey"
+                  :class="selectClass"
+                  class="flex-1"
+                >
+                  <option value="">
+                    — Variable —
+                  </option>
                   <optgroup
                     v-for="group in CANONICAL_VAR_GROUPS"
                     :key="group.label"
                     :label="group.label"
                   >
-                    <option v-for="cv in group.vars" :key="cv.key" :value="cv.key">
+                    <option
+                      v-for="cv in group.vars"
+                      :key="cv.key"
+                      :value="cv.key"
+                    >
                       {{ cv.key }}
                     </option>
                   </optgroup>
@@ -378,8 +418,18 @@ const labelClass =
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
+                    <line
+                      x1="18"
+                      y1="6"
+                      x2="6"
+                      y2="18"
+                    />
+                    <line
+                      x1="6"
+                      y1="6"
+                      x2="18"
+                      y2="18"
+                    />
                   </svg>
                 </button>
               </div>
@@ -398,12 +448,25 @@ const labelClass =
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                />
               </svg>
               Añadir variable
             </button>
-            <p v-if="fe('variables')" class="text-[10px] text-red-400 mt-1">
+            <p
+              v-if="fe('variables')"
+              class="text-[10px] text-red-400 mt-1"
+            >
               {{ fe('variables') }}
             </p>
           </div>
@@ -418,8 +481,11 @@ const labelClass =
               v-model="subject"
               :class="fe('subject') ? inputErrorClass : inputClass"
               placeholder="Asunto del mensaje"
-            />
-            <p v-if="fe('subject')" class="text-[10px] text-red-400 mt-0.5">
+            >
+            <p
+              v-if="fe('subject')"
+              class="text-[10px] text-red-400 mt-0.5"
+            >
               {{ fe('subject') }}
             </p>
           </div>
@@ -437,7 +503,12 @@ const labelClass =
               placeholder="Hola {{recipient_name}}, te recordamos que el evento {{event_title}} es el {{event_date}}..."
               style="resize: vertical"
             />
-            <p v-if="fe('body')" class="text-[10px] text-red-400 mt-0.5">{{ fe('body') }}</p>
+            <p
+              v-if="fe('body')"
+              class="text-[10px] text-red-400 mt-0.5"
+            >
+              {{ fe('body') }}
+            </p>
           </div>
 
           <!-- Variables multi-select -->
@@ -449,7 +520,10 @@ const labelClass =
               </span>
             </label>
             <div class="space-y-3">
-              <div v-for="group in CANONICAL_VAR_GROUPS" :key="group.label">
+              <div
+                v-for="group in CANONICAL_VAR_GROUPS"
+                :key="group.label"
+              >
                 <p class="text-[9px] font-bold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
                   {{ group.label }}
                 </p>
@@ -471,7 +545,10 @@ const labelClass =
                 </div>
               </div>
             </div>
-            <p v-if="fe('variables')" class="text-[10px] text-red-400 mt-1">
+            <p
+              v-if="fe('variables')"
+              class="text-[10px] text-red-400 mt-1"
+            >
               {{ fe('variables') }}
             </p>
           </div>
@@ -487,11 +564,17 @@ const labelClass =
             :key="i"
             class="text-[11px] text-red-400 leading-snug"
           >
-            <span v-if="entry.field" class="font-semibold font-mono">{{ entry.field }}:</span>
+            <span
+              v-if="entry.field"
+              class="font-semibold font-mono"
+            >{{ entry.field }}:</span>
             {{ entry.message }}
           </div>
           <!-- Fallback when no structured field info was extracted -->
-          <p v-if="backendErrorEntries.length === 0 && globalError" class="text-[11px] text-red-400">
+          <p
+            v-if="backendErrorEntries.length === 0 && globalError"
+            class="text-[11px] text-red-400"
+          >
             {{ globalError }}
           </p>
         </div>

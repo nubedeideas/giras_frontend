@@ -30,10 +30,19 @@ async function doDelete() {
     <div class="flex items-center gap-3">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
-          <p class="text-[12px] font-semibold text-ink truncate">{{ plan.name }}</p>
+          <p class="text-[12px] font-semibold text-ink truncate">
+            {{ plan.name }}
+          </p>
           <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 uppercase tracking-[0.4px]">{{ plan.code }}</span>
-          <span v-if="plan.is_default" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted">Default</span>
-          <span v-if="!plan.is_active" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style="background: rgba(239,68,68,0.12); color: #f87171">Inactivo</span>
+          <span
+            v-if="plan.is_default"
+            class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
+          >Default</span>
+          <span
+            v-if="!plan.is_active"
+            class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            style="background: rgba(239,68,68,0.12); color: #f87171"
+          >Inactivo</span>
         </div>
         <p class="text-[10px] text-ink-4 mt-0.5">
           {{ plan.is_unlimited_notifications ? 'Notifs. ilimitadas' : `${plan.notification_limit} notifs.` }}
@@ -58,22 +67,34 @@ async function doDelete() {
       </button>
     </div>
 
-    <div v-if="showDeleteConfirm" class="mt-2 pt-2 border-t border-line space-y-1.5">
+    <div
+      v-if="showDeleteConfirm"
+      class="mt-2 pt-2 border-t border-line space-y-1.5"
+    >
       <p class="text-[11px] text-ink-3">
         Si hay giras usando este plan, eliminarlo les puede romper el acceso. ¿Confirmás?
       </p>
-      <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400"
+      >
+        {{ error }}
+      </p>
       <div class="flex gap-1">
         <button
           class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
           style="background: rgba(239,68,68,0.15); color: #f87171"
           :disabled="deleting"
           @click="doDelete"
-        >{{ deleting ? '…' : 'Eliminar de todas formas' }}</button>
+        >
+          {{ deleting ? '…' : 'Eliminar de todas formas' }}
+        </button>
         <button
           class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="showDeleteConfirm = false"
-        >Cancelar</button>
+        >
+          Cancelar
+        </button>
       </div>
     </div>
   </div>

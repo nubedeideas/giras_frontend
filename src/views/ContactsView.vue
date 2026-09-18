@@ -55,8 +55,13 @@ const groupedContacts = computed(() => {
     >
       <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
         <div class="flex items-center justify-between mb-3">
-          <p class="text-base font-bold tracking-[-0.2px] text-ink">{{ t('contacts.title') }}</p>
-          <BtnPrimary small @click="showImport = true">
+          <p class="text-base font-bold tracking-[-0.2px] text-ink">
+            {{ t('contacts.title') }}
+          </p>
+          <BtnPrimary
+            small
+            @click="showImport = true"
+          >
             <svg
               width="11"
               height="11"
@@ -67,8 +72,18 @@ const groupedContacts = computed(() => {
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
+              <line
+                x1="12"
+                y1="5"
+                x2="12"
+                y2="19"
+              />
+              <line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"
+              />
             </svg>
             {{ t('contacts.addContact') }}
           </BtnPrimary>
@@ -89,18 +104,30 @@ const groupedContacts = computed(() => {
             stroke-linejoin="round"
             class="text-ink-4 flex-shrink-0"
           >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            />
+            <line
+              x1="21"
+              y1="21"
+              x2="16.65"
+              y2="16.65"
+            />
           </svg>
           <input
             v-model="store.searchQuery"
             :placeholder="t('contacts.search')"
             class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
-          />
+          >
         </div>
 
         <!-- Role filter (compact dropdown) -->
-        <div v-if="availableRoles.length > 0" class="relative mt-2">
+        <div
+          v-if="availableRoles.length > 0"
+          class="relative mt-2"
+        >
           <!-- Trigger -->
           <button
             class="w-full flex items-center gap-2 bg-glass border rounded-sm px-[11px] py-[7px] cursor-pointer transition-all duration-150 text-left"
@@ -124,7 +151,10 @@ const groupedContacts = computed(() => {
                   }}
                 </span>
               </template>
-              <span v-else class="text-[11px] text-ink-4">Filtrar por rol</span>
+              <span
+                v-else
+                class="text-[11px] text-ink-4"
+              >Filtrar por rol</span>
             </div>
             <!-- Clear + chevron -->
             <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -134,9 +164,14 @@ const groupedContacts = computed(() => {
                 @click.stop="store.selectedRoles.splice(0)"
               >✕</span>
               <svg
-                width="9" height="9" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"
+                width="9"
+                height="9"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 class="text-ink-4 transition-transform duration-150"
                 :class="showRoleFilter ? 'rotate-180' : ''"
               >
@@ -164,8 +199,14 @@ const groupedContacts = computed(() => {
               >
                 <svg
                   v-if="store.selectedRoles.includes(role.uuid)"
-                  width="8" height="8" viewBox="0 0 24 24" fill="none"
-                  stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                  width="8"
+                  height="8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#000"
+                  stroke-width="3.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
@@ -190,17 +231,41 @@ const groupedContacts = computed(() => {
 
       <!-- Contact list -->
       <div class="flex-1 overflow-y-auto px-2 py-2">
-        <div v-if="store.loading" class="flex justify-center py-8">
-          <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+        <div
+          v-if="store.loading"
+          class="flex justify-center py-8"
+        >
+          <svg
+            class="animate-spin text-ink-4"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-dasharray="40 22"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
         <template v-else>
-          <template v-for="group in groupedContacts" :key="group.label">
+          <template
+            v-for="group in groupedContacts"
+            :key="group.label"
+          >
             <p class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5">
               {{ group.label }}
             </p>
-            <div class="relative" v-for="c in group.items" :key="c.uuid">
+            <div
+              v-for="c in group.items"
+              :key="c.uuid"
+              class="relative"
+            >
               <ContactCard
                 :contact="c"
                 :selected="store.selectedId === c.uuid"
@@ -208,7 +273,10 @@ const groupedContacts = computed(() => {
               />
             </div>
           </template>
-          <div v-if="store.filtered.length === 0" class="text-center py-8 text-ink-4 text-xs">
+          <div
+            v-if="store.filtered.length === 0"
+            class="text-center py-8 text-ink-4 text-xs"
+          >
             {{ t('contacts.noContacts') }}
           </div>
         </template>
@@ -249,14 +317,23 @@ const groupedContacts = computed(() => {
               class="text-ink-4"
             >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
+              <circle
+                cx="9"
+                cy="7"
+                r="4"
+              />
             </svg>
           </div>
-          <p class="text-[12px]">{{ t('contacts.selectContact') }}</p>
+          <p class="text-[12px]">
+            {{ t('contacts.selectContact') }}
+          </p>
         </div>
       </Transition>
     </div>
 
-    <ImportContactsModal :show="showImport" @close="showImport = false" />
+    <ImportContactsModal
+      :show="showImport"
+      @close="showImport = false"
+    />
   </div>
 </template>

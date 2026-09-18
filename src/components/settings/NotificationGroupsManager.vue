@@ -174,14 +174,36 @@ function onContactsSaved(newCount: number) {
 
 <template>
   <!-- Loading -->
-  <div v-if="loading" class="flex items-center justify-center py-6">
-    <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+  <div
+    v-if="loading"
+    class="flex items-center justify-center py-6"
+  >
+    <svg
+      class="animate-spin text-ink-4"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-dasharray="40 22"
+        stroke-linecap="round"
+      />
     </svg>
   </div>
 
   <div v-else>
-    <p v-if="error" class="text-[11px] text-red-400 mb-3">{{ error }}</p>
+    <p
+      v-if="error"
+      class="text-[11px] text-red-400 mb-3"
+    >
+      {{ error }}
+    </p>
 
     <!-- Groups list -->
     <div class="bg-glass border border-line rounded px-3.5 py-1 mb-3">
@@ -197,9 +219,22 @@ function onContactsSaved(newCount: number) {
         >
           <!-- Icon -->
           <div class="w-6 h-6 rounded-lg bg-glass-2 flex items-center justify-center flex-shrink-0">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--ink-3)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle
+                cx="9"
+                cy="7"
+                r="4"
+              />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
 
@@ -223,9 +258,32 @@ function onContactsSaved(newCount: number) {
               title="Gestionar contactos"
               @click="openManageContacts(group.uuid)"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle
+                  cx="8.5"
+                  cy="7"
+                  r="4"
+                />
+                <line
+                  x1="20"
+                  y1="8"
+                  x2="20"
+                  y2="14"
+                /><line
+                  x1="23"
+                  y1="11"
+                  x2="17"
+                  y2="11"
+                />
               </svg>
             </button>
             <button
@@ -233,9 +291,18 @@ function onContactsSaved(newCount: number) {
               title="Editar"
               @click="startEdit(group)"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
             </button>
             <button
@@ -243,42 +310,65 @@ function onContactsSaved(newCount: number) {
               title="Eliminar"
               @click="startDelete(group.uuid)"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                <path d="M10 11v6M14 11v6"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
               </svg>
             </button>
           </div>
         </div>
 
         <!-- Edit row -->
-        <div v-else-if="editingUuid === group.uuid" class="py-2.5 space-y-2">
+        <div
+          v-else-if="editingUuid === group.uuid"
+          class="py-2.5 space-y-2"
+        >
           <input
             v-model="editForm.name"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
             placeholder="Nombre del grupo"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
-          />
+          >
           <input
             v-model="editForm.description"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
             placeholder="Descripción (opcional)"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
-          />
+          >
           <select
             v-model="editForm.tour"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
           >
-            <option value="">Global (todas las giras)</option>
-            <option v-for="t in toursStore.tours" :key="t.uuid" :value="t.uuid">
+            <option value="">
+              Global (todas las giras)
+            </option>
+            <option
+              v-for="t in toursStore.tours"
+              :key="t.uuid"
+              :value="t.uuid"
+            >
               {{ t.artist_name }} — {{ t.name }}
             </option>
           </select>
 
-          <p v-if="editError" class="text-[10px] text-red-400">{{ editError }}</p>
+          <p
+            v-if="editError"
+            class="text-[10px] text-red-400"
+          >
+            {{ editError }}
+          </p>
 
           <div class="flex gap-1.5">
             <button
@@ -299,9 +389,19 @@ function onContactsSaved(newCount: number) {
         </div>
 
         <!-- Delete confirm row -->
-        <div v-else-if="deletingUuid === group.uuid" class="py-2.5">
-          <p class="text-[11px] text-ink-2 mb-1">¿Eliminar <strong class="text-ink">{{ group.name }}</strong>?</p>
-          <p v-if="deleteError" class="text-[10px] text-red-400 mb-1">{{ deleteError }}</p>
+        <div
+          v-else-if="deletingUuid === group.uuid"
+          class="py-2.5"
+        >
+          <p class="text-[11px] text-ink-2 mb-1">
+            ¿Eliminar <strong class="text-ink">{{ group.name }}</strong>?
+          </p>
+          <p
+            v-if="deleteError"
+            class="text-[10px] text-red-400 mb-1"
+          >
+            {{ deleteError }}
+          </p>
           <div class="flex gap-1.5">
             <button
               class="flex-1 py-1.5 rounded text-[11px] font-semibold cursor-pointer border-none transition-opacity"
@@ -323,14 +423,22 @@ function onContactsSaved(newCount: number) {
       </div>
 
       <!-- Empty state -->
-      <div v-if="groups.length === 0 && !loading" class="py-4 text-center text-[11px] text-ink-4">
+      <div
+        v-if="groups.length === 0 && !loading"
+        class="py-4 text-center text-[11px] text-ink-4"
+      >
         No hay grupos de notificación definidos
       </div>
     </div>
 
     <!-- Create form -->
-    <div v-if="showCreate" class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2">
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">Nuevo grupo</p>
+    <div
+      v-if="showCreate"
+      class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
+    >
+      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">
+        Nuevo grupo
+      </p>
 
       <input
         v-model="createForm.name"
@@ -339,25 +447,36 @@ function onContactsSaved(newCount: number) {
         autofocus
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
-      />
+      >
       <input
         v-model="createForm.description"
         class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
         placeholder="Descripción (opcional)"
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
-      />
+      >
       <select
         v-model="createForm.tour"
         class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
       >
-        <option value="">Global (todas las giras)</option>
-        <option v-for="t in toursStore.tours" :key="t.uuid" :value="t.uuid">
+        <option value="">
+          Global (todas las giras)
+        </option>
+        <option
+          v-for="t in toursStore.tours"
+          :key="t.uuid"
+          :value="t.uuid"
+        >
           {{ t.artist_name }} — {{ t.name }}
         </option>
       </select>
 
-      <p v-if="createError" class="text-[10px] text-red-400">{{ createError }}</p>
+      <p
+        v-if="createError"
+        class="text-[10px] text-red-400"
+      >
+        {{ createError }}
+      </p>
 
       <div class="flex gap-1.5">
         <button
@@ -383,8 +502,27 @@ function onContactsSaved(newCount: number) {
       class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[11px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
       @click="openCreate"
     >
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line
+          x1="12"
+          y1="5"
+          x2="12"
+          y2="19"
+        /><line
+          x1="5"
+          y1="12"
+          x2="19"
+          y2="12"
+        />
       </svg>
       Nuevo grupo
     </button>

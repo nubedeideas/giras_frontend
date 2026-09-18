@@ -166,12 +166,20 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Editar Actividad</p>
-        <p v-if="activity?.status === 'draft'" class="text-[10px] text-[#f59e0b] mt-0.5">
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Editar Actividad
+        </p>
+        <p
+          v-if="activity?.status === 'draft'"
+          class="text-[10px] text-[#f59e0b] mt-0.5"
+        >
           ⚠ Borrador — importada sin tipo asignado por IA
         </p>
       </div>
@@ -179,29 +187,69 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
         @click="emit('close')"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
 
     <div class="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-
       <!-- Title -->
       <div>
         <label :class="labelClass">Título *</label>
-        <input v-model="title" :class="inputClass" placeholder="Título de la actividad" />
+        <input
+          v-model="title"
+          :class="inputClass"
+          placeholder="Título de la actividad"
+        >
       </div>
 
       <!-- Activity Type -->
       <div>
         <label :class="labelClass">Tipo de Actividad</label>
-        <div v-if="loadingTypes" class="text-[11px] text-ink-4 py-2">Cargando tipos…</div>
-        <select v-else v-model="activityTypeUuid" class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer">
-          <option value="">— Sin asignar —</option>
-          <template v-for="[cat, types] in typesByCategory" :key="cat">
+        <div
+          v-if="loadingTypes"
+          class="text-[11px] text-ink-4 py-2"
+        >
+          Cargando tipos…
+        </div>
+        <select
+          v-else
+          v-model="activityTypeUuid"
+          class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+        >
+          <option value="">
+            — Sin asignar —
+          </option>
+          <template
+            v-for="[cat, types] in typesByCategory"
+            :key="cat"
+          >
             <optgroup :label="CATEGORY_LABELS[cat] ?? cat">
-              <option v-for="t in types" :key="t.uuid" :value="t.uuid">
+              <option
+                v-for="t in types"
+                :key="t.uuid"
+                :value="t.uuid"
+              >
                 {{ t.name }}
               </option>
             </optgroup>
@@ -213,14 +261,32 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label :class="labelClass">Estado</label>
-          <select v-model="status" class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer">
-            <option v-for="s in STATUSES" :key="s" :value="s">{{ STATUS_LABELS[s] }}</option>
+          <select
+            v-model="status"
+            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+          >
+            <option
+              v-for="s in STATUSES"
+              :key="s"
+              :value="s"
+            >
+              {{ STATUS_LABELS[s] }}
+            </option>
           </select>
         </div>
         <div>
           <label :class="labelClass">Prioridad</label>
-          <select v-model="priority" class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer">
-            <option v-for="p in PRIORITIES" :key="p" :value="p">{{ PRIORITY_LABELS[p] }}</option>
+          <select
+            v-model="priority"
+            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+          >
+            <option
+              v-for="p in PRIORITIES"
+              :key="p"
+              :value="p"
+            >
+              {{ PRIORITY_LABELS[p] }}
+            </option>
           </select>
         </div>
       </div>
@@ -248,11 +314,15 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             v-model="scheduledAt"
             :type="allDay ? 'date' : 'datetime-local'"
             :class="inputClass"
-          />
+          >
         </div>
         <div v-if="!allDay">
           <label :class="labelClass">Fin (UTC)</label>
-          <input v-model="endAt" type="datetime-local" :class="inputClass" />
+          <input
+            v-model="endAt"
+            type="datetime-local"
+            :class="inputClass"
+          >
         </div>
       </div>
 
@@ -260,30 +330,54 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label :class="labelClass">Ubicación</label>
-          <input v-model="locationName" :class="inputClass" placeholder="Nombre del lugar" />
+          <input
+            v-model="locationName"
+            :class="inputClass"
+            placeholder="Nombre del lugar"
+          >
         </div>
         <div>
           <label :class="labelClass">Destino</label>
-          <input v-model="destinationName" :class="inputClass" placeholder="Destino (vuelos…)" />
+          <input
+            v-model="destinationName"
+            :class="inputClass"
+            placeholder="Destino (vuelos…)"
+          >
         </div>
       </div>
 
       <!-- Notes -->
       <div>
         <label :class="labelClass">Notas</label>
-        <textarea v-model="notes" :class="inputClass" rows="3" placeholder="Notas adicionales…" style="resize: vertical;" />
+        <textarea
+          v-model="notes"
+          :class="inputClass"
+          rows="3"
+          placeholder="Notas adicionales…"
+          style="resize: vertical;"
+        />
       </div>
 
       <!-- Description -->
       <div>
         <label :class="labelClass">Descripción</label>
-        <textarea v-model="description" :class="inputClass" rows="2" placeholder="Descripción…" style="resize: vertical;" />
+        <textarea
+          v-model="description"
+          :class="inputClass"
+          rows="2"
+          placeholder="Descripción…"
+          style="resize: vertical;"
+        />
       </div>
-
     </div>
 
     <!-- Error -->
-    <p v-if="saveError" class="text-[11px] text-red-400 mt-2">{{ saveError }}</p>
+    <p
+      v-if="saveError"
+      class="text-[11px] text-red-400 mt-2"
+    >
+      {{ saveError }}
+    </p>
 
     <!-- Actions -->
     <div class="flex gap-2 mt-4">

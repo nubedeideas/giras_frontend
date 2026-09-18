@@ -25,7 +25,10 @@ function formatDate(iso: string): string {
     @click="emit('select', activity.uuid)"
   >
     <!-- Left active bar -->
-    <div v-if="selected" class="absolute left-0 top-0 bottom-0 w-[3px] bg-acid rounded-r" />
+    <div
+      v-if="selected"
+      class="absolute left-0 top-0 bottom-0 w-[3px] bg-acid rounded-r"
+    />
 
     <div class="flex items-start gap-2.5 mb-1.5">
       <!-- Activity type color icon -->
@@ -40,7 +43,9 @@ function formatDate(iso: string): string {
       </div>
 
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-semibold mb-px truncate text-ink">{{ activity.title }}</p>
+        <p class="text-[12px] font-semibold mb-px truncate text-ink">
+          {{ activity.title }}
+        </p>
         <p class="text-[10px] text-ink-2 truncate">
           {{ activity.activity_type_name }}
           <span v-if="activity.location_name"> · {{ activity.location_name }}</span>

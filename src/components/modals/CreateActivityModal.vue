@@ -189,30 +189,76 @@ async function submit() {
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-5">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Nueva Actividad</p>
-        <p class="text-[11px] text-ink-3 mt-0.5">Registra una actividad para esta gira</p>
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Nueva Actividad
+        </p>
+        <p class="text-[11px] text-ink-3 mt-0.5">
+          Registra una actividad para esta gira
+        </p>
       </div>
       <button
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink flex-shrink-0"
         @click="emit('close')"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
 
-    <div v-if="loadingTypes" class="flex justify-center py-6">
-      <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+    <div
+      v-if="loadingTypes"
+      class="flex justify-center py-6"
+    >
+      <svg
+        class="animate-spin text-ink-4"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="40 22"
+          stroke-linecap="round"
+        />
       </svg>
     </div>
 
-    <div v-else class="space-y-3">
+    <div
+      v-else
+      class="space-y-3"
+    >
       <!-- Activity type -->
       <div>
         <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">
@@ -222,16 +268,35 @@ async function submit() {
           v-model="form.activity_type"
           class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors cursor-pointer"
         >
-          <option value="" disabled>Seleccionar tipo…</option>
-          <optgroup v-for="grp in groupedTypes" :key="grp.label" :label="grp.label">
-            <option v-for="t in grp.types" :key="t.uuid" :value="t.uuid">
+          <option
+            value=""
+            disabled
+          >
+            Seleccionar tipo…
+          </option>
+          <optgroup
+            v-for="grp in groupedTypes"
+            :key="grp.label"
+            :label="grp.label"
+          >
+            <option
+              v-for="t in grp.types"
+              :key="t.uuid"
+              :value="t.uuid"
+            >
               {{ t.name }}
             </option>
           </optgroup>
         </select>
         <!-- Selected type preview -->
-        <div v-if="selectedType" class="flex items-center gap-1.5 mt-1.5">
-          <div class="w-2 h-2 rounded-full" :style="{ background: selectedType.color }" />
+        <div
+          v-if="selectedType"
+          class="flex items-center gap-1.5 mt-1.5"
+        >
+          <div
+            class="w-2 h-2 rounded-full"
+            :style="{ background: selectedType.color }"
+          />
           <span class="text-[10px] text-ink-3">
             {{ CATEGORY_LABELS[selectedType.category] ?? selectedType.category }}
             <span v-if="selectedType.has_destination"> · Con destino</span>
@@ -247,7 +312,7 @@ async function submit() {
           v-model="form.title"
           class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           placeholder="Ej: Vuelo CDMX → MAD"
-        />
+        >
       </div>
 
       <!-- Date + all_day -->
@@ -258,7 +323,7 @@ async function submit() {
             v-model="form.date"
             type="date"
             class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
-          />
+          >
         </div>
         <div class="flex flex-col justify-end pb-0.5">
           <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -267,8 +332,10 @@ async function submit() {
               :style="{ background: form.all_day ? 'var(--acid)' : 'var(--glass-2)' }"
               @click="form.all_day = !form.all_day"
             >
-              <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all duration-200"
-                :style="{ left: form.all_day ? '18px' : '2px' }" />
+              <div
+                class="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all duration-200"
+                :style="{ left: form.all_day ? '18px' : '2px' }"
+              />
             </div>
             <span class="text-[11px] text-ink-2">Todo el día</span>
           </label>
@@ -276,14 +343,17 @@ async function submit() {
       </div>
 
       <!-- Time range (hidden if all_day) -->
-      <div v-if="!form.all_day" class="grid grid-cols-2 gap-2">
+      <div
+        v-if="!form.all_day"
+        class="grid grid-cols-2 gap-2"
+      >
         <div>
           <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Hora inicio</label>
           <input
             v-model="form.time_start"
             type="time"
             class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
-          />
+          >
         </div>
         <div v-if="selectedType?.has_duration !== false">
           <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Hora fin</label>
@@ -291,7 +361,7 @@ async function submit() {
             v-model="form.time_end"
             type="time"
             class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
-          />
+          >
         </div>
       </div>
 
@@ -302,7 +372,13 @@ async function submit() {
           v-model="form.timezone"
           class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
         >
-          <option v-for="tz in TIMEZONES" :key="tz" :value="tz">{{ tz }}</option>
+          <option
+            v-for="tz in TIMEZONES"
+            :key="tz"
+            :value="tz"
+          >
+            {{ tz }}
+          </option>
         </select>
       </div>
 
@@ -310,14 +386,32 @@ async function submit() {
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Estado</label>
-          <select v-model="form.status" class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer">
-            <option v-for="s in STATUSES" :key="s.value" :value="s.value">{{ s.label }}</option>
+          <select
+            v-model="form.status"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
+          >
+            <option
+              v-for="s in STATUSES"
+              :key="s.value"
+              :value="s.value"
+            >
+              {{ s.label }}
+            </option>
           </select>
         </div>
         <div>
           <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Prioridad</label>
-          <select v-model="form.priority" class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer">
-            <option v-for="p in PRIORITIES" :key="p.value" :value="p.value">{{ p.label }}</option>
+          <select
+            v-model="form.priority"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
+          >
+            <option
+              v-for="p in PRIORITIES"
+              :key="p.value"
+              :value="p.value"
+            >
+              {{ p.label }}
+            </option>
           </select>
         </div>
       </div>
@@ -330,7 +424,7 @@ async function submit() {
             v-model="form.location_name"
             class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             placeholder="Nombre del lugar"
-          />
+          >
         </div>
         <div v-if="selectedType?.has_destination">
           <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Destino</label>
@@ -338,7 +432,7 @@ async function submit() {
             v-model="form.destination_name"
             class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             placeholder="Destino"
-          />
+          >
         </div>
       </div>
 
@@ -353,7 +447,12 @@ async function submit() {
         />
       </div>
 
-      <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400"
+      >
+        {{ error }}
+      </p>
 
       <!-- Actions -->
       <div class="flex gap-2 pt-1">

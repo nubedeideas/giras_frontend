@@ -38,9 +38,14 @@ async function submit() {
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <template v-if="payment">
-      <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">Reembolsar pago</p>
+      <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
+        Reembolsar pago
+      </p>
       <p class="text-[11px] text-ink-4 mb-4">
         {{ payment.user_email }} · {{ payment.amount }} {{ payment.currency }} · {{ payment.tour_name }}
       </p>
@@ -60,19 +65,28 @@ async function submit() {
         style="resize: vertical"
       />
 
-      <p v-if="error" class="text-[11px] text-red-400 mt-2">{{ error }}</p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400 mt-2"
+      >
+        {{ error }}
+      </p>
 
       <div class="flex justify-end gap-2 pt-3">
         <button
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
-        >Cancelar</button>
+        >
+          Cancelar
+        </button>
         <button
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
           style="background: rgba(239,68,68,0.15); color: #f87171"
           :disabled="saving || !reason.trim()"
           @click="submit"
-        >{{ saving ? 'Solicitando…' : 'Solicitar reembolso' }}</button>
+        >
+          {{ saving ? 'Solicitando…' : 'Solicitar reembolso' }}
+        </button>
       </div>
     </template>
   </AppModal>

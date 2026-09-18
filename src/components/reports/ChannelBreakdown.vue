@@ -16,12 +16,21 @@ defineProps<{
 </script>
 
 <template>
-  <GlassBlock :title="title" class="mb-4">
+  <GlassBlock
+    :title="title"
+    class="mb-4"
+  >
     <div class="space-y-5">
-      <div v-for="ch in channels" :key="ch.name">
+      <div
+        v-for="ch in channels"
+        :key="ch.name"
+      >
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: ch.color }" />
+            <div
+              class="w-2 h-2 rounded-full"
+              :style="{ backgroundColor: ch.color }"
+            />
             <span class="text-[12px] font-semibold text-ink">{{ ch.name }}</span>
           </div>
           <div class="flex items-center gap-4 text-[10px]">

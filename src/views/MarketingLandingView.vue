@@ -20,7 +20,7 @@ usePageMeta({
           {{ t('marketingLanding.eyebrow') }}
         </h2>
         <h1 class="font-header text-6xl md:text-8xl leading-none uppercase">
-          {{ t('marketingLanding.titleLine1') }} <br />
+          {{ t('marketingLanding.titleLine1') }} <br>
           <span class="acid-green italic">{{ t('marketingLanding.titleHighlight') }}</span>
         </h1>
         <p class="text-sm leading-relaxed text-white/60 font-mono max-w-2xl">

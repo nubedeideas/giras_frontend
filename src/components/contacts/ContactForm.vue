@@ -167,23 +167,38 @@ async function save() {
             :src="contact.avatar"
             :alt="displayName"
             class="w-full h-full object-cover"
-          />
+          >
           <span v-else>{{ initials }}</span>
         </div>
 
         <!-- Name preview -->
         <div class="flex-1 min-w-0">
-          <p class="text-base font-bold text-ink tracking-[-0.3px] truncate">{{ displayName }}</p>
-          <p v-if="selectedRole" class="text-[11px] mt-px" :style="{ color: selectedRole.color }">
+          <p class="text-base font-bold text-ink tracking-[-0.3px] truncate">
+            {{ displayName }}
+          </p>
+          <p
+            v-if="selectedRole"
+            class="text-[11px] mt-px"
+            :style="{ color: selectedRole.color }"
+          >
             {{ selectedRole.name }}
           </p>
-          <p v-else-if="form.job_title" class="text-[11px] text-ink-3 mt-px">{{ form.job_title }}</p>
+          <p
+            v-else-if="form.job_title"
+            class="text-[11px] text-ink-3 mt-px"
+          >
+            {{ form.job_title }}
+          </p>
         </div>
       </div>
 
       <!-- Action buttons -->
       <div class="flex gap-2">
-        <BtnPrimary small :disabled="!isValid || saving" @click="save">
+        <BtnPrimary
+          small
+          :disabled="!isValid || saving"
+          @click="save"
+        >
           <svg
             v-if="!saving"
             width="11"
@@ -199,16 +214,25 @@ async function save() {
           </svg>
           {{ saving ? 'Guardando…' : 'Guardar' }}
         </BtnPrimary>
-        <BtnSecondary small @click="emit('cancel')">Cancelar</BtnSecondary>
+        <BtnSecondary
+          small
+          @click="emit('cancel')"
+        >
+          Cancelar
+        </BtnSecondary>
       </div>
-      <div v-if="saveError" class="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">{{ saveError }}</p>
+      <div
+        v-if="saveError"
+        class="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+      >
+        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+          {{ saveError }}
+        </p>
       </div>
     </div>
 
     <!-- ─── Scrollable form body ───────────────────────────────────────────── -->
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-
       <!-- ── Tipo de contacto ── -->
       <div>
         <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">
@@ -244,7 +268,7 @@ async function save() {
               v-model="form.first_name"
               placeholder="Nombre"
               class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-            />
+            >
           </div>
           <div>
             <label class="text-[9px] text-ink-4 block mb-1">Apellido</label>
@@ -252,7 +276,7 @@ async function save() {
               v-model="form.last_name"
               placeholder="Apellido"
               class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-            />
+            >
           </div>
         </div>
       </div>
@@ -275,8 +299,16 @@ async function save() {
             class="w-full bg-glass border border-line rounded py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
             :class="selectedRole ? 'pl-7 pr-2.5' : 'px-2.5'"
           >
-            <option value="">Sin rol</option>
-            <option v-for="r in roles" :key="r.uuid" :value="r.uuid">{{ r.name }}</option>
+            <option value="">
+              Sin rol
+            </option>
+            <option
+              v-for="r in roles"
+              :key="r.uuid"
+              :value="r.uuid"
+            >
+              {{ r.name }}
+            </option>
           </select>
           <svg
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-4 pointer-events-none"
@@ -298,7 +330,7 @@ async function save() {
           v-model="form.job_title"
           placeholder="Cargo / Puesto"
           class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-        />
+        >
 
         <!-- Company name -->
         <input
@@ -306,7 +338,7 @@ async function save() {
           v-model="form.company_name"
           placeholder="Empresa"
           class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-        />
+        >
       </div>
 
       <!-- ── Teléfonos ── -->
@@ -315,13 +347,23 @@ async function save() {
           Teléfonos
         </label>
 
-        <div v-for="(ph, idx) in form.phones" :key="ph.id" class="flex items-center gap-1.5">
+        <div
+          v-for="(ph, idx) in form.phones"
+          :key="ph.id"
+          class="flex items-center gap-1.5"
+        >
           <!-- Label select -->
           <select
             v-model="ph.label"
             class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
           >
-            <option v-for="l in PHONE_LABELS" :key="l.value" :value="l.value">{{ l.label }}</option>
+            <option
+              v-for="l in PHONE_LABELS"
+              :key="l.value"
+              :value="l.value"
+            >
+              {{ l.label }}
+            </option>
           </select>
 
           <!-- Phone input -->
@@ -329,7 +371,7 @@ async function save() {
             v-model="ph.phone"
             placeholder="+52 55 0000 0000"
             class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-          />
+          >
 
           <!-- Primary toggle -->
           <button
@@ -376,7 +418,17 @@ async function save() {
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+              /><line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+              />
             </svg>
           </button>
         </div>
@@ -396,7 +448,17 @@ async function save() {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            /><line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
           </svg>
           Agregar teléfono
         </button>
@@ -408,13 +470,23 @@ async function save() {
           Emails
         </label>
 
-        <div v-for="(em, idx) in form.emails" :key="em.id" class="flex items-center gap-1.5">
+        <div
+          v-for="(em, idx) in form.emails"
+          :key="em.id"
+          class="flex items-center gap-1.5"
+        >
           <!-- Label select -->
           <select
             v-model="em.label"
             class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
           >
-            <option v-for="l in EMAIL_LABELS" :key="l.value" :value="l.value">{{ l.label }}</option>
+            <option
+              v-for="l in EMAIL_LABELS"
+              :key="l.value"
+              :value="l.value"
+            >
+              {{ l.label }}
+            </option>
           </select>
 
           <!-- Email input -->
@@ -423,7 +495,7 @@ async function save() {
             type="email"
             placeholder="email@ejemplo.com"
             class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-          />
+          >
 
           <!-- Primary toggle -->
           <button
@@ -470,7 +542,17 @@ async function save() {
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+              /><line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+              />
             </svg>
           </button>
         </div>
@@ -490,7 +572,17 @@ async function save() {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            /><line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
           </svg>
           Agregar email
         </button>
@@ -506,18 +598,18 @@ async function save() {
             v-model="form.city"
             placeholder="Ciudad"
             class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-          />
+          >
           <input
             v-model="form.country"
             placeholder="País"
             class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-          />
+          >
         </div>
         <input
           v-model="form.website"
           placeholder="https://..."
           class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
-        />
+        >
       </div>
 
       <!-- ── Clasificación ── -->
@@ -552,8 +644,12 @@ async function save() {
               />
             </svg>
             <div class="flex-1">
-              <p class="text-[12px] font-semibold">Favorito</p>
-              <p class="text-[10px] opacity-60">Aparece destacado en la lista</p>
+              <p class="text-[12px] font-semibold">
+                Favorito
+              </p>
+              <p class="text-[10px] opacity-60">
+                Aparece destacado en la lista
+              </p>
             </div>
             <div
               class="w-8 h-4 rounded-full transition-colors relative flex-shrink-0"
@@ -589,12 +685,26 @@ async function save() {
               stroke-linejoin="round"
             >
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
+              <line
+                x1="12"
+                y1="9"
+                x2="12"
+                y2="13"
+              />
+              <line
+                x1="12"
+                y1="17"
+                x2="12.01"
+                y2="17"
+              />
             </svg>
             <div class="flex-1">
-              <p class="text-[12px] font-semibold">Emergencia</p>
-              <p class="text-[10px] opacity-60">Contacto de emergencia de la gira</p>
+              <p class="text-[12px] font-semibold">
+                Emergencia
+              </p>
+              <p class="text-[10px] opacity-60">
+                Contacto de emergencia de la gira
+              </p>
             </div>
             <div
               class="w-8 h-4 rounded-full transition-colors relative flex-shrink-0"

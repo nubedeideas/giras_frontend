@@ -18,8 +18,14 @@ defineProps<{ isOpen: boolean }>()
       class="md:hidden pointer-events-auto mt-3 max-w-5xl mx-auto bg-neutral-950 rounded-2xl border border-white/10 px-6 py-6 shadow-2xl flex flex-col gap-6"
     >
       <nav class="flex flex-col gap-4">
-        <NavItem label="Funcionalidades" :has-dropdown="true" />
-        <NavItem label="Soluciones" :has-dropdown="true" />
+        <NavItem
+          label="Funcionalidades"
+          :has-dropdown="true"
+        />
+        <NavItem
+          label="Soluciones"
+          :has-dropdown="true"
+        />
         <NavItem label="Precio" />
       </nav>
       <div class="flex flex-col gap-3">

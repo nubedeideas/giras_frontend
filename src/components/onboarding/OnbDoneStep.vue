@@ -116,13 +116,26 @@ onMounted(() => {
     <div class="relative z-20 text-center pb-2">
       <!-- Icon -->
       <div class="w-14 h-14 rounded-2xl bg-acid flex items-center justify-center mx-auto mb-4">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
 
-      <p class="text-[22px] font-bold tracking-[-0.5px] text-ink mb-1">¡Todo listo!</p>
-      <p class="text-[13px] text-ink-3 mb-6">Tu gira está configurada y lista para despegar.</p>
+      <p class="text-[22px] font-bold tracking-[-0.5px] text-ink mb-1">
+        ¡Todo listo!
+      </p>
+      <p class="text-[13px] text-ink-3 mb-6">
+        Tu gira está configurada y lista para despegar.
+      </p>
 
       <!-- Stats card -->
       <div
@@ -144,28 +157,48 @@ onMounted(() => {
             <span v-else>{{ tour.artist_name.charAt(0) }}</span>
           </div>
           <div class="min-w-0">
-            <p class="text-[14px] font-bold text-ink leading-tight">{{ tour.artist_name }}</p>
-            <p class="text-[11px] text-ink-3 truncate">{{ tour.name }}</p>
+            <p class="text-[14px] font-bold text-ink leading-tight">
+              {{ tour.artist_name }}
+            </p>
+            <p class="text-[11px] text-ink-3 truncate">
+              {{ tour.name }}
+            </p>
           </div>
         </div>
 
         <!-- Stats grid -->
         <div class="grid grid-cols-4 gap-2 mb-4">
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">{{ stats.shows }}</p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">Shows</p>
+            <p class="text-[20px] font-bold text-acid leading-none">
+              {{ stats.shows }}
+            </p>
+            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+              Shows
+            </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">{{ stats.cities }}</p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">Ciudades</p>
+            <p class="text-[20px] font-bold text-acid leading-none">
+              {{ stats.cities }}
+            </p>
+            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+              Ciudades
+            </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">{{ stats.crew }}</p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">Crew</p>
+            <p class="text-[20px] font-bold text-acid leading-none">
+              {{ stats.crew }}
+            </p>
+            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+              Crew
+            </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">{{ stats.days }}</p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">Días</p>
+            <p class="text-[20px] font-bold text-acid leading-none">
+              {{ stats.days }}
+            </p>
+            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+              Días
+            </p>
           </div>
         </div>
 
@@ -174,8 +207,26 @@ onMounted(() => {
           v-if="stats.startCity || stats.endCity"
           class="flex items-center gap-2 justify-center bg-bg-2 rounded-xl px-3 py-2.5"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--acid-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--acid-muted)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+            /><polyline points="12 8 16 12 12 16" /><line
+              x1="8"
+              y1="12"
+              x2="16"
+              y2="12"
+            />
           </svg>
           <span class="text-[12px] font-semibold text-ink">
             {{ stats.startCity || '—' }}
@@ -187,9 +238,21 @@ onMounted(() => {
         </div>
       </div>
 
-      <BtnPrimary full @click="emit('finish')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
+      <BtnPrimary
+        full
+        @click="emit('finish')"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="9 18 15 12 9 6" />
         </svg>
         Ir al dashboard
       </BtnPrimary>

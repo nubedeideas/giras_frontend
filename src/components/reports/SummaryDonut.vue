@@ -28,7 +28,10 @@ const dashOffset = computed(() => CIRCUMFERENCE * (1 - clamped.value / 100))
 
 <template>
   <div class="relative w-full max-w-[220px] mx-auto aspect-square">
-    <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+    <svg
+      viewBox="0 0 120 120"
+      class="w-full h-full -rotate-90"
+    >
       <circle
         cx="60"
         cy="60"
@@ -51,8 +54,16 @@ const dashOffset = computed(() => CIRCUMFERENCE * (1 - clamped.value / 100))
       />
     </svg>
     <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-4 text-center">
-      <p class="text-[10px]" :style="{ color: labelColor }">{{ centerLabel }}</p>
-      <p class="text-[22px] font-bold tracking-[-0.5px] leading-tight" :style="{ color: valueColor }">
+      <p
+        class="text-[10px]"
+        :style="{ color: labelColor }"
+      >
+        {{ centerLabel }}
+      </p>
+      <p
+        class="text-[22px] font-bold tracking-[-0.5px] leading-tight"
+        :style="{ color: valueColor }"
+      >
         {{ centerValue }}
       </p>
     </div>

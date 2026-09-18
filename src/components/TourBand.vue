@@ -63,9 +63,17 @@ const dateRange = computed(() => {
         :style="{ color: tour.color, opacity: '0.65' }"
         class="flex-shrink-0"
       >
-        <circle cx="6" cy="19" r="3" />
+        <circle
+          cx="6"
+          cy="19"
+          r="3"
+        />
         <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-        <circle cx="18" cy="5" r="3" />
+        <circle
+          cx="18"
+          cy="5"
+          r="3"
+        />
       </svg>
 
       <!-- Artist + name -->
@@ -126,8 +134,18 @@ const dateRange = computed(() => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          />
+          <line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>

@@ -89,8 +89,27 @@ function onFinish() {
                 title="Cerrar"
                 @click="emit('close')"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line
+                    x1="18"
+                    y1="6"
+                    x2="6"
+                    y2="18"
+                  /><line
+                    x1="6"
+                    y1="6"
+                    x2="18"
+                    y2="18"
+                  />
                 </svg>
               </button>
             </div>
@@ -125,7 +144,10 @@ function onFinish() {
 
         <!-- Scrollable body -->
         <div class="flex-1 overflow-y-auto px-6 pb-6">
-          <Transition name="slide" mode="out-in">
+          <Transition
+            name="slide"
+            mode="out-in"
+          >
             <OnbTourStep
               v-if="currentStep === 'tour'"
               key="tour"

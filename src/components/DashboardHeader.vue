@@ -26,7 +26,9 @@ const title = computed(() => t(TITLE_KEYS[route.name as string] ?? 'notif.title'
   <header
     class="flex-shrink-0 flex items-center justify-between gap-4 px-6 py-3.5 bg-bg-3 border-b border-line"
   >
-    <h1 class="text-[15px] font-bold text-ink tracking-[-0.3px] truncate">{{ title }}</h1>
+    <h1 class="text-[15px] font-bold text-ink tracking-[-0.3px] truncate">
+      {{ title }}
+    </h1>
 
     <button
       class="flex items-center gap-2.5 flex-shrink-0 border-none bg-transparent cursor-pointer rounded-full pr-1 hover:bg-glass-hover transition-colors"
@@ -48,10 +50,11 @@ const title = computed(() => t(TITLE_KEYS[route.name as string] ?? 'notif.title'
           :src="auth.user.avatar"
           :alt="auth.user.full_name"
           class="w-full h-full object-cover"
-        />
-        <span v-else class="text-[12px] font-bold text-black"
-          >{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span
         >
+        <span
+          v-else
+          class="text-[12px] font-bold text-black"
+        >{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span>
       </div>
     </button>
   </header>

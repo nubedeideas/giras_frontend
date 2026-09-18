@@ -108,7 +108,7 @@ function signOut() {
               :src="auth.user.avatar"
               class="w-full h-full object-cover"
               :alt="auth.user.full_name"
-            />
+            >
             <span v-else>
               {{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}
             </span>
@@ -117,10 +117,14 @@ function signOut() {
             <p class="text-[12px] font-bold text-ink truncate leading-tight">
               {{ auth.user?.full_name }}
             </p>
-            <p class="text-[10px] text-ink-4 truncate mt-0.5">{{ auth.user?.email }}</p>
+            <p class="text-[10px] text-ink-4 truncate mt-0.5">
+              {{ auth.user?.email }}
+            </p>
           </div>
         </div>
-        <p class="hidden lg:block text-[13px] font-bold text-ink tracking-[-0.2px]">Configuración</p>
+        <p class="hidden lg:block text-[13px] font-bold text-ink tracking-[-0.2px]">
+          Configuración
+        </p>
 
         <!-- Sign out (mobile: compact icon next to profile) -->
         <button
@@ -128,10 +132,24 @@ function signOut() {
           title="Cerrar sesión"
           @click="signOut"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
+            <line
+              x1="21"
+              y1="12"
+              x2="9"
+              y2="12"
+            />
           </svg>
         </button>
       </div>
@@ -187,7 +205,12 @@ function signOut() {
           >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
+            <line
+              x1="21"
+              y1="12"
+              x2="9"
+              y2="12"
+            />
           </svg>
           <span class="text-[12px] font-medium">Cerrar sesión</span>
         </button>
@@ -204,12 +227,16 @@ function signOut() {
       <BillingManager v-else-if="activeTab === 'billing'" />
 
       <!-- Other tabs: centered scrollable content -->
-      <div v-else class="h-full overflow-y-auto bg-bg-3">
+      <div
+        v-else
+        class="h-full overflow-y-auto bg-bg-3"
+      >
         <div class="max-w-2xl mx-auto px-8 py-8">
-
           <!-- ── General ────────────────────────────────────────────────────── -->
           <template v-if="activeTab === 'general'">
-            <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">General</h2>
+            <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">
+              General
+            </h2>
 
             <!-- Language -->
             <section class="mb-8">
@@ -242,7 +269,9 @@ function signOut() {
               <div class="bg-glass border border-line rounded-xl p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div>
-                    <p class="text-[13px] font-semibold text-ink">Tema de color</p>
+                    <p class="text-[13px] font-semibold text-ink">
+                      Tema de color
+                    </p>
                     <p class="text-[10px] text-ink-4 mt-0.5">
                       Afecta a toda la aplicación, incluida la barra de navegación.
                     </p>
@@ -260,7 +289,10 @@ function signOut() {
                     @click="uiStore.setTheme('dark')"
                   >
                     <!-- Mini preview -->
-                    <div class="rounded-lg overflow-hidden mb-2.5 border border-white/10" style="background: #111115; height: 52px; display: flex;">
+                    <div
+                      class="rounded-lg overflow-hidden mb-2.5 border border-white/10"
+                      style="background: #111115; height: 52px; display: flex;"
+                    >
                       <!-- Sidebar strip -->
                       <div style="width: 12px; background: #0c0c0f; border-right: 1px solid rgba(255,255,255,0.07); flex-shrink: 0;" />
                       <!-- Content area -->
@@ -280,11 +312,23 @@ function signOut() {
                         v-if="uiStore.theme === 'dark'"
                         class="w-4 h-4 rounded-full bg-acid flex items-center justify-center flex-shrink-0"
                       >
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="20 6 9 17 4 12"/>
+                        <svg
+                          width="8"
+                          height="8"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="black"
+                          stroke-width="3.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </span>
-                      <span v-else class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0" />
+                      <span
+                        v-else
+                        class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0"
+                      />
                     </div>
                   </button>
 
@@ -297,7 +341,10 @@ function signOut() {
                     @click="uiStore.setTheme('light')"
                   >
                     <!-- Mini preview -->
-                    <div class="rounded-lg overflow-hidden mb-2.5 border border-black/8" style="background: #eaeaef; height: 52px; display: flex;">
+                    <div
+                      class="rounded-lg overflow-hidden mb-2.5 border border-black/8"
+                      style="background: #eaeaef; height: 52px; display: flex;"
+                    >
                       <!-- Sidebar strip -->
                       <div style="width: 12px; background: #ffffff; border-right: 1px solid rgba(0,0,0,0.09); flex-shrink: 0;" />
                       <!-- Content area -->
@@ -316,11 +363,23 @@ function signOut() {
                         v-if="uiStore.theme === 'light'"
                         class="w-4 h-4 rounded-full bg-acid flex items-center justify-center flex-shrink-0"
                       >
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="20 6 9 17 4 12"/>
+                        <svg
+                          width="8"
+                          height="8"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="black"
+                          stroke-width="3.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </span>
-                      <span v-else class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0" />
+                      <span
+                        v-else
+                        class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0"
+                      />
                     </div>
                   </button>
                 </div>
@@ -340,7 +399,9 @@ function signOut() {
                   :class="idx < integrations.length - 1 ? 'border-b border-line' : ''"
                 >
                   <span class="text-[13px] text-ink">{{ int.name }}</span>
-                  <Pill :variant="int.variant">{{ t(`settings.${int.label}`) }}</Pill>
+                  <Pill :variant="int.variant">
+                    {{ t(`settings.${int.label}`) }}
+                  </Pill>
                 </div>
               </div>
             </section>
@@ -349,7 +410,9 @@ function signOut() {
           <!-- ── Calendarios ─────────────────────────────────────────────────── -->
           <template v-else-if="activeTab === 'calendars'">
             <div class="mb-6">
-              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">Calendarios</h2>
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                Calendarios
+              </h2>
               <p class="text-[12px] text-ink-3 mt-1">
                 Conecta Google Calendars para sincronizar eventos automáticamente.
               </p>
@@ -360,7 +423,9 @@ function signOut() {
           <!-- ── Actividades ─────────────────────────────────────────────────── -->
           <template v-else-if="activeTab === 'activities'">
             <div class="mb-6">
-              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">Tipos de actividad</h2>
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                Tipos de actividad
+              </h2>
               <p class="text-[12px] text-ink-3 mt-1">
                 Define los tipos de actividades disponibles para las giras.
               </p>
@@ -371,7 +436,9 @@ function signOut() {
           <!-- ── Roles ──────────────────────────────────────────────────────── -->
           <template v-else-if="activeTab === 'roles'">
             <div class="mb-6">
-              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">Roles de contactos</h2>
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                Roles de contactos
+              </h2>
               <p class="text-[12px] text-ink-3 mt-1">
                 Organiza tus contactos por rol dentro de la producción.
               </p>
@@ -382,14 +449,15 @@ function signOut() {
           <!-- ── Grupos de notificación ─────────────────────────────────────── -->
           <template v-else-if="activeTab === 'groups'">
             <div class="mb-6">
-              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">Grupos de notificación</h2>
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                Grupos de notificación
+              </h2>
               <p class="text-[12px] text-ink-3 mt-1">
                 Agrupa contactos para aplicarlos con un click al notificar una actividad.
               </p>
             </div>
             <NotificationGroupsManager />
           </template>
-
         </div>
       </div>
     </div>

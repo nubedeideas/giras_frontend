@@ -55,7 +55,9 @@ const selectClass =
     <!-- Header -->
     <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
-        <p class="text-base font-bold tracking-[-0.2px] text-ink">Templates</p>
+        <p class="text-base font-bold tracking-[-0.2px] text-ink">
+          Templates
+        </p>
         <button
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-acid text-black text-[11px] font-semibold cursor-pointer border-none hover:brightness-105 transition-all"
           @click="emit('create')"
@@ -70,8 +72,18 @@ const selectClass =
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            />
+            <line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
           </svg>
           Nuevo
         </button>
@@ -80,24 +92,52 @@ const selectClass =
       <!-- Filters -->
       <div class="space-y-1.5">
         <div class="flex gap-1.5">
-          <select v-model="filterType" :class="selectClass">
-            <option value="">Todos los tipos</option>
-            <option v-for="t in TEMPLATE_TYPES" :key="t" :value="t">
+          <select
+            v-model="filterType"
+            :class="selectClass"
+          >
+            <option value="">
+              Todos los tipos
+            </option>
+            <option
+              v-for="t in TEMPLATE_TYPES"
+              :key="t"
+              :value="t"
+            >
               {{ TEMPLATE_TYPE_LABELS[t] }}
             </option>
           </select>
         </div>
         <div class="flex gap-1.5">
-          <select v-model="filterChannel" :class="selectClass">
-            <option value="">Todos los canales</option>
-            <option v-for="c in TEMPLATE_CHANNELS" :key="c" :value="c">
+          <select
+            v-model="filterChannel"
+            :class="selectClass"
+          >
+            <option value="">
+              Todos los canales
+            </option>
+            <option
+              v-for="c in TEMPLATE_CHANNELS"
+              :key="c"
+              :value="c"
+            >
               {{ TEMPLATE_CHANNEL_LABELS[c] }}
             </option>
           </select>
-          <select v-model="filterActive" :class="selectClass" style="max-width: 100px">
-            <option value="">Estado</option>
-            <option value="true">Activos</option>
-            <option value="false">Inactivos</option>
+          <select
+            v-model="filterActive"
+            :class="selectClass"
+            style="max-width: 100px"
+          >
+            <option value="">
+              Estado
+            </option>
+            <option value="true">
+              Activos
+            </option>
+            <option value="false">
+              Inactivos
+            </option>
           </select>
         </div>
         <button
@@ -112,7 +152,10 @@ const selectClass =
 
     <!-- List -->
     <div class="flex-1 overflow-y-auto px-2 py-2">
-      <div v-if="loading" class="flex justify-center py-8">
+      <div
+        v-if="loading"
+        class="flex justify-center py-8"
+      >
         <svg
           class="animate-spin text-ink-4"
           width="18"
@@ -184,7 +227,10 @@ const selectClass =
           </span>
         </button>
 
-        <div v-if="filtered.length === 0" class="text-center py-8 text-ink-4 text-xs">
+        <div
+          v-if="filtered.length === 0"
+          class="text-center py-8 text-ink-4 text-xs"
+        >
           {{ hasFilters ? 'Sin templates con estos filtros' : 'Sin templates creados' }}
         </div>
       </template>

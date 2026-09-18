@@ -38,12 +38,12 @@ onUnmounted(() => {
           {{ t('landing.hero.headlinePart1') }}<span class="acid-green">{{
             t('landing.hero.headlineHighlight')
           }}</span>
-          <br />
+          <br>
           {{ t('landing.hero.headlineLine2') }}
         </h1>
         <p class="max-w-lg text-white/60 text-sm md:text-base leading-relaxed">
-          {{ t('landing.hero.subheadLine1') }} <br />{{ t('landing.hero.subheadLine2') }} <br />
-          {{ t('landing.hero.subheadLine3') }} <br />
+          {{ t('landing.hero.subheadLine1') }} <br>{{ t('landing.hero.subheadLine2') }} <br>
+          {{ t('landing.hero.subheadLine3') }} <br>
         </p>
         <div class="flex flex-col sm:flex-row gap-4 pt-4">
           <a
@@ -96,8 +96,8 @@ onUnmounted(() => {
           </div>
         </template>
 
-        <div class="absolute -top-20 -right-20 w-64 h-64 bg-acid-green/10 blur-[100px]"></div>
-        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/5 blur-[100px]"></div>
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-acid-green/10 blur-[100px]" />
+        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/5 blur-[100px]" />
       </div>
     </div>
 

@@ -6,10 +6,13 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <section id="features" class="py-16 mt-16 px-6">
+  <section
+    id="features"
+    class="py-16 mt-16 px-6"
+  >
     <div class="max-w-7xl mx-auto">
       <h2 class="font-header text-6xl uppercase mb-16 reveal-up">
-        {{ t('landing.bentoFeatures.heading') }} <br />
+        {{ t('landing.bentoFeatures.heading') }} <br>
         <span class="opacity-40 italic underline decoration-acid-green">{{
           t('landing.bentoFeatures.headingHighlight')
         }}</span>
@@ -77,7 +80,11 @@ const { t } = useI18n()
               stroke-linejoin="round"
             >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
+              <circle
+                cx="9"
+                cy="7"
+                r="4"
+              />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>

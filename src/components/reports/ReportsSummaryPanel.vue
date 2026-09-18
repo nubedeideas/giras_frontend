@@ -27,7 +27,9 @@ defineProps<{
       style="background: linear-gradient(120deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 40%)"
     />
 
-    <p class="relative text-[9px] font-bold text-black/70 tracking-[1px] uppercase mb-4">{{ title }}</p>
+    <p class="relative text-[9px] font-bold text-black/70 tracking-[1px] uppercase mb-4">
+      {{ title }}
+    </p>
 
     <div class="relative">
       <SummaryDonut

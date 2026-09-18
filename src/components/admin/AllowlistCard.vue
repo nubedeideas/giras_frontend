@@ -63,7 +63,9 @@ async function approve() {
       @click="expanded = !expanded"
     >
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-medium text-ink truncate">{{ item.email }}</p>
+        <p class="text-[12px] font-medium text-ink truncate">
+          {{ item.email }}
+        </p>
         <p class="text-[10px] text-ink-4">
           Invitado por {{ item.invited_by_email ?? '—' }} · {{ formatDate(item.created_at) }}
         </p>
@@ -77,16 +79,41 @@ async function approve() {
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
         :class="expanded ? 'rotate-180' : ''"
-        width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        width="10"
+        height="10"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       >
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
 
-    <div v-if="expanded" class="border-t border-line px-3 py-2.5 space-y-2">
-      <p v-if="item.notes" class="text-[11px] text-ink-3">{{ item.notes }}</p>
-      <p v-if="item.approved_at" class="text-[10px] text-ink-4">Aprobado el {{ formatDate(item.approved_at) }}</p>
-      <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+    <div
+      v-if="expanded"
+      class="border-t border-line px-3 py-2.5 space-y-2"
+    >
+      <p
+        v-if="item.notes"
+        class="text-[11px] text-ink-3"
+      >
+        {{ item.notes }}
+      </p>
+      <p
+        v-if="item.approved_at"
+        class="text-[10px] text-ink-4"
+      >
+        Aprobado el {{ formatDate(item.approved_at) }}
+      </p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400"
+      >
+        {{ error }}
+      </p>
 
       <div class="flex flex-wrap gap-1.5">
         <button
@@ -106,17 +133,24 @@ async function approve() {
           >
             Revocar acceso
           </button>
-          <div v-else class="flex gap-1">
+          <div
+            v-else
+            class="flex gap-1"
+          >
             <button
               class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
               style="background: rgba(239,68,68,0.15); color: #f87171"
               :disabled="loading"
               @click="revoke"
-            >{{ loading ? '…' : 'Confirmar' }}</button>
+            >
+              {{ loading ? '…' : 'Confirmar' }}
+            </button>
             <button
               class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
               @click="showRevokeConfirm = false"
-            >Cancelar</button>
+            >
+              Cancelar
+            </button>
           </div>
         </template>
       </div>

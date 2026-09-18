@@ -9,7 +9,9 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
   <div class="bg-glass border border-line rounded-xl px-3 py-2.5">
     <div class="flex items-center gap-3">
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-semibold text-ink truncate">{{ pool.user_email }}</p>
+        <p class="text-[12px] font-semibold text-ink truncate">
+          {{ pool.user_email }}
+        </p>
         <p class="text-[10px] text-ink-4 mt-0.5">
           Notifs: {{ pool.allocated_notifications }}/{{ pool.total_notifications }} asignadas
           ({{ pool.remaining_notifications }} libres)
@@ -28,6 +30,11 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         Editar
       </button>
     </div>
-    <p v-if="pool.notes" class="text-[10px] text-ink-4 mt-1.5">{{ pool.notes }}</p>
+    <p
+      v-if="pool.notes"
+      class="text-[10px] text-ink-4 mt-1.5"
+    >
+      {{ pool.notes }}
+    </p>
   </div>
 </template>

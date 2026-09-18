@@ -11,7 +11,7 @@
         <p class="text-3xl md:text-5xl font-header leading-tight uppercase">
           {{ t('landing.narrative.step1Part1') }}
           <span class="opacity-40 italic">{{ t('landing.narrative.step1Quote') }}</span>
-          {{ t('landing.narrative.step1Part2') }} <br />
+          {{ t('landing.narrative.step1Part2') }} <br>
           <span class="acid-green">{{ t('landing.narrative.step1Highlight') }}</span>
         </p>
       </div>
@@ -21,7 +21,7 @@
           {{ t('landing.narrative.step2Eyebrow') }}
         </h2>
         <p class="text-3xl md:text-5xl font-header leading-tight uppercase">
-          {{ t('landing.narrative.step2Part1') }} <br />
+          {{ t('landing.narrative.step2Part1') }} <br>
           {{ t('landing.narrative.step2Part2') }}
           <span class="acid-green italic">{{ t('landing.narrative.step2Quote') }}</span>
           {{ t('landing.narrative.step2Part3') }}
@@ -34,7 +34,12 @@
             {{ t('landing.narrative.beforeTitle') }}
           </h3>
           <ul class="space-y-2 text-xs opacity-60 uppercase list-disc list-inside">
-            <li v-for="item in beforeItems" :key="item">{{ item }}</li>
+            <li
+              v-for="item in beforeItems"
+              :key="item"
+            >
+              {{ item }}
+            </li>
           </ul>
         </div>
         <div class="glass p-8 border-acid-green/40 bg-acid-green/5 shadow-[0_0_30px_rgba(192,255,0,0.05)]">
@@ -42,7 +47,12 @@
             {{ t('landing.narrative.afterTitle') }}
           </h3>
           <ul class="space-y-2 text-xs uppercase list-disc list-inside font-bold">
-            <li v-for="item in afterItems" :key="item">{{ item }}</li>
+            <li
+              v-for="item in afterItems"
+              :key="item"
+            >
+              {{ item }}
+            </li>
           </ul>
         </div>
       </div>

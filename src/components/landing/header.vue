@@ -16,12 +16,15 @@ const { t } = useI18n()
     <header
       class="max-w-5xl mx-auto glass rounded-full border border-white/10 px-6 py-2 flex justify-between items-center pointer-events-auto shadow-2xl"
     >
-      <RouterLink to="/" class="flex items-center gap-2 group cursor-pointer">
+      <RouterLink
+        to="/"
+        class="flex items-center gap-2 group cursor-pointer"
+      >
         <img
           src="/assets/giras_logo.svg"
           alt="Giras Logo"
           class="h-8 group-hover:scale-105 transition-transform"
-        />
+        >
       </RouterLink>
 
       <!--

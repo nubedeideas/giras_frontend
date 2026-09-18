@@ -11,8 +11,7 @@
           'font-bold uppercase tracking-widest text-acid-green',
           compact ? 'text-[8px]' : 'text-[9px]',
         ]"
-        >{{ t('landing.hero.trafficControl.title') }}</span
-      >
+      >{{ t('landing.hero.trafficControl.title') }}</span>
       <span :class="['font-mono uppercase opacity-50', compact ? 'text-[7px]' : 'text-[9px]']">{{
         timeString
       }}</span>
@@ -24,8 +23,18 @@
         status="SENT"
         :compact="compact"
       />
-      <ScheduleItem time="16:30" label="Soundcheck" status="PENDING" :compact="compact" />
-      <ScheduleItem time="19:00" label="Dinner Call" status="PENDING" :compact="compact" />
+      <ScheduleItem
+        time="16:30"
+        label="Soundcheck"
+        status="PENDING"
+        :compact="compact"
+      />
+      <ScheduleItem
+        time="19:00"
+        label="Dinner Call"
+        status="PENDING"
+        :compact="compact"
+      />
       <ScheduleItem
         time="21:00"
         label="Showtime"

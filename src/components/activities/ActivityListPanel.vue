@@ -31,25 +31,68 @@ const showCategoryFilter = ref(false)
     <!-- Header -->
     <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
-        <p class="text-base font-bold tracking-[-0.2px] text-ink">Actividades</p>
-        <BtnPrimary small @click="$emit('openAdd')">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Agregar
-          </BtnPrimary>
+        <p class="text-base font-bold tracking-[-0.2px] text-ink">
+          Actividades
+        </p>
+        <BtnPrimary
+          small
+          @click="$emit('openAdd')"
+        >
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            /><line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
+          </svg>
+          Agregar
+        </BtnPrimary>
       </div>
 
       <!-- Search -->
       <div class="flex items-center gap-[7px] bg-glass border border-line rounded-sm px-[11px] py-[7px]">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-ink-4 flex-shrink-0">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-ink-4 flex-shrink-0"
+        >
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          /><line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          />
         </svg>
         <input
           v-model="store.searchQuery"
           placeholder="Buscar actividades..."
           class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
-        />
+        >
       </div>
 
       <!-- Category filter (dropdown multi-select) -->
@@ -75,7 +118,10 @@ const showCategoryFilter = ref(false)
                 }}
               </span>
             </template>
-            <span v-else class="text-[11px] text-ink-4">Filtrar por categoría</span>
+            <span
+              v-else
+              class="text-[11px] text-ink-4"
+            >Filtrar por categoría</span>
           </div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
             <span
@@ -84,9 +130,14 @@ const showCategoryFilter = ref(false)
               @click.stop="store.filterCategory.splice(0)"
             >✕</span>
             <svg
-              width="9" height="9" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round"
+              width="9"
+              height="9"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
               class="text-ink-4 transition-transform duration-150"
               :class="showCategoryFilter ? 'rotate-180' : ''"
             >
@@ -113,19 +164,32 @@ const showCategoryFilter = ref(false)
             >
               <svg
                 v-if="store.filterCategory.includes(cat.value)"
-                width="8" height="8" viewBox="0 0 24 24" fill="none"
-                stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                width="8"
+                height="8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#000"
+                stroke-width="3.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: cat.color }" />
+            <span
+              class="w-2 h-2 rounded-full flex-shrink-0"
+              :style="{ background: cat.color }"
+            />
             <span class="text-[12px] text-ink">{{ cat.label }}</span>
           </button>
         </div>
 
         <!-- Backdrop -->
-        <div v-if="showCategoryFilter" class="fixed inset-0 z-40" @click="showCategoryFilter = false" />
+        <div
+          v-if="showCategoryFilter"
+          class="fixed inset-0 z-40"
+          @click="showCategoryFilter = false"
+        />
       </div>
 
       <!-- Filter tabs -->
@@ -151,28 +215,79 @@ const showCategoryFilter = ref(false)
     </div>
 
     <!-- No tour selected -->
-    <div v-if="!toursStore.activeTourId" class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-ink-4">
-        <circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>
+    <div
+      v-if="!toursStore.activeTourId"
+      class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="text-ink-4"
+      >
+        <circle
+          cx="6"
+          cy="19"
+          r="3"
+        /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle
+          cx="18"
+          cy="5"
+          r="3"
+        />
       </svg>
-      <p class="text-[11px] text-ink-4">Selecciona una gira para ver sus actividades</p>
+      <p class="text-[11px] text-ink-4">
+        Selecciona una gira para ver sus actividades
+      </p>
     </div>
 
     <!-- No UUID (mock tour) -->
-    <div v-else-if="toursStore.activeTourId && !hasTourUuid" class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center">
-      <p class="text-[11px] text-ink-4">Esta gira aún no tiene datos del servidor</p>
+    <div
+      v-else-if="toursStore.activeTourId && !hasTourUuid"
+      class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center"
+    >
+      <p class="text-[11px] text-ink-4">
+        Esta gira aún no tiene datos del servidor
+      </p>
     </div>
 
     <!-- Loading -->
-    <div v-else-if="store.loading" class="flex-1 flex items-center justify-center">
-      <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+    <div
+      v-else-if="store.loading"
+      class="flex-1 flex items-center justify-center"
+    >
+      <svg
+        class="animate-spin text-ink-4"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="40 22"
+          stroke-linecap="round"
+        />
       </svg>
     </div>
 
     <!-- List -->
-    <div v-else class="flex-1 overflow-y-auto px-2 py-1.5">
-      <template v-for="group in store.groupedActivities" :key="group.label">
+    <div
+      v-else
+      class="flex-1 overflow-y-auto px-2 py-1.5"
+    >
+      <template
+        v-for="group in store.groupedActivities"
+        :key="group.label"
+      >
         <p
           class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5"
           :class="group.label === 'Pasadas' ? 'opacity-60' : ''"
@@ -189,7 +304,10 @@ const showCategoryFilter = ref(false)
         />
       </template>
 
-      <div v-if="store.groupedActivities.length === 0 && !store.loading" class="text-center py-8 text-ink-4 text-xs">
+      <div
+        v-if="store.groupedActivities.length === 0 && !store.loading"
+        class="text-center py-8 text-ink-4 text-xs"
+      >
         Sin resultados
       </div>
     </div>

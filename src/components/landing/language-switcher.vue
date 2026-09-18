@@ -58,7 +58,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="relative">
+  <div
+    ref="rootRef"
+    class="relative"
+  >
     <button
       type="button"
       aria-haspopup="listbox"
@@ -67,7 +70,10 @@ onUnmounted(() => {
       class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/70 transition-all hover:border-acid-green hover:text-acid-green"
       @click="toggle"
     >
-      <span :class="['fi', current().flag, 'rounded-[2px]']" aria-hidden="true"></span>
+      <span
+        :class="['fi', current().flag, 'rounded-[2px]']"
+        aria-hidden="true"
+      />
       {{ current().code }}
       <svg
         class="h-2.5 w-2.5 transition-transform"
@@ -104,7 +110,10 @@ onUnmounted(() => {
           @keydown.enter="select(opt.code)"
           @keydown.space.prevent="select(opt.code)"
         >
-          <span :class="['fi', opt.flag, 'rounded-[2px]']" aria-hidden="true"></span>
+          <span
+            :class="['fi', opt.flag, 'rounded-[2px]']"
+            aria-hidden="true"
+          />
           <span>{{ opt.name }}</span>
           <span class="ml-auto text-[9px] opacity-50">{{ opt.code }}</span>
         </li>

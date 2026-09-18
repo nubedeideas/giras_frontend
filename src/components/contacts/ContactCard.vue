@@ -27,7 +27,7 @@ const emit = defineEmits<{ select: [uuid: string] }>()
         :src="contact.avatar"
         :alt="contact.full_name"
         class="w-full h-full object-cover"
-      />
+      >
       <div
         v-else
         class="w-full h-full flex items-center justify-center text-[13px] font-bold text-ink-2"
@@ -52,7 +52,9 @@ const emit = defineEmits<{ select: [uuid: string] }>()
     </div>
 
     <div class="flex-1 min-w-0">
-      <p class="text-[12px] font-semibold text-ink truncate">{{ contact.full_name }}</p>
+      <p class="text-[12px] font-semibold text-ink truncate">
+        {{ contact.full_name }}
+      </p>
       <div class="flex items-center gap-1.5 mt-px">
         <div
           v-if="contact.role"

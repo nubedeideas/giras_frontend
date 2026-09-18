@@ -147,14 +147,36 @@ async function confirmDelete() {
 
 <template>
   <!-- Loading -->
-  <div v-if="loading" class="flex items-center justify-center py-6">
-    <svg class="animate-spin text-ink-4" width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+  <div
+    v-if="loading"
+    class="flex items-center justify-center py-6"
+  >
+    <svg
+      class="animate-spin text-ink-4"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-dasharray="40 22"
+        stroke-linecap="round"
+      />
     </svg>
   </div>
 
   <div v-else>
-    <p v-if="error" class="text-[11px] text-red-400 mb-3">{{ error }}</p>
+    <p
+      v-if="error"
+      class="text-[11px] text-red-400 mb-3"
+    >
+      {{ error }}
+    </p>
 
     <!-- Roles list -->
     <div class="bg-glass border border-line rounded px-3.5 py-1 mb-3">
@@ -169,7 +191,10 @@ async function confirmDelete() {
           class="flex items-center gap-2.5 py-2.5 group"
         >
           <!-- Color dot -->
-          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ background: role.color }" />
+          <div
+            class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            :style="{ background: role.color }"
+          />
 
           <!-- Name + badges -->
           <div class="flex-1 min-w-0 flex items-center gap-1.5">
@@ -189,9 +214,18 @@ async function confirmDelete() {
               title="Editar"
               @click="startEdit(role)"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
             </button>
             <button
@@ -200,17 +234,29 @@ async function confirmDelete() {
               title="Eliminar"
               @click="startDelete(role.uuid)"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                <path d="M10 11v6M14 11v6"/>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
               </svg>
             </button>
           </div>
         </div>
 
         <!-- Edit row -->
-        <div v-else-if="editingUuid === role.uuid" class="py-2.5 space-y-2">
+        <div
+          v-else-if="editingUuid === role.uuid"
+          class="py-2.5 space-y-2"
+        >
           <!-- Name input -->
           <input
             v-model="editForm.name"
@@ -218,7 +264,7 @@ async function confirmDelete() {
             placeholder="Nombre del rol"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
-          />
+          >
 
           <!-- Description input -->
           <input
@@ -227,7 +273,7 @@ async function confirmDelete() {
             placeholder="Descripción (opcional)"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
-          />
+          >
 
           <!-- Color picker -->
           <div class="flex flex-wrap gap-1.5">
@@ -240,7 +286,12 @@ async function confirmDelete() {
             />
           </div>
 
-          <p v-if="editError" class="text-[10px] text-red-400">{{ editError }}</p>
+          <p
+            v-if="editError"
+            class="text-[10px] text-red-400"
+          >
+            {{ editError }}
+          </p>
 
           <!-- Actions -->
           <div class="flex gap-1.5">
@@ -262,9 +313,19 @@ async function confirmDelete() {
         </div>
 
         <!-- Delete confirm row -->
-        <div v-else-if="deletingUuid === role.uuid" class="py-2.5">
-          <p class="text-[11px] text-ink-2 mb-1">¿Eliminar <strong class="text-ink">{{ role.name }}</strong>?</p>
-          <p v-if="deleteError" class="text-[10px] text-red-400 mb-1">{{ deleteError }}</p>
+        <div
+          v-else-if="deletingUuid === role.uuid"
+          class="py-2.5"
+        >
+          <p class="text-[11px] text-ink-2 mb-1">
+            ¿Eliminar <strong class="text-ink">{{ role.name }}</strong>?
+          </p>
+          <p
+            v-if="deleteError"
+            class="text-[10px] text-red-400 mb-1"
+          >
+            {{ deleteError }}
+          </p>
           <div class="flex gap-1.5">
             <button
               class="flex-1 py-1.5 rounded text-[11px] font-semibold cursor-pointer border-none transition-opacity"
@@ -286,14 +347,22 @@ async function confirmDelete() {
       </div>
 
       <!-- Empty state -->
-      <div v-if="roles.length === 0 && !loading" class="py-4 text-center text-[11px] text-ink-4">
+      <div
+        v-if="roles.length === 0 && !loading"
+        class="py-4 text-center text-[11px] text-ink-4"
+      >
         No hay roles definidos
       </div>
     </div>
 
     <!-- Create form -->
-    <div v-if="showCreate" class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2">
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">Nuevo rol</p>
+    <div
+      v-if="showCreate"
+      class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
+    >
+      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">
+        Nuevo rol
+      </p>
 
       <input
         v-model="createForm.name"
@@ -302,7 +371,7 @@ async function confirmDelete() {
         autofocus
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
-      />
+      >
 
       <input
         v-model="createForm.description"
@@ -310,7 +379,7 @@ async function confirmDelete() {
         placeholder="Descripción (opcional)"
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
-      />
+      >
 
       <!-- Color picker -->
       <div class="flex flex-wrap gap-1.5">
@@ -323,7 +392,12 @@ async function confirmDelete() {
         />
       </div>
 
-      <p v-if="createError" class="text-[10px] text-red-400">{{ createError }}</p>
+      <p
+        v-if="createError"
+        class="text-[10px] text-red-400"
+      >
+        {{ createError }}
+      </p>
 
       <div class="flex gap-1.5">
         <button
@@ -349,8 +423,27 @@ async function confirmDelete() {
       class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[11px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
       @click="openCreate"
     >
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line
+          x1="12"
+          y1="5"
+          x2="12"
+          y2="19"
+        /><line
+          x1="5"
+          y1="12"
+          x2="19"
+          y2="12"
+        />
       </svg>
       Nuevo rol
     </button>

@@ -89,12 +89,20 @@ async function remove() {
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Editar Contacto</p>
-        <p v-if="recipient?.contact_name" class="text-[10px] text-ink-3 mt-0.5">
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Editar Contacto
+        </p>
+        <p
+          v-if="recipient?.contact_name"
+          class="text-[10px] text-ink-3 mt-0.5"
+        >
           {{ recipient.contact_name }}
         </p>
       </div>
@@ -102,24 +110,50 @@ async function remove() {
         class="w-7 h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0"
         @click="emit('close')"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
 
     <div class="space-y-3">
-
       <!-- Name row (only for linked contacts) -->
       <template v-if="hasContact(recipient)">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label :class="labelClass">Nombre</label>
-            <input v-model="firstName" :class="inputClass" placeholder="Nombre" />
+            <input
+              v-model="firstName"
+              :class="inputClass"
+              placeholder="Nombre"
+            >
           </div>
           <div>
             <label :class="labelClass">Apellido</label>
-            <input v-model="lastName" :class="inputClass" placeholder="Apellido" />
+            <input
+              v-model="lastName"
+              :class="inputClass"
+              placeholder="Apellido"
+            >
           </div>
         </div>
       </template>
@@ -133,7 +167,7 @@ async function remove() {
           :readonly="!hasContact(recipient)"
           placeholder="email@ejemplo.com"
           type="email"
-        />
+        >
       </div>
 
       <!-- Phone -->
@@ -145,13 +179,17 @@ async function remove() {
           :readonly="!hasContact(recipient)"
           placeholder="+1 555 000 0000"
           type="tel"
-        />
+        >
       </div>
-
     </div>
 
     <!-- Error -->
-    <p v-if="saveError" class="text-[11px] text-red-400 mt-2">{{ saveError }}</p>
+    <p
+      v-if="saveError"
+      class="text-[11px] text-red-400 mt-2"
+    >
+      {{ saveError }}
+    </p>
 
     <!-- Actions -->
     <div class="flex gap-2 mt-4">

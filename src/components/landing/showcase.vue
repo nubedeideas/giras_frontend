@@ -7,7 +7,7 @@
       <div class="w-full space-y-8 md:space-y-10">
         <div class="reveal-up text-center">
           <h2 class="font-header text-5xl leading-none uppercase sm:text-6xl md:text-8xl">
-            De la Grilla al <br /><span class="acid-green italic">Bolsillo del Crew</span>
+            De la Grilla al <br><span class="acid-green italic">Bolsillo del Crew</span>
           </h2>
         </div>
 
@@ -53,7 +53,10 @@
               </div>
 
               <!-- Mobile: tab navigation -->
-              <div v-else class="space-y-4">
+              <div
+                v-else
+                class="space-y-4"
+              >
                 <div
                   role="tablist"
                   :aria-label="t('landing.showcase.flowAriaLabel')"
@@ -87,7 +90,10 @@
                   </button>
                 </div>
 
-                <Transition name="fade-step" mode="out-in">
+                <Transition
+                  name="fade-step"
+                  mode="out-in"
+                >
                   <div
                     :key="activeStep"
                     class="border-l-2 border-acid-green bg-acid-green/5 py-4 pl-4"
@@ -112,20 +118,26 @@
                 class="pointer-events-none absolute inset-x-[5%] top-1/2 -z-10 aspect-square -translate-y-1/2 rounded-full blur-[120px] transition-all duration-500 md:blur-[150px]"
                 :class="activeStep === 0 ? 'bg-[rgba(192,255,0,0.18)]' : 'bg-white/[0.06]'"
                 aria-hidden="true"
-              ></div>
+              />
 
               <!-- min-h matches the parent so contain:paint never crops card content -->
               <div
                 class="showcase-stage relative min-h-[34rem] w-full max-w-[19rem] sm:min-h-[36rem] sm:max-w-sm md:min-h-[38rem] md:max-w-md lg:min-h-[36rem] lg:max-w-xl"
                 aria-hidden="true"
               >
-                <Transition name="card-fade" mode="out-in">
+                <Transition
+                  name="card-fade"
+                  mode="out-in"
+                >
                   <div
                     :key="'card-' + activeStep"
                     class="pointer-events-none absolute inset-0 flex items-center justify-center will-change-transform"
                   >
                     <!-- Card 1: Calendar view -->
-                    <div v-if="activeStep === 1" class="w-full">
+                    <div
+                      v-if="activeStep === 1"
+                      class="w-full"
+                    >
                       <div
                         class="glass overflow-hidden border-white/20 shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
                       >
@@ -133,15 +145,14 @@
                           class="flex items-center justify-between border-b border-white/10 bg-white/5 p-4"
                         >
                           <div class="flex gap-1">
-                            <div class="h-2 w-2 rounded-full bg-red-500/40"></div>
-                            <div class="h-2 w-2 rounded-full bg-yellow-500/40"></div>
-                            <div class="h-2 w-2 rounded-full bg-green-500/40"></div>
+                            <div class="h-2 w-2 rounded-full bg-red-500/40" />
+                            <div class="h-2 w-2 rounded-full bg-yellow-500/40" />
+                            <div class="h-2 w-2 rounded-full bg-green-500/40" />
                           </div>
                           <span
                             class="text-[10px] font-bold uppercase tracking-widest text-white/40"
-                            >CALENDAR_VIEW.JS</span
-                          >
-                          <div class="w-4"></div>
+                          >CALENDAR_VIEW.JS</span>
+                          <div class="w-4" />
                         </div>
                         <div class="space-y-6 p-5 md:p-6">
                           <div class="flex items-end justify-between gap-4">
@@ -156,12 +167,10 @@
                             <div class="flex gap-2 text-[10px] text-white/45">
                               <span
                                 class="flex h-6 w-6 items-center justify-center border border-white/10"
-                                >&lt;</span
-                              >
+                              >&lt;</span>
                               <span
                                 class="flex h-6 w-6 items-center justify-center border border-white/10"
-                                >&gt;</span
-                              >
+                              >&gt;</span>
                             </div>
                           </div>
 
@@ -169,8 +178,7 @@
                             <div
                               class="mb-2 grid grid-cols-7 gap-1 text-center text-[8px] font-bold uppercase text-white/30"
                             >
-                              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span
-                              ><span>Vi</span><span>Sa</span><span>Do</span>
+                              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sa</span><span>Do</span>
                             </div>
                             <div class="grid grid-cols-7 gap-1 font-mono text-[9px] text-white/20">
                               <div
@@ -200,7 +208,7 @@
                               class="flex items-center justify-between gap-3 bg-acid-green p-3 text-[10px] font-bold text-black"
                             >
                               <div class="flex items-center gap-2 uppercase tracking-tight">
-                                <span class="h-2 w-2 rounded-full bg-black"></span>
+                                <span class="h-2 w-2 rounded-full bg-black" />
                                 <span>Lobby Call: Madrid (NH)</span>
                               </div>
                               <span class="font-mono text-[8px] opacity-65">08:00 AM</span>
@@ -209,7 +217,7 @@
                               class="flex items-center justify-between gap-3 border border-white/10 bg-white/5 p-3 text-[10px] font-bold text-white/45"
                             >
                               <div class="flex items-center gap-2 uppercase tracking-tight">
-                                <span class="h-2 w-2 rounded-full bg-white/20"></span>
+                                <span class="h-2 w-2 rounded-full bg-white/20" />
                                 <span class="italic">Soundcheck: WiZink Center</span>
                               </div>
                               <span class="font-mono text-[8px] opacity-50">16:30 PM</span>
@@ -220,7 +228,10 @@
                     </div>
 
                     <!-- Card 2: Rules system -->
-                    <div v-else-if="activeStep === 2" class="w-full">
+                    <div
+                      v-else-if="activeStep === 2"
+                      class="w-full"
+                    >
                       <div
                         class="glass border-white/20 p-6 shadow-[0_40px_100px_rgba(0,0,0,0.6)] md:p-8"
                       >
@@ -229,11 +240,8 @@
                         >
                           <span
                             class="text-[10px] font-bold uppercase tracking-widest text-acid-green"
-                            >SISTEMA_REGLAS.v2</span
-                          >
-                          <span class="font-mono text-[10px] uppercase text-white/50"
-                            >11:52:49</span
-                          >
+                          >SISTEMA_REGLAS.v2</span>
+                          <span class="font-mono text-[10px] uppercase text-white/50">11:52:49</span>
                         </div>
                         <div class="space-y-4">
                           <DemoScheduleItem
@@ -248,8 +256,16 @@
                             status="SENDING..."
                             :active="true"
                           />
-                          <DemoScheduleItem time="19:00" label="DINNER CALL" status="PENDING" />
-                          <DemoScheduleItem time="21:00" label="SHOWTIME" status="QUEUED" />
+                          <DemoScheduleItem
+                            time="19:00"
+                            label="DINNER CALL"
+                            status="PENDING"
+                          />
+                          <DemoScheduleItem
+                            time="21:00"
+                            label="SHOWTIME"
+                            status="QUEUED"
+                          />
                         </div>
                       </div>
                     </div>
@@ -273,7 +289,7 @@
                             Giras Manager (Bot)
                           </div>
                           <div class="flex items-center gap-1 text-[9px] text-acid-green">
-                            <span class="h-1.5 w-1.5 rounded-full bg-acid-green"></span>
+                            <span class="h-1.5 w-1.5 rounded-full bg-acid-green" />
                             En linea
                           </div>
                         </div>
@@ -283,8 +299,7 @@
                         <div class="text-center">
                           <span
                             class="rounded-full bg-black/40 px-3 py-1 text-[8px] uppercase text-white/60"
-                            >HOY</span
-                          >
+                          >HOY</span>
                         </div>
                         <div
                           class="w-[90%] rounded-2xl rounded-tl-none bg-[#dcf8c6] p-4 text-[11px] text-black shadow-lg msg-bubble-1"
@@ -295,8 +310,8 @@
                           </div>
                           <p class="leading-relaxed opacity-80">
                             Hola Equipo. Manana el transporte sale a las
-                            <b>08:00 AM</b> puntual.<br /><br />
-                            Hotel: NH Ribera del Manzanares<br />Destino: WiZink Center
+                            <b>08:00 AM</b> puntual.<br><br>
+                            Hotel: NH Ribera del Manzanares<br>Destino: WiZink Center
                           </p>
                           <div class="mt-2 text-right text-[8px] opacity-40">
                             21:45 &#x2713;&#x2713;
@@ -310,7 +325,7 @@
                             <b class="uppercase tracking-tight">Urgente</b>
                           </div>
                           <p class="leading-relaxed opacity-80">
-                            La prueba de sonido se adelanta 15 minutos.<br />Nuevo horario:
+                            La prueba de sonido se adelanta 15 minutos.<br>Nuevo horario:
                             <b>16:15</b>.
                           </p>
                           <div class="mt-2 text-right text-[8px] opacity-40">

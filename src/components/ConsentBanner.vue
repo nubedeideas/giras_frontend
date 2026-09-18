@@ -25,8 +25,18 @@ const { status, accept, reject } = useConsent()
           >{{ t('consent.more') }}</a>
         </p>
         <div class="flex gap-2 flex-shrink-0">
-          <BtnSecondary small @click="reject">{{ t('consent.reject') }}</BtnSecondary>
-          <BtnPrimary small @click="accept">{{ t('consent.accept') }}</BtnPrimary>
+          <BtnSecondary
+            small
+            @click="reject"
+          >
+            {{ t('consent.reject') }}
+          </BtnSecondary>
+          <BtnPrimary
+            small
+            @click="accept"
+          >
+            {{ t('consent.accept') }}
+          </BtnPrimary>
         </div>
       </div>
     </div>

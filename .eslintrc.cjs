@@ -4,6 +4,7 @@ module.exports = {
   extends: [
     'plugin:vue/vue3-recommended',
     'eslint:recommended',
+    '@vue/eslint-config-typescript',
   ],
   parserOptions: {
     ecmaVersion: 'latest',
@@ -19,7 +20,8 @@ module.exports = {
     'vue/no-v-html': 'off',
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'vue/require-default-prop': 'off',
     'vue/prop-name-casing': ['error', 'camelCase'],
     'vue/component-name-in-template-casing': ['error', 'PascalCase'],

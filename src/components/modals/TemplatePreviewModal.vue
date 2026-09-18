@@ -69,11 +69,16 @@ const labelClass =
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="text-base font-bold text-ink tracking-[-0.2px]">Preview</p>
+        <p class="text-base font-bold text-ink tracking-[-0.2px]">
+          Preview
+        </p>
         <p class="text-[10px] text-ink-3 mt-0.5 truncate max-w-[260px]">
           {{ template?.name }}
         </p>
@@ -92,8 +97,18 @@ const labelClass =
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          />
+          <line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </button>
     </div>
@@ -105,17 +120,23 @@ const labelClass =
           Variables de contexto
         </p>
         <div class="space-y-2">
-          <div v-for="v in varInputs" :key="v.key">
+          <div
+            v-for="v in varInputs"
+            :key="v.key"
+          >
             <label :class="labelClass">{{ v.label }}</label>
             <input
               v-model="contextValues[v.key]"
               :class="inputClass"
               :placeholder="`ej. valor para ${v.key}`"
-            />
+            >
           </div>
         </div>
       </div>
-      <p v-else class="text-[11px] text-ink-3">
+      <p
+        v-else
+        class="text-[11px] text-ink-3"
+      >
         Este template no tiene variables — el preview mostrará el cuerpo tal cual.
       </p>
 
@@ -148,10 +169,18 @@ const labelClass =
       </button>
 
       <!-- Error -->
-      <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+      <p
+        v-if="error"
+        class="text-[11px] text-red-400"
+      >
+        {{ error }}
+      </p>
 
       <!-- Preview result -->
-      <div v-if="previewResult" class="space-y-2">
+      <div
+        v-if="previewResult"
+        class="space-y-2"
+      >
         <div class="w-full h-px bg-line" />
         <p class="text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase">
           Resultado
@@ -163,7 +192,9 @@ const labelClass =
           <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1">
             Asunto
           </p>
-          <p class="text-[12px] text-ink">{{ previewResult.subject }}</p>
+          <p class="text-[12px] text-ink">
+            {{ previewResult.subject }}
+          </p>
         </div>
         <div class="bg-glass border border-line rounded-lg px-3 py-2.5">
           <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1">

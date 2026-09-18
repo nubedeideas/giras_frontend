@@ -50,8 +50,11 @@ onMounted(async () => {
           fill="none"
         >
           <circle
-            cx="12" cy="12" r="10"
-            stroke="#000" stroke-width="3"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="#000"
+            stroke-width="3"
             stroke-dasharray="40 22"
             stroke-linecap="round"
           />
@@ -67,20 +70,44 @@ onMounted(async () => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="15" y1="9" x2="9" y2="15" />
-          <line x1="9" y1="9" x2="15" y2="15" />
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <line
+            x1="15"
+            y1="9"
+            x2="9"
+            y2="15"
+          />
+          <line
+            x1="9"
+            y1="9"
+            x2="15"
+            y2="15"
+          />
         </svg>
       </div>
 
       <template v-if="!errorMsg">
-        <p class="text-[14px] font-semibold text-ink mb-1">Autenticando con Google</p>
-        <p class="text-[12px] text-ink-3">Un momento...</p>
+        <p class="text-[14px] font-semibold text-ink mb-1">
+          Autenticando con Google
+        </p>
+        <p class="text-[12px] text-ink-3">
+          Un momento...
+        </p>
       </template>
       <template v-else>
-        <p class="text-[14px] font-semibold text-red-400 mb-1">Error de autenticación</p>
-        <p class="text-[12px] text-ink-3 max-w-[280px]">{{ errorMsg }}</p>
-        <p class="text-[11px] text-ink-4 mt-3">Redirigiendo al login...</p>
+        <p class="text-[14px] font-semibold text-red-400 mb-1">
+          Error de autenticación
+        </p>
+        <p class="text-[12px] text-ink-3 max-w-[280px]">
+          {{ errorMsg }}
+        </p>
+        <p class="text-[11px] text-ink-4 mt-3">
+          Redirigiendo al login...
+        </p>
       </template>
     </div>
   </div>

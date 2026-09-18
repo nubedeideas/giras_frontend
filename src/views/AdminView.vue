@@ -68,14 +68,30 @@ function signOut() {
     <div class="flex-shrink-0 bg-bg-2 border-b lg:border-b-0 lg:border-r border-line flex flex-col overflow-hidden lg:w-56">
       <!-- Header -->
       <div class="px-4 pt-5 pb-4 border-b border-line flex-shrink-0">
-        <RouterLink to="/notifs" class="inline-flex items-center gap-1.5 text-[11px] text-ink-4 hover:text-ink no-underline mb-3">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <RouterLink
+          to="/notifs"
+          class="inline-flex items-center gap-1.5 text-[11px] text-ink-4 hover:text-ink no-underline mb-3"
+        >
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="15 18 9 12 15 6" />
           </svg>
           Volver al dashboard
         </RouterLink>
-        <p class="text-[15px] font-bold text-ink tracking-[-0.2px]">Panel Admin</p>
-        <p class="text-[10px] text-ink-4 truncate mt-0.5">{{ auth.user?.email }}</p>
+        <p class="text-[15px] font-bold text-ink tracking-[-0.2px]">
+          Panel Admin
+        </p>
+        <p class="text-[10px] text-ink-4 truncate mt-0.5">
+          {{ auth.user?.email }}
+        </p>
       </div>
 
       <!-- Tab navigation -->
@@ -95,7 +111,17 @@ function signOut() {
             v-if="activeTab === tab.key"
             class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-acid rounded-r"
           />
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath" />
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            v-html="tab.iconPath"
+          />
           <span class="text-[12px] font-medium">{{ tab.label }}</span>
         </button>
       </nav>
@@ -106,10 +132,24 @@ function signOut() {
           class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
           @click="signOut"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
+            <line
+              x1="21"
+              y1="12"
+              x2="9"
+              y2="12"
+            />
           </svg>
           <span class="text-[12px] font-medium">Cerrar sesión</span>
         </button>

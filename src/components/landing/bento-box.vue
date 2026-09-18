@@ -19,7 +19,9 @@
     <h3 :class="['font-header text-3xl uppercase mb-2', accent ? 'acid-green' : '']">
       {{ title }}
     </h3>
-    <p class="text-xs opacity-50 max-w-sm">{{ desc }}</p>
+    <p class="text-xs opacity-50 max-w-sm">
+      {{ desc }}
+    </p>
   </div>
 </template>
 

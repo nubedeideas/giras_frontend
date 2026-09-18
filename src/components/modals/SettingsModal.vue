@@ -41,13 +41,35 @@ function signOut() {
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <button
       class="absolute top-3.5 right-3.5 flex items-center justify-center w-[26px] h-[26px] rounded-[7px] border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink"
       @click="emit('close')"
     >
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line
+          x1="18"
+          y1="6"
+          x2="6"
+          y2="18"
+        /><line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"
+        />
       </svg>
     </button>
 
@@ -57,12 +79,21 @@ function signOut() {
         class="w-11 h-11 rounded-full border-2 border-acid flex-shrink-0 overflow-hidden flex items-center justify-center text-[15px] font-bold text-black"
         :style="{ background: auth.user?.avatar ? 'transparent' : 'var(--acid)' }"
       >
-        <img v-if="auth.user?.avatar" :src="auth.user.avatar" class="w-full h-full object-cover" :alt="auth.user.full_name" />
+        <img
+          v-if="auth.user?.avatar"
+          :src="auth.user.avatar"
+          class="w-full h-full object-cover"
+          :alt="auth.user.full_name"
+        >
         <span v-else>{{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}</span>
       </div>
       <div class="flex-1">
-        <p class="font-bold text-[14px] text-ink">{{ auth.user?.full_name }}</p>
-        <p class="text-[11px] text-ink-2">{{ auth.user?.email }} · {{ t('settings.profile') }}</p>
+        <p class="font-bold text-[14px] text-ink">
+          {{ auth.user?.full_name }}
+        </p>
+        <p class="text-[11px] text-ink-2">
+          {{ auth.user?.email }} · {{ t('settings.profile') }}
+        </p>
       </div>
       <!-- Lang toggle -->
       <div class="flex gap-[3px] bg-glass border border-line rounded-[7px] p-0.5 ml-auto flex-shrink-0">
@@ -110,15 +141,34 @@ function signOut() {
           :class="idx < integrations.length - 1 ? 'border-b border-line' : ''"
         >
           <span class="text-[12px] text-ink">{{ int.name }}</span>
-          <Pill :variant="int.variant">{{ t(`settings.${int.label}`) }}</Pill>
+          <Pill :variant="int.variant">
+            {{ t(`settings.${int.label}`) }}
+          </Pill>
         </div>
       </div>
 
-      <BtnSecondary full @click="signOut">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
+      <BtnSecondary
+        full
+        @click="signOut"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line
+            x1="21"
+            y1="12"
+            x2="9"
+            y2="12"
+          />
         </svg>
         {{ t('settings.signOut') }}
       </BtnSecondary>

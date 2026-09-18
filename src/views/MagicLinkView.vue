@@ -44,16 +44,26 @@ onMounted(async () => {
         <svg
           v-if="status === 'loading'"
           class="animate-spin"
-          width="22" height="22"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
         >
-          <circle cx="12" cy="12" r="10" stroke="#000" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round" />
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="#000"
+            stroke-width="3"
+            stroke-dasharray="40 22"
+            stroke-linecap="round"
+          />
         </svg>
         <!-- Success check -->
         <svg
           v-else-if="status === 'success'"
-          width="22" height="22"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
           stroke="#000"
@@ -66,7 +76,8 @@ onMounted(async () => {
         <!-- Error X -->
         <svg
           v-else
-          width="22" height="22"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
           stroke="#f87171"
@@ -74,26 +85,48 @@ onMounted(async () => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
         </svg>
       </div>
 
       <!-- Loading -->
       <template v-if="status === 'loading'">
-        <p class="text-[14px] font-semibold text-ink mb-1">Verificando link de acceso</p>
-        <p class="text-[12px] text-ink-3">Un momento...</p>
+        <p class="text-[14px] font-semibold text-ink mb-1">
+          Verificando link de acceso
+        </p>
+        <p class="text-[12px] text-ink-3">
+          Un momento...
+        </p>
       </template>
 
       <!-- Success -->
       <template v-else-if="status === 'success'">
-        <p class="text-[14px] font-semibold text-ink mb-1">¡Acceso confirmado!</p>
-        <p class="text-[12px] text-ink-3">Entrando a Giras...</p>
+        <p class="text-[14px] font-semibold text-ink mb-1">
+          ¡Acceso confirmado!
+        </p>
+        <p class="text-[12px] text-ink-3">
+          Entrando a Giras...
+        </p>
       </template>
 
       <!-- Error -->
       <template v-else>
-        <p class="text-[14px] font-semibold text-red-400 mb-1">Link inválido</p>
-        <p class="text-[12px] text-ink-3 max-w-[280px]">{{ errorMsg }}</p>
+        <p class="text-[14px] font-semibold text-red-400 mb-1">
+          Link inválido
+        </p>
+        <p class="text-[12px] text-ink-3 max-w-[280px]">
+          {{ errorMsg }}
+        </p>
         <button
           class="mt-4 text-[12px] text-acid-muted hover:text-acid transition-colors cursor-pointer border-none bg-transparent"
           @click="$router.replace('/login')"

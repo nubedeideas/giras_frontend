@@ -17,8 +17,13 @@ defineEmits<{ openImportCal: [] }>()
     <!-- Header -->
     <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
-        <p class="text-base font-bold tracking-[-0.2px] text-ink">{{ t('notif.eventsTitle') }}</p>
-        <BtnPrimary small @click="$emit('openImportCal')">
+        <p class="text-base font-bold tracking-[-0.2px] text-ink">
+          {{ t('notif.eventsTitle') }}
+        </p>
+        <BtnPrimary
+          small
+          @click="$emit('openImportCal')"
+        >
           <svg
             width="11"
             height="11"
@@ -29,8 +34,19 @@ defineEmits<{ openImportCal: [] }>()
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="3" y1="10" x2="21" y2="10" />
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="18"
+              rx="2"
+            />
+            <line
+              x1="3"
+              y1="10"
+              x2="21"
+              y2="10"
+            />
           </svg>
           {{ t('notif.import') }}
         </BtnPrimary>
@@ -51,14 +67,23 @@ defineEmits<{ openImportCal: [] }>()
           stroke-linejoin="round"
           class="text-ink-4 flex-shrink-0"
         >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          />
+          <line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          />
         </svg>
         <input
           v-model="store.searchQuery"
           :placeholder="t('notif.search')"
           class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
-        />
+        >
       </div>
 
       <!-- Filter tabs: Todos / Pendientes -->
@@ -84,7 +109,10 @@ defineEmits<{ openImportCal: [] }>()
 
     <!-- Event list -->
     <div class="flex-1 overflow-y-auto px-2 py-1.5">
-      <template v-for="group in store.groupedEvents" :key="group.label">
+      <template
+        v-for="group in store.groupedEvents"
+        :key="group.label"
+      >
         <p
           class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5"
           :class="group.label === 'Pasados' ? 'text-ink-4 opacity-60' : ''"

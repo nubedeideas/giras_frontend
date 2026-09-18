@@ -50,7 +50,9 @@ useJsonLd(faqPageSchema(faqs.value))
         <nav
           class="space-y-1 font-mono text-xs uppercase tracking-widest lg:sticky lg:top-32 lg:self-start"
         >
-          <div class="mb-2 text-white/30">{{ t('support.tocHeading') }}</div>
+          <div class="mb-2 text-white/30">
+            {{ t('support.tocHeading') }}
+          </div>
           <a
             v-for="item in toc"
             :key="item.id"
@@ -62,7 +64,10 @@ useJsonLd(faqPageSchema(faqs.value))
         </nav>
 
         <div class="space-y-16">
-          <section id="primeros-pasos" class="scroll-mt-32 glass space-y-4 border-white/10 p-8">
+          <section
+            id="primeros-pasos"
+            class="scroll-mt-32 glass space-y-4 border-white/10 p-8"
+          >
             <h3 class="acid-green font-header text-3xl uppercase">
               {{ t('support.gettingStarted.heading') }}
             </h3>
@@ -71,7 +76,10 @@ useJsonLd(faqPageSchema(faqs.value))
             </p>
           </section>
 
-          <section id="integraciones" class="scroll-mt-32 glass space-y-4 border-white/10 p-8">
+          <section
+            id="integraciones"
+            class="scroll-mt-32 glass space-y-4 border-white/10 p-8"
+          >
             <h3 class="acid-green font-header text-3xl uppercase">
               {{ t('support.integrations.heading') }}
             </h3>
@@ -96,7 +104,10 @@ useJsonLd(faqPageSchema(faqs.value))
             </ul>
           </section>
 
-          <section id="faq" class="scroll-mt-32 glass space-y-4 border-white/10 p-8">
+          <section
+            id="faq"
+            class="scroll-mt-32 glass space-y-4 border-white/10 p-8"
+          >
             <h3 class="acid-green font-header text-3xl uppercase">
               {{ t('support.faq.heading') }}
             </h3>
@@ -106,8 +117,12 @@ useJsonLd(faqPageSchema(faqs.value))
                 :key="faq.q"
                 class="border-b border-white/5 pb-5 last:border-b-0 last:pb-0"
               >
-                <p class="mb-2 text-sm font-bold uppercase tracking-tight">{{ faq.q }}</p>
-                <p class="font-mono text-xs leading-relaxed text-white/50">{{ faq.a }}</p>
+                <p class="mb-2 text-sm font-bold uppercase tracking-tight">
+                  {{ faq.q }}
+                </p>
+                <p class="font-mono text-xs leading-relaxed text-white/50">
+                  {{ faq.a }}
+                </p>
               </div>
             </div>
           </section>

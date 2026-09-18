@@ -59,11 +59,14 @@ const plans = computed<Plan[]>(() =>
 </script>
 
 <template>
-  <section id="precios" class="relative scroll-mt-24 px-6 py-16 md:py-24">
+  <section
+    id="precios"
+    class="relative scroll-mt-24 px-6 py-16 md:py-24"
+  >
     <div class="mx-auto max-w-7xl">
       <div class="reveal-up mb-14 text-center md:mb-20">
         <h2 class="font-header text-5xl leading-none uppercase sm:text-6xl md:text-8xl">
-          {{ t('landing.pricing.heading') }} <br /><span class="acid-green italic">{{
+          {{ t('landing.pricing.heading') }} <br><span class="acid-green italic">{{
             t('landing.pricing.headingHighlight')
           }}</span>
         </h2>
@@ -91,26 +94,34 @@ const plans = computed<Plan[]>(() =>
           </span>
 
           <div class="mb-6">
-            <h3 class="font-header text-3xl uppercase" :class="plan.featured ? 'acid-green' : ''">
+            <h3
+              class="font-header text-3xl uppercase"
+              :class="plan.featured ? 'acid-green' : ''"
+            >
               {{ plan.name }}
             </h3>
-            <p class="mt-1 text-xs text-white/50">{{ plan.tagline }}</p>
+            <p class="mt-1 text-xs text-white/50">
+              {{ plan.tagline }}
+            </p>
           </div>
 
           <div class="mb-6 flex items-baseline gap-1">
             <span class="font-header text-5xl uppercase leading-none">{{ plan.price }}</span>
-            <span v-if="plan.priceSuffix" class="font-mono text-xs text-white/40">{{
+            <span
+              v-if="plan.priceSuffix"
+              class="font-mono text-xs text-white/40"
+            >{{
               plan.priceSuffix
             }}</span>
           </div>
 
           <div class="mb-6 space-y-2 border-y border-white/10 py-4">
             <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-tight">
-              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-acid-green"></span>
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-acid-green" />
               {{ plan.limit }}
             </div>
             <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-tight">
-              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-acid-green"></span>
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-acid-green" />
               {{ plan.notifications }}
             </div>
           </div>
@@ -138,13 +149,13 @@ const plans = computed<Plan[]>(() =>
 
           <a
             href="#cta"
-            @click="setCtaSource(CTA_SOURCE_BY_PLAN[plan.id])"
             :class="[
               'inline-flex w-full items-center justify-center px-6 py-4 text-xs font-bold uppercase tracking-tighter transition-all duration-200 hover:scale-105',
               plan.featured
                 ? 'bg-acid-green text-black shadow-hard'
                 : 'border border-white/20 text-white hover:border-acid-green hover:text-acid-green',
             ]"
+            @click="setCtaSource(CTA_SOURCE_BY_PLAN[plan.id])"
           >
             {{ plan.cta }}
           </a>

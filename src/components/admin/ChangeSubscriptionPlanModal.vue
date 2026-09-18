@@ -90,48 +90,95 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 </script>
 
 <template>
-  <AppModal :show="show" @close="emit('close')">
+  <AppModal
+    :show="show"
+    @close="emit('close')"
+  >
     <template v-if="subscription">
-      <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">Cambiar plan</p>
-      <p class="text-[11px] text-ink-4 mb-4">{{ subscription.tour_name }} · {{ subscription.user_email }}</p>
+      <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
+        Cambiar plan
+      </p>
+      <p class="text-[11px] text-ink-4 mb-4">
+        {{ subscription.tour_name }} · {{ subscription.user_email }}
+      </p>
 
       <div class="space-y-3">
         <div>
           <label :class="labelClass">Plan</label>
-          <select v-model="selectedPlan" :class="inputClass">
-            <option v-for="code in PLAN_CODES" :key="code" :value="code">{{ code }}</option>
+          <select
+            v-model="selectedPlan"
+            :class="inputClass"
+          >
+            <option
+              v-for="code in PLAN_CODES"
+              :key="code"
+              :value="code"
+            >
+              {{ code }}
+            </option>
           </select>
         </div>
 
-        <p v-if="error" class="text-[11px] text-red-400">{{ error }}</p>
+        <p
+          v-if="error"
+          class="text-[11px] text-red-400"
+        >
+          {{ error }}
+        </p>
 
         <div class="flex justify-end gap-2">
           <button
             class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
             @click="emit('close')"
-          >Cerrar</button>
+          >
+            Cerrar
+          </button>
           <button
             class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
             :disabled="saving"
             @click="submitChangePlan"
-          >{{ saving ? 'Guardando…' : 'Cambiar plan' }}</button>
+          >
+            {{ saving ? 'Guardando…' : 'Cambiar plan' }}
+          </button>
         </div>
 
         <!-- Allocate: solo aplica una vez que la suscripción está en el plan Custom -->
         <template v-if="selectedPlan === 'custom'">
           <div class="h-px bg-line my-1" />
-          <p class="text-[11px] font-semibold text-ink-2">Asignar cupo del pool</p>
+          <p class="text-[11px] font-semibold text-ink-2">
+            Asignar cupo del pool
+          </p>
 
-          <div v-if="poolsLoading" class="text-[11px] text-ink-4">Buscando pools del cliente…</div>
-          <p v-else-if="pools.length === 0" class="text-[11px] text-ink-4">
+          <div
+            v-if="poolsLoading"
+            class="text-[11px] text-ink-4"
+          >
+            Buscando pools del cliente…
+          </div>
+          <p
+            v-else-if="pools.length === 0"
+            class="text-[11px] text-ink-4"
+          >
             Este cliente no tiene ningún cupo Custom creado todavía — creá uno en la pestaña "Cupos Custom" primero.
           </p>
           <template v-else>
             <div>
               <label :class="labelClass">Pool</label>
-              <select v-model="selectedPool" :class="inputClass">
-                <option value="" disabled>Elegí un pool</option>
-                <option v-for="p in pools" :key="p.uuid" :value="p.uuid">
+              <select
+                v-model="selectedPool"
+                :class="inputClass"
+              >
+                <option
+                  value=""
+                  disabled
+                >
+                  Elegí un pool
+                </option>
+                <option
+                  v-for="p in pools"
+                  :key="p.uuid"
+                  :value="p.uuid"
+                >
                   {{ p.user_email }} — {{ p.remaining_notifications }} notifs. / {{ p.remaining_shows }} shows libres
                 </option>
               </select>
@@ -139,22 +186,39 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label :class="labelClass">Notifs. asignadas</label>
-                <input v-model.number="allocatedNotifications" type="number" min="0" :class="inputClass" />
+                <input
+                  v-model.number="allocatedNotifications"
+                  type="number"
+                  min="0"
+                  :class="inputClass"
+                >
               </div>
               <div>
                 <label :class="labelClass">Shows asignados</label>
-                <input v-model.number="allocatedShows" type="number" min="0" :class="inputClass" />
+                <input
+                  v-model.number="allocatedShows"
+                  type="number"
+                  min="0"
+                  :class="inputClass"
+                >
               </div>
             </div>
 
-            <p v-if="allocateError" class="text-[11px] text-red-400">{{ allocateError }}</p>
+            <p
+              v-if="allocateError"
+              class="text-[11px] text-red-400"
+            >
+              {{ allocateError }}
+            </p>
 
             <div class="flex justify-end">
               <button
                 class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
                 :disabled="allocateSaving || !selectedPool"
                 @click="submitAllocate"
-              >{{ allocateSaving ? 'Asignando…' : 'Asignar cupo' }}</button>
+              >
+                {{ allocateSaving ? 'Asignando…' : 'Asignar cupo' }}
+              </button>
             </div>
           </template>
         </template>

@@ -178,12 +178,20 @@ async function submit() {
           <span v-else>{{ artistInitials(selectedArtist.name) }}</span>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-[13px] font-bold text-ink leading-tight">{{ selectedArtist.name }}</p>
+          <p class="text-[13px] font-bold text-ink leading-tight">
+            {{ selectedArtist.name }}
+          </p>
           <div class="flex items-center gap-2 mt-1 flex-wrap">
-            <span v-if="selectedArtist.followers.total > 0" class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium">
+            <span
+              v-if="selectedArtist.followers.total > 0"
+              class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium"
+            >
               {{ formatFollowers(selectedArtist.followers.total) }} seguidores
             </span>
-            <span v-else class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium">
+            <span
+              v-else
+              class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium"
+            >
               Artista manual
             </span>
             <span
@@ -199,17 +207,59 @@ async function submit() {
           class="text-ink-4 hover:text-ink transition-colors bg-transparent border-none cursor-pointer p-1"
           @click="clearArtist"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+            /><line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Manual mode (Spotify unavailable) -->
-      <div v-else-if="spotifyUnavailable" class="space-y-2">
+      <div
+        v-else-if="spotifyUnavailable"
+        class="space-y-2"
+      >
         <div class="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f59e0b"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="flex-shrink-0"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line
+              x1="12"
+              y1="9"
+              x2="12"
+              y2="13"
+            /><line
+              x1="12"
+              y1="17"
+              x2="12.01"
+              y2="17"
+            />
           </svg>
           <p class="text-[11px] text-amber-400 leading-tight">
             Spotify no disponible — ingresa el nombre del artista manualmente
@@ -237,15 +287,44 @@ async function submit() {
         <div class="flex items-center gap-2 bg-glass border border-line rounded px-2.5 py-2 focus-within:border-acid transition-colors">
           <svg
             v-if="!searching"
-            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-ink-4 flex-shrink-0"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-ink-4 flex-shrink-0"
           >
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            /><line
+              x1="21"
+              y1="21"
+              x2="16.65"
+              y2="16.65"
+            />
           </svg>
           <svg
             v-else
-            class="animate-spin text-acid flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none"
+            class="animate-spin text-acid flex-shrink-0"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
           >
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-dasharray="40 22"
+              stroke-linecap="round"
+            />
           </svg>
           <input
             v-model="query"
@@ -256,7 +335,10 @@ async function submit() {
         </div>
 
         <!-- Results -->
-        <div v-if="artists.length" class="mt-2 grid grid-cols-3 gap-2">
+        <div
+          v-if="artists.length"
+          class="mt-2 grid grid-cols-3 gap-2"
+        >
           <button
             v-for="a in artists"
             :key="a.id"
@@ -282,7 +364,10 @@ async function submit() {
           </button>
         </div>
 
-        <p v-if="searchError" class="text-[11px] text-ink-3 mt-1.5 text-center">
+        <p
+          v-if="searchError"
+          class="text-[11px] text-ink-3 mt-1.5 text-center"
+        >
           {{ searchError }} — puedes continuar sin seleccionar
         </p>
       </div>
@@ -372,21 +457,49 @@ async function submit() {
       </div>
     </div>
 
-    <p v-if="submitError" class="text-[11px] text-red-400 mt-2">{{ submitError }}</p>
+    <p
+      v-if="submitError"
+      class="text-[11px] text-red-400 mt-2"
+    >
+      {{ submitError }}
+    </p>
 
     <div class="mt-5">
-      <BtnPrimary full :disabled="!formValid || submitting" @click="submit">
+      <BtnPrimary
+        full
+        :disabled="!formValid || submitting"
+        @click="submit"
+      >
         <svg
           v-if="submitting"
-          class="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          class="animate-spin"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
         >
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40 22" stroke-linecap="round"/>
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-dasharray="40 22"
+            stroke-linecap="round"
+          />
         </svg>
         <svg
           v-else
-          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         >
-          <polyline points="9 18 15 12 9 6"/>
+          <polyline points="9 18 15 12 9 6" />
         </svg>
         {{ submitting ? 'Creando gira...' : 'Continuar' }}
       </BtnPrimary>
