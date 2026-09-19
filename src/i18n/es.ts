@@ -457,7 +457,7 @@ export default {
       emailAriaLabel: 'Correo profesional',
       submitLabel: 'Solicitar Acceso',
       submitLoadingLabel: 'Validando...',
-      urgency: 'Urgencia real: Solo 10 nuevos managers aceptados esta semana.',
+      urgency: 'Acceso guiado: te acompañamos durante tu primera Gira.',
       errors: {
         required: 'Ingresa tu correo profesional.',
         consecutiveDots: 'El correo no puede contener puntos consecutivos.',

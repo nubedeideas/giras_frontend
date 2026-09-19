@@ -457,7 +457,7 @@ export default {
       emailAriaLabel: 'Professional email',
       submitLabel: 'Request Access',
       submitLoadingLabel: 'Validating...',
-      urgency: 'Real urgency: Only 10 new managers accepted this week.',
+      urgency: 'Guided access: we support you through your first Tour.',
       errors: {
         required: 'Enter your professional email.',
         consecutiveDots: "Email can't contain consecutive dots.",
