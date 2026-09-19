@@ -1,3 +1,5 @@
+import type { ActivityListItem } from '@/composables/useActivities'
+
 export type Channel = 'wa' | 'sms' | 'email'
 export type PillVariant = 'g' | 'b' | 'o' | 'n'
 
@@ -224,5 +226,5 @@ export interface DayCell {
   dayNum: number
   isCurrentMonth: boolean
   isToday: boolean
-  events: CalendarEvent[]
+  activities: ActivityListItem[]
 }

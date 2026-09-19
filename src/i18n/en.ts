@@ -141,6 +141,9 @@ export default {
     today: 'Today',
     allTours: 'All Tours',
     selectTour: 'Filter by Tour',
+    viewGrid: 'Calendar',
+    viewList: 'Activities',
+    selectActivity: 'Select an activity to see its detail',
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
     months: [
       'January',

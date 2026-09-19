@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useCalendarStore } from '@/stores/calendar'
+import { useActivitiesStore } from '@/stores/activities'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const { t } = useI18n()
 const cal = useCalendarStore()
+const activitiesStore = useActivitiesStore()
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
 </script>
 
 <template>
@@ -43,9 +49,9 @@ const cal = useCalendarStore()
       </BtnPrimary>
     </div>
 
-    <!-- Selected day events -->
+    <!-- Selected day activities -->
     <div
-      v-if="cal.selectedDate && cal.eventsForSelectedDate.length > 0"
+      v-if="cal.selectedDate && cal.activitiesForSelectedDate.length > 0"
       class="border-b border-line flex-shrink-0"
     >
       <div class="px-4 py-2 bg-acid-dim">
@@ -55,51 +61,51 @@ const cal = useCalendarStore()
       </div>
       <div class="px-3 py-2">
         <div
-          v-for="ev in cal.eventsForSelectedDate"
-          :key="ev.id"
-          class="flex items-center gap-2.5 p-2.5 rounded-lg border border-line-acid bg-glass-active mb-1.5"
+          v-for="act in cal.activitiesForSelectedDate"
+          :key="act.uuid"
+          class="flex items-center gap-2.5 p-2.5 rounded-lg border border-line-acid bg-glass-active mb-1.5 cursor-pointer"
+          @click="activitiesStore.selectActivity(act.uuid)"
         >
           <div
             class="w-2 h-2 rounded-full flex-shrink-0"
-            :style="{ backgroundColor: ev.color }"
+            :style="{ backgroundColor: act.activity_type_color }"
           />
           <div class="flex-1 min-w-0">
             <p class="text-[12px] font-semibold text-ink truncate">
-              {{ ev.name }}
+              {{ act.title }}
             </p>
             <p class="text-[10px] text-ink-3">
-              {{ ev.date }} · {{ ev.loc }}
+              {{ act.all_day ? t('calendar.today') : formatTime(act.scheduled_at) }}<span v-if="act.location_name"> · {{ act.location_name }}</span>
             </p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- All upcoming events -->
+    <!-- All upcoming activities -->
     <div class="flex-1 overflow-y-auto px-3 py-2">
       <div
-        v-for="ev in cal.upcomingEvents"
-        :key="ev.id"
+        v-for="act in cal.upcomingActivities"
+        :key="act.uuid"
         class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg border border-line cursor-pointer transition-all duration-150 hover:bg-glass mb-1.5"
-        :class="cal.selectedDate === ev.isoDate ? 'bg-glass-active border-line-acid' : ''"
-        @click="cal.selectDate(ev.isoDate)"
+        @click="activitiesStore.selectActivity(act.uuid)"
       >
         <div
           class="w-2 h-2 rounded-full flex-shrink-0"
-          :style="{ backgroundColor: ev.color }"
+          :style="{ backgroundColor: act.activity_type_color }"
         />
         <div class="flex-1 min-w-0">
           <p class="text-[12px] font-medium text-ink truncate">
-            {{ ev.name }}
+            {{ act.title }}
           </p>
           <p class="text-[10px] text-ink-3">
-            {{ ev.date }} · {{ ev.loc }}
+            {{ act.all_day ? t('calendar.today') : formatTime(act.scheduled_at) }}<span v-if="act.location_name"> · {{ act.location_name }}</span>
           </p>
         </div>
       </div>
 
       <div
-        v-if="cal.upcomingEvents.length === 0"
+        v-if="cal.upcomingActivities.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
         {{ t('calendar.noEvents') }}

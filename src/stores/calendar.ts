@@ -1,11 +1,18 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { CalendarEvent, DayCell } from '@/types'
-import { mockCalendarEvents } from '@/data/mock'
+import { ref, computed, watch } from 'vue'
+import type { DayCell } from '@/types'
+import type { ActivityListItem } from '@/composables/useActivities'
 import { useToursStore } from '@/stores/tours'
+import { useActivitiesStore } from '@/stores/activities'
 
+// Local YYYY-MM-DD — deliberately NOT `date.toISOString()`, which converts
+// through UTC first and shifts the date by a day in positive UTC-offset
+// timezones (e.g. a local midnight becomes the previous day in UTC).
 function toIso(date: Date): string {
-  return date.toISOString().split('T')[0]
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 function isToday(date: Date): boolean {
@@ -17,14 +24,22 @@ function isToday(date: Date): boolean {
   )
 }
 
-export const useCalendarStore = defineStore('calendar', () => {
-  const calendarEvents = ref<CalendarEvent[]>([...mockCalendarEvents])
-  // Start on April 2025 to match mock data
-  const currentYear = ref(2025)
-  const currentMonth = ref(3) // 0-indexed: 3 = April
-  const selectedDate = ref<string | null>('2025-04-05')
+// Matches an activity's `scheduled_at` (a full ISO datetime) to the same
+// day-key format `daysGrid` uses for its cells — both go through the same
+// local-date → toIso() conversion, so they always line up.
+function dateKeyOf(iso: string): string {
+  const d = new Date(iso)
+  return toIso(new Date(d.getFullYear(), d.getMonth(), d.getDate()))
+}
 
+export const useCalendarStore = defineStore('calendar', () => {
   const toursStore = useToursStore()
+  const activitiesStore = useActivitiesStore()
+
+  const currentYear = ref(new Date().getFullYear())
+  const currentMonth = ref(new Date().getMonth())
+  const selectedDate = ref<string | null>(null)
+  const viewMode = ref<'grid' | 'list'>('grid')
 
   // filterTourId delegates to the global tours store (read-only computed)
   const filterTourId = computed(() => toursStore.activeTourId)
@@ -34,18 +49,17 @@ export const useCalendarStore = defineStore('calendar', () => {
     toursStore.setActiveTour(id)
   }
 
-  const filteredEvents = computed(() => {
-    if (!filterTourId.value) return calendarEvents.value
-    return calendarEvents.value.filter((e) => e.tourId === filterTourId.value)
-  })
+  const tourActivities = computed(() => activitiesStore.activities)
 
-  const eventsForSelectedDate = computed(() => {
+  const activitiesForSelectedDate = computed(() => {
     if (!selectedDate.value) return []
-    return filteredEvents.value.filter((e) => e.isoDate === selectedDate.value)
+    return tourActivities.value.filter((a) => dateKeyOf(a.scheduled_at) === selectedDate.value)
   })
 
-  const upcomingEvents = computed(() => {
-    return [...filteredEvents.value].sort((a, b) => a.isoDate.localeCompare(b.isoDate))
+  const upcomingActivities = computed(() => {
+    return [...tourActivities.value].sort(
+      (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
+    )
   })
 
   const daysGrid = computed((): DayCell[] => {
@@ -53,6 +67,15 @@ export const useCalendarStore = defineStore('calendar', () => {
     const month = currentMonth.value
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
+
+    // Group activities by day-key once per recompute instead of filtering
+    // the full list per cell (42×).
+    const byDay = new Map<string, ActivityListItem[]>()
+    for (const a of tourActivities.value) {
+      const key = dateKeyOf(a.scheduled_at)
+      if (!byDay.has(key)) byDay.set(key, [])
+      byDay.get(key)!.push(a)
+    }
 
     // Monday-first: 0=Mon … 6=Sun
     const startDow = (firstDay.getDay() + 6) % 7
@@ -68,7 +91,7 @@ export const useCalendarStore = defineStore('calendar', () => {
         dayNum: d.getDate(),
         isCurrentMonth: false,
         isToday: isToday(d),
-        events: filteredEvents.value.filter((e) => e.isoDate === iso),
+        activities: byDay.get(iso) ?? [],
       })
     }
 
@@ -81,7 +104,7 @@ export const useCalendarStore = defineStore('calendar', () => {
         dayNum: i,
         isCurrentMonth: true,
         isToday: isToday(d),
-        events: filteredEvents.value.filter((e) => e.isoDate === iso),
+        activities: byDay.get(iso) ?? [],
       })
     }
 
@@ -95,7 +118,7 @@ export const useCalendarStore = defineStore('calendar', () => {
         dayNum: d.getDate(),
         isCurrentMonth: false,
         isToday: isToday(d),
-        events: filteredEvents.value.filter((e) => e.isoDate === iso),
+        activities: byDay.get(iso) ?? [],
       })
     }
 
@@ -124,18 +147,43 @@ export const useCalendarStore = defineStore('calendar', () => {
     selectedDate.value = selectedDate.value === iso ? null : iso
   }
 
+  // Defaults the displayed month to the active tour's start_date, or to the
+  // real current month when no tour is selected. Parses the plain
+  // YYYY-MM-DD string directly (not via `new Date(startDate)`) so it can't
+  // shift a month boundary depending on the viewer's UTC offset.
+  function resetToDefaultMonth() {
+    const startDate = toursStore.activeTour?.start_date
+    if (startDate) {
+      const [year, month] = startDate.split('-').map(Number)
+      currentYear.value = year
+      currentMonth.value = month - 1
+    } else {
+      const now = new Date()
+      currentYear.value = now.getFullYear()
+      currentMonth.value = now.getMonth()
+    }
+  }
+
+  // Re-center on tour switch and drop any day/activity selection that
+  // belonged to the previous tour.
+  watch(() => toursStore.activeTourId, () => {
+    resetToDefaultMonth()
+    selectedDate.value = null
+  })
+
   return {
-    calendarEvents,
     currentYear,
     currentMonth,
     selectedDate,
+    viewMode,
     filterTourId,
     daysGrid,
-    eventsForSelectedDate,
-    upcomingEvents,
+    activitiesForSelectedDate,
+    upcomingActivities,
     prevMonth,
     nextMonth,
     selectDate,
     setFilterTour,
+    resetToDefaultMonth,
   }
 })

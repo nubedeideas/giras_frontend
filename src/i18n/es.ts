@@ -141,6 +141,9 @@ export default {
     today: 'Hoy',
     allTours: 'Todas las Giras',
     selectTour: 'Filtrar por Gira',
+    viewGrid: 'Calendario',
+    viewList: 'Actividades',
+    selectActivity: 'Selecciona una actividad para ver el detalle',
     days: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
     months: [
       'Enero',

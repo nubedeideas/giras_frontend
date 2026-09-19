@@ -22,6 +22,21 @@ function getDateGroup(scheduledAt: string): string {
   return 'Próximamente'
 }
 
+const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+// Calendar-day key (not relative to "today", unlike getDateGroup above) —
+// used to group chronologically for the calendar's "Actividades" list view.
+function dayKeyOf(scheduledAt: string): string {
+  const d = new Date(scheduledAt)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function dayLabelOf(scheduledAt: string): string {
+  const d = new Date(scheduledAt)
+  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]}`
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useActivitiesStore = defineStore('activities', () => {
@@ -44,14 +59,13 @@ export const useActivitiesStore = defineStore('activities', () => {
 
   async function loadActivities() {
     const tourUuid = toursStore.activeTour?.uuid
-    if (!tourUuid) {
-      activities.value = []
-      return
-    }
     loading.value = true
     error.value = null
     try {
-      activities.value = await api.listActivities({ tour: tourUuid })
+      // Omitting `tour` is intentional and backend-supported — it returns
+      // activities across every tour the user owns or is an active member
+      // of (server-scoped), which is how "Todas las Giras" aggregates.
+      activities.value = await api.listActivities(tourUuid ? { tour: tourUuid } : {})
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar actividades'
     } finally {
@@ -164,6 +178,27 @@ export const useActivitiesStore = defineStore('activities', () => {
       .map(([label, items]) => ({ label, items }))
   })
 
+  // All of the tour's activities, chronological, separated by calendar day —
+  // used by the Calendar view's "Actividades" list mode. Deliberately reads
+  // `activities` directly (not `filtered`), which is scoped to /events' own
+  // tab/search/category UI state and shouldn't leak into the Calendar view.
+  const groupedByDay = computed(() => {
+    const sorted = [...activities.value].sort(
+      (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
+    )
+    const map = new Map<string, ActivityListItem[]>()
+    for (const a of sorted) {
+      const key = dayKeyOf(a.scheduled_at)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(a)
+    }
+    return Array.from(map.entries()).map(([iso, items]) => ({
+      iso,
+      label: dayLabelOf(items[0].scheduled_at),
+      items,
+    }))
+  })
+
   function toggleCategory(value: string) {
     const idx = filterCategory.value.indexOf(value)
     if (idx >= 0) filterCategory.value.splice(idx, 1)
@@ -183,6 +218,7 @@ export const useActivitiesStore = defineStore('activities', () => {
     error,
     filtered,
     groupedActivities,
+    groupedByDay,
     loadActivities,
     selectActivity,
     clearSelection,
