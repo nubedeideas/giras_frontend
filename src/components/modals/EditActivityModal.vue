@@ -168,6 +168,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 <template>
   <AppModal
     :show="show"
+    persistent
     @close="emit('close')"
   >
     <!-- Header -->
