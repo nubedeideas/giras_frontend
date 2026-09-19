@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import logoIcon from '@/assets/logo-icon.svg'
 import '@/assets/landing.css'
 
 const { t, locale } = useI18n()
 const auth = useAuthStore()
-const router = useRouter()
 
 // ─── Magic Link ───────────────────────────────────────────────────────────────
 
@@ -37,13 +35,6 @@ function resetMagicLink() {
 function doGoogleLogin() {
   auth.error = null
   auth.startGoogleLogin()
-}
-
-// ─── Demo ─────────────────────────────────────────────────────────────────────
-
-function doDemo() {
-  auth.loginDemo()
-  router.push('/notifs')
 }
 </script>
 
@@ -226,33 +217,6 @@ function doDemo() {
         </p>
       </div>
 
-      <!-- Divider -->
-      <div class="flex items-center gap-3 my-6">
-        <div class="flex-1 h-px bg-white/[0.08]" />
-        <span class="text-[9px] uppercase tracking-[0.4em] text-white/30">{{ t('or') }}</span>
-        <div class="flex-1 h-px bg-white/[0.08]" />
-      </div>
-
-      <!-- Demo -->
-      <button
-        class="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 border border-white/10 bg-transparent text-[11px] font-bold uppercase tracking-widest text-white/50 hover:border-acid-green hover:text-acid-green transition-all duration-200"
-        @click="doDemo"
-      >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polygon points="5 3 19 12 5 21 5 3" />
-        </svg>
-        {{ t('viewDemo') }}
-      </button>
-
       <!-- Lang toggle -->
       <div class="flex justify-center mt-6">
         <div class="flex gap-px border border-white/10 p-px">
@@ -271,11 +235,6 @@ function doDemo() {
       <!-- Legal -->
       <p class="text-[9px] text-white/25 mt-5 leading-relaxed uppercase tracking-wider">
         {{ t('loginNote') }}
-        <a
-          href="/politica-de-privacidad"
-          class="text-acid-green/60 hover:text-acid-green no-underline transition-colors"
-        >{{ t('privacy') }}</a>
-        {{ t('and') }}
         <a
           href="/terminos-y-condiciones"
           class="text-acid-green/60 hover:text-acid-green no-underline transition-colors"

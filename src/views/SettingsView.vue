@@ -84,8 +84,8 @@ const integrations = [
   { name: 'Apple Wallet Pass', variant: 'o' as const, label: 'beta' },
 ]
 
-function signOut() {
-  auth.logout()
+async function signOut() {
+  await auth.logout()
   router.push('/login')
 }
 </script>

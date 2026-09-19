@@ -56,8 +56,8 @@ const activeTab = computed<AdminTab>({
   set: (tab) => router.replace({ path: '/admin', query: { tab } }),
 })
 
-function signOut() {
-  auth.logout()
+async function signOut() {
+  await auth.logout()
   router.push('/login')
 }
 </script>
@@ -69,7 +69,7 @@ function signOut() {
       <!-- Header -->
       <div class="px-4 pt-5 pb-4 border-b border-line flex-shrink-0">
         <RouterLink
-          to="/notifs"
+          to="/home"
           class="inline-flex items-center gap-1.5 text-[11px] text-ink-4 hover:text-ink no-underline mb-3"
         >
           <svg

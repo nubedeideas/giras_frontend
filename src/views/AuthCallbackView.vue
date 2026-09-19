@@ -25,7 +25,7 @@ onMounted(async () => {
   try {
     const redirectUri = `${window.location.origin}/auth/callback`
     await auth.loginWithGoogle(code, redirectUri)
-    router.replace('/notifs')
+    router.replace('/home')
   } catch {
     errorMsg.value = auth.error ?? 'Error al autenticar con Google'
     setTimeout(() => router.replace('/login'), 3000)

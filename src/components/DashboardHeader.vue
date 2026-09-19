@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useUIState } from '@/composables/useUIState'
+import logoIcon from '@/assets/logo-icon.svg'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -11,24 +12,33 @@ const auth = useAuthStore()
 const { openSettings } = useUIState()
 
 const TITLE_KEYS: Record<string, string> = {
-  notifs: 'notif.title',
+  home: 'nav.home',
   events: 'nav.events',
   calendar: 'calendar.title',
   contacts: 'contacts.title',
+  tour: 'nav.tourHub',
   reports: 'reports.title',
   settings: 'settings.title',
 }
 
-const title = computed(() => t(TITLE_KEYS[route.name as string] ?? 'notif.title'))
+const title = computed(() => t(TITLE_KEYS[route.name as string] ?? 'nav.home'))
 </script>
 
 <template>
   <header
     class="flex-shrink-0 flex items-center justify-between gap-4 px-6 py-3.5 bg-bg-3 border-b border-line"
   >
-    <h1 class="text-[15px] font-bold text-ink tracking-[-0.3px] truncate">
-      {{ title }}
-    </h1>
+    <div class="flex items-center gap-2.5 min-w-0">
+      <!-- Desktop already shows the logo in AppSidebar — mobile-only here -->
+      <img
+        :src="logoIcon"
+        alt="Giras"
+        class="lg:hidden w-7 h-7 flex-shrink-0"
+      >
+      <h1 class="text-[15px] font-bold text-ink tracking-[-0.3px] truncate">
+        {{ title }}
+      </h1>
+    </div>
 
     <button
       class="flex items-center gap-2.5 flex-shrink-0 border-none bg-transparent cursor-pointer rounded-full pr-1 hover:bg-glass-hover transition-colors"

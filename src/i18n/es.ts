@@ -2,10 +2,7 @@ export default {
   loginTagline: 'Automatiza la comunicación logística de tu gira.',
   continueGoogle: 'Continuar con Google',
   or: 'o',
-  viewDemo: 'Ver demo sin iniciar sesión',
-  loginNote: 'Al continuar aceptas nuestra',
-  privacy: 'Política de privacidad',
-  and: 'y',
+  loginNote: 'Al continuar aceptas nuestros',
   terms: 'Términos de uso',
 
   consent: {
@@ -16,6 +13,7 @@ export default {
   },
 
   nav: {
+    home: 'Inicio',
     notif: 'Notifs',
     events: 'Actividades',
     cal: 'Calendario',
@@ -24,6 +22,16 @@ export default {
     reports: 'Reportes',
     tours: 'Giras',
     settings: 'Configuración',
+  },
+
+  home: {
+    eyebrow: 'Giras',
+    heading: 'Antes de empezar',
+    subheading: 'Elige con qué gira vas a trabajar ahora.',
+    selectLabel: 'Selecciona una Gira',
+    selectPlaceholder: 'Elige una gira…',
+    continue: 'Continuar',
+    noTours: 'Todavía no tienes ninguna gira creada.',
   },
 
   tours: {

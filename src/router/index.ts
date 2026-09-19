@@ -55,11 +55,14 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      {
-        path: 'notifs',
-        name: 'notifs',
-        component: () => import('@/views/NotificationsView.vue'),
-      },
+      { path: 'home', name: 'home', component: () => import('@/views/HomeView.vue') },
+      // Disabled — mockup not in use yet. Not wired into any nav/redirect;
+      // uncomment here (and the nav item in AppSidebar.vue) to bring it back.
+      // {
+      //   path: 'notifs',
+      //   name: 'notifs',
+      //   component: () => import('@/views/NotificationsView.vue'),
+      // },
       { path: 'events', name: 'events', component: () => import('@/views/EventsView.vue') },
       { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },
@@ -85,8 +88,8 @@ export function setupRouterGuards(router: Router) {
     }
 
     if (to.meta.requiresAuth && !auth.isLoggedIn) return '/login'
-    if (to.meta.requiresSuperuser && !auth.user?.is_superuser) return '/notifs'
-    if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) return '/notifs'
+    if (to.meta.requiresSuperuser && !auth.user?.is_superuser) return '/home'
+    if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) return '/home'
   })
 
   // Virtual pageviews for GTM — SPA navigations don't trigger a native page load

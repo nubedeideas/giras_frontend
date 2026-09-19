@@ -6,6 +6,7 @@ import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityListPanel from '@/components/activities/ActivityListPanel.vue'
 import ActivityDetail from '@/components/activities/ActivityDetail.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
+import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import SelectTourModal from '@/components/modals/SelectTourModal.vue'
 import AddActivityModal from '@/components/modals/AddActivityModal.vue'
 import CreateActivityModal from '@/components/modals/CreateActivityModal.vue'
@@ -43,13 +44,24 @@ onMounted(() => {
       v-if="!isMobile"
       class="flex-1 overflow-hidden"
     >
-      <Transition name="fade">
+      <Transition
+        name="fade"
+        mode="out-in"
+      >
         <ActivityDetail
           v-if="store.selectedUuid"
+          key="detail"
           @close="store.clearSelection()"
+        />
+        <!-- No tour selected — the full picker lives here on desktop (the
+        lateral list panel stays minimal, see ActivityListPanel.vue) -->
+        <TourSelectPrompt
+          v-else-if="!toursStore.activeTour"
+          key="picker"
         />
         <div
           v-else
+          key="empty"
           class="flex-1 h-full bg-bg-3 flex flex-col items-center justify-center gap-2.5 text-ink-3"
         >
           <div class="w-12 h-12 rounded-[15px] bg-glass border border-line flex items-center justify-center">
@@ -91,41 +103,7 @@ onMounted(() => {
               />
             </svg>
           </div>
-
-          <!-- No tour selected -->
-          <template v-if="!toursStore.activeTour">
-            <p class="text-[12px]">
-              Selecciona una gira para ver sus actividades
-            </p>
-            <select
-              class="mt-1 bg-bg-4 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 cursor-pointer transition-colors w-56"
-              :value="''"
-              @change="(e) => {
-                const id = Number((e.target as HTMLSelectElement).value)
-                if (id) { toursStore.setActiveTour(id); store.loadActivities() }
-              }"
-            >
-              <option
-                value=""
-                disabled
-              >
-                — Elige una gira —
-              </option>
-              <option
-                v-for="t in toursStore.tours"
-                :key="t.id"
-                :value="t.id"
-              >
-                {{ t.name }}
-              </option>
-            </select>
-          </template>
-
-          <!-- Tour selected, no activity selected -->
-          <p
-            v-else
-            class="text-[12px]"
-          >
+          <p class="text-[12px]">
             Selecciona una actividad para ver el detalle
           </p>
         </div>

@@ -21,7 +21,7 @@ onMounted(async () => {
   try {
     await auth.verifyMagicLink(token)
     status.value = 'success'
-    setTimeout(() => router.replace('/notifs'), 1500)
+    setTimeout(() => router.replace('/home'), 1500)
   } catch {
     status.value = 'error'
     errorMsg.value = auth.error ?? 'El link de acceso es inválido o ha expirado.'

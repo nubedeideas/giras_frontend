@@ -2,10 +2,7 @@ export default {
   loginTagline: "Automate your tour's logistics communication. Zero chaos.",
   continueGoogle: 'Continue with Google',
   or: 'or',
-  viewDemo: 'View demo without signing in',
   loginNote: 'By continuing you agree to our',
-  privacy: 'Privacy Policy',
-  and: 'and',
   terms: 'Terms of Service',
 
   consent: {
@@ -16,6 +13,7 @@ export default {
   },
 
   nav: {
+    home: 'Home',
     notif: 'Notifs',
     events: 'Activities',
     cal: 'Calendar',
@@ -24,6 +22,16 @@ export default {
     reports: 'Reports',
     tours: 'Tours',
     settings: 'Settings',
+  },
+
+  home: {
+    eyebrow: 'Giras',
+    heading: 'Before we start',
+    subheading: 'Choose which tour you want to work on.',
+    selectLabel: 'Select a Tour',
+    selectPlaceholder: 'Choose a tour…',
+    continue: 'Continue',
+    noTours: "You don't have any tours yet.",
   },
 
   tours: {

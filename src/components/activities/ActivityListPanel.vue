@@ -2,11 +2,14 @@
 import { ref, computed } from 'vue'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
+import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityCard from './ActivityCard.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
+import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 
 const store = useActivitiesStore()
 const toursStore = useToursStore()
+const { isMobile } = useIsMobile()
 
 defineEmits<{ openAdd: [] }>()
 
@@ -214,35 +217,25 @@ const showCategoryFilter = ref(false)
       </div>
     </div>
 
-    <!-- No tour selected -->
+    <!-- No tour selected — mobile shows the compact select right here (this
+    panel is the only one visible on mobile); desktop shows the full picker
+    in the central column instead (EventsView.vue), so this stays minimal. -->
     <div
       v-if="!toursStore.activeTourId"
-      class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center"
+      class="flex-1 overflow-hidden"
     >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="text-ink-4"
+      <TourSelectPrompt
+        v-if="isMobile"
+        compact
+      />
+      <div
+        v-else
+        class="h-full flex items-center justify-center px-4 text-center"
       >
-        <circle
-          cx="6"
-          cy="19"
-          r="3"
-        /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle
-          cx="18"
-          cy="5"
-          r="3"
-        />
-      </svg>
-      <p class="text-[11px] text-ink-4">
-        Selecciona una gira para ver sus actividades
-      </p>
+        <p class="text-[11px] text-ink-4">
+          Elige una gira para ver sus actividades
+        </p>
+      </div>
     </div>
 
     <!-- No UUID (mock tour) -->
