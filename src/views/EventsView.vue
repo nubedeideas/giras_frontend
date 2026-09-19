@@ -2,8 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
+import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityListPanel from '@/components/activities/ActivityListPanel.vue'
 import ActivityDetail from '@/components/activities/ActivityDetail.vue'
+import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
 import SelectTourModal from '@/components/modals/SelectTourModal.vue'
 import AddActivityModal from '@/components/modals/AddActivityModal.vue'
 import CreateActivityModal from '@/components/modals/CreateActivityModal.vue'
@@ -11,6 +13,7 @@ import ImportCalActivitiesModal from '@/components/modals/ImportCalActivitiesMod
 
 const store = useActivitiesStore()
 const toursStore = useToursStore()
+const { isMobile } = useIsMobile()
 
 const showSelectTour = ref(false)
 const showAddModal = ref(false)
@@ -35,8 +38,11 @@ onMounted(() => {
     <!-- List panel -->
     <ActivityListPanel @open-add="handleOpenAdd" />
 
-    <!-- Detail panel -->
-    <div class="flex-1 overflow-hidden">
+    <!-- Detail panel (desktop only — mobile uses the full-screen overlay below) -->
+    <div
+      v-if="!isMobile"
+      class="flex-1 overflow-hidden"
+    >
       <Transition name="fade">
         <ActivityDetail
           v-if="store.selectedUuid"
@@ -125,6 +131,18 @@ onMounted(() => {
         </div>
       </Transition>
     </div>
+
+    <!-- Detail panel (mobile only — full-screen overlay) -->
+    <MobileDetailOverlay
+      v-if="isMobile"
+      :show="!!store.selectedUuid"
+      @close="store.clearSelection()"
+    >
+      <ActivityDetail
+        v-if="store.selectedUuid"
+        @close="store.clearSelection()"
+      />
+    </MobileDetailOverlay>
 
     <!-- Modals -->
     <SelectTourModal

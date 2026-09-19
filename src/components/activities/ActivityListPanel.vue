@@ -26,7 +26,7 @@ const showCategoryFilter = ref(false)
 
 <template>
   <div
-    class="w-80 flex-shrink-0 my-3 ml-3 mr-1.5 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
+    class="w-full m-3 lg:w-80 lg:flex-shrink-0 lg:my-3 lg:ml-3 lg:mr-1.5 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
   >
     <!-- Header -->
     <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">

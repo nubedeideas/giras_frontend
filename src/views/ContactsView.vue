@@ -2,14 +2,17 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useContactsStore } from '@/stores/contacts'
+import { useIsMobile } from '@/composables/useIsMobile'
 import ContactCard from '@/components/contacts/ContactCard.vue'
 import ContactDetail from '@/components/contacts/ContactDetail.vue'
 import ContactForm from '@/components/contacts/ContactForm.vue'
+import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
 import ImportContactsModal from '@/components/modals/ImportContactsModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const { t } = useI18n()
 const store = useContactsStore()
+const { isMobile } = useIsMobile()
 const showImport = ref(false)
 const editMode = ref(false)
 const showRoleFilter = ref(false)
@@ -51,7 +54,7 @@ const groupedContacts = computed(() => {
   <div class="flex h-full overflow-hidden">
     <!-- List panel -->
     <div
-      class="w-80 flex-shrink-0 my-3 ml-3 mr-1.5 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
+      class="w-full m-3 lg:w-80 lg:flex-shrink-0 lg:my-3 lg:ml-3 lg:mr-1.5 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
     >
       <div class="px-3.5 pt-[18px] pb-2.5 border-b border-line flex-shrink-0">
         <div class="flex items-center justify-between mb-3">
@@ -283,8 +286,11 @@ const groupedContacts = computed(() => {
       </div>
     </div>
 
-    <!-- Detail / Edit panel -->
-    <div class="flex-1 overflow-hidden">
+    <!-- Detail / Edit panel (desktop only — mobile uses the full-screen overlay below) -->
+    <div
+      v-if="!isMobile"
+      class="flex-1 overflow-hidden"
+    >
       <Transition name="fade">
         <ContactForm
           v-if="store.selectedContact && editMode"
@@ -330,6 +336,26 @@ const groupedContacts = computed(() => {
         </div>
       </Transition>
     </div>
+
+    <!-- Detail / Edit panel (mobile only — full-screen overlay) -->
+    <MobileDetailOverlay
+      v-if="isMobile"
+      :show="!!store.selectedContact"
+      @close="store.clearSelection()"
+    >
+      <ContactForm
+        v-if="store.selectedContact && editMode"
+        :key="store.selectedContact.uuid + '-form'"
+        :contact="store.selectedContact"
+        @cancel="editMode = false"
+        @saved="editMode = false"
+      />
+      <ContactDetail
+        v-else-if="store.selectedContact"
+        :contact="store.selectedContact"
+        @edit="editMode = true"
+      />
+    </MobileDetailOverlay>
 
     <ImportContactsModal
       :show="showImport"

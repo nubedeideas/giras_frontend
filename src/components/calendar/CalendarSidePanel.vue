@@ -9,7 +9,7 @@ const cal = useCalendarStore()
 
 <template>
   <div
-    class="w-72 flex-shrink-0 my-3 ml-1.5 mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
+    class="w-full h-full m-3 lg:h-auto lg:w-72 lg:flex-shrink-0 lg:my-3 lg:ml-1.5 lg:mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex flex-col overflow-hidden"
   >
     <!-- Header -->
     <div class="px-4 pt-5 pb-3 border-b border-line flex-shrink-0 flex items-center justify-between">
