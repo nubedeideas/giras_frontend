@@ -59,7 +59,7 @@ const showMobileDetail = computed(
           @close="closeAll"
         />
         <CalendarSidePanel
-          v-else-if="cal.viewMode === 'grid'"
+          v-else-if="cal.viewMode === 'grid' && toursStore.activeTourId"
           key="agenda"
         />
         <div
