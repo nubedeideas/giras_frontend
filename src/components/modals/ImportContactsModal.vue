@@ -3,6 +3,7 @@ import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useContactsStore } from '@/stores/contacts'
 import { useAuthStore } from '@/stores/auth'
+import { useToursStore } from '@/stores/tours'
 import {
   useGoogleContactsImport,
   type ImportContact,
@@ -10,6 +11,7 @@ import {
   type ContactSubscription,
   type SyncStats,
 } from '@/composables/useGoogleContactsImport'
+import { useContacts } from '@/composables/useContacts'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
@@ -19,7 +21,9 @@ const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const contactsStore = useContactsStore()
 const authStore = useAuthStore()
+const toursStore = useToursStore()
 const api = useGoogleContactsImport()
+const contactsApi = useContacts()
 
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
@@ -114,9 +118,17 @@ async function doImport() {
   if (selectedUuids.value.length === 0) return
   step.value = 'importing'
   error.value = ''
-  const patchPromises = selectedUuids.value.map((uuid) => {
+  const tourUuid = toursStore.activeTour?.uuid
+  const patchPromises = selectedUuids.value.map(async (uuid) => {
     const roleUuid = contactState.value[uuid]?.roleUuid || null
-    return api.patchContactRole(uuid, roleUuid).catch(() => null)
+    try {
+      await api.patchContactRole(uuid, roleUuid)
+      // Without this, an imported contact won't show up in the active
+      // tour's filtered list until someone links it by hand.
+      if (tourUuid) await contactsApi.addToTour(uuid, tourUuid)
+    } catch {
+      // best-effort — matches the previous per-contact swallow-and-continue
+    }
   })
   await Promise.allSettled(patchPromises)
 
@@ -210,6 +222,13 @@ async function submitManual() {
 
     const created = await api.createContact(payload)
     createdContact.value = created
+
+    const tourUuid = toursStore.activeTour?.uuid
+    if (tourUuid) {
+      // Non-fatal — the contact is created either way, just may need manual
+      // linking to the tour later if this fails.
+      await contactsApi.addToTour(created.uuid, tourUuid).catch(() => null)
+    }
 
     contactsStore.fetchContacts()
     manualStep.value = 'done'

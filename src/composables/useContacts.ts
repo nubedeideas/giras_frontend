@@ -80,5 +80,21 @@ export function useContacts() {
     }
   }
 
-  return { listContacts, getContact, createContact, updateContact, deleteContact }
+  // Contacts are global by default (not tied to any tour) until explicitly
+  // linked — this is that link. Needed after creating/confirming a contact
+  // while a tour is active, or it silently won't show up in that tour's
+  // filtered list (GET /api/contacts/?tour=<uuid>).
+  async function addToTour(uuid: string, tourUuid: string): Promise<void> {
+    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/add-to-tour/`, {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ tour_uuid: tourUuid }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.detail ?? 'Error al asociar el contacto con la gira')
+    }
+  }
+
+  return { listContacts, getContact, createContact, updateContact, deleteContact, addToTour }
 }

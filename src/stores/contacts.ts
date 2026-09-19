@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Contact } from '@/types'
 import { useContacts } from '@/composables/useContacts'
+import { useToursStore } from '@/stores/tours'
 
 export const useContactsStore = defineStore('contacts', () => {
+  const toursStore = useToursStore()
   const contacts = ref<Contact[]>([])
   const selectedId = ref<string | null>(null)
   const searchQuery = ref('')
@@ -50,10 +52,18 @@ export const useContactsStore = defineStore('contacts', () => {
 
   async function fetchContacts() {
     if (loading.value) return
+    const tourUuid = toursStore.activeTour?.uuid
+    // Unlike activities/calendar, no active tour means no contacts at all —
+    // the view prompts to pick one instead of aggregating across every tour.
+    if (!tourUuid) {
+      contacts.value = []
+      loaded.value = true
+      return
+    }
     loading.value = true
     try {
       const api = useContacts()
-      contacts.value = await api.listContacts()
+      contacts.value = await api.listContacts({ tour: tourUuid })
       loaded.value = true
     } catch {
       // keep existing list on error
@@ -61,6 +71,12 @@ export const useContactsStore = defineStore('contacts', () => {
       loading.value = false
     }
   }
+
+  // Reload when the active tour changes — mirrors stores/activities.ts.
+  watch(() => toursStore.activeTourId, () => {
+    selectedId.value = null
+    fetchContacts()
+  })
 
   function addContacts(newContacts: Contact[]) {
     const existingUuids = new Set(contacts.value.map((c) => c.uuid))

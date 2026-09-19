@@ -2,16 +2,19 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useContactsStore } from '@/stores/contacts'
+import { useToursStore } from '@/stores/tours'
 import { useIsMobile } from '@/composables/useIsMobile'
 import ContactCard from '@/components/contacts/ContactCard.vue'
 import ContactDetail from '@/components/contacts/ContactDetail.vue'
 import ContactForm from '@/components/contacts/ContactForm.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
 import ImportContactsModal from '@/components/modals/ImportContactsModal.vue'
+import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const { t } = useI18n()
 const store = useContactsStore()
+const toursStore = useToursStore()
 const { isMobile } = useIsMobile()
 const showImport = ref(false)
 const editMode = ref(false)
@@ -232,8 +235,32 @@ const groupedContacts = computed(() => {
         </div>
       </div>
 
+      <!-- No tour selected — mobile shows the compact select right here (this
+      panel is the only one visible on mobile); desktop shows the full picker
+      in the central column instead (below), so this stays minimal. -->
+      <div
+        v-if="!toursStore.activeTourId"
+        class="flex-1 overflow-hidden"
+      >
+        <TourSelectPrompt
+          v-if="isMobile"
+          compact
+        />
+        <div
+          v-else
+          class="h-full flex items-center justify-center px-4 text-center"
+        >
+          <p class="text-[11px] text-ink-4">
+            Elige una gira para ver sus contactos
+          </p>
+        </div>
+      </div>
+
       <!-- Contact list -->
-      <div class="flex-1 overflow-y-auto px-2 py-2">
+      <div
+        v-else
+        class="flex-1 overflow-y-auto px-2 py-2"
+      >
         <div
           v-if="store.loading"
           class="flex justify-center py-8"
@@ -291,9 +318,18 @@ const groupedContacts = computed(() => {
       v-if="!isMobile"
       class="flex-1 overflow-hidden"
     >
-      <Transition name="fade">
+      <Transition
+        name="fade"
+        mode="out-in"
+      >
+        <!-- No tour selected — the full picker lives here on desktop (the
+        lateral list panel stays minimal, see above) -->
+        <TourSelectPrompt
+          v-if="!toursStore.activeTourId"
+          key="picker"
+        />
         <ContactForm
-          v-if="store.selectedContact && editMode"
+          v-else-if="store.selectedContact && editMode"
           :key="store.selectedContact.uuid + '-form'"
           :contact="store.selectedContact"
           @cancel="editMode = false"
@@ -301,11 +337,13 @@ const groupedContacts = computed(() => {
         />
         <ContactDetail
           v-else-if="store.selectedContact"
+          :key="store.selectedContact.uuid + '-detail'"
           :contact="store.selectedContact"
           @edit="editMode = true"
         />
         <div
           v-else
+          key="empty"
           class="h-full bg-bg-3 flex flex-col items-center justify-center gap-2.5 text-ink-3"
         >
           <div
