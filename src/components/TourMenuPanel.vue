@@ -119,7 +119,7 @@ function handleArtistInput() {
     } catch (err) {
       console.error('[Spotify]', err)
       spotifyResults.value = []
-      spotifyError.value = err instanceof Error ? err.message : 'Error al buscar en Spotify'
+      spotifyError.value = 'No se pudo conectar con Spotify'
     } finally {
       spotifyLoading.value = false
     }
@@ -904,7 +904,7 @@ async function confirmDelete(uuid: string) {
                 </div>
                 <!-- Results dropdown -->
                 <div
-                  v-if="showDropdown && (spotifyResults.length > 0 || spotifyLoading)"
+                  v-if="showDropdown && !spotifyError"
                   class="absolute left-0 right-0 top-full mt-1 bg-bg border border-line rounded-lg overflow-hidden z-[60]"
                   style="box-shadow: 0 8px 24px var(--shadow-md)"
                 >
@@ -914,50 +914,58 @@ async function confirmDelete(uuid: string) {
                   >
                     Buscando artistas...
                   </div>
-                  <button
-                    v-for="artist in spotifyResults"
-                    :key="artist.id"
-                    type="button"
-                    class="w-full flex items-center gap-2.5 px-2.5 py-2 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent text-left border-b border-line last:border-b-0"
-                    @mousedown.prevent="selectArtist(artist)"
+                  <template v-else-if="spotifyResults.length">
+                    <button
+                      v-for="artist in spotifyResults"
+                      :key="artist.id"
+                      type="button"
+                      class="w-full flex items-center gap-2.5 px-2.5 py-2 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent text-left border-b border-line last:border-b-0"
+                      @mousedown.prevent="selectArtist(artist)"
+                    >
+                      <div class="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden bg-glass-2 border border-line flex items-center justify-center">
+                        <img
+                          v-if="artist.images[0]"
+                          :src="artist.images[0].url"
+                          :alt="artist.name"
+                          class="w-full h-full object-cover"
+                        >
+                        <svg
+                          v-else
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          class="text-ink-4"
+                        >
+                          <path d="M9 18V5l12-2v13" /><circle
+                            cx="6"
+                            cy="18"
+                            r="3"
+                          /><circle
+                            cx="18"
+                            cy="16"
+                            r="3"
+                          />
+                        </svg>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-[12px] font-medium text-ink truncate leading-snug">
+                          {{ artist.name }}
+                        </p>
+                        <p class="text-[10px] text-ink-3 leading-tight">
+                          {{ formatFollowers(artist.followers.total) }} seguidores
+                        </p>
+                      </div>
+                    </button>
+                  </template>
+                  <div
+                    v-else
+                    class="px-3 py-3 text-[11px] text-ink-3 text-center"
                   >
-                    <div class="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden bg-glass-2 border border-line flex items-center justify-center">
-                      <img
-                        v-if="artist.images[0]"
-                        :src="artist.images[0].url"
-                        :alt="artist.name"
-                        class="w-full h-full object-cover"
-                      >
-                      <svg
-                        v-else
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                        class="text-ink-4"
-                      >
-                        <path d="M9 18V5l12-2v13" /><circle
-                          cx="6"
-                          cy="18"
-                          r="3"
-                        /><circle
-                          cx="18"
-                          cy="16"
-                          r="3"
-                        />
-                      </svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-[12px] font-medium text-ink truncate leading-snug">
-                        {{ artist.name }}
-                      </p>
-                      <p class="text-[10px] text-ink-3 leading-tight">
-                        {{ formatFollowers(artist.followers.total) }} seguidores
-                      </p>
-                    </div>
-                  </button>
+                    Sin resultados en Spotify. Puedes continuar escribiendo el nombre del artista manualmente.
+                  </div>
                 </div>
               </div>
               <p
@@ -965,6 +973,12 @@ async function confirmDelete(uuid: string) {
                 class="text-[10px] text-red-400 mt-1"
               >
                 {{ spotifyError }}
+              </p>
+              <p
+                v-if="spotifyError"
+                class="text-[10px] text-ink-3 mt-0.5"
+              >
+                Puedes continuar y añadir los datos del artista manualmente.
               </p>
               <div
                 v-if="form.spotify_artist_id"
