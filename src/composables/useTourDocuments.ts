@@ -13,10 +13,21 @@ export interface TourDocument {
   uploaded_by_name: string
   file_size: number
   created_at: string
+  /** Visible en el portal del crew (default false). */
+  visible_to_crew: boolean
 }
 
 export interface UploadDocumentPayload {
   file: File
+  description?: string
+  document_type?: TourDocumentType
+  /** Se envía como "true"/"false" en el multipart. */
+  visible_to_crew?: boolean
+}
+
+/** Body de PATCH /api/tours/{uuid}/documents/{doc_uuid}/ (TourDocumentUpdateSerializer). */
+export interface UpdateDocumentPayload {
+  visible_to_crew?: boolean
   description?: string
   document_type?: TourDocumentType
 }
@@ -57,6 +68,9 @@ export function useTourDocuments() {
     form.append('file', payload.file)
     if (payload.description) form.append('description', payload.description)
     if (payload.document_type) form.append('document_type', payload.document_type)
+    if (payload.visible_to_crew !== undefined) {
+      form.append('visible_to_crew', payload.visible_to_crew ? 'true' : 'false')
+    }
     return apiClient.post<TourDocument>(`/tours/${tourUuid}/documents/`, form, {
       fallback: 'Error al subir el documento',
     })
@@ -81,11 +95,21 @@ export function useTourDocuments() {
     window.URL.revokeObjectURL(url)
   }
 
+  function updateDocument(
+    tourUuid: string,
+    docUuid: string,
+    patch: UpdateDocumentPayload
+  ): Promise<TourDocument> {
+    return apiClient.patch<TourDocument>(`/tours/${tourUuid}/documents/${docUuid}/`, patch, {
+      fallback: 'Error al actualizar el documento',
+    })
+  }
+
   function deleteDocument(tourUuid: string, docUuid: string): Promise<void> {
     return apiClient.delete(`/tours/${tourUuid}/documents/${docUuid}/`, {
       fallback: 'Error al eliminar el documento',
     })
   }
 
-  return { listDocuments, uploadDocument, downloadDocument, deleteDocument }
+  return { listDocuments, uploadDocument, updateDocument, downloadDocument, deleteDocument }
 }

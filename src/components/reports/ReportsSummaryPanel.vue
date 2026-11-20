@@ -9,6 +9,7 @@ const props = defineProps<{
   totals: ReportsSummary['totals']
   rates: ReportsSummary['rates']
   notificationsTotal: number
+  crewPortal?: ReportsSummary['crew_portal']
 }>()
 
 const { t } = useI18n()
@@ -86,6 +87,23 @@ const tracksDelivery = computed(
           <span class="text-black/65">{{ t('reports.notifications') }}</span>
           <span class="font-semibold text-black">{{ notificationsTotal.toLocaleString() }}</span>
         </div>
+        <p
+          v-if="crewPortal && crewPortal.links > 0"
+          data-testid="crew-portal-summary"
+          class="text-[11px] text-black/65 leading-snug"
+        >
+          {{
+            t('reports.crewPortal', {
+              viewed: crewPortal.viewed.toLocaleString(),
+              links: crewPortal.links.toLocaleString(),
+              visits: t(
+                'reports.crewPortalVisits',
+                { n: crewPortal.views.toLocaleString() },
+                crewPortal.views
+              ),
+            })
+          }}
+        </p>
       </div>
     </div>
   </div>

@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
+import { useTours, type TourFull } from '@/composables/useTours'
 import TourInsightsPanel from '@/components/tour/TourInsightsPanel.vue'
 import TourDocumentsPanel from '@/components/tour/TourDocumentsPanel.vue'
 import ScheduleConflictsPanel from '@/components/tour/ScheduleConflictsPanel.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
+import CrewPortalPanel from '@/components/tour/CrewPortalPanel.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const toursStore = useToursStore()
+const toursApi = useTours()
 
-type Tab = 'insights' | 'documents' | 'conflicts'
+type Tab = 'insights' | 'documents' | 'conflicts' | 'crew'
 const activeTab = ref<Tab>('insights')
 
-const TABS: { key: Tab; labelKey: string }[] = [
+const BASE_TABS: { key: Tab; labelKey: string }[] = [
   { key: 'insights', labelKey: 'tourHub.tabs.insights' },
   { key: 'documents', labelKey: 'tourHub.tabs.documents' },
   { key: 'conflicts', labelKey: 'tourHub.tabs.conflicts' },
@@ -23,12 +26,47 @@ const TABS: { key: Tab; labelKey: string }[] = [
 
 const hasTourUuid = computed(() => !!toursStore.activeTour?.uuid)
 
-// Frontend has no per-tour membership/role model yet — approximate "admin of
-// this tour" via ownership. The backend still enforces IsTourAdmin for real,
-// this only controls whether the upload/delete controls are shown.
-const isAdmin = computed(
-  () => !!auth.user?.is_superuser || (!!auth.user?.email && auth.user.email === toursStore.activeTour?.owner_email),
+// Rol real del usuario en la gira: `current_user_is_admin` del detalle (staff, owner o miembro
+// activo admin/tour_manager), igual que el backend. El listado no lo trae, así que se carga el
+// detalle; mientras falte (o si el backend aún no lo expone) se aproxima por owner/superuser.
+const tourDetail = ref<TourFull | null>(null)
+let detailRequest = 0
+
+async function loadDetail(uuid: string | undefined) {
+  const req = ++detailRequest
+  tourDetail.value = null
+  if (!uuid) return
+  try {
+    const full = await toursApi.getTour(uuid)
+    if (req === detailRequest) tourDetail.value = full
+  } catch {
+    // Sin detalle se queda el fallback.
+  }
+}
+
+watch(() => toursStore.activeTour?.uuid, loadDetail, { immediate: true })
+
+const fallbackIsAdmin = computed(
+  () =>
+    !!auth.user?.is_superuser ||
+    (!!auth.user?.email && auth.user.email === toursStore.activeTour?.owner_email)
 )
+
+const isAdmin = computed(() => {
+  const detail = tourDetail.value
+  if (detail && detail.uuid === toursStore.activeTour?.uuid) {
+    if (typeof detail.current_user_is_admin === 'boolean') return detail.current_user_is_admin
+  }
+  return fallbackIsAdmin.value
+})
+
+// La pestaña del portal del crew solo la ven los admins (el backend da 403 al resto).
+const TABS = computed(() =>
+  isAdmin.value ? [...BASE_TABS, { key: 'crew' as Tab, labelKey: 'tourHub.tabs.crew' }] : BASE_TABS
+)
+watch(isAdmin, (admin) => {
+  if (!admin && activeTab.value === 'crew') activeTab.value = 'insights'
+})
 </script>
 
 <template>
@@ -48,10 +86,10 @@ const isAdmin = computed(
 
     <div
       v-else
-      class="max-w-6xl mx-auto px-6 py-6"
+      class="max-w-6xl mx-auto px-4 sm:px-6 py-6"
     >
       <!-- Tabs -->
-      <div class="flex items-center gap-1.5 mb-6">
+      <div class="flex flex-wrap items-center gap-1.5 mb-6">
         <button
           v-for="tab in TABS"
           :key="tab.key"
@@ -73,7 +111,11 @@ const isAdmin = computed(
         :is-admin="isAdmin"
       />
       <ScheduleConflictsPanel
-        v-else
+        v-else-if="activeTab === 'conflicts'"
+        :tour-uuid="toursStore.activeTour!.uuid"
+      />
+      <CrewPortalPanel
+        v-else-if="activeTab === 'crew' && isAdmin"
         :tour-uuid="toursStore.activeTour!.uuid"
       />
     </div>

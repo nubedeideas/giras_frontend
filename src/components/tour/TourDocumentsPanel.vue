@@ -28,6 +28,7 @@ const DOCUMENT_TYPES: { value: TourDocumentType; labelKey: string }[] = [
 async function load() {
   loading.value = true
   error.value = ''
+  toggleError.value = {}
   try {
     documents.value = await api.listDocuments(props.tourUuid)
   } catch (e) {
@@ -46,6 +47,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const selectedFile = ref<File | null>(null)
 const documentType = ref<TourDocumentType>('other')
 const description = ref('')
+const visibleToCrew = ref(false)
 const uploading = ref(false)
 const uploadError = ref('')
 
@@ -73,16 +75,43 @@ async function submitUpload() {
       file: selectedFile.value,
       description: description.value.trim() || undefined,
       document_type: documentType.value,
+      visible_to_crew: visibleToCrew.value,
     })
     documents.value.unshift(doc)
     selectedFile.value = null
     description.value = ''
     documentType.value = 'other'
+    visibleToCrew.value = false
     if (fileInputRef.value) fileInputRef.value.value = ''
   } catch (e) {
     uploadError.value = e instanceof Error ? e.message : t('tourHub.documents.loadError')
   } finally {
     uploading.value = false
+  }
+}
+
+// ─── Visible para el crew ──────────────────────────────────────────────────────
+
+// Por documento: un PATCH en curso solo bloquea su propio interruptor, y su error se muestra
+// junto a él sin tocar el `error` del listado (que ocultaría todos los documentos).
+const toggling = ref<Record<string, boolean>>({})
+const toggleError = ref<Record<string, string>>({})
+
+async function toggleCrew(doc: TourDocument) {
+  if (toggling.value[doc.uuid]) return
+  const next = !doc.visible_to_crew
+  toggling.value[doc.uuid] = true
+  delete toggleError.value[doc.uuid]
+  doc.visible_to_crew = next
+  try {
+    const updated = await api.updateDocument(props.tourUuid, doc.uuid, { visible_to_crew: next })
+    doc.visible_to_crew = updated.visible_to_crew ?? next
+  } catch (e) {
+    doc.visible_to_crew = !next
+    toggleError.value[doc.uuid] =
+      e instanceof Error ? e.message : t('tourHub.documents.updateError')
+  } finally {
+    delete toggling.value[doc.uuid]
   }
 }
 
@@ -183,6 +212,16 @@ function formatDate(iso: string): string {
           {{ uploading ? t('tourHub.documents.uploading') : t('tourHub.documents.upload') }}
         </button>
       </div>
+      <label class="flex items-center gap-2 mt-2.5 cursor-pointer w-fit">
+        <input
+          v-model="visibleToCrew"
+          type="checkbox"
+          data-testid="upload-visible-to-crew"
+          class="accent-acid cursor-pointer"
+        >
+        <span class="text-[11px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
+        <span class="text-[10px] text-ink-4 hidden sm:inline">· {{ t('tourHub.documents.visibleToCrewHint') }}</span>
+      </label>
       <p
         v-if="uploadError"
         class="text-[10px] text-red-400 mt-2"
@@ -272,6 +311,13 @@ function formatDate(iso: string): string {
             <Pill variant="n">
               {{ doc.document_type_display }}
             </Pill>
+            <Pill
+              v-if="!isAdmin && doc.visible_to_crew"
+              variant="g"
+              data-testid="doc-crew-badge"
+            >
+              {{ t('tourHub.documents.crewBadge') }}
+            </Pill>
             <p
               v-if="doc.description"
               class="text-[12px] text-ink truncate"
@@ -281,6 +327,35 @@ function formatDate(iso: string): string {
           </div>
           <p class="text-[10px] text-ink-4">
             {{ t('tourHub.documents.uploadedBy') }} {{ doc.uploaded_by_name }} · {{ formatSize(doc.file_size) }} · {{ formatDate(doc.created_at) }}
+          </p>
+          <button
+            v-if="isAdmin"
+            type="button"
+            role="switch"
+            data-testid="doc-crew-switch"
+            :aria-checked="doc.visible_to_crew"
+            :disabled="!!toggling[doc.uuid]"
+            class="flex items-center gap-2 mt-1.5 bg-transparent border-none p-0 cursor-pointer text-left disabled:opacity-60"
+            :title="t('tourHub.documents.visibleToCrewHint')"
+            @click="toggleCrew(doc)"
+          >
+            <span
+              class="relative w-7 h-4 rounded-full flex-shrink-0 border transition-colors"
+              :class="doc.visible_to_crew ? 'bg-acid border-line-acid' : 'bg-glass-2 border-line'"
+            >
+              <span
+                class="absolute top-[1px] w-3 h-3 rounded-full transition-all"
+                :class="doc.visible_to_crew ? 'left-[13px] bg-bg' : 'left-[1px] bg-ink-3'"
+              />
+            </span>
+            <span class="text-[10px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
+          </button>
+          <p
+            v-if="toggleError[doc.uuid]"
+            data-testid="doc-crew-error"
+            class="text-[10px] text-red-400 mt-1"
+          >
+            {{ toggleError[doc.uuid] }}
           </p>
         </div>
 

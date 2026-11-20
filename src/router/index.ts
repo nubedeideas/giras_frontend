@@ -56,6 +56,28 @@ export const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    // Portal del crew: enlace personal firmado, sin cuenta. Fuera de AppLayout, sin sesión,
+    // sin page_view a GTM (el token va en la URL) y sin prerender (no está en includedRoutes).
+    path: '/crew/:token',
+    name: 'crew-portal',
+    component: () => import('@/views/CrewPortalView.vue'),
+    meta: { public: true, crew: true },
+  },
+  {
+    // `/crew/` sin token o con sufijos: misma vista, que muestra "enlace no válido" sin llamar
+    // a la API. Mismo meta: sin sesión ni page_view.
+    path: '/crew/:pathMatch(.*)*',
+    name: 'crew-portal-invalid',
+    component: () => import('@/views/CrewPortalView.vue'),
+    meta: { public: true, crew: true },
+  },
+  {
+    // Enlaces antiguos de WhatsApp/email (`tours/{uuid}/...`) que no tienen ruta propia: en vez
+    // de una página en blanco, al dashboard (o a /login sin sesión, por el guard de /home).
+    path: '/tours/:pathMatch(.*)*',
+    redirect: '/home',
+  },
+  {
     path: '/admin',
     name: 'admin',
     component: () => import('@/views/AdminView.vue'),
@@ -83,6 +105,8 @@ export function setupRouterGuards(router: Router) {
     // Static prerender pass (vite-ssg) — auth state doesn't exist/matter for a static build,
     // the client re-runs this guard for real once it hydrates in the browser.
     if (import.meta.env.SSR) return
+    // El portal del crew no toca la sesión: ni fetchMe ni redirecciones por login.
+    if (to.meta.crew) return
 
     const auth = useAuthStore()
 
@@ -99,6 +123,8 @@ export function setupRouterGuards(router: Router) {
   // Virtual pageviews for GTM — SPA navigations don't trigger a native page load
   router.afterEach((to) => {
     if (import.meta.env.SSR) return
+    // El token del portal del crew no puede llegar a GTM.
+    if (to.meta.crew) return
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({
       event: 'page_view',

@@ -49,6 +49,17 @@ export interface TourFull extends TourListItem {
   show_day_alert_default_time: string
   /** false mientras Meta no apruebe la plantilla (sin SID). Solo en GET /api/tours/{uuid}/. */
   show_day_alert_available: boolean
+  /** Portal del crew (bloque 3.4): enlace personal sin cuenta. */
+  crew_portal_enabled: boolean
+  /** Días de agenda visibles en el portal, hoy incluido (1-31). */
+  crew_portal_days: number
+  /**
+   * Solo en GET /api/tours/{uuid}/: staff, owner o miembro activo admin/tour_manager.
+   * Opcional mientras el backend no lo exponga (se usa un fallback por owner).
+   */
+  current_user_is_admin?: boolean
+  /** Solo en GET /api/tours/{uuid}/: YYYY-MM-DD en que caducan los enlaces del crew, o null. */
+  crew_portal_expires_on?: string | null
 }
 
 /**
@@ -103,6 +114,9 @@ export interface UpdateTourPayload {
   show_day_alert_enabled?: boolean
   /** "HH:MM" en tramos de 15 min; null = hora por defecto. */
   show_day_alert_time?: string | null
+  crew_portal_enabled?: boolean
+  /** 1-31; fuera de rango da 400 en el campo. */
+  crew_portal_days?: number
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────

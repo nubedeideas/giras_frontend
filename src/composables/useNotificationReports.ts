@@ -158,6 +158,11 @@ export interface ReportsSummary {
   failure_reasons: ReportsFailureReason[]
   /** Máximo 10, orden `reference_at` desc. */
   recent_notifications: ReportsRecentNotification[]
+  /**
+   * Portal del crew (bloque 3.4): contadores acumulados de enlaces no revocados de las giras del
+   * filtro, sin filtro de fechas ni de canal. Opcional hasta que el backend lo exponga.
+   */
+  crew_portal?: { links: number; viewed: number; views: number }
 }
 
 /** Elemento de GET /api/notifications/reports/contact-history/ */

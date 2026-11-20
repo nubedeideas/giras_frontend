@@ -303,6 +303,7 @@ const selectClass =
               :totals="summary.totals"
               :rates="summary.rates"
               :notifications-total="summary.notifications.total"
+              :crew-portal="summary.crew_portal"
             />
             <FailuresPanel
               :contacts="summary.top_failed_contacts"

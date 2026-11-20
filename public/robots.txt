@@ -8,6 +8,7 @@ Disallow: /reports
 Disallow: /settings
 Disallow: /admin
 Disallow: /auth/
+Disallow: /crew/
 
 # AI answer-engine crawlers — explicitly allowed for GEO visibility
 User-agent: GPTBot

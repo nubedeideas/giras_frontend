@@ -1,0 +1,77 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import { routes, setupRouterGuards } from './index'
+
+const fetchMe = vi.hoisted(() => vi.fn())
+const useAuthStore = vi.hoisted(() =>
+  vi.fn(() => ({
+    accessToken: 'access',
+    user: null,
+    isDemoMode: false,
+    isLoggedIn: false,
+    fetchMe,
+  }))
+)
+vi.mock('@/stores/auth', () => ({ useAuthStore }))
+
+const TOKEN = `${'a'.repeat(32)}-1.${'b'.repeat(43)}`
+
+function makeRouter() {
+  // Componentes vacíos: aquí solo importan los guards.
+  const stubbed = routes.map((r) => ({
+    ...r,
+    component: { template: '<div />' },
+    children: r.children?.map((c) => ({ ...c, component: { template: '<div />' } })),
+  }))
+  const router = createRouter({ history: createMemoryHistory(), routes: stubbed as typeof routes })
+  setupRouterGuards(router)
+  return router
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+  fetchMe.mockReset()
+  useAuthStore.mockClear()
+  window.dataLayer = []
+})
+
+describe('router guards', () => {
+  it('la ruta del crew no toca la sesión ni empuja page_view', async () => {
+    const router = makeRouter()
+    await router.push(`/crew/${TOKEN}`)
+    expect(router.currentRoute.value.name).toBe('crew-portal')
+    expect(useAuthStore).not.toHaveBeenCalled()
+    expect(fetchMe).not.toHaveBeenCalled()
+    expect(JSON.stringify(window.dataLayer)).not.toContain(TOKEN)
+    expect(window.dataLayer.some((e) => (e as { event?: string }).event === 'page_view')).toBe(
+      false
+    )
+  })
+
+  it.each(['/crew/', '/crew', '/crew/abc/extra'])(
+    '%s va a la vista del crew sin tocar la sesión',
+    async (path) => {
+      const router = makeRouter()
+      await router.push(path)
+      expect(router.currentRoute.value.meta.crew).toBe(true)
+      expect(fetchMe).not.toHaveBeenCalled()
+      expect(window.dataLayer).toEqual([])
+    }
+  )
+
+  it('las demás rutas siguen validando la sesión y empujando page_view', async () => {
+    const router = makeRouter()
+    await router.push('/soporte')
+    expect(fetchMe).toHaveBeenCalled()
+    expect(window.dataLayer.some((e) => (e as { event?: string }).event === 'page_view')).toBe(
+      true
+    )
+  })
+
+  it('los enlaces antiguos tours/... redirigen (a /login sin sesión)', async () => {
+    const router = makeRouter()
+    await router.push('/tours/abc/activities/def')
+    expect(router.currentRoute.value.path).toBe('/login')
+  })
+})
