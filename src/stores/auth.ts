@@ -239,9 +239,12 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(): Promise<void> {
     if (!isDemoMode.value && accessToken.value) {
       try {
+        // El backend pone el refresh token en la blacklist si se lo enviamos;
+        // sin él el logout solo limpia la sesión local.
         await fetch(`${API_BASE}/auth/logout/`, {
           method: 'POST',
-          headers: authHeaders(),
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken.value }),
         })
       } catch { /* ignore network errors */ }
     }
