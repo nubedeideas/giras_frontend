@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useAdminSubscriptions, type Subscription, type SubscriptionStatus } from '@/composables/useAdminSubscriptions'
 
+const { t } = useI18n()
 const props = defineProps<{ subscription: Subscription }>()
 const emit = defineEmits<{ refresh: []; changePlan: [] }>()
 
@@ -25,7 +27,7 @@ async function activate() {
     await api.activate(props.subscription.uuid)
     emit('refresh')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al activar'
+    error.value = e instanceof Error ? e.message : t('admin.subscriptions.activateError')
   } finally {
     loading.value = false
   }
@@ -39,7 +41,7 @@ async function cancel() {
     showCancelConfirm.value = false
     emit('refresh')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al cancelar'
+    error.value = e instanceof Error ? e.message : t('admin.subscriptions.cancelError')
   } finally {
     loading.value = false
   }
@@ -65,17 +67,24 @@ async function cancel() {
       </div>
       <div class="flex-shrink-0 text-right">
         <p class="text-[11px] text-ink-2">
-          {{ subscription.remaining_notifications === -1 ? '∞' : subscription.remaining_notifications }} restantes
+          {{
+            t('admin.subscriptions.remaining', {
+              n:
+                subscription.remaining_notifications === -1
+                  ? '∞'
+                  : subscription.remaining_notifications,
+            })
+          }}
         </p>
         <p class="text-[9px] text-ink-4">
-          {{ subscription.usage_percentage }}% usado
+          {{ t('admin.subscriptions.used', { pct: subscription.usage_percentage }) }}
         </p>
       </div>
       <span
         class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
         :style="{ background: STATUS_COLORS[subscription.status].bg, color: STATUS_COLORS[subscription.status].text }"
       >
-        {{ subscription.status }}
+        {{ t(`admin.subscriptionStatus.${subscription.status}`) }}
       </span>
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
@@ -98,10 +107,17 @@ async function cancel() {
       class="border-t border-line px-3 py-2.5 space-y-2"
     >
       <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-ink-3">
-        <p>Notifs. usadas: {{ subscription.notifications_used }}</p>
-        <p>Shows: {{ subscription.shows_used }}/{{ subscription.shows_limit }}</p>
-        <p>Pagos: {{ subscription.payments_count }}</p>
-        <p>Total pagado: {{ subscription.total_paid }}</p>
+        <p>{{ t('admin.subscriptions.notificationsUsed', { n: subscription.notifications_used }) }}</p>
+        <p>
+          {{
+            t('admin.subscriptions.shows', {
+              used: subscription.shows_used,
+              limit: subscription.shows_limit,
+            })
+          }}
+        </p>
+        <p>{{ t('admin.subscriptions.payments', { n: subscription.payments_count }) }}</p>
+        <p>{{ t('admin.subscriptions.totalPaid', { amount: subscription.total_paid }) }}</p>
       </div>
 
       <p
@@ -116,7 +132,7 @@ async function cancel() {
           class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="emit('changePlan')"
         >
-          Cambiar plan
+          {{ t('admin.subscriptions.changePlan') }}
         </button>
         <button
           v-if="subscription.status === 'pending'"
@@ -124,14 +140,14 @@ async function cancel() {
           :disabled="loading"
           @click="activate"
         >
-          Activar
+          {{ t('admin.subscriptions.activate') }}
         </button>
         <button
           v-if="subscription.status === 'active' && !showCancelConfirm"
           class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
           @click="showCancelConfirm = true"
         >
-          Cancelar suscripción
+          {{ t('admin.subscriptions.cancel') }}
         </button>
       </div>
 
@@ -141,7 +157,7 @@ async function cancel() {
       >
         <input
           v-model="cancelReason"
-          placeholder="Motivo (opcional)"
+          :placeholder="t('admin.subscriptions.reasonPlaceholder')"
           class="w-full bg-bg-3 border border-line rounded-lg px-2.5 py-1.5 text-[11px] text-ink outline-none focus:border-line-2"
         >
         <div class="flex gap-1">
@@ -151,13 +167,13 @@ async function cancel() {
             :disabled="loading"
             @click="cancel"
           >
-            {{ loading ? '…' : 'Confirmar cancelación' }}
+            {{ loading ? '…' : t('admin.subscriptions.confirmCancel') }}
           </button>
           <button
             class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
             @click="showCancelConfirm = false"
           >
-            Cancelar
+            {{ t('admin.common.cancel') }}
           </button>
         </div>
       </div>

@@ -1,30 +1,35 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, watch } from 'vue'
 import { useAdminCustomPools, type CustomPool } from '@/composables/useAdminCustomPools'
 import CustomPoolCard from '@/components/admin/CustomPoolCard.vue'
 import EditCustomPoolModal from '@/components/admin/EditCustomPoolModal.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 
+const { t } = useI18n()
 const api = useAdminCustomPools()
 const items = ref<CustomPool[]>([])
 const count = ref(0)
 const next = ref<string | null>(null)
 const previous = ref<string | null>(null)
 const loading = ref(false)
+const loadError = ref('')
 const search = ref('')
 const editing = ref<CustomPool | null>(null)
 const showCreate = ref(false)
 
 async function load(url?: string) {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await api.list(url ?? { search: search.value })
     items.value = data.results
     count.value = data.count
     next.value = data.next
     previous.value = data.previous
-  } catch {
+  } catch (e) {
     items.value = []
+    loadError.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
@@ -44,13 +49,13 @@ onMounted(() => load())
     <div class="px-4 pt-4 pb-3 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
         <p class="text-base font-bold text-ink tracking-[-0.2px]">
-          Cupos Custom
+          {{ t('admin.pools.title') }}
         </p>
         <button
           class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-black text-[11px] font-bold cursor-pointer"
           @click="showCreate = true"
         >
-          + Nuevo cupo
+          {{ t('admin.pools.new') }}
         </button>
       </div>
       <div class="flex items-center gap-[7px] bg-glass border border-line rounded-sm px-[11px] py-[7px]">
@@ -78,7 +83,7 @@ onMounted(() => load())
         </svg>
         <input
           v-model="search"
-          placeholder="Buscar por email de cliente…"
+          :placeholder="t('admin.pools.searchPlaceholder')"
           class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
         >
       </div>
@@ -108,10 +113,16 @@ onMounted(() => load())
         </svg>
       </div>
       <p
+        v-else-if="loadError"
+        class="text-center py-8 text-red-400 text-xs"
+      >
+        {{ t('admin.common.loadError', { error: loadError }) }}
+      </p>
+      <p
         v-else-if="items.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
-        Sin resultados
+        {{ t('admin.common.noResults') }}
       </p>
       <CustomPoolCard
         v-for="pool in items"

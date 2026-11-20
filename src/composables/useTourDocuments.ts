@@ -1,7 +1,4 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,46 +46,31 @@ export function validateDocumentFile(file: File): string | null {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useTourDocuments() {
-  function auth() {
-    return useAuthStore()
+  function listDocuments(tourUuid: string): Promise<TourDocument[]> {
+    return apiClient.getAll<TourDocument>(`/tours/${tourUuid}/documents/?page_size=100`, {
+      fallback: 'Error al cargar documentos',
+    })
   }
 
-  async function listDocuments(tourUuid: string): Promise<TourDocument[]> {
-    const all: TourDocument[] = []
-    let url: string | null = `${API_BASE}/tours/${tourUuid}/documents/?page_size=100`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar documentos')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
-  }
-
-  async function uploadDocument(tourUuid: string, payload: UploadDocumentPayload): Promise<TourDocument> {
+  function uploadDocument(tourUuid: string, payload: UploadDocumentPayload): Promise<TourDocument> {
     const form = new FormData()
     form.append('file', payload.file)
     if (payload.description) form.append('description', payload.description)
     if (payload.document_type) form.append('document_type', payload.document_type)
-
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${tourUuid}/documents/`, {
-      method: 'POST',
-      body: form,
+    return apiClient.post<TourDocument>(`/tours/${tourUuid}/documents/`, form, {
+      fallback: 'Error al subir el documento',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al subir el documento'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function downloadDocument(tourUuid: string, docUuid: string, filename: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${tourUuid}/documents/${docUuid}/`)
-    if (!res.ok) throw new Error('Error al descargar el documento')
-    const blob = await res.blob()
+  async function downloadDocument(
+    tourUuid: string,
+    docUuid: string,
+    filename: string
+  ): Promise<void> {
+    const blob = await apiClient.get<Blob>(`/tours/${tourUuid}/documents/${docUuid}/`, {
+      fallback: 'Error al descargar el documento',
+      responseType: 'blob',
+    })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -99,14 +81,10 @@ export function useTourDocuments() {
     window.URL.revokeObjectURL(url)
   }
 
-  async function deleteDocument(tourUuid: string, docUuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${tourUuid}/documents/${docUuid}/`, {
-      method: 'DELETE',
+  function deleteDocument(tourUuid: string, docUuid: string): Promise<void> {
+    return apiClient.delete(`/tours/${tourUuid}/documents/${docUuid}/`, {
+      fallback: 'Error al eliminar el documento',
     })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar el documento')
-    }
   }
 
   return { listDocuments, uploadDocument, downloadDocument, deleteDocument }

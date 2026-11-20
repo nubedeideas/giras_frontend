@@ -1,0 +1,26 @@
+/*
+ * Banderas del selector de idioma (es, gb). Extraído de flag-icons (MIT, (c) Panayiotis Lipiridis), que antes se
+ * importaba entero (~270 países, varios MB de SVG en dist). Si se añade un idioma, copia su SVG
+ * 4x3 a src/assets/flags/ y añade la clase .fi-xx aquí.
+ */
+.fi {
+  position: relative;
+  display: inline-block;
+  width: 1.333333em;
+  line-height: 1em;
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+
+.fi::before {
+  content: ' ';
+}
+
+.fi-es {
+  background-image: url('./flags/es.svg');
+}
+
+.fi-gb {
+  background-image: url('./flags/gb.svg');
+}

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, watch } from 'vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useAdminSubscriptions, type Subscription, type PlanCode } from '@/composables/useAdminSubscriptions'
 import { useAdminCustomPools, type CustomPool } from '@/composables/useAdminCustomPools'
 
+const { t } = useI18n()
 const props = defineProps<{ show: boolean; subscription: Subscription | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
@@ -40,7 +42,9 @@ watch(
       try {
         const data = await poolsApi.list({ search: sub.user_email })
         pools.value = data.results
-      } catch {
+      } catch (e) {
+        console.error('[ChangeSubscriptionPlanModal] cupos del cliente', e)
+        allocateError.value = e instanceof Error ? e.message : String(e)
         pools.value = []
       } finally {
         poolsLoading.value = false
@@ -59,7 +63,7 @@ async function submitChangePlan() {
     emit('saved')
     if (selectedPlan.value !== 'custom') emit('close')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al cambiar el plan'
+    error.value = e instanceof Error ? e.message : t('admin.changePlan.error')
   } finally {
     saving.value = false
   }
@@ -78,7 +82,7 @@ async function submitAllocate() {
     emit('saved')
     emit('close')
   } catch (e) {
-    allocateError.value = e instanceof Error ? e.message : 'Error al asignar el cupo'
+    allocateError.value = e instanceof Error ? e.message : t('admin.changePlan.allocateError')
   } finally {
     allocateSaving.value = false
   }
@@ -96,7 +100,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
   >
     <template v-if="subscription">
       <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
-        Cambiar plan
+        {{ t('admin.changePlan.title') }}
       </p>
       <p class="text-[11px] text-ink-4 mb-4">
         {{ subscription.tour_name }} · {{ subscription.user_email }}
@@ -104,7 +108,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 
       <div class="space-y-3">
         <div>
-          <label :class="labelClass">Plan</label>
+          <label :class="labelClass">{{ t('admin.changePlan.plan') }}</label>
           <select
             v-model="selectedPlan"
             :class="inputClass"
@@ -131,14 +135,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
             @click="emit('close')"
           >
-            Cerrar
+            {{ t('admin.changePlan.close') }}
           </button>
           <button
             class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
             :disabled="saving"
             @click="submitChangePlan"
           >
-            {{ saving ? 'Guardando…' : 'Cambiar plan' }}
+            {{ saving ? t('admin.common.saving') : t('admin.changePlan.submit') }}
           </button>
         </div>
 
@@ -146,24 +150,24 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         <template v-if="selectedPlan === 'custom'">
           <div class="h-px bg-line my-1" />
           <p class="text-[11px] font-semibold text-ink-2">
-            Asignar cupo del pool
+            {{ t('admin.changePlan.allocateTitle') }}
           </p>
 
           <div
             v-if="poolsLoading"
             class="text-[11px] text-ink-4"
           >
-            Buscando pools del cliente…
+            {{ t('admin.changePlan.loadingPools') }}
           </div>
           <p
             v-else-if="pools.length === 0"
             class="text-[11px] text-ink-4"
           >
-            Este cliente no tiene ningún cupo Custom creado todavía — creá uno en la pestaña "Cupos Custom" primero.
+            {{ t('admin.changePlan.noPools') }}
           </p>
           <template v-else>
             <div>
-              <label :class="labelClass">Pool</label>
+              <label :class="labelClass">{{ t('admin.changePlan.pool') }}</label>
               <select
                 v-model="selectedPool"
                 :class="inputClass"
@@ -172,20 +176,26 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
                   value=""
                   disabled
                 >
-                  Elegí un pool
+                  {{ t('admin.changePlan.pickPool') }}
                 </option>
                 <option
                   v-for="p in pools"
                   :key="p.uuid"
                   :value="p.uuid"
                 >
-                  {{ p.user_email }} — {{ p.remaining_notifications }} notifs. / {{ p.remaining_shows }} shows libres
+                  {{
+                    t('admin.changePlan.poolOption', {
+                      email: p.user_email,
+                      notifications: p.remaining_notifications,
+                      shows: p.remaining_shows,
+                    })
+                  }}
                 </option>
               </select>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label :class="labelClass">Notifs. asignadas</label>
+                <label :class="labelClass">{{ t('admin.changePlan.allocatedNotifications') }}</label>
                 <input
                   v-model.number="allocatedNotifications"
                   type="number"
@@ -194,7 +204,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
                 >
               </div>
               <div>
-                <label :class="labelClass">Shows asignados</label>
+                <label :class="labelClass">{{ t('admin.changePlan.allocatedShows') }}</label>
                 <input
                   v-model.number="allocatedShows"
                   type="number"
@@ -217,7 +227,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
                 :disabled="allocateSaving || !selectedPool"
                 @click="submitAllocate"
               >
-                {{ allocateSaving ? 'Asignando…' : 'Asignar cupo' }}
+                {{ allocateSaving ? t('admin.changePlan.allocating') : t('admin.changePlan.allocate') }}
               </button>
             </div>
           </template>

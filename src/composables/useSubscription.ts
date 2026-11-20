@@ -1,11 +1,8 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
 import type { PlanCode, SubscriptionStatus } from './useAdminSubscriptions'
 import type { NotificationUsageEntry } from './useAdminNotificationUsage'
 import type { PaymentListItem } from './useAdminPayments'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 export interface SubscriptionPlanRef {
   uuid: string
@@ -51,59 +48,46 @@ export type ChangePlanResult =
   | { status: 'success' }
 
 export function useSubscription() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
   function base(tourUuid: string) {
-    return `${API_BASE}/tours/${tourUuid}/subscription`
+    return `/tours/${tourUuid}/subscription`
   }
 
-  async function get(tourUuid: string): Promise<ClientSubscription> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/`)
-    if (!res.ok) throw new Error('Error al cargar la suscripción')
-    return res.json()
-  }
-
-  async function usage(tourUuid: string): Promise<SubscriptionUsage> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/usage/`)
-    if (!res.ok) throw new Error('Error al cargar el consumo')
-    return res.json()
-  }
-
-  async function history(tourUuid: string): Promise<Paginated<NotificationUsageEntry> | NotificationUsageEntry[]> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/history/`)
-    if (!res.ok) throw new Error('Error al cargar el historial')
-    return res.json()
-  }
-
-  async function payments(tourUuid: string): Promise<Paginated<PaymentListItem> | PaymentListItem[]> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/payments/`)
-    if (!res.ok) throw new Error('Error al cargar los pagos')
-    return res.json()
-  }
-
-  async function changePlan(tourUuid: string, planCode: PlanCode): Promise<ChangePlanResult> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/change-plan/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ plan_code: planCode }),
+  function get(tourUuid: string): Promise<ClientSubscription> {
+    return apiClient.get<ClientSubscription>(`${base(tourUuid)}/`, {
+      fallback: 'Error al cargar la suscripción',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al cambiar el plan')
-    return data
   }
 
-  async function cancel(tourUuid: string, reason?: string): Promise<ClientSubscription> {
-    const res = await auth().fetchWithAuth(`${base(tourUuid)}/cancel/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(reason ? { reason } : {}),
+  function usage(tourUuid: string): Promise<SubscriptionUsage> {
+    return apiClient.get<SubscriptionUsage>(`${base(tourUuid)}/usage/`, {
+      fallback: 'Error al cargar el consumo',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al cancelar')
-    return data
+  }
+
+  function history(
+    tourUuid: string
+  ): Promise<Paginated<NotificationUsageEntry> | NotificationUsageEntry[]> {
+    return apiClient.get(`${base(tourUuid)}/history/`, { fallback: 'Error al cargar el historial' })
+  }
+
+  function payments(tourUuid: string): Promise<Paginated<PaymentListItem> | PaymentListItem[]> {
+    return apiClient.get(`${base(tourUuid)}/payments/`, { fallback: 'Error al cargar los pagos' })
+  }
+
+  function changePlan(tourUuid: string, planCode: PlanCode): Promise<ChangePlanResult> {
+    return apiClient.post<ChangePlanResult>(
+      `${base(tourUuid)}/change-plan/`,
+      { plan_code: planCode },
+      { fallback: 'Error al cambiar el plan' }
+    )
+  }
+
+  function cancel(tourUuid: string, reason?: string): Promise<ClientSubscription> {
+    return apiClient.post<ClientSubscription>(
+      `${base(tourUuid)}/cancel/`,
+      reason ? { reason } : {},
+      { fallback: 'Error al cancelar' }
+    )
   }
 
   return { get, usage, history, payments, changePlan, cancel }

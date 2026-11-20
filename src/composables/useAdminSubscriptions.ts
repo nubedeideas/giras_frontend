@@ -1,8 +1,5 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient, buildQuery } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 export type PlanCode = 'free' | 'starter' | 'premium' | 'custom'
 export type SubscriptionStatus = 'pending' | 'active' | 'cancelled'
@@ -60,85 +57,55 @@ export interface AllocatePayload {
   allocated_shows: number
 }
 
-function buildQuery(params: Record<string, string | number | undefined>): string {
-  const q = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== '') q.set(k, String(v))
-  }
-  return q.toString()
-}
-
 export function useAdminSubscriptions() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function list(query: string | SubscriptionFilters = {}): Promise<Paginated<Subscription>> {
+  function list(query: string | SubscriptionFilters = {}): Promise<Paginated<Subscription>> {
     const url =
       typeof query === 'string'
         ? query
-        : `${API_BASE}/admin/subscriptions/?${buildQuery({ page_size: 20, ...query })}`
-    const res = await auth().fetchWithAuth(url)
-    if (!res.ok) throw new Error('Error al cargar suscripciones')
-    return res.json()
-  }
-
-  async function get(uuid: string): Promise<Subscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar suscripción')
-    return res.json()
-  }
-
-  async function stats(): Promise<SubscriptionStats> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/stats/`)
-    if (!res.ok) throw new Error('Error al cargar estadísticas')
-    return res.json()
-  }
-
-  async function changePlan(uuid: string, planCode: PlanCode): Promise<Subscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/${uuid}/change-plan/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ plan_code: planCode }),
+        : `/admin/subscriptions/?${buildQuery({ page_size: 20, ...query })}`
+    return apiClient.get<Paginated<Subscription>>(url, {
+      fallback: 'Error al cargar suscripciones',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al cambiar el plan')
-    return data
   }
 
-  async function activate(uuid: string): Promise<Subscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/${uuid}/activate/`, {
-      method: 'POST',
+  function get(uuid: string): Promise<Subscription> {
+    return apiClient.get<Subscription>(`/admin/subscriptions/${uuid}/`, {
+      fallback: 'Error al cargar suscripción',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al activar')
-    return data
   }
 
-  async function cancel(uuid: string, reason?: string): Promise<Subscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/${uuid}/cancel/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(reason ? { reason } : {}),
+  function stats(): Promise<SubscriptionStats> {
+    return apiClient.get<SubscriptionStats>('/admin/subscriptions/stats/', {
+      fallback: 'Error al cargar estadísticas',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al cancelar')
-    return data
   }
 
-  async function allocate(uuid: string, payload: AllocatePayload): Promise<Subscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/subscriptions/${uuid}/allocate/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function changePlan(uuid: string, planCode: PlanCode): Promise<Subscription> {
+    return apiClient.post<Subscription>(
+      `/admin/subscriptions/${uuid}/change-plan/`,
+      { plan_code: planCode },
+      { fallback: 'Error al cambiar el plan' }
+    )
+  }
+
+  function activate(uuid: string): Promise<Subscription> {
+    return apiClient.post<Subscription>(`/admin/subscriptions/${uuid}/activate/`, undefined, {
+      fallback: 'Error al activar',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      throw new Error(String(Array.isArray(first) ? first[0] : (data.detail ?? 'Error al asignar cupo')))
-    }
-    return data
+  }
+
+  function cancel(uuid: string, reason?: string): Promise<Subscription> {
+    return apiClient.post<Subscription>(
+      `/admin/subscriptions/${uuid}/cancel/`,
+      reason ? { reason } : {},
+      { fallback: 'Error al cancelar' }
+    )
+  }
+
+  function allocate(uuid: string, payload: AllocatePayload): Promise<Subscription> {
+    return apiClient.post<Subscription>(`/admin/subscriptions/${uuid}/allocate/`, payload, {
+      fallback: 'Error al asignar cupo',
+    })
   }
 
   return { list, get, stats, changePlan, activate, cancel, allocate }

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { useContactsStore } from '@/stores/contacts'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -14,6 +16,7 @@ import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
 const emit = defineEmits<{ next: []; skip: [] }>()
 
+const { t, locale } = useI18n()
 const contactsStore = useContactsStore()
 const authStore = useAuthStore()
 const api = useGoogleContactsImport()
@@ -97,7 +100,7 @@ async function startSync() {
     initContactState(list)
     gStep.value = 'selecting'
   } catch (e) {
-    gError.value = e instanceof Error ? e.message : 'Error desconocido'
+    gError.value = e instanceof Error ? e.message : t('onboarding.crew.unknownError')
     gStep.value = 'idle'
   }
 }
@@ -108,7 +111,10 @@ async function doImport() {
   gError.value = ''
   const patchPromises = selectedUuids.value.map((uuid) => {
     const roleUuid = contactState.value[uuid]?.roleUuid || null
-    return api.patchContactRole(uuid, roleUuid).catch(() => null)
+    return api.patchContactRole(uuid, roleUuid).catch((e: unknown) => {
+      console.error('[OnbCrewStep] patchContactRole', uuid, e)
+      return null
+    })
   })
   await Promise.allSettled(patchPromises)
   await contactsStore.fetchContacts()
@@ -116,10 +122,10 @@ async function doImport() {
 }
 
 function formatDate(iso: string | null) {
-  if (!iso) return 'nunca'
-  return new Date(iso).toLocaleString('es', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  })
+  if (!iso) return t('onboarding.crew.never')
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
 // ─── Manual state machine ─────────────────────────────────────────────────────
@@ -200,7 +206,7 @@ async function submitManual() {
     await contactsStore.fetchContacts()
     manualStep.value = 'done'
   } catch (e) {
-    manualError.value = e instanceof Error ? e.message : 'Error al crear contacto'
+    manualError.value = e instanceof Error ? e.message : t('onboarding.crew.createError')
     manualStep.value = 'form'
   }
 }
@@ -216,8 +222,8 @@ watch(source, (val) => {
     <div class="grid grid-cols-2 gap-2 mb-5">
       <div
         v-for="opt in [
-          { key: 'google', label: 'Google Contacts', sub: 'OAuth sync' },
-          { key: 'manual', label: 'Manual', sub: 'Formulario' },
+          { key: 'google', label: 'Google Contacts', sub: t('onboarding.crew.googleSub') },
+          { key: 'manual', label: t('onboarding.crew.manual'), sub: t('onboarding.crew.manualSub') },
         ]"
         :key="opt.key"
         class="bg-glass border rounded-xl p-3 text-center cursor-pointer transition-all duration-200"
@@ -260,10 +266,10 @@ watch(source, (val) => {
         class="bg-glass border border-line rounded-lg px-3.5 py-4 text-center mb-4"
       >
         <p class="text-[12px] font-semibold text-ink-2 mb-0.5">
-          Solo con cuenta real
+          {{ t('onboarding.calendar.demoTitle') }}
         </p>
         <p class="text-[11px] text-ink-3">
-          La sincronización requiere iniciar sesión con Google.
+          {{ t('onboarding.crew.demoBody') }}
         </p>
       </div>
 
@@ -305,13 +311,13 @@ watch(source, (val) => {
               v-if="subscription"
               class="text-[11px] text-ink-3"
             >
-              Última sync: {{ formatDate(subscription.last_synced_at) }}
+              {{ t('onboarding.crew.lastSync', { date: formatDate(subscription.last_synced_at) }) }}
             </p>
             <p
               v-else
               class="text-[11px] text-ink-3"
             >
-              Importa tu crew directamente desde Google
+              {{ t('onboarding.crew.googleIntro') }}
             </p>
           </div>
           <p
@@ -337,7 +343,7 @@ watch(source, (val) => {
               <polyline points="1 4 1 10 7 10" /><polyline points="23 20 23 14 17 14" />
               <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
             </svg>
-            {{ subscription ? 'Re-sincronizar' : 'Sincronizar Google Contacts' }}
+            {{ subscription ? t('onboarding.crew.resync') : t('onboarding.crew.sync') }}
           </BtnPrimary>
         </div>
 
@@ -364,10 +370,10 @@ watch(source, (val) => {
             />
           </svg>
           <p class="text-[13px] font-semibold text-ink mb-1">
-            {{ gStep === 'loading' ? 'Conectando...' : 'Sincronizando contactos' }}
+            {{ gStep === 'loading' ? t('onboarding.crew.connecting') : t('onboarding.crew.syncing') }}
           </p>
           <p class="text-[11px] text-ink-3">
-            Esto puede tardar unos segundos
+            {{ t('onboarding.calendar.connectingHint') }}
           </p>
         </div>
 
@@ -377,9 +383,9 @@ watch(source, (val) => {
             v-if="syncStats"
             class="flex items-center gap-3 mb-3 flex-wrap"
           >
-            <span class="text-[10px] text-ink-3"><strong class="text-acid">+{{ syncStats.created }}</strong> nuevos</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> actualizados</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> total</span>
+            <span class="text-[10px] text-ink-3"><strong class="text-acid">+{{ syncStats.created }}</strong> {{ t('onboarding.crew.statNew') }}</span>
+            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> {{ t('onboarding.crew.statUpdated') }}</span>
+            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> {{ t('onboarding.crew.statTotal') }}</span>
           </div>
           <div class="flex items-center gap-[7px] bg-glass border border-line rounded px-2.5 py-2 mb-2.5">
             <svg
@@ -406,7 +412,7 @@ watch(source, (val) => {
             </svg>
             <input
               v-model="searchFilter"
-              placeholder="Filtrar contactos..."
+              :placeholder="t('onboarding.crew.filterPlaceholder')"
               class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
             >
             <button
@@ -455,16 +461,17 @@ watch(source, (val) => {
               ><polyline points="20 6 9 17 4 12" /></svg>
             </button>
             <span class="text-[10px] text-ink-3">
-              {{ allFilteredSelected ? 'Deseleccionar todo' : 'Seleccionar todo' }} ({{ selectableContacts.length }})
+              {{ allFilteredSelected ? t('onboarding.crew.deselectAll') : t('onboarding.crew.selectAll') }}
+              ({{ selectableContacts.length }})
             </span>
-            <span class="ml-auto text-[10px] text-acid font-semibold">{{ selectedUuids.length }} seleccionados</span>
+            <span class="ml-auto text-[10px] text-acid font-semibold">{{ t('onboarding.crew.selectedCount', { count: selectedUuids.length }) }}</span>
           </div>
           <div class="max-h-48 overflow-y-auto mb-4 border border-line rounded-lg overflow-hidden">
             <div
               v-if="filteredContacts.length === 0"
               class="py-6 text-center text-[12px] text-ink-3"
             >
-              No hay contactos que coincidan
+              {{ t('onboarding.crew.noMatches') }}
             </div>
             <div
               v-for="c in filteredContacts"
@@ -522,7 +529,7 @@ watch(source, (val) => {
                   v-if="c.is_confirmed"
                   class="text-[9px] font-semibold px-1.5 py-0.5 rounded"
                   style="background:rgba(31,173,90,0.12);color:#1fad5a"
-                >Ya importado</span>
+                >{{ t('onboarding.crew.alreadyImported') }}</span>
                 <div
                   v-else-if="contactState[c.uuid]"
                   class="relative flex items-center gap-1"
@@ -537,7 +544,7 @@ watch(source, (val) => {
                     class="bg-glass border border-line rounded px-1.5 py-1 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer max-w-[90px]"
                   >
                     <option value="">
-                      Sin rol
+                      {{ t('onboarding.crew.noRole') }}
                     </option>
                     <option
                       v-for="r in roles"
@@ -567,7 +574,11 @@ watch(source, (val) => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
               ><polyline points="20 6 9 17 4 12" /></svg>
-              Importar {{ selectedUuids.length > 0 ? `${selectedUuids.length} contacto${selectedUuids.length !== 1 ? 's' : ''}` : 'seleccionados' }}
+              {{
+                selectedUuids.length > 0
+                  ? t('onboarding.crew.importN', selectedUuids.length)
+                  : t('onboarding.crew.importSelected')
+              }}
             </BtnPrimary>
             <BtnSecondary @click="gStep = 'idle'">
               ↩
@@ -598,7 +609,7 @@ watch(source, (val) => {
             />
           </svg>
           <p class="text-[13px] text-ink-2">
-            Importando contactos...
+            {{ t('onboarding.crew.importing') }}
           </p>
         </div>
 
@@ -620,16 +631,16 @@ watch(source, (val) => {
             ><polyline points="20 6 9 17 4 12" /></svg>
           </div>
           <p class="text-[14px] font-bold text-ink mb-1">
-            ¡Crew importado!
+            {{ t('onboarding.crew.importedTitle') }}
           </p>
           <p class="text-[11px] text-ink-3 mb-5">
-            {{ selectedUuids.length }} contacto{{ selectedUuids.length !== 1 ? 's' : '' }} añadido{{ selectedUuids.length !== 1 ? 's' : '' }}
+            {{ t('onboarding.crew.importedCount', selectedUuids.length) }}
           </p>
           <BtnPrimary
             full
             @click="emit('next')"
           >
-            Continuar
+            {{ t('onboarding.continue') }}
           </BtnPrimary>
         </div>
       </template>
@@ -660,7 +671,7 @@ watch(source, (val) => {
           />
         </svg>
         <p class="text-[13px] text-ink-2">
-          Creando contacto...
+          {{ t('onboarding.crew.creating') }}
         </p>
       </div>
 
@@ -682,23 +693,23 @@ watch(source, (val) => {
           ><polyline points="20 6 9 17 4 12" /></svg>
         </div>
         <p class="text-[14px] font-bold text-ink mb-1">
-          ¡Contacto creado!
+          {{ t('onboarding.crew.createdTitle') }}
         </p>
         <p class="text-[11px] text-ink-3 mb-5">
-          {{ createdContact?.full_name }} fue añadido al crew
+          {{ t('onboarding.crew.createdBody', { name: createdContact?.full_name ?? '' }) }}
         </p>
         <div class="flex gap-2">
           <BtnPrimary
             full
             @click="resetManualForm"
           >
-            Añadir otro
+            {{ t('onboarding.crew.addAnother') }}
           </BtnPrimary>
           <BtnSecondary
             full
             @click="emit('next')"
           >
-            Continuar
+            {{ t('onboarding.continue') }}
           </BtnSecondary>
         </div>
       </div>
@@ -710,7 +721,10 @@ watch(source, (val) => {
       >
         <div class="flex gap-[3px] bg-glass border border-line rounded-[7px] p-0.5">
           <button
-            v-for="ct in [{ key: 'person', label: 'Persona' }, { key: 'company', label: 'Empresa' }]"
+            v-for="ct in [
+              { key: 'person', label: t('onboarding.crew.person') },
+              { key: 'company', label: t('onboarding.crew.company') },
+            ]"
             :key="ct.key"
             class="flex-1 py-[5px] rounded-[5px] border-none text-[11px] font-semibold cursor-pointer transition-all duration-150"
             :class="form.contact_type === ct.key ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
@@ -725,34 +739,34 @@ watch(source, (val) => {
           class="grid grid-cols-2 gap-2"
         >
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Nombre *</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.firstName') }} *</label>
             <input
               v-model="form.first_name"
-              placeholder="Juan"
+              :placeholder="t('onboarding.crew.firstNamePlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Apellido</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.lastName') }}</label>
             <input
               v-model="form.last_name"
-              placeholder="García"
+              :placeholder="t('onboarding.crew.lastNamePlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
         <div v-else>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">Empresa *</label>
+          <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.company') }} *</label>
           <input
             v-model="form.company_name"
-            placeholder="Nombre de la empresa"
+            :placeholder="t('onboarding.crew.companyPlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           >
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Rol</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.role') }}</label>
             <div class="relative flex items-center">
               <div
                 v-if="form.role"
@@ -765,7 +779,7 @@ watch(source, (val) => {
                 :class="form.role ? 'pl-7 pr-2.5' : 'px-2.5'"
               >
                 <option value="">
-                  Sin rol
+                  {{ t('onboarding.crew.noRole') }}
                 </option>
                 <option
                   v-for="r in roles"
@@ -778,10 +792,10 @@ watch(source, (val) => {
             </div>
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Cargo</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.jobTitle') }}</label>
             <input
               v-model="form.job_title"
-              placeholder="Director de gira"
+              :placeholder="t('onboarding.crew.jobTitlePlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
@@ -789,20 +803,20 @@ watch(source, (val) => {
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Email</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.email') }}</label>
             <input
               v-model="form.primary_email"
               type="email"
-              placeholder="email@ejemplo.com"
+              :placeholder="t('onboarding.crew.emailPlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Teléfono</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.phone') }}</label>
             <input
               v-model="form.primary_phone"
               type="tel"
-              placeholder="+52 55 0000 0000"
+              :placeholder="t('onboarding.crew.phonePlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
@@ -810,29 +824,29 @@ watch(source, (val) => {
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Ciudad</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.city') }}</label>
             <input
               v-model="form.city"
-              placeholder="Ciudad de México"
+              :placeholder="t('onboarding.crew.cityPlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">País</label>
+            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.country') }}</label>
             <input
               v-model="form.country"
-              placeholder="México"
+              :placeholder="t('onboarding.crew.countryPlaceholder')"
               class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
 
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">Notas</label>
+          <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.notes') }}</label>
           <textarea
             v-model="form.notes"
             rows="2"
-            placeholder="Notas adicionales..."
+            :placeholder="t('onboarding.crew.notesPlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
           />
         </div>
@@ -855,7 +869,7 @@ watch(source, (val) => {
             >
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
-            <span class="text-[11px] font-medium">Favorito</span>
+            <span class="text-[11px] font-medium">{{ t('onboarding.crew.favorite') }}</span>
           </button>
           <button
             class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded border transition-all cursor-pointer"
@@ -885,7 +899,7 @@ watch(source, (val) => {
                 y2="16"
               />
             </svg>
-            <span class="text-[11px] font-medium">Emergencia</span>
+            <span class="text-[11px] font-medium">{{ t('onboarding.crew.emergency') }}</span>
           </button>
         </div>
 
@@ -930,7 +944,7 @@ watch(source, (val) => {
                 y2="14"
               />
             </svg>
-            Crear contacto
+            {{ t('onboarding.crew.create') }}
           </BtnPrimary>
         </div>
       </div>
@@ -942,7 +956,7 @@ watch(source, (val) => {
       class="w-full mt-3 text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
       @click="emit('skip')"
     >
-      Omitir por ahora →
+      {{ t('onboarding.skip') }}
     </button>
   </div>
 </template>

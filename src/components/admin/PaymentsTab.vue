@@ -1,16 +1,19 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, watch } from 'vue'
 import { useAdminPayments, type PaymentListItem } from '@/composables/useAdminPayments'
 import PaymentCard from '@/components/admin/PaymentCard.vue'
 import RefundPaymentModal from '@/components/admin/RefundPaymentModal.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 
+const { t } = useI18n()
 const api = useAdminPayments()
 const items = ref<PaymentListItem[]>([])
 const count = ref(0)
 const next = ref<string | null>(null)
 const previous = ref<string | null>(null)
 const loading = ref(false)
+const loadError = ref('')
 const search = ref('')
 const status = ref('')
 const currency = ref('')
@@ -18,6 +21,7 @@ const refunding = ref<PaymentListItem | null>(null)
 
 async function load(url?: string) {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await api.list(
       url ?? { search: search.value, status: status.value || undefined, currency: currency.value || undefined },
@@ -26,8 +30,9 @@ async function load(url?: string) {
     count.value = data.count
     next.value = data.next
     previous.value = data.previous
-  } catch {
+  } catch (e) {
     items.value = []
+    loadError.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
@@ -46,7 +51,7 @@ onMounted(() => load())
   <div class="flex flex-col h-full">
     <div class="px-4 pt-4 pb-3 border-b border-line flex-shrink-0">
       <p class="text-base font-bold text-ink tracking-[-0.2px] mb-3">
-        Pagos
+        {{ t('admin.payments.title') }}
       </p>
       <div class="flex gap-2">
         <div class="flex-1 flex items-center gap-[7px] bg-glass border border-line rounded-sm px-[11px] py-[7px]">
@@ -74,7 +79,7 @@ onMounted(() => load())
           </svg>
           <input
             v-model="search"
-            placeholder="Buscar por cliente o gira…"
+            :placeholder="t('admin.payments.searchPlaceholder')"
             class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
           >
         </div>
@@ -83,19 +88,19 @@ onMounted(() => load())
           class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none cursor-pointer"
         >
           <option value="">
-            Todos los estados
+            {{ t('admin.common.allStatuses') }}
           </option>
           <option value="completed">
-            Completado
+            {{ t('admin.paymentStatus.completed') }}
           </option>
           <option value="pending">
-            Pendiente
+            {{ t('admin.paymentStatus.pending') }}
           </option>
           <option value="failed">
-            Fallido
+            {{ t('admin.paymentStatus.failed') }}
           </option>
           <option value="refunded">
-            Reembolsado
+            {{ t('admin.paymentStatus.refunded') }}
           </option>
         </select>
       </div>
@@ -125,10 +130,16 @@ onMounted(() => load())
         </svg>
       </div>
       <p
+        v-else-if="loadError"
+        class="text-center py-8 text-red-400 text-xs"
+      >
+        {{ t('admin.common.loadError', { error: loadError }) }}
+      </p>
+      <p
         v-else-if="items.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
-        Sin resultados
+        {{ t('admin.common.noResults') }}
       </p>
       <PaymentCard
         v-for="p in items"

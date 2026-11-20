@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -12,41 +13,36 @@ import { useNoIndex } from '@/composables/usePageMeta'
 
 useNoIndex()
 
+const { t } = useI18n()
 type AdminTab = 'subscriptions' | 'plans' | 'pools' | 'payments' | 'usage' | 'allowlist'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-const TABS: { key: AdminTab; label: string; iconPath: string }[] = [
+const TABS: { key: AdminTab; iconPath: string }[] = [
   {
     key: 'subscriptions',
-    label: 'Suscripciones',
     iconPath: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
   },
   {
     key: 'plans',
-    label: 'Planes',
     iconPath: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`,
   },
   {
     key: 'pools',
-    label: 'Cupos Custom',
     iconPath: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`,
   },
   {
     key: 'payments',
-    label: 'Pagos',
     iconPath: `<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
   },
   {
     key: 'usage',
-    label: 'Log de Uso',
     iconPath: `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
   },
   {
     key: 'allowlist',
-    label: 'Acceso',
     iconPath: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`,
   },
 ]
@@ -84,10 +80,10 @@ async function signOut() {
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Volver al dashboard
+          {{ t('admin.backToDashboard') }}
         </RouterLink>
         <p class="text-[15px] font-bold text-ink tracking-[-0.2px]">
-          Panel Admin
+          {{ t('admin.title') }}
         </p>
         <p class="text-[10px] text-ink-4 truncate mt-0.5">
           {{ auth.user?.email }}
@@ -122,7 +118,7 @@ async function signOut() {
             stroke-linejoin="round"
             v-html="tab.iconPath"
           />
-          <span class="text-[12px] font-medium">{{ tab.label }}</span>
+          <span class="text-[12px] font-medium">{{ t(`admin.tabs.${tab.key}`) }}</span>
         </button>
       </nav>
 
@@ -151,7 +147,7 @@ async function signOut() {
               y2="12"
             />
           </svg>
-          <span class="text-[12px] font-medium">Cerrar sesión</span>
+          <span class="text-[12px] font-medium">{{ t('admin.signOut') }}</span>
         </button>
       </div>
     </div>

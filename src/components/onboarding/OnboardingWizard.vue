@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import OnbTourStep from './OnbTourStep.vue'
 import OnbCrewStep from './OnbCrewStep.vue'
 import OnbCalendarStep from './OnbCalendarStep.vue'
@@ -11,12 +12,9 @@ type Step = 'tour' | 'crew' | 'calendar' | 'done'
 
 const STEPS: Step[] = ['tour', 'crew', 'calendar', 'done']
 
-const STEP_LABELS: Record<Step, string> = {
-  tour: 'Gira',
-  crew: 'Crew',
-  calendar: 'Calendario',
-  done: '¡Listo!',
-}
+const { t } = useI18n()
+
+const stepLabel = (s: Step) => t(`onboarding.steps.${s}`)
 
 const currentStep = ref<Step>('tour')
 const createdTourId = ref<number | null>(null)
@@ -61,10 +59,16 @@ function onFinish() {
           <div class="flex items-center justify-between mb-5">
             <div>
               <p class="text-[16px] font-bold text-ink tracking-[-0.3px]">
-                Configura tu primera gira
+                {{ t('onboarding.title') }}
               </p>
               <p class="text-[11px] text-ink-3 mt-0.5">
-                Paso {{ stepIndex + 1 }} de {{ STEPS.length }} — {{ STEP_LABELS[currentStep] }}
+                {{
+                  t('onboarding.stepOf', {
+                    current: stepIndex + 1,
+                    total: STEPS.length,
+                    label: stepLabel(currentStep),
+                  })
+                }}
               </p>
             </div>
             <div class="flex items-center gap-3">
@@ -86,7 +90,8 @@ function onFinish() {
               <!-- Close button -->
               <button
                 class="w-7 h-7 flex items-center justify-center rounded-lg text-ink-4 hover:text-ink hover:bg-glass-hover transition-all bg-transparent border-none cursor-pointer"
-                title="Cerrar"
+                :title="t('onboarding.close')"
+                :aria-label="t('onboarding.close')"
                 @click="emit('close')"
               >
                 <svg
@@ -137,7 +142,7 @@ function onFinish() {
                     : 'text-ink-4'
               "
             >
-              {{ STEP_LABELS[s] }}
+              {{ stepLabel(s) }}
             </div>
           </div>
         </div>

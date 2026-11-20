@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { ref, watch } from 'vue'
 import { useAdminPayments, type PaymentListItem, type PaymentDetail } from '@/composables/useAdminPayments'
 
+const { t, te, locale } = useI18n()
 const props = defineProps<{ payment: PaymentListItem }>()
 const emit = defineEmits<{ refund: [] }>()
 
@@ -17,13 +20,20 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   refunded: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
   cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
 }
+function statusLabel(s: string) {
+  const key = `admin.paymentStatus.${s}`
+  return te(key) ? t(key) : s
+}
+
 function statusColor(s: string) {
   return STATUS_COLORS[s] ?? { bg: 'rgba(100,116,139,0.10)', text: '#64748b' }
 }
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 watch(expanded, async (val) => {
@@ -31,7 +41,8 @@ watch(expanded, async (val) => {
     loading.value = true
     try {
       detail.value = await api.get(props.payment.uuid)
-    } catch {
+    } catch (e) {
+      console.error('[PaymentCard] detalle del pago', e)
       detail.value = null
     } finally {
       loading.value = false
@@ -61,7 +72,7 @@ watch(expanded, async (val) => {
         class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 capitalize"
         :style="{ background: statusColor(payment.status).bg, color: statusColor(payment.status).text }"
       >
-        {{ payment.status }}
+        {{ statusLabel(payment.status) }}
       </span>
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
@@ -113,13 +124,13 @@ watch(expanded, async (val) => {
           v-if="detail.subscription_plan"
           class="text-[11px] text-ink-3"
         >
-          Plan: {{ detail.subscription_plan }}
+          {{ t('admin.payments.plan', { plan: detail.subscription_plan }) }}
         </p>
         <p
           v-if="detail.authorization_code"
           class="text-[11px] text-ink-4"
         >
-          Código: {{ detail.authorization_code }}
+          {{ t('admin.payments.authCode', { code: detail.authorization_code }) }}
         </p>
         <p
           v-if="detail.notes"
@@ -133,7 +144,7 @@ watch(expanded, async (val) => {
           class="mt-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
           @click="emit('refund')"
         >
-          Reembolsar
+          {{ t('admin.payments.refund') }}
         </button>
       </template>
     </div>

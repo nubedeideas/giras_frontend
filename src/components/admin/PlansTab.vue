@@ -1,30 +1,35 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, watch } from 'vue'
 import { useAdminPlans, type Plan } from '@/composables/useAdminPlans'
 import PlanCard from '@/components/admin/PlanCard.vue'
 import EditPlanModal from '@/components/admin/EditPlanModal.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 
+const { t } = useI18n()
 const api = useAdminPlans()
 const items = ref<Plan[]>([])
 const count = ref(0)
 const next = ref<string | null>(null)
 const previous = ref<string | null>(null)
 const loading = ref(false)
+const loadError = ref('')
 const search = ref('')
 const editing = ref<Plan | null>(null)
 const showCreate = ref(false)
 
 async function load(url?: string) {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await api.list(url ?? { search: search.value })
     items.value = data.results.sort((a, b) => a.display_order - b.display_order)
     count.value = data.count
     next.value = data.next
     previous.value = data.previous
-  } catch {
+  } catch (e) {
     items.value = []
+    loadError.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
@@ -44,17 +49,17 @@ onMounted(() => load())
     <div class="px-4 pt-4 pb-3 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
         <p class="text-base font-bold text-ink tracking-[-0.2px]">
-          Planes
+          {{ t('admin.plans.title') }}
         </p>
         <button
           class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-black text-[11px] font-bold cursor-pointer"
           @click="showCreate = true"
         >
-          + Nuevo plan
+          {{ t('admin.plans.new') }}
         </button>
       </div>
       <p class="text-[11px] text-ink-4 mb-3">
-        En la práctica se espera editar los 4 planes base — el código es único, así que crear un plan nuevo con un código ya existente falla.
+        {{ t('admin.plans.hint') }}
       </p>
       <div class="flex items-center gap-[7px] bg-glass border border-line rounded-sm px-[11px] py-[7px]">
         <svg
@@ -81,7 +86,7 @@ onMounted(() => load())
         </svg>
         <input
           v-model="search"
-          placeholder="Buscar por nombre o código…"
+          :placeholder="t('admin.plans.searchPlaceholder')"
           class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
         >
       </div>
@@ -111,10 +116,16 @@ onMounted(() => load())
         </svg>
       </div>
       <p
+        v-else-if="loadError"
+        class="text-center py-8 text-red-400 text-xs"
+      >
+        {{ t('admin.common.loadError', { error: loadError }) }}
+      </p>
+      <p
         v-else-if="items.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
-        Sin resultados
+        {{ t('admin.common.noResults') }}
       </p>
       <PlanCard
         v-for="plan in items"

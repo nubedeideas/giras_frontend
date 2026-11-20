@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 defineProps<{ count: number; next: string | null; previous: string | null; pageSize?: number }>()
 const emit = defineEmits<{ prev: []; next: [] }>()
 </script>
@@ -9,7 +11,7 @@ const emit = defineEmits<{ prev: []; next: [] }>()
     class="flex items-center justify-between px-3 py-2.5 border-t border-line flex-shrink-0"
   >
     <p class="text-[11px] text-ink-4">
-      {{ count }} en total
+      {{ t('admin.pagination.total', { count }) }}
     </p>
     <div class="flex gap-1.5">
       <button
@@ -18,7 +20,7 @@ const emit = defineEmits<{ prev: []; next: [] }>()
         :disabled="!previous"
         @click="emit('prev')"
       >
-        Anterior
+        {{ t('admin.pagination.prev') }}
       </button>
       <button
         class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -26,7 +28,7 @@ const emit = defineEmits<{ prev: []; next: [] }>()
         :disabled="!next"
         @click="emit('next')"
       >
-        Siguiente
+        {{ t('admin.pagination.next') }}
       </button>
     </div>
   </div>

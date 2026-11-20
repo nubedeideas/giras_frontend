@@ -47,6 +47,9 @@ jobs:
       - name: Lint
         run: pnpm exec eslint src --ext .vue,.js,.ts
 
+      - name: Tests (Vitest)
+        run: pnpm test
+
       - name: Build (vue-tsc + vite-ssg)
         run: pnpm build
 

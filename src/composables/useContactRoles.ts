@@ -1,7 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
+import { toArray } from '@/utils/pagination'
+import type { Paginated } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,46 +35,27 @@ export interface UpdateRolePayload {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useContactRoles() {
-  function auth() { return useAuthStore() }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
   async function listRoles(): Promise<ContactRole[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/roles/`)
-    if (!res.ok) throw new Error('Error al cargar roles')
-    const data = await res.json()
-    return data.results ?? data
+    const data = await apiClient.get<Paginated<ContactRole> | ContactRole[]>('/contacts/roles/', {
+      fallback: 'Error al cargar roles',
+    })
+    return toArray(data)
   }
 
-  async function createRole(payload: CreateRolePayload): Promise<ContactRole> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/roles/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function createRole(payload: CreateRolePayload): Promise<ContactRole> {
+    return apiClient.post<ContactRole>('/contacts/roles/', payload, {
+      fallback: 'Error al crear rol',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.name?.[0] ?? data.detail ?? 'Error al crear rol')
-    return data
   }
 
-  async function updateRole(uuid: string, payload: UpdateRolePayload): Promise<ContactRole> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/roles/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function updateRole(uuid: string, payload: UpdateRolePayload): Promise<ContactRole> {
+    return apiClient.patch<ContactRole>(`/contacts/roles/${uuid}/`, payload, {
+      fallback: 'Error al actualizar rol',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.name?.[0] ?? data.detail ?? 'Error al actualizar rol')
-    return data
   }
 
-  async function deleteRole(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/roles/${uuid}/`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error ?? 'Error al eliminar rol')
-    }
+  function deleteRole(uuid: string): Promise<void> {
+    return apiClient.delete(`/contacts/roles/${uuid}/`, { fallback: 'Error al eliminar rol' })
   }
 
   return { listRoles, createRole, updateRole, deleteRole }

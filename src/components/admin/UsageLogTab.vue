@@ -1,29 +1,34 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, watch } from 'vue'
 import { useAdminNotificationUsage, type NotificationUsageEntry } from '@/composables/useAdminNotificationUsage'
 import type { PlanCode } from '@/composables/useAdminSubscriptions'
 import UsageLogCard from '@/components/admin/UsageLogCard.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 
+const { t } = useI18n()
 const api = useAdminNotificationUsage()
 const items = ref<NotificationUsageEntry[]>([])
 const count = ref(0)
 const next = ref<string | null>(null)
 const previous = ref<string | null>(null)
 const loading = ref(false)
+const loadError = ref('')
 const search = ref('')
 const planCode = ref<PlanCode | ''>('')
 
 async function load(url?: string) {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await api.list(url ?? { search: search.value, plan_code: planCode.value || undefined })
     items.value = data.results
     count.value = data.count
     next.value = data.next
     previous.value = data.previous
-  } catch {
+  } catch (e) {
     items.value = []
+    loadError.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
@@ -42,7 +47,7 @@ onMounted(() => load())
   <div class="flex flex-col h-full">
     <div class="px-4 pt-4 pb-3 border-b border-line flex-shrink-0">
       <p class="text-base font-bold text-ink tracking-[-0.2px] mb-3">
-        Log de uso de notificaciones
+        {{ t('admin.usage.title') }}
       </p>
       <div class="flex gap-2">
         <div class="flex-1 flex items-center gap-[7px] bg-glass border border-line rounded-sm px-[11px] py-[7px]">
@@ -70,7 +75,7 @@ onMounted(() => load())
           </svg>
           <input
             v-model="search"
-            placeholder="Buscar por cliente o gira…"
+            :placeholder="t('admin.usage.searchPlaceholder')"
             class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
           >
         </div>
@@ -79,19 +84,19 @@ onMounted(() => load())
           class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none cursor-pointer"
         >
           <option value="">
-            Todos los planes
+            {{ t('admin.common.allPlans') }}
           </option>
           <option value="free">
-            Free
+            {{ t('admin.plan.free') }}
           </option>
           <option value="starter">
-            Starter
+            {{ t('admin.plan.starter') }}
           </option>
           <option value="premium">
-            Premium
+            {{ t('admin.plan.premium') }}
           </option>
           <option value="custom">
-            Custom
+            {{ t('admin.plan.custom') }}
           </option>
         </select>
       </div>
@@ -121,10 +126,16 @@ onMounted(() => load())
         </svg>
       </div>
       <p
+        v-else-if="loadError"
+        class="text-center py-8 text-red-400 text-xs"
+      >
+        {{ t('admin.common.loadError', { error: loadError }) }}
+      </p>
+      <p
         v-else-if="items.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
-        Sin resultados
+        {{ t('admin.common.noResults') }}
       </p>
       <UsageLogCard
         v-for="entry in items"

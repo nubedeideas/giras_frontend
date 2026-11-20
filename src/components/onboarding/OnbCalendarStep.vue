@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { useCalendarImport, type CalendarSubscription, type GoogleCalendarItem } from '@/composables/useCalendarImport'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
@@ -9,6 +11,7 @@ import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 const props = defineProps<{ tourId: number | null }>()
 const emit = defineEmits<{ next: []; skip: [] }>()
 
+const { t, locale } = useI18n()
 const calImport = useCalendarImport()
 const authStore = useAuthStore()
 const toursStore = useToursStore()
@@ -52,7 +55,7 @@ async function load() {
 
     step.value = 'selecting'
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al cargar calendarios de Google'
+    error.value = e instanceof Error ? e.message : t('onboarding.calendar.loadError')
     step.value = 'error'
   }
 }
@@ -79,22 +82,22 @@ async function connectCalendar() {
     // Assign to the tour created in step 1
     const tourId = props.tourId
     if (tourId !== null) {
-      const tour = toursStore.tours.find((t) => t.id === tourId)
+      const tour = toursStore.tours.find((tr) => tr.id === tourId)
       if (tour) await toursStore.assignCalendar(tour.uuid, sub.id)
     }
 
     step.value = 'connected'
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al conectar el calendario'
+    error.value = e instanceof Error ? e.message : t('onboarding.calendar.connectError')
     step.value = 'selecting'
   }
 }
 
 function formatDate(iso: string | null): string {
-  if (!iso) return 'Nunca'
-  return new Date(iso).toLocaleString('es', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  })
+  if (!iso) return t('onboarding.calendar.never')
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(() => {
@@ -145,16 +148,16 @@ onMounted(() => {
         />
       </svg>
       <p class="text-[12px] font-semibold text-ink-2">
-        Solo con cuenta real
+        {{ t('onboarding.calendar.demoTitle') }}
       </p>
       <p class="text-[11px] text-ink-3">
-        Conéctate con Google para vincular tu calendario.
+        {{ t('onboarding.calendar.demoBody') }}
       </p>
       <button
         class="w-full mt-2 text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
         @click="emit('skip')"
       >
-        Omitir por ahora →
+        {{ t('onboarding.skip') }}
       </button>
     </div>
 
@@ -182,7 +185,7 @@ onMounted(() => {
           />
         </svg>
         <p class="text-[12px] text-ink-3">
-          Cargando calendarios de Google…
+          {{ t('onboarding.calendar.loading') }}
         </p>
       </div>
 
@@ -195,13 +198,13 @@ onMounted(() => {
           {{ error }}
         </p>
         <BtnSecondary @click="load">
-          Reintentar
+          {{ t('onboarding.retry') }}
         </BtnSecondary>
         <button
           class="block w-full text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
           @click="emit('skip')"
         >
-          Omitir por ahora →
+          {{ t('onboarding.skip') }}
         </button>
       </div>
 
@@ -216,7 +219,7 @@ onMounted(() => {
           class="bg-[rgba(168,216,0,0.06)] border border-[rgba(168,216,0,0.15)] rounded-xl px-3.5 py-2.5"
         >
           <p class="text-[10px] font-semibold text-acid mb-1.5">
-            Ya tienes calendarios conectados
+            {{ t('onboarding.calendar.existingTitle') }}
           </p>
           <div class="space-y-1">
             <div
@@ -234,19 +237,23 @@ onMounted(() => {
                   ? 'bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border-[rgba(31,173,90,0.2)]'
                   : 'bg-glass border-line text-ink-4'"
               >
-                {{ cal.webhook_status === 'active' ? '● Activo' : '○ Inactivo' }}
+                {{
+                  cal.webhook_status === 'active'
+                    ? t('onboarding.calendar.active')
+                    : t('onboarding.calendar.inactive')
+                }}
               </span>
             </div>
           </div>
           <p class="text-[10px] text-ink-4 mt-2">
-            Puedes conectar otro o continuar.
+            {{ t('onboarding.calendar.existingHint') }}
           </p>
         </div>
 
         <!-- Google calendar picker -->
         <div>
           <label class="text-[9px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-2">
-            Selecciona un calendario de Google
+            {{ t('onboarding.calendar.pickLabel') }}
           </label>
 
           <div
@@ -254,7 +261,7 @@ onMounted(() => {
             class="text-center py-4"
           >
             <p class="text-[11px] text-ink-3">
-              No se encontraron calendarios en tu cuenta de Google.
+              {{ t('onboarding.calendar.noCalendars') }}
             </p>
           </div>
 
@@ -306,7 +313,7 @@ onMounted(() => {
                     v-if="cal.primary"
                     class="flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(26,143,255,0.1)] text-[#1a8fff] border border-[rgba(26,143,255,0.2)]"
                   >
-                    Principal
+                    {{ t('onboarding.calendar.primary') }}
                   </span>
                 </div>
                 <p class="text-[9px] text-ink-4 font-mono truncate mt-0.5">
@@ -331,12 +338,12 @@ onMounted(() => {
         <!-- Name override -->
         <div v-if="selectedCalId">
           <label class="text-[9px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1.5">
-            Nombre del calendario
+            {{ t('onboarding.calendar.nameLabel') }}
           </label>
           <input
             v-model="selectedCalName"
             class="w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder-ink-4 outline-none focus:border-line-acid transition-colors"
-            placeholder="Ej: Gira Europa 2025"
+            :placeholder="t('onboarding.calendar.namePlaceholder')"
           >
         </div>
 
@@ -364,20 +371,20 @@ onMounted(() => {
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
               />
             </svg>
-            Conectar Google Calendar
+            {{ t('onboarding.calendar.connect') }}
           </BtnPrimary>
           <button
             v-if="existingCals.length > 0"
             class="text-[11px] text-ink-3 hover:text-ink transition-colors bg-transparent border-none cursor-pointer py-1"
             @click="emit('next')"
           >
-            Usar calendario existente →
+            {{ t('onboarding.calendar.useExisting') }}
           </button>
           <button
             class="text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
             @click="emit('skip')"
           >
-            Omitir por ahora →
+            {{ t('onboarding.skip') }}
           </button>
         </div>
       </div>
@@ -405,10 +412,10 @@ onMounted(() => {
           />
         </svg>
         <p class="text-[13px] font-semibold text-ink mb-1">
-          Conectando calendario…
+          {{ t('onboarding.calendar.connecting') }}
         </p>
         <p class="text-[11px] text-ink-3">
-          Esto puede tardar unos segundos
+          {{ t('onboarding.calendar.connectingHint') }}
         </p>
       </div>
 
@@ -442,10 +449,10 @@ onMounted(() => {
             </p>
             <div class="flex items-center gap-2 mt-1.5">
               <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border border-[rgba(31,173,90,0.2)]">
-                ● Conectado
+                {{ t('onboarding.calendar.connected') }}
               </span>
               <span class="text-[10px] text-ink-4">
-                Últ. sync: {{ formatDate(subscription.last_synced_at) }}
+                {{ t('onboarding.calendar.lastSync', { date: formatDate(subscription.last_synced_at) }) }}
               </span>
             </div>
           </div>
@@ -469,9 +476,12 @@ onMounted(() => {
             <polyline points="20 6 9 17 4 12" />
           </svg>
           <p class="text-[11px] text-ink-2">
-            Asignado a
+            {{ t('onboarding.calendar.assignedTo') }}
             <span class="font-semibold text-ink">
-              {{ toursStore.tours.find((t) => t.id === tourId)?.name ?? 'tu gira' }}
+              {{
+                toursStore.tours.find((tr) => tr.id === tourId)?.name ??
+                  t('onboarding.calendar.yourTour')
+              }}
             </span>
           </p>
         </div>
@@ -492,7 +502,7 @@ onMounted(() => {
           >
             <polyline points="9 18 15 12 9 6" />
           </svg>
-          Continuar
+          {{ t('onboarding.continue') }}
         </BtnPrimary>
       </div>
     </template>

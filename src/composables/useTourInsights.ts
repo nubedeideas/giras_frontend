@@ -1,7 +1,4 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,14 +23,10 @@ export interface TourInsights {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useTourInsights() {
-  function auth() {
-    return useAuthStore()
-  }
-
-  async function getInsights(tourUuid: string): Promise<TourInsights> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${tourUuid}/insights/`)
-    if (!res.ok) throw new Error('Error al cargar los insights de la gira')
-    return res.json()
+  function getInsights(tourUuid: string): Promise<TourInsights> {
+    return apiClient.get<TourInsights>(`/tours/${tourUuid}/insights/`, {
+      fallback: 'Error al cargar los insights de la gira',
+    })
   }
 
   return { getInsights }

@@ -1,7 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
+import { toArray } from '@/utils/pagination'
+import type { Paginated } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,106 +158,65 @@ export const PRIORITY_COLORS: Record<ActivityPriority, string> = {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useActivities() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listActivities(params: Record<string, string> = {}): Promise<ActivityListItem[]> {
+  function listActivities(params: Record<string, string> = {}): Promise<ActivityListItem[]> {
     const qs = new URLSearchParams({ page_size: '100', ...params }).toString()
-    const all: ActivityListItem[] = []
-    let url: string | null = `${API_BASE}/events/activities/?${qs}`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar actividades')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
-  }
-
-  async function getActivity(uuid: string): Promise<Activity> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activities/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar actividad')
-    return res.json()
-  }
-
-  async function createActivity(payload: CreateActivityPayload): Promise<Activity> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activities/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+    return apiClient.getAll<ActivityListItem>(`/events/activities/?${qs}`, {
+      fallback: 'Error al cargar actividades',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al crear actividad'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function updateActivity(uuid: string, payload: UpdateActivityPayload): Promise<Activity> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activities/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function getActivity(uuid: string): Promise<Activity> {
+    return apiClient.get<Activity>(`/events/activities/${uuid}/`, {
+      fallback: 'Error al cargar actividad',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al actualizar actividad'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function deleteActivity(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activities/${uuid}/`, {
-      method: 'DELETE',
+  function createActivity(payload: CreateActivityPayload): Promise<Activity> {
+    return apiClient.post<Activity>('/events/activities/', payload, {
+      fallback: 'Error al crear actividad',
     })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar actividad')
-    }
   }
 
-  async function updateStatus(uuid: string, status: ActivityStatus): Promise<Activity> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/events/activities/${uuid}/update_status/`,
-      { method: 'PATCH', headers: jsonHeaders, body: JSON.stringify({ status }) },
-    )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al actualizar estado')
-    return data
+  function updateActivity(uuid: string, payload: UpdateActivityPayload): Promise<Activity> {
+    return apiClient.patch<Activity>(`/events/activities/${uuid}/`, payload, {
+      fallback: 'Error al actualizar actividad',
+    })
   }
 
-  async function completeActivity(uuid: string): Promise<Activity> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/events/activities/${uuid}/complete/`,
-      { method: 'POST' },
-    )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al completar actividad')
-    return data
+  function deleteActivity(uuid: string): Promise<void> {
+    return apiClient.delete(`/events/activities/${uuid}/`, {
+      fallback: 'Error al eliminar actividad',
+    })
   }
 
-  async function cancelActivity(uuid: string, reason = ''): Promise<Activity> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/events/activities/${uuid}/cancel/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ reason }) },
+  function updateStatus(uuid: string, status: ActivityStatus): Promise<Activity> {
+    return apiClient.patch<Activity>(
+      `/events/activities/${uuid}/update_status/`,
+      { status },
+      { fallback: 'Error al actualizar estado' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al cancelar actividad')
-    return data
+  }
+
+  function completeActivity(uuid: string): Promise<Activity> {
+    return apiClient.post<Activity>(`/events/activities/${uuid}/complete/`, undefined, {
+      fallback: 'Error al completar actividad',
+    })
+  }
+
+  function cancelActivity(uuid: string, reason = ''): Promise<Activity> {
+    return apiClient.post<Activity>(
+      `/events/activities/${uuid}/cancel/`,
+      { reason },
+      { fallback: 'Error al cancelar actividad' }
+    )
   }
 
   async function listActivityTypes(): Promise<ActivityTypeListItem[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activity-types/`)
-    if (!res.ok) throw new Error('Error al cargar tipos de actividad')
-    const data = await res.json()
-    return data.results ?? data
+    const data = await apiClient.get<Paginated<ActivityTypeListItem> | ActivityTypeListItem[]>(
+      '/events/activity-types/',
+      { fallback: 'Error al cargar tipos de actividad' }
+    )
+    return toArray(data)
   }
 
   return {

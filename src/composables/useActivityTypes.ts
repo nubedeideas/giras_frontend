@@ -1,7 +1,4 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,66 +57,31 @@ export interface UpdateActivityTypePayload {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useActivityTypes() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listActivityTypes(): Promise<ActivityType[]> {
-    const all: ActivityType[] = []
-    let url: string | null = `${API_BASE}/events/activity-types/?page_size=100`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar tipos de actividad')
-      const data = await res.json()
-      const page: ActivityType[] = data.results ?? data
-      all.push(...page)
-      url = data.next ?? null
-    }
-    return all
-  }
-
-  async function createActivityType(payload: CreateActivityTypePayload): Promise<ActivityType> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activity-types/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function listActivityTypes(): Promise<ActivityType[]> {
+    return apiClient.getAll<ActivityType>('/events/activity-types/?page_size=100', {
+      fallback: 'Error al cargar tipos de actividad',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al crear tipo de actividad'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function updateActivityType(
+  function createActivityType(payload: CreateActivityTypePayload): Promise<ActivityType> {
+    return apiClient.post<ActivityType>('/events/activity-types/', payload, {
+      fallback: 'Error al crear tipo de actividad',
+    })
+  }
+
+  function updateActivityType(
     uuid: string,
-    payload: UpdateActivityTypePayload,
+    payload: UpdateActivityTypePayload
   ): Promise<ActivityType> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activity-types/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+    return apiClient.patch<ActivityType>(`/events/activity-types/${uuid}/`, payload, {
+      fallback: 'Error al actualizar tipo de actividad',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al actualizar tipo de actividad'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function deleteActivityType(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/events/activity-types/${uuid}/`, {
-      method: 'DELETE',
+  function deleteActivityType(uuid: string): Promise<void> {
+    return apiClient.delete(`/events/activity-types/${uuid}/`, {
+      fallback: 'Error al eliminar tipo de actividad',
     })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? data.error ?? 'Error al eliminar tipo de actividad')
-    }
   }
 
   return { listActivityTypes, createActivityType, updateActivityType, deleteActivityType }

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useAdminPlans, type Plan } from '@/composables/useAdminPlans'
 
+const { t } = useI18n()
 const props = defineProps<{ plan: Plan }>()
 const emit = defineEmits<{ edit: []; deleted: [] }>()
 
@@ -17,7 +19,7 @@ async function doDelete() {
     await api.remove(props.plan.uuid)
     emit('deleted')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al eliminar'
+    error.value = e instanceof Error ? e.message : t('admin.common.deleteError')
     showDeleteConfirm.value = false
   } finally {
     deleting.value = false
@@ -37,17 +39,25 @@ async function doDelete() {
           <span
             v-if="plan.is_default"
             class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
-          >Default</span>
+          >{{ t('admin.common.default') }}</span>
           <span
             v-if="!plan.is_active"
             class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
             style="background: rgba(239,68,68,0.12); color: #f87171"
-          >Inactivo</span>
+          >{{ t('admin.common.inactive') }}</span>
         </div>
         <p class="text-[10px] text-ink-4 mt-0.5">
-          {{ plan.is_unlimited_notifications ? 'Notifs. ilimitadas' : `${plan.notification_limit} notifs.` }}
+          {{
+            plan.is_unlimited_notifications
+              ? t('admin.plans.unlimitedNotifications')
+              : t('admin.plans.notifications', { n: plan.notification_limit })
+          }}
           ·
-          {{ plan.is_unlimited_shows ? 'shows ilimitados' : `${plan.max_shows} shows` }}
+          {{
+            plan.is_unlimited_shows
+              ? t('admin.plans.unlimitedShows')
+              : t('admin.plans.shows', { n: plan.max_shows })
+          }}
           ·
           {{ plan.price }} {{ plan.currency }}
         </p>
@@ -56,14 +66,14 @@ async function doDelete() {
         class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors flex-shrink-0"
         @click="emit('edit')"
       >
-        Editar
+        {{ t('admin.common.edit') }}
       </button>
       <button
         v-if="!showDeleteConfirm"
         class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors flex-shrink-0"
         @click="showDeleteConfirm = true"
       >
-        Eliminar
+        {{ t('admin.common.delete') }}
       </button>
     </div>
 
@@ -72,7 +82,7 @@ async function doDelete() {
       class="mt-2 pt-2 border-t border-line space-y-1.5"
     >
       <p class="text-[11px] text-ink-3">
-        Si hay giras usando este plan, eliminarlo les puede romper el acceso. ¿Confirmás?
+        {{ t('admin.plans.deleteWarning') }}
       </p>
       <p
         v-if="error"
@@ -87,13 +97,13 @@ async function doDelete() {
           :disabled="deleting"
           @click="doDelete"
         >
-          {{ deleting ? '…' : 'Eliminar de todas formas' }}
+          {{ deleting ? '…' : t('admin.plans.deleteAnyway') }}
         </button>
         <button
           class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="showDeleteConfirm = false"
         >
-          Cancelar
+          {{ t('admin.common.cancel') }}
         </button>
       </div>
     </div>

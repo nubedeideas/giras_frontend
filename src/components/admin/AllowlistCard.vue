@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { ref } from 'vue'
 import { useAdminAllowlist, type AllowedEmail, type AllowlistStatus } from '@/composables/useAdminAllowlist'
 
+const { t, locale } = useI18n()
 const props = defineProps<{ item: AllowedEmail }>()
 const emit = defineEmits<{ refresh: [] }>()
 
@@ -17,15 +20,12 @@ const STATUS_COLORS: Record<AllowlistStatus, { bg: string; text: string }> = {
   revoked: { bg: 'rgba(239,68,68,0.12)', text: '#f87171' },
 }
 
-const STATUS_LABELS: Record<AllowlistStatus, string> = {
-  pending: 'Pendiente',
-  approved: 'Aprobado',
-  revoked: 'Revocado',
-}
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 async function revoke() {
@@ -36,7 +36,7 @@ async function revoke() {
     showRevokeConfirm.value = false
     emit('refresh')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al revocar'
+    error.value = e instanceof Error ? e.message : t('admin.allowlist.revokeError')
   } finally {
     loading.value = false
   }
@@ -49,7 +49,7 @@ async function approve() {
     await api.approve(props.item.uuid)
     emit('refresh')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al aprobar'
+    error.value = e instanceof Error ? e.message : t('admin.allowlist.approveError')
   } finally {
     loading.value = false
   }
@@ -67,14 +67,19 @@ async function approve() {
           {{ item.email }}
         </p>
         <p class="text-[10px] text-ink-4">
-          Invitado por {{ item.invited_by_email ?? '—' }} · {{ formatDate(item.created_at) }}
+          {{
+            t('admin.allowlist.invitedBy', {
+              email: item.invited_by_email ?? '—',
+              date: formatDate(item.created_at),
+            })
+          }}
         </p>
       </div>
       <span
         class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
         :style="{ background: STATUS_COLORS[item.status].bg, color: STATUS_COLORS[item.status].text }"
       >
-        {{ STATUS_LABELS[item.status] }}
+        {{ t(`admin.allowlistStatus.${item.status}`) }}
       </span>
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
@@ -106,7 +111,7 @@ async function approve() {
         v-if="item.approved_at"
         class="text-[10px] text-ink-4"
       >
-        Aprobado el {{ formatDate(item.approved_at) }}
+        {{ t('admin.allowlist.approvedOn', { date: formatDate(item.approved_at) }) }}
       </p>
       <p
         v-if="error"
@@ -122,7 +127,7 @@ async function approve() {
           :disabled="loading"
           @click="approve"
         >
-          Aprobar
+          {{ t('admin.allowlist.approve') }}
         </button>
 
         <template v-if="item.status === 'approved'">
@@ -131,7 +136,7 @@ async function approve() {
             class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
             @click="showRevokeConfirm = true"
           >
-            Revocar acceso
+            {{ t('admin.allowlist.revoke') }}
           </button>
           <div
             v-else
@@ -143,13 +148,13 @@ async function approve() {
               :disabled="loading"
               @click="revoke"
             >
-              {{ loading ? '…' : 'Confirmar' }}
+              {{ loading ? '…' : t('admin.common.confirm') }}
             </button>
             <button
               class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
               @click="showRevokeConfirm = false"
             >
-              Cancelar
+              {{ t('admin.common.cancel') }}
             </button>
           </div>
         </template>

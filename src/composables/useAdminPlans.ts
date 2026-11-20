@@ -1,9 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient, buildQuery } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
 import type { PlanCode } from './useAdminSubscriptions'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 export interface Plan {
   uuid: string
@@ -48,66 +45,29 @@ export interface PlanFilters {
   search?: string
 }
 
-function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
-  const q = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== '') q.set(k, String(v))
-  }
-  return q.toString()
-}
-
 export function useAdminPlans() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function list(query: string | PlanFilters = {}): Promise<Paginated<Plan>> {
+  function list(query: string | PlanFilters = {}): Promise<Paginated<Plan>> {
     const url =
       typeof query === 'string'
         ? query
-        : `${API_BASE}/admin/plans/?${buildQuery({ page_size: 20, ...query })}`
-    const res = await auth().fetchWithAuth(url)
-    if (!res.ok) throw new Error('Error al cargar los planes')
-    return res.json()
+        : `/admin/plans/?${buildQuery({ page_size: 20, ...query })}`
+    return apiClient.get<Paginated<Plan>>(url, {
+      fallback: 'Error al cargar los planes',
+    })
   }
 
-  async function create(payload: CreatePlanPayload): Promise<Plan> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/plans/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      throw new Error(String(Array.isArray(first) ? first[0] : (data.detail ?? 'Error al crear el plan')))
-    }
-    return data
+  function create(payload: CreatePlanPayload): Promise<Plan> {
+    return apiClient.post<Plan>('/admin/plans/', payload, { fallback: 'Error al crear el plan' })
   }
 
-  async function update(uuid: string, payload: UpdatePlanPayload): Promise<Plan> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/plans/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function update(uuid: string, payload: UpdatePlanPayload): Promise<Plan> {
+    return apiClient.patch<Plan>(`/admin/plans/${uuid}/`, payload, {
+      fallback: 'Error al actualizar el plan',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      throw new Error(String(Array.isArray(first) ? first[0] : (data.detail ?? 'Error al actualizar el plan')))
-    }
-    return data
   }
 
-  async function remove(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/plans/${uuid}/`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar el plan')
-    }
+  function remove(uuid: string): Promise<void> {
+    return apiClient.delete(`/admin/plans/${uuid}/`, { fallback: 'Error al eliminar el plan' })
   }
 
   return { list, create, update, remove }

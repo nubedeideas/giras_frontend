@@ -56,13 +56,6 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       { path: 'home', name: 'home', component: () => import('@/views/HomeView.vue') },
-      // Disabled — mockup not in use yet. Not wired into any nav/redirect;
-      // uncomment here (and the nav item in AppSidebar.vue) to bring it back.
-      // {
-      //   path: 'notifs',
-      //   name: 'notifs',
-      //   component: () => import('@/views/NotificationsView.vue'),
-      // },
       { path: 'events', name: 'events', component: () => import('@/views/EventsView.vue') },
       { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },

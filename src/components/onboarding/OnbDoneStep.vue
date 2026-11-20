@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { useToursStore } from '@/stores/tours'
 import { useContactsStore } from '@/stores/contacts'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -7,25 +9,27 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 const props = defineProps<{ tourId: number | null }>()
 const emit = defineEmits<{ finish: [] }>()
 
+const { t } = useI18n()
 const toursStore = useToursStore()
 const contactsStore = useContactsStore()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const tour = computed(() =>
-  props.tourId ? toursStore.tours.find((t) => t.id === props.tourId) ?? null : null,
+  props.tourId ? toursStore.tours.find((tr) => tr.id === props.tourId) ?? null : null,
 )
 
 const stats = computed(() => {
-  const t = tour.value
-  if (!t) return { shows: 0, cities: 0, crew: 0, days: 0, startCity: '', endCity: '' }
-  const start = new Date(t.start_date)
-  const end = new Date(t.end_date)
-  const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000))
-  const settings = (t as unknown as { settings?: Record<string, string> }).settings ?? {}
+  const current = tour.value
+  if (!current) return { shows: 0, cities: 0, crew: 0, days: 0, startCity: '', endCity: '' }
+  const start = DateTime.fromISO(current.start_date)
+  const end = DateTime.fromISO(current.end_date)
+  const days = Math.max(1, Math.round(end.diff(start, 'days').days))
+  const settings =
+    (current as unknown as { settings?: Record<string, string> }).settings ?? {}
   return {
-    shows: t.events_count ?? 0,
-    cities: t.events_count ?? 0,
+    shows: current.events_count ?? 0,
+    cities: current.events_count ?? 0,
     crew: contactsStore.contacts.length,
     days,
     startCity: settings.start_city ?? '',
@@ -131,10 +135,10 @@ onMounted(() => {
       </div>
 
       <p class="text-[22px] font-bold tracking-[-0.5px] text-ink mb-1">
-        ¡Todo listo!
+        {{ t('onboarding.done.title') }}
       </p>
       <p class="text-[13px] text-ink-3 mb-6">
-        Tu gira está configurada y lista para despegar.
+        {{ t('onboarding.done.subtitle') }}
       </p>
 
       <!-- Stats card -->
@@ -173,7 +177,7 @@ onMounted(() => {
               {{ stats.shows }}
             </p>
             <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
-              Shows
+              {{ t('onboarding.done.shows') }}
             </p>
           </div>
           <div class="text-center">
@@ -181,7 +185,7 @@ onMounted(() => {
               {{ stats.cities }}
             </p>
             <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
-              Ciudades
+              {{ t('onboarding.done.cities') }}
             </p>
           </div>
           <div class="text-center">
@@ -189,7 +193,7 @@ onMounted(() => {
               {{ stats.crew }}
             </p>
             <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
-              Crew
+              {{ t('onboarding.done.crew') }}
             </p>
           </div>
           <div class="text-center">
@@ -197,7 +201,7 @@ onMounted(() => {
               {{ stats.days }}
             </p>
             <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
-              Días
+              {{ t('onboarding.done.days') }}
             </p>
           </div>
         </div>
@@ -254,7 +258,7 @@ onMounted(() => {
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        Ir al dashboard
+        {{ t('onboarding.done.cta') }}
       </BtnPrimary>
     </div>
   </div>

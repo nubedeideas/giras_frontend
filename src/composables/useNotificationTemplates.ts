@@ -1,7 +1,4 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { ApiError, apiClient } from '@/utils/apiClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,26 +58,15 @@ export interface BackendErrors {
   non_field_errors?: string[]
 }
 
-export class TemplateApiError extends Error {
-  constructor(public readonly fieldErrors: BackendErrors) {
-    // Only pick string values — ignore booleans, nulls, etc.
-    const firstString = Object.values(fieldErrors)
-      .flat()
-      .find((v): v is string => typeof v === 'string')
-    const msg = fieldErrors.non_field_errors?.[0] ?? firstString ?? 'Error de validación'
-    super(msg)
-  }
-}
+/** Error 400 de validación con los errores por campo ya normalizados (sin el envoltorio del backend). */
+export class TemplateApiError extends ApiError {
+  readonly fieldErrors: BackendErrors
 
-/** Extract a human-readable message from any non-ok API response. */
-export function extractApiError(data: Record<string, unknown>): string {
-  if (typeof data.detail === 'string') return data.detail
-  if (typeof data.message === 'string') return data.message
-  if (typeof data.error === 'string') return data.error
-  const firstString = Object.values(data)
-    .flat()
-    .find((v): v is string => typeof v === 'string')
-  return firstString ?? 'Error del servidor'
+  constructor(source: ApiError) {
+    super(source.status, source.data, { fallback: 'Error de validación' })
+    this.name = 'TemplateApiError'
+    this.fieldErrors = (source.fieldErrors ?? {}) as BackendErrors
+  }
 }
 
 // ─── Display constants ────────────────────────────────────────────────────────
@@ -200,102 +186,87 @@ export const ALL_CANONICAL_VARS: CanonicalVar[] = CANONICAL_VAR_GROUPS.flatMap((
 
 // ─── Composable ───────────────────────────────────────────────────────────────
 
+/**
+ * Errores de validación por campo → `TemplateApiError`; el resto (auth, permisos...) sigue
+ * como `ApiError`.
+ */
+function toTemplateError(e: unknown): unknown {
+  if (e instanceof ApiError && e.status === 400 && e.fieldErrors) return new TemplateApiError(e)
+  return e
+}
+
 export function useNotificationTemplates() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listTemplates(): Promise<NotificationTemplateListItem[]> {
-    const all: NotificationTemplateListItem[] = []
-    let url: string | null = `${API_BASE}/notifications/templates/?page_size=100`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar templates')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
+  function listTemplates(): Promise<NotificationTemplateListItem[]> {
+    return apiClient.getAll<NotificationTemplateListItem>(
+      '/notifications/templates/?page_size=100',
+      { fallback: 'Error al cargar templates' }
+    )
   }
 
-  async function getTemplate(uuid: string): Promise<NotificationTemplate> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/templates/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar template')
-    return res.json()
+  function getTemplate(uuid: string): Promise<NotificationTemplate> {
+    return apiClient.get<NotificationTemplate>(`/notifications/templates/${uuid}/`, {
+      fallback: 'Error al cargar template',
+    })
   }
 
   async function createTemplate(payload: TemplatePayload): Promise<NotificationTemplate> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/templates/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      // If it's a plain detail/message error (auth, permission, etc.), throw as simple Error
-      if (typeof data.detail === 'string' || typeof data.message === 'string') {
-        throw new Error(extractApiError(data as Record<string, unknown>))
-      }
-      throw new TemplateApiError(data as BackendErrors)
+    try {
+      return await apiClient.post<NotificationTemplate>('/notifications/templates/', payload, {
+        fallback: 'Error de validación',
+      })
+    } catch (e) {
+      throw toTemplateError(e)
     }
-    return data
   }
 
   async function updateTemplate(
     uuid: string,
-    payload: TemplatePayload,
+    payload: TemplatePayload
   ): Promise<NotificationTemplate> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/templates/${uuid}/`, {
-      method: 'PUT',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      if (typeof data.detail === 'string' || typeof data.message === 'string') {
-        throw new Error(extractApiError(data as Record<string, unknown>))
-      }
-      throw new TemplateApiError(data as BackendErrors)
-    }
-    return data
-  }
-
-  async function deleteTemplate(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/templates/${uuid}/`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar template')
+    try {
+      return await apiClient.put<NotificationTemplate>(
+        `/notifications/templates/${uuid}/`,
+        payload,
+        { fallback: 'Error de validación' }
+      )
+    } catch (e) {
+      throw toTemplateError(e)
     }
   }
 
-  async function setAsDefault(uuid: string): Promise<{
+  function deleteTemplate(uuid: string): Promise<void> {
+    return apiClient.delete(`/notifications/templates/${uuid}/`, {
+      fallback: 'Error al eliminar template',
+    })
+  }
+
+  function setAsDefault(uuid: string): Promise<{
     success: boolean
     message: string
-    template: Pick<NotificationTemplate, 'uuid' | 'name' | 'notification_type' | 'channel' | 'is_default'>
+    template: Pick<
+      NotificationTemplate,
+      'uuid' | 'name' | 'notification_type' | 'channel' | 'is_default'
+    >
   }> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/templates/${uuid}/set_as_default/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({}) },
+    return apiClient.post(
+      `/notifications/templates/${uuid}/set_as_default/`,
+      {},
+      { fallback: 'Error al establecer predeterminado' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? data.message ?? 'Error al establecer predeterminado')
-    return data
   }
 
-  async function previewTemplate(
+  function previewTemplate(
     uuid: string,
-    context: Record<string, string>,
-  ): Promise<{ template: { uuid: string; name: string }; preview: { subject?: string; body: string } }> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/templates/${uuid}/preview/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ context }) },
+    context: Record<string, string>
+  ): Promise<{
+    template: { uuid: string; name: string }
+    preview: { subject?: string; body: string }
+  }> {
+    return apiClient.post(
+      `/notifications/templates/${uuid}/preview/`,
+      { context },
+      { fallback: 'Error al generar preview' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al generar preview')
-    return data
   }
 
   return {

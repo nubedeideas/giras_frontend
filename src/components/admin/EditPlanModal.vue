@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useAdminPlans, type Plan } from '@/composables/useAdminPlans'
 import type { PlanCode } from '@/composables/useAdminSubscriptions'
 
+const { t } = useI18n()
 const props = defineProps<{ show: boolean; plan: Plan | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
@@ -67,7 +69,7 @@ async function submit() {
     emit('saved')
     emit('close')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al guardar'
+    error.value = e instanceof Error ? e.message : t('admin.common.saveError')
   } finally {
     saving.value = false
   }
@@ -84,7 +86,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
     @close="emit('close')"
   >
     <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
-      {{ isEdit ? 'Editar plan' : 'Nuevo plan' }}
+      {{ isEdit ? t('admin.planForm.editTitle') : t('admin.planForm.newTitle') }}
     </p>
     <p
       v-if="isEdit && plan"
@@ -96,12 +98,12 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       v-else
       class="text-[11px] text-ink-4 mb-4"
     >
-      El código debe ser único — si los 4 planes base ya existen, el backend rechaza el duplicado.
+      {{ t('admin.planForm.codeHint') }}
     </p>
 
     <div class="space-y-3">
       <div v-if="!isEdit">
-        <label :class="labelClass">Código</label>
+        <label :class="labelClass">{{ t('admin.planForm.code') }}</label>
         <select
           v-model="code"
           :class="inputClass"
@@ -116,14 +118,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         </select>
       </div>
       <div>
-        <label :class="labelClass">Nombre</label>
+        <label :class="labelClass">{{ t('admin.planForm.name') }}</label>
         <input
           v-model="name"
           :class="inputClass"
         >
       </div>
       <div>
-        <label :class="labelClass">Descripción</label>
+        <label :class="labelClass">{{ t('admin.planForm.description') }}</label>
         <textarea
           v-model="description"
           :class="inputClass"
@@ -133,7 +135,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label :class="labelClass">Límite notifs. (0 = ilimitado)</label>
+          <label :class="labelClass">{{ t('admin.planForm.notificationLimit') }}</label>
           <input
             v-model.number="notificationLimit"
             type="number"
@@ -142,7 +144,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           >
         </div>
         <div>
-          <label :class="labelClass">Límite shows (0 = ilimitado)</label>
+          <label :class="labelClass">{{ t('admin.planForm.showsLimit') }}</label>
           <input
             v-model.number="maxShows"
             type="number"
@@ -153,14 +155,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label :class="labelClass">Precio</label>
+          <label :class="labelClass">{{ t('admin.planForm.price') }}</label>
           <input
             v-model="price"
             :class="inputClass"
           >
         </div>
         <div>
-          <label :class="labelClass">Moneda</label>
+          <label :class="labelClass">{{ t('admin.planForm.currency') }}</label>
           <input
             v-model="currency"
             :class="inputClass"
@@ -168,7 +170,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         </div>
       </div>
       <div>
-        <label :class="labelClass">Orden de visualización</label>
+        <label :class="labelClass">{{ t('admin.planForm.displayOrder') }}</label>
         <input
           v-model.number="displayOrder"
           type="number"
@@ -181,7 +183,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           type="checkbox"
           class="cursor-pointer"
         >
-        <span class="text-[12px] text-ink-2">Plan activo (visible en el catálogo)</span>
+        <span class="text-[12px] text-ink-2">{{ t('admin.planForm.active') }}</span>
       </label>
       <label class="flex items-center gap-2 cursor-pointer">
         <input
@@ -189,7 +191,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           type="checkbox"
           class="cursor-pointer"
         >
-        <span class="text-[12px] text-ink-2">Plan por defecto (preseleccionado para giras nuevas)</span>
+        <span class="text-[12px] text-ink-2">{{ t('admin.planForm.default') }}</span>
       </label>
 
       <p
@@ -204,14 +206,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
         >
-          Cancelar
+          {{ t('admin.common.cancel') }}
         </button>
         <button
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
           :disabled="saving"
           @click="submit"
         >
-          {{ saving ? 'Guardando…' : 'Guardar' }}
+          {{ saving ? t('admin.common.saving') : t('admin.common.save') }}
         </button>
       </div>
     </div>

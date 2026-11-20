@@ -1,30 +1,35 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, watch } from 'vue'
 import { useAdminAllowlist, type AllowedEmail, type AllowlistStatus } from '@/composables/useAdminAllowlist'
 import AllowlistCard from '@/components/admin/AllowlistCard.vue'
 import CreateAllowedEmailModal from '@/components/admin/CreateAllowedEmailModal.vue'
 import AdminPagination from '@/components/admin/AdminPagination.vue'
 
+const { t } = useI18n()
 const api = useAdminAllowlist()
 const items = ref<AllowedEmail[]>([])
 const count = ref(0)
 const next = ref<string | null>(null)
 const previous = ref<string | null>(null)
 const loading = ref(false)
+const loadError = ref('')
 const search = ref('')
 const status = ref<AllowlistStatus | ''>('')
 const showCreate = ref(false)
 
 async function load(url?: string) {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await api.list(url ?? { search: search.value, status: status.value || undefined })
     items.value = data.results
     count.value = data.count
     next.value = data.next
     previous.value = data.previous
-  } catch {
+  } catch (e) {
     items.value = []
+    loadError.value = e instanceof Error ? e.message : String(e)
   } finally {
     loading.value = false
   }
@@ -44,13 +49,13 @@ onMounted(() => load())
     <div class="px-4 pt-4 pb-3 border-b border-line flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
         <p class="text-base font-bold text-ink tracking-[-0.2px]">
-          Acceso de clientes
+          {{ t('admin.allowlist.title') }}
         </p>
         <button
           class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-black text-[11px] font-bold cursor-pointer"
           @click="showCreate = true"
         >
-          + Invitar
+          {{ t('admin.allowlist.invite') }}
         </button>
       </div>
 
@@ -80,7 +85,7 @@ onMounted(() => load())
           </svg>
           <input
             v-model="search"
-            placeholder="Buscar por email…"
+            :placeholder="t('admin.allowlist.searchPlaceholder')"
             class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
           >
         </div>
@@ -89,16 +94,16 @@ onMounted(() => load())
           class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none cursor-pointer"
         >
           <option value="">
-            Todos los estados
+            {{ t('admin.common.allStatuses') }}
           </option>
           <option value="pending">
-            Pendiente
+            {{ t('admin.allowlistStatus.pending') }}
           </option>
           <option value="approved">
-            Aprobado
+            {{ t('admin.allowlistStatus.approved') }}
           </option>
           <option value="revoked">
-            Revocado
+            {{ t('admin.allowlistStatus.revoked') }}
           </option>
         </select>
       </div>
@@ -128,10 +133,16 @@ onMounted(() => load())
         </svg>
       </div>
       <p
+        v-else-if="loadError"
+        class="text-center py-8 text-red-400 text-xs"
+      >
+        {{ t('admin.common.loadError', { error: loadError }) }}
+      </p>
+      <p
         v-else-if="items.length === 0"
         class="text-center py-8 text-ink-4 text-xs"
       >
-        Sin resultados
+        {{ t('admin.common.noResults') }}
       </p>
       <AllowlistCard
         v-for="item in items"

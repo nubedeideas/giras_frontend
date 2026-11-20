@@ -2,12 +2,10 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLeadEnrichment } from '@/composables/useLeadEnrichment'
+import { ApiError, apiClient } from '@/utils/apiClient'
 
 const { t } = useI18n()
 const { build: buildEnrichment } = useLeadEnrichment()
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 const EMAIL_REGEX =
   /^(?=.{6,254}$)(?=.{1,64}@)[A-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i
@@ -35,24 +33,24 @@ const handleSubmit = async () => {
 
   isLoading.value = true
   try {
-    const res = await fetch(`${API_BASE}/leads/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalized, ...buildEnrichment() }),
-    })
-    if (!res.ok) {
-      if (res.status === 429) {
-        emailError.value = t('landing.cta.errors.rateLimit')
-      } else {
-        const data = await res.json().catch(() => ({}))
-        emailError.value = data.email?.[0] ?? t('landing.cta.errors.generic')
-      }
-      return
-    }
+    await apiClient.post(
+      '/leads/',
+      { email: normalized, ...buildEnrichment() },
+      { auth: false }
+    )
     submitted.value = true
     email.value = ''
-  } catch {
-    emailError.value = t('landing.cta.errors.generic')
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 429) {
+      emailError.value = t('landing.cta.errors.rateLimit')
+    } else {
+      const emailErrors = e instanceof ApiError ? e.fieldErrors?.email : undefined
+      emailError.value =
+        (Array.isArray(emailErrors) && typeof emailErrors[0] === 'string'
+          ? emailErrors[0]
+          : null) ?? t('landing.cta.errors.generic')
+      if (!(e instanceof ApiError) || e.status >= 500 || e.status === 0) console.error(e)
+    }
   } finally {
     isLoading.value = false
   }

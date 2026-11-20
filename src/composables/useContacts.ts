@@ -1,83 +1,29 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 import type { Contact } from '@/types'
 
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
-
 export function useContacts() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listContacts(params: Record<string, string> = {}): Promise<Contact[]> {
+  function listContacts(params: Record<string, string> = {}): Promise<Contact[]> {
     const qs = new URLSearchParams({ page_size: '100', ...params }).toString()
-    const all: Contact[] = []
-    let url: string | null = `${API_BASE}/contacts/?${qs}`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar contactos')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
+    return apiClient.getAll<Contact>(`/contacts/?${qs}`, { fallback: 'Error al cargar contactos' })
   }
 
-  async function getContact(uuid: string): Promise<Contact> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar contacto')
-    return res.json()
+  function getContact(uuid: string): Promise<Contact> {
+    return apiClient.get<Contact>(`/contacts/${uuid}/`, { fallback: 'Error al cargar contacto' })
   }
 
-  async function createContact(payload: Partial<Contact>): Promise<Contact> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function createContact(payload: Partial<Contact>): Promise<Contact> {
+    return apiClient.post<Contact>('/contacts/', payload, { fallback: 'Error al crear contacto' })
+  }
+
+  function updateContact(uuid: string, payload: Partial<Contact>): Promise<Contact> {
+    return apiClient.patch<Contact>(`/contacts/${uuid}/`, payload, {
+      fallback: 'Error al actualizar contacto',
+      allFieldErrors: true,
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al crear contacto'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function updateContact(uuid: string, payload: Partial<Contact>): Promise<Contact> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      const lines: string[] = []
-      for (const [key, val] of Object.entries(data as Record<string, unknown>)) {
-        if (Array.isArray(val)) {
-          val.forEach((v) => {
-            if (typeof v === 'string') lines.push(key === 'non_field_errors' ? v : `${key}: ${v}`)
-          })
-        } else if (typeof val === 'string') {
-          lines.push(key === 'detail' ? val : `${key}: ${val}`)
-        } else if (val && typeof val === 'object') {
-          lines.push(`${key}: ${JSON.stringify(val)}`)
-        }
-      }
-      throw new Error(lines.join('\n') || 'Error al actualizar contacto')
-    }
-    return data
-  }
-
-  async function deleteContact(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar contacto')
-    }
+  function deleteContact(uuid: string): Promise<void> {
+    return apiClient.delete(`/contacts/${uuid}/`, { fallback: 'Error al eliminar contacto' })
   }
 
   // Contacts are global by default (not tied to any tour) until explicitly
@@ -85,15 +31,11 @@ export function useContacts() {
   // while a tour is active, or it silently won't show up in that tour's
   // filtered list (GET /api/contacts/?tour=<uuid>).
   async function addToTour(uuid: string, tourUuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/add-to-tour/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ tour_uuid: tourUuid }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al asociar el contacto con la gira')
-    }
+    await apiClient.post(
+      `/contacts/${uuid}/add-to-tour/`,
+      { tour_uuid: tourUuid },
+      { fallback: 'Error al asociar el contacto con la gira' }
+    )
   }
 
   return { listContacts, getContact, createContact, updateContact, deleteContact, addToTour }

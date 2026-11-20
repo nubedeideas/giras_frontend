@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import type { NotifEvent, NewNotifForm } from '@/types'
+import type { NotifEvent } from '@/types'
 import { mockEvents, MOCK_TODAY } from '@/data/mock'
 import { useToursStore } from '@/stores/tours'
 
@@ -68,12 +68,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
     selectedId.value = null
   }
 
-  function saveNotification(eventId: number, form: NewNotifForm) {
-    const ev = events.value.find((e) => e.id === eventId)
-    if (!ev) return
-    console.log('Saved notification for event', eventId, form)
-  }
-
   return {
     events,
     selectedId,
@@ -84,6 +78,5 @@ export const useNotificationsStore = defineStore('notifications', () => {
     selectedEvent,
     selectEvent,
     clearSelection,
-    saveNotification,
   }
 })

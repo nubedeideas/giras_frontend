@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import SummaryDonut from '@/components/reports/SummaryDonut.vue'
 import type { SubscriptionStats } from '@/composables/useAdminSubscriptions'
 
+const { t } = useI18n()
 const props = defineProps<{ stats: SubscriptionStats }>()
 
 function activePct() {
@@ -21,14 +23,14 @@ function activePct() {
     />
 
     <p class="relative text-[9px] font-bold text-black/70 tracking-[1px] uppercase mb-4">
-      Resumen general
+      {{ t('admin.stats.overview') }}
     </p>
 
     <div class="relative grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
       <SummaryDonut
         :percentage="activePct()"
         :center-value="`${activePct()}%`"
-        center-label="Giras activas"
+        :center-label="t('admin.stats.activeTours')"
         color="#000000"
         track-color="rgba(0,0,0,0.15)"
         value-color="#000000"
@@ -38,7 +40,7 @@ function activePct() {
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div>
           <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
-            Giras totales
+            {{ t('admin.stats.totalTours') }}
           </p>
           <p class="text-[16px] font-bold text-black">
             {{ stats.total_tours.toLocaleString() }}
@@ -46,7 +48,7 @@ function activePct() {
         </div>
         <div>
           <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
-            Suscripciones activas
+            {{ t('admin.stats.activeSubscriptions') }}
           </p>
           <p class="text-[16px] font-bold text-black">
             {{ stats.active_subscriptions.toLocaleString() }}
@@ -54,7 +56,7 @@ function activePct() {
         </div>
         <div>
           <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
-            Notifs. enviadas
+            {{ t('admin.stats.notificationsSent') }}
           </p>
           <p class="text-[16px] font-bold text-black">
             {{ stats.total_notifications_sent.toLocaleString() }}
@@ -62,7 +64,7 @@ function activePct() {
         </div>
         <div>
           <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
-            Ingresos totales
+            {{ t('admin.stats.totalRevenue') }}
           </p>
           <p class="text-[16px] font-bold text-black">
             {{ stats.total_revenue }}
@@ -70,7 +72,7 @@ function activePct() {
         </div>
         <div class="col-span-2 md:col-span-1">
           <p class="text-[9px] text-black/60 uppercase tracking-[0.5px] mb-1">
-            Por plan
+            {{ t('admin.stats.byPlan') }}
           </p>
           <p class="text-[11px] text-black/80">
             <span

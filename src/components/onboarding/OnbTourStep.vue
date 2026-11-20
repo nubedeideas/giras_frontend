@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ApiError } from '@/utils/apiClient'
 import { searchSpotifyArtists, formatFollowers, type SpotifyArtist } from '@/composables/useSpotifySearch'
 import { useToursStore } from '@/stores/tours'
 import type { CreateTourPayload } from '@/composables/useTours'
@@ -7,6 +9,7 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const emit = defineEmits<{ next: [tourId: number] }>()
 
+const { t } = useI18n()
 const toursStore = useToursStore()
 
 // ─── Spotify search ───────────────────────────────────────────────────────────
@@ -37,12 +40,12 @@ async function doSearch() {
     artists.value = await searchSpotifyArtists(query.value.trim())
     spotifyUnavailable.value = false
   } catch (e) {
-    const msg = e instanceof Error ? e.message : ''
-    if (msg.includes('502') || msg.includes('503')) {
+    // 502/503: el proveedor de datos de artistas no responde → modo manual
+    if (e instanceof ApiError && (e.status === 502 || e.status === 503)) {
       spotifyUnavailable.value = true
       manualArtistInput.value = query.value.trim()
     } else {
-      searchError.value = 'No se pudo conectar con Spotify'
+      searchError.value = t('onboarding.tour.spotifyError')
     }
     artists.value = []
   } finally {
@@ -52,7 +55,7 @@ async function doSearch() {
 
 function selectArtist(a: SpotifyArtist) {
   selectedArtist.value = a
-  form.name = `${a.name} Tour`
+  form.name = t('onboarding.tour.defaultName', { artist: a.name })
   form.artist_name = a.name
   artists.value = []
   query.value = ''
@@ -76,7 +79,7 @@ function confirmManualArtist() {
     genres: [],
   }
   form.artist_name = name
-  if (!form.name) form.name = `${name} Tour`
+  if (!form.name) form.name = t('onboarding.tour.defaultName', { artist: name })
   manualArtistInput.value = ''
 }
 
@@ -144,7 +147,7 @@ async function submit() {
     const tour = await toursStore.createTour(payload)
     emit('next', tour.id)
   } catch (e) {
-    submitError.value = e instanceof Error ? e.message : 'Error al crear la gira'
+    submitError.value = e instanceof Error ? e.message : t('onboarding.tour.createError')
   } finally {
     submitting.value = false
   }
@@ -156,7 +159,7 @@ async function submit() {
     <!-- Artist search -->
     <div class="mb-4">
       <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1.5">
-        Buscar artista en Spotify
+        {{ t('onboarding.tour.searchLabel') }}
       </label>
 
       <!-- Selected artist card -->
@@ -186,13 +189,13 @@ async function submit() {
               v-if="selectedArtist.followers.total > 0"
               class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium"
             >
-              {{ formatFollowers(selectedArtist.followers.total) }} seguidores
+              {{ t('onboarding.tour.followers', { count: formatFollowers(selectedArtist.followers.total) }) }}
             </span>
             <span
               v-else
               class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium"
             >
-              Artista manual
+              {{ t('onboarding.tour.manualArtist') }}
             </span>
             <span
               v-for="g in selectedArtist.genres.slice(0, 2)"
@@ -205,6 +208,8 @@ async function submit() {
         </div>
         <button
           class="text-ink-4 hover:text-ink transition-colors bg-transparent border-none cursor-pointer p-1"
+          :title="t('onboarding.tour.clearArtist')"
+          :aria-label="t('onboarding.tour.clearArtist')"
           @click="clearArtist"
         >
           <svg
@@ -262,13 +267,13 @@ async function submit() {
             />
           </svg>
           <p class="text-[11px] text-amber-400 leading-tight">
-            Spotify no disponible — ingresa el nombre del artista manualmente
+            {{ t('onboarding.tour.spotifyUnavailable') }}
           </p>
         </div>
         <div class="flex gap-2">
           <input
             v-model="manualArtistInput"
-            placeholder="Nombre del artista"
+            :placeholder="t('onboarding.tour.artistPlaceholder')"
             class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
             @keydown.enter="confirmManualArtist"
           >
@@ -277,7 +282,7 @@ async function submit() {
             :disabled="!manualArtistInput.trim()"
             @click="confirmManualArtist"
           >
-            Agregar
+            {{ t('onboarding.tour.add') }}
           </button>
         </div>
       </div>
@@ -328,7 +333,7 @@ async function submit() {
           </svg>
           <input
             v-model="query"
-            placeholder="Duki, Bizarrap, Bad Bunny..."
+            :placeholder="t('onboarding.tour.searchPlaceholder')"
             class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
             @input="onQueryInput"
           >
@@ -368,7 +373,7 @@ async function submit() {
           v-if="searchError"
           class="text-[11px] text-ink-3 mt-1.5 text-center"
         >
-          {{ searchError }} — puedes continuar sin seleccionar
+          {{ t('onboarding.tour.searchErrorHint', { error: searchError }) }}
         </p>
       </div>
     </div>
@@ -378,21 +383,21 @@ async function submit() {
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Nombre de la gira *
+            {{ t('onboarding.tour.name') }} *
           </label>
           <input
             v-model="form.name"
-            placeholder="MTZ Tour 2025"
+            :placeholder="t('onboarding.tour.namePlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           >
         </div>
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Artista *
+            {{ t('onboarding.tour.artist') }} *
           </label>
           <input
             v-model="form.artist_name"
-            placeholder="Nombre del artista"
+            :placeholder="t('onboarding.tour.artistPlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           >
         </div>
@@ -401,7 +406,7 @@ async function submit() {
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Inicio *
+            {{ t('onboarding.tour.start') }} *
           </label>
           <input
             v-model="form.start_date"
@@ -411,7 +416,7 @@ async function submit() {
         </div>
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Fin *
+            {{ t('onboarding.tour.end') }} *
           </label>
           <input
             v-model="form.end_date"
@@ -424,21 +429,21 @@ async function submit() {
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Ciudad de inicio
+            {{ t('onboarding.tour.startCity') }}
           </label>
           <input
             v-model="form.start_city"
-            placeholder="Ciudad de México"
+            :placeholder="t('onboarding.tour.startCityPlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           >
         </div>
         <div>
           <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-            Ciudad de fin
+            {{ t('onboarding.tour.endCity') }}
           </label>
           <input
             v-model="form.end_city"
-            placeholder="Buenos Aires"
+            :placeholder="t('onboarding.tour.endCityPlaceholder')"
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
           >
         </div>
@@ -446,12 +451,12 @@ async function submit() {
 
       <div>
         <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
-          Notas
+          {{ t('onboarding.tour.notes') }}
         </label>
         <textarea
           v-model="form.notes"
           rows="2"
-          placeholder="Información adicional sobre la gira..."
+          :placeholder="t('onboarding.tour.notesPlaceholder')"
           class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
         />
       </div>
@@ -501,7 +506,7 @@ async function submit() {
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        {{ submitting ? 'Creando gira...' : 'Continuar' }}
+        {{ submitting ? t('onboarding.tour.creating') : t('onboarding.continue') }}
       </BtnPrimary>
     </div>
   </div>

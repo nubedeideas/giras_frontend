@@ -1,10 +1,7 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
 import type { PlanCode } from './useAdminSubscriptions'
 import type { PaymentListItem } from './useAdminPayments'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 /** GET /api/subscriptions/plans/ — public catalog */
 export interface PublicPlan {
@@ -21,21 +18,15 @@ export interface PublicPlan {
 }
 
 export function useBilling() {
-  function auth() {
-    return useAuthStore()
-  }
-
   /** GET /api/subscriptions/my-billing/ — all of the current user's payments, across every tour */
-  async function myBilling(): Promise<Paginated<PaymentListItem> | PaymentListItem[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/subscriptions/my-billing/`)
-    if (!res.ok) throw new Error('Error al cargar la facturación')
-    return res.json()
+  function myBilling(): Promise<Paginated<PaymentListItem> | PaymentListItem[]> {
+    return apiClient.get('/subscriptions/my-billing/', {
+      fallback: 'Error al cargar la facturación',
+    })
   }
 
-  async function listPlans(): Promise<Paginated<PublicPlan> | PublicPlan[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/subscriptions/plans/`)
-    if (!res.ok) throw new Error('Error al cargar los planes')
-    return res.json()
+  function listPlans(): Promise<Paginated<PublicPlan> | PublicPlan[]> {
+    return apiClient.get('/subscriptions/plans/', { fallback: 'Error al cargar los planes' })
   }
 
   return { myBilling, listPlans }

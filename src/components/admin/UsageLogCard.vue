@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import type { NotificationUsageEntry } from '@/composables/useAdminNotificationUsage'
 
+const { t, locale } = useI18n()
 defineProps<{ entry: NotificationUsageEntry }>()
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
@@ -18,11 +23,12 @@ function formatDate(iso: string) {
     </span>
     <div class="flex-1 min-w-0">
       <p class="text-[12px] text-ink">
-        {{ entry.recipients_count }} destinatario{{ entry.recipients_count !== 1 ? 's' : '' }}
-        · plan {{ entry.plan_code }}
+        {{ t('admin.usage.recipients', entry.recipients_count) }}
+        · {{ t('admin.usage.plan', { plan: entry.plan_code }) }}
       </p>
       <p class="text-[10px] text-ink-4">
-        Uso: {{ entry.notifications_used_before }} → {{ entry.notifications_used_after }}
+        {{ t('admin.usage.usage') }}: {{ entry.notifications_used_before }} →
+        {{ entry.notifications_used_after }}
         / {{ entry.notification_limit === 0 ? '∞' : entry.notification_limit }}
       </p>
     </div>

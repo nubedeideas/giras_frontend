@@ -215,12 +215,6 @@ export interface NewTourForm {
   spotify_synced_at?: string
 }
 
-export interface NewNotifForm {
-  ch: 'WhatsApp' | 'SMS' | 'Email'
-  msg: string
-  timing: string
-}
-
 export interface DayCell {
   isoDate: string
   dayNum: number

@@ -1,8 +1,5 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 import type { TourStatus } from '@/types'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -90,68 +87,28 @@ export interface UpdateTourPayload {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useTours() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listTours(): Promise<TourListItem[]> {
-    const all: TourListItem[] = []
-    let url: string | null = `${API_BASE}/tours/?page_size=100`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar giras')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
-  }
-
-  async function getTour(uuid: string): Promise<TourFull> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar gira')
-    return res.json()
-  }
-
-  async function createTour(payload: CreateTourPayload): Promise<TourFull> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function listTours(): Promise<TourListItem[]> {
+    return apiClient.getAll<TourListItem>('/tours/?page_size=100', {
+      fallback: 'Error al cargar giras',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al crear gira'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
-  async function updateTour(uuid: string, payload: UpdateTourPayload): Promise<TourFull> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al actualizar gira'
-      throw new Error(String(msg))
-    }
-    return data
+  function getTour(uuid: string): Promise<TourFull> {
+    return apiClient.get<TourFull>(`/tours/${uuid}/`, { fallback: 'Error al cargar gira' })
   }
 
-  async function deleteTour(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/tours/${uuid}/`, {
-      method: 'DELETE',
+  function createTour(payload: CreateTourPayload): Promise<TourFull> {
+    return apiClient.post<TourFull>('/tours/', payload, { fallback: 'Error al crear gira' })
+  }
+
+  function updateTour(uuid: string, payload: UpdateTourPayload): Promise<TourFull> {
+    return apiClient.patch<TourFull>(`/tours/${uuid}/`, payload, {
+      fallback: 'Error al actualizar gira',
     })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar gira')
-    }
+  }
+
+  function deleteTour(uuid: string): Promise<void> {
+    return apiClient.delete(`/tours/${uuid}/`, { fallback: 'Error al eliminar gira' })
   }
 
   return { listTours, getTour, createTour, updateTour, deleteTour }

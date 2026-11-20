@@ -1,7 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { apiClient } from '@/utils/apiClient'
+import { toArray } from '@/utils/pagination'
+import type { Paginated } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,30 +47,28 @@ export interface SyncStats {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useGoogleContactsImport() {
-  function auth() { return useAuthStore() }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
   // ── Subscription management ──────────────────────────────────────────────────
 
+  /** Devuelve `null` si no hay suscripción o si la consulta falla (se registra el error). */
   async function getSubscription(): Promise<ContactSubscription | null> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/contacts/`)
-    if (!res.ok) return null
-    const data = await res.json()
-    const list: ContactSubscription[] = data.results ?? data
-    return list.length > 0 ? list[0] : null
+    try {
+      const data = await apiClient.get<Paginated<ContactSubscription> | ContactSubscription[]>(
+        '/integrations/contacts/'
+      )
+      const list = toArray(data)
+      return list.length > 0 ? list[0] : null
+    } catch (e) {
+      console.error('[useGoogleContactsImport] getSubscription', e)
+      return null
+    }
   }
 
-  async function createSubscription(): Promise<ContactSubscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/contacts/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ sync_enabled: true }),
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.detail ?? err.error ?? 'Error al crear suscripción de contactos')
-    }
-    return res.json()
+  function createSubscription(): Promise<ContactSubscription> {
+    return apiClient.post<ContactSubscription>(
+      '/integrations/contacts/',
+      { sync_enabled: true },
+      { fallback: 'Error al crear suscripción de contactos' }
+    )
   }
 
   async function getOrCreateSubscription(): Promise<ContactSubscription> {
@@ -82,50 +79,41 @@ export function useGoogleContactsImport() {
 
   // ── Sync ─────────────────────────────────────────────────────────────────────
 
-  async function syncNow(subId: number): Promise<SyncStats> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/contacts/${subId}/sync_now/`, {
-      method: 'POST',
+  function syncNow(subId: number): Promise<SyncStats> {
+    return apiClient.post<SyncStats>(`/integrations/contacts/${subId}/sync_now/`, undefined, {
+      fallback: 'Error durante la sincronización',
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error ?? 'Error durante la sincronización')
-    }
-    return res.json()
   }
 
   // ── Contacts ─────────────────────────────────────────────────────────────────
 
   async function fetchGoogleContacts(): Promise<ImportContact[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/google-contacts/`)
-    if (!res.ok) throw new Error('Error al cargar contactos')
-    const data = await res.json()
-    return data.results ?? data
+    const data = await apiClient.get<Paginated<ImportContact> | ImportContact[]>(
+      '/contacts/google-contacts/',
+      { fallback: 'Error al cargar contactos' }
+    )
+    return toArray(data)
   }
 
   // ── Roles ─────────────────────────────────────────────────────────────────────
 
+  /** Devuelve `[]` si la consulta falla (se registra el error): los roles son opcionales aquí. */
   async function fetchRoles(): Promise<ImportRole[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/roles/`)
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.results ?? data
+    try {
+      const data = await apiClient.get<Paginated<ImportRole> | ImportRole[]>('/contacts/roles/')
+      return toArray(data)
+    } catch (e) {
+      console.error('[useGoogleContactsImport] fetchRoles', e)
+      return []
+    }
   }
 
   // ── Create contact ────────────────────────────────────────────────────────────
 
-  async function createContact(payload: Record<string, unknown>): Promise<ImportContact> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function createContact(payload: Record<string, unknown>): Promise<ImportContact> {
+    return apiClient.post<ImportContact>('/contacts/', payload, {
+      fallback: 'Error al crear contacto',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const first = Object.values(data)[0]
-      const msg = Array.isArray(first) ? first[0] : data.detail ?? 'Error al crear contacto'
-      throw new Error(String(msg))
-    }
-    return data
   }
 
   // ── Role assignment ───────────────────────────────────────────────────────────
@@ -133,12 +121,9 @@ export function useGoogleContactsImport() {
   async function patchContactRole(uuid: string, roleUuid: string | null): Promise<void> {
     const payload: Record<string, unknown> = { is_confirmed: true }
     if (roleUuid) payload.role_id = roleUuid
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+    await apiClient.patch(`/contacts/${uuid}/`, payload, {
+      fallback: `Error actualizando contacto ${uuid}`,
     })
-    if (!res.ok) throw new Error(`Error actualizando contacto ${uuid}`)
   }
 
   return {

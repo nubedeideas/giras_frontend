@@ -1,8 +1,5 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient, buildQuery } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 /** Not enumerated exactly by the backend spec — treated as an open string, only 'completed' is load-bearing (refund eligibility). */
 export type PaymentStatus = string
@@ -32,48 +29,35 @@ export interface PaymentFilters {
   search?: string
 }
 
-function buildQuery(params: Record<string, string | number | undefined>): string {
-  const q = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== '') q.set(k, String(v))
-  }
-  return q.toString()
-}
-
 export function useAdminPayments() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function list(query: string | PaymentFilters = {}): Promise<Paginated<PaymentListItem>> {
+  function list(query: string | PaymentFilters = {}): Promise<Paginated<PaymentListItem>> {
     const url =
       typeof query === 'string'
         ? query
-        : `${API_BASE}/admin/payments/?${buildQuery({ page_size: 20, ...query })}`
-    const res = await auth().fetchWithAuth(url)
-    if (!res.ok) throw new Error('Error al cargar pagos')
-    return res.json()
-  }
-
-  async function get(uuid: string): Promise<PaymentDetail> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/payments/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar el pago')
-    return res.json()
-  }
-
-  async function refund(uuid: string, reason: string): Promise<PaymentDetail> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/admin/payments/${uuid}/refund/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify({ reason }),
+        : `/admin/payments/?${buildQuery({ page_size: 20, ...query })}`
+    return apiClient.get<Paginated<PaymentListItem>>(url, {
+      fallback: 'Error al cargar pagos',
     })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) {
-      if (res.status === 502) throw new Error('La pasarela de pago no respondió. Intentá de nuevo en unos minutos.')
-      throw new Error(data.detail ?? 'Error al solicitar el reembolso')
-    }
-    return data
+  }
+
+  function get(uuid: string): Promise<PaymentDetail> {
+    return apiClient.get<PaymentDetail>(`/admin/payments/${uuid}/`, {
+      fallback: 'Error al cargar el pago',
+    })
+  }
+
+  function refund(uuid: string, reason: string): Promise<PaymentDetail> {
+    return apiClient.post<PaymentDetail>(
+      `/admin/payments/${uuid}/refund/`,
+      { reason },
+      {
+        fallback: 'Error al solicitar el reembolso',
+        // 502: la pasarela (Cobry) no respondió; el mensaje del backend no es accionable.
+        statusMessages: {
+          502: 'La pasarela de pago no ha respondido. Inténtalo de nuevo en unos minutos.',
+        },
+      }
+    )
   }
 
   return { list, get, refund }

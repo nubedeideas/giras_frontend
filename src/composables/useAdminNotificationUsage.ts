@@ -1,9 +1,6 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient, buildQuery } from '@/utils/apiClient'
 import type { Paginated } from '@/types'
 import type { PlanCode } from './useAdminSubscriptions'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 export interface NotificationUsageEntry {
   uuid: string
@@ -21,29 +18,17 @@ export interface NotificationUsageFilters {
   search?: string
 }
 
-function buildQuery(params: Record<string, string | number | undefined>): string {
-  const q = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== '') q.set(k, String(v))
-  }
-  return q.toString()
-}
-
 export function useAdminNotificationUsage() {
-  function auth() {
-    return useAuthStore()
-  }
-
-  async function list(
-    query: string | NotificationUsageFilters = {},
+  function list(
+    query: string | NotificationUsageFilters = {}
   ): Promise<Paginated<NotificationUsageEntry>> {
     const url =
       typeof query === 'string'
         ? query
-        : `${API_BASE}/admin/notification-usage/?${buildQuery({ page_size: 20, ...query })}`
-    const res = await auth().fetchWithAuth(url)
-    if (!res.ok) throw new Error('Error al cargar el log de uso')
-    return res.json()
+        : `/admin/notification-usage/?${buildQuery({ page_size: 20, ...query })}`
+    return apiClient.get<Paginated<NotificationUsageEntry>>(url, {
+      fallback: 'Error al cargar el log de uso',
+    })
   }
 
   return { list }

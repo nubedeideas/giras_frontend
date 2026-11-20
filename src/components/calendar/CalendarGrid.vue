@@ -10,10 +10,11 @@ const { t, tm } = useI18n()
 const cal = useCalendarStore()
 const tours = useToursStore()
 
-// tm() (not t()) is required for `calendar.days` — it's an array, and t()
+// tm() (not t()) is required for `calendar.days`/`calendar.months` — they're arrays, and t()
 // only resolves compiled string leaves, returning the key itself unresolved
 // when it points at an array (see SupportView.vue for the same gotcha).
 const weekdays = computed(() => tm('calendar.days') as unknown as string[])
+const months = computed(() => tm('calendar.months') as unknown as string[])
 </script>
 
 <template>
@@ -39,7 +40,7 @@ const weekdays = computed(() => tm('calendar.days') as unknown as string[])
               class="flex items-center gap-3"
             >
               <h2 class="text-base font-bold text-ink tracking-[-0.2px]">
-                {{ t(`calendar.months[${cal.currentMonth}]`) }} {{ cal.currentYear }}
+                {{ months[cal.currentMonth] }} {{ cal.currentYear }}
               </h2>
               <div class="flex gap-1">
                 <button

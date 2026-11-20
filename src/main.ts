@@ -7,7 +7,7 @@ import { routes, setupRouterGuards } from './router'
 import i18n from './i18n'
 import { useUIStore } from '@/stores/ui'
 import './assets/main.css'
-import 'flag-icons/css/flag-icons.min.css'
+import './assets/flags.css'
 
 export const createApp = ViteSSG(
   App,

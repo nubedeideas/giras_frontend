@@ -1,8 +1,5 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 import type { ContactListItem } from './useNotifications'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,83 +49,64 @@ export interface ContactsMutationResult {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useNotificationGroups() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
-  async function listGroups(tourUuid?: string): Promise<NotificationGroupListItem[]> {
+  function listGroups(tourUuid?: string): Promise<NotificationGroupListItem[]> {
     const qs = new URLSearchParams({ page_size: '100' })
     if (tourUuid) qs.set('tour', tourUuid)
-    const all: NotificationGroupListItem[] = []
-    let url: string | null = `${API_BASE}/notifications/groups/?${qs}`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar grupos de notificación')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
-    return all
-  }
-
-  async function getGroup(uuid: string): Promise<NotificationGroup> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/groups/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar grupo')
-    return res.json()
-  }
-
-  async function createGroup(payload: CreateGroupPayload): Promise<NotificationGroup> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/groups/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+    return apiClient.getAll<NotificationGroupListItem>(`/notifications/groups/?${qs}`, {
+      fallback: 'Error al cargar grupos de notificación',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.name?.[0] ?? data.detail ?? 'Error al crear grupo')
-    return data
   }
 
-  async function updateGroup(uuid: string, payload: UpdateGroupPayload): Promise<NotificationGroup> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/groups/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function getGroup(uuid: string): Promise<NotificationGroup> {
+    return apiClient.get<NotificationGroup>(`/notifications/groups/${uuid}/`, {
+      fallback: 'Error al cargar grupo',
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.name?.[0] ?? data.detail ?? 'Error al actualizar grupo')
-    return data
   }
 
-  async function deleteGroup(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/groups/${uuid}/`, {
-      method: 'DELETE',
+  function createGroup(payload: CreateGroupPayload): Promise<NotificationGroup> {
+    return apiClient.post<NotificationGroup>('/notifications/groups/', payload, {
+      fallback: 'Error al crear grupo',
     })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar grupo')
-    }
   }
 
-  async function addContacts(uuid: string, contactUuids: string[]): Promise<ContactsMutationResult> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/groups/${uuid}/contacts/add/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ contact_uuids: contactUuids }) },
+  function updateGroup(uuid: string, payload: UpdateGroupPayload): Promise<NotificationGroup> {
+    return apiClient.patch<NotificationGroup>(`/notifications/groups/${uuid}/`, payload, {
+      fallback: 'Error al actualizar grupo',
+    })
+  }
+
+  function deleteGroup(uuid: string): Promise<void> {
+    return apiClient.delete(`/notifications/groups/${uuid}/`, {
+      fallback: 'Error al eliminar grupo',
+    })
+  }
+
+  function addContacts(uuid: string, contactUuids: string[]): Promise<ContactsMutationResult> {
+    return apiClient.post<ContactsMutationResult>(
+      `/notifications/groups/${uuid}/contacts/add/`,
+      { contact_uuids: contactUuids },
+      { fallback: 'Error al añadir contactos al grupo' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al agregar contactos al grupo')
-    return data
   }
 
-  async function removeContacts(uuid: string, contactUuids: string[]): Promise<{ total_contacts: number }> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/groups/${uuid}/contacts/remove/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ contact_uuids: contactUuids }) },
+  function removeContacts(
+    uuid: string,
+    contactUuids: string[]
+  ): Promise<{ total_contacts: number }> {
+    return apiClient.post<{ total_contacts: number }>(
+      `/notifications/groups/${uuid}/contacts/remove/`,
+      { contact_uuids: contactUuids },
+      { fallback: 'Error al quitar contactos del grupo' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al quitar contactos del grupo')
-    return data
   }
 
-  return { listGroups, getGroup, createGroup, updateGroup, deleteGroup, addContacts, removeContacts }
+  return {
+    listGroups,
+    getGroup,
+    createGroup,
+    updateGroup,
+    deleteGroup,
+    addContacts,
+    removeContacts,
+  }
 }

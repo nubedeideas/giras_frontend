@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, watch } from 'vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useAdminCustomPools, type CustomPool } from '@/composables/useAdminCustomPools'
 import { useAdminUsers, type UserSearchResult } from '@/composables/useAdminUsers'
 
+const { t } = useI18n()
 const props = defineProps<{ show: boolean; pool: CustomPool | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
@@ -48,7 +50,8 @@ watch(userQuery, (q: string) => {
     searchingUsers.value = true
     try {
       userResults.value = await usersApi.search(q)
-    } catch {
+    } catch (e) {
+      console.error('[EditCustomPoolModal] búsqueda de usuarios', e)
       userResults.value = []
     } finally {
       searchingUsers.value = false
@@ -84,7 +87,7 @@ async function submit() {
     emit('saved')
     emit('close')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al guardar'
+    error.value = e instanceof Error ? e.message : t('admin.common.saveError')
   } finally {
     saving.value = false
   }
@@ -101,12 +104,12 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
     @close="emit('close')"
   >
     <p class="text-base font-bold text-ink tracking-[-0.2px] mb-4">
-      {{ isEdit ? 'Editar cupo Custom' : 'Nuevo cupo Custom' }}
+      {{ isEdit ? t('admin.poolForm.editTitle') : t('admin.poolForm.newTitle') }}
     </p>
 
     <div class="space-y-3">
       <div v-if="!isEdit">
-        <label :class="labelClass">Cliente</label>
+        <label :class="labelClass">{{ t('admin.poolForm.client') }}</label>
 
         <div
           v-if="selectedUser"
@@ -124,7 +127,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             class="text-[10px] text-ink-4 hover:text-ink cursor-pointer border-none bg-transparent flex-shrink-0"
             @click="selectedUser = null"
           >
-            Cambiar
+            {{ t('admin.poolForm.change') }}
           </button>
         </div>
 
@@ -135,7 +138,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           <input
             v-model="userQuery"
             :class="inputClass"
-            placeholder="Buscar por email o nombre…"
+            :placeholder="t('admin.poolForm.searchPlaceholder')"
           >
           <div
             v-if="userQuery.trim() && (searchingUsers || userResults.length > 0)"
@@ -145,7 +148,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
               v-if="searchingUsers"
               class="px-3 py-1.5 text-[11px] text-ink-4"
             >
-              Buscando…
+              {{ t('admin.poolForm.searching') }}
             </p>
             <template v-else>
               <button
@@ -163,13 +166,13 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             v-else-if="userQuery.trim() && !searchingUsers"
             class="text-[11px] text-ink-4 mt-1"
           >
-            Sin resultados
+            {{ t('admin.common.noResults') }}
           </p>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label :class="labelClass">Total notificaciones</label>
+          <label :class="labelClass">{{ t('admin.poolForm.totalNotifications') }}</label>
           <input
             v-model.number="totalNotifications"
             type="number"
@@ -178,7 +181,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           >
         </div>
         <div>
-          <label :class="labelClass">Total shows</label>
+          <label :class="labelClass">{{ t('admin.poolForm.totalShows') }}</label>
           <input
             v-model.number="totalShows"
             type="number"
@@ -188,7 +191,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         </div>
       </div>
       <div>
-        <label :class="labelClass">Notas</label>
+        <label :class="labelClass">{{ t('admin.poolForm.notes') }}</label>
         <textarea
           v-model="notes"
           :class="inputClass"
@@ -209,14 +212,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
         >
-          Cancelar
+          {{ t('admin.common.cancel') }}
         </button>
         <button
           class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
           :disabled="saving || (!isEdit && !selectedUser)"
           @click="submit"
         >
-          {{ saving ? 'Guardando…' : 'Guardar' }}
+          {{ saving ? t('admin.common.saving') : t('admin.common.save') }}
         </button>
       </div>
     </div>

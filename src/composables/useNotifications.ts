@@ -1,9 +1,8 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
+import { toArray } from '@/utils/pagination'
+import type { Paginated } from '@/types'
 import type { Activity } from './useActivities'
 import { formatInZoneShort, browserZone } from '@/utils/datetime'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -218,175 +217,114 @@ function formatUtcDateTime(iso: string): string {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useNotifications() {
-  function auth() {
-    return useAuthStore()
-  }
-  const jsonHeaders = { 'Content-Type': 'application/json' }
-
   async function listForActivity(activityUuid: string): Promise<NotificationListItem[]> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/?activity=${activityUuid}&page_size=50`,
+    const data = await apiClient.get<Paginated<NotificationListItem> | NotificationListItem[]>(
+      `/notifications/?activity=${activityUuid}&page_size=50`,
+      { fallback: 'Error al cargar notificaciones' }
     )
-    if (!res.ok) throw new Error('Error al cargar notificaciones')
-    const data = await res.json()
-    return data.results ?? data
+    return toArray(data)
   }
 
-  async function getNotification(uuid: string): Promise<Notification> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/${uuid}/`)
-    if (!res.ok) throw new Error('Error al cargar notificación')
-    return res.json()
-  }
-
-  async function createNotification(payload: CreateNotificationPayload): Promise<Notification> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/`, {
-      method: 'POST',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+  function getNotification(uuid: string): Promise<Notification> {
+    return apiClient.get<Notification>(`/notifications/${uuid}/`, {
+      fallback: 'Error al cargar notificación',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const lines: string[] = []
-      for (const [key, val] of Object.entries(data as Record<string, unknown>)) {
-        if (Array.isArray(val)) {
-          val.forEach((v) => {
-            if (typeof v === 'string')
-              lines.push(key === 'non_field_errors' ? v : `${key}: ${v}`)
-          })
-        } else if (typeof val === 'string') {
-          lines.push(key === 'detail' ? val : `${key}: ${val}`)
-        }
-      }
-      throw new Error(lines.join('\n') || 'Error al crear notificación')
-    }
-    return data
   }
 
-  async function scheduleNotification(
+  function createNotification(payload: CreateNotificationPayload): Promise<Notification> {
+    return apiClient.post<Notification>('/notifications/', payload, {
+      fallback: 'Error al crear notificación',
+      allFieldErrors: true,
+    })
+  }
+
+  function scheduleNotification(
     uuid: string,
-    payload: SchedulePayload,
+    payload: SchedulePayload
   ): Promise<{ notification: Notification; available_reminder_minutes?: number[] }> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/schedule/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify(payload) },
-    )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? data.detail ?? 'Error al programar notificación')
-    return data
-  }
-
-  async function sendNotification(uuid: string): Promise<{ notification: Notification; result: unknown }> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/send/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({}) },
-    )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? data.detail ?? 'Error al enviar notificación')
-    return data
-  }
-
-  async function updateNotification(
-    uuid: string,
-    payload: UpdateNotificationPayload,
-  ): Promise<Notification> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/notifications/${uuid}/`, {
-      method: 'PATCH',
-      headers: jsonHeaders,
-      body: JSON.stringify(payload),
+    return apiClient.post(`/notifications/${uuid}/schedule/`, payload, {
+      fallback: 'Error al programar notificación',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      const lines: string[] = []
-      for (const [key, val] of Object.entries(data as Record<string, unknown>)) {
-        if (Array.isArray(val)) {
-          val.forEach((v) => {
-            if (typeof v === 'string')
-              lines.push(key === 'non_field_errors' ? v : `${key}: ${v}`)
-          })
-        } else if (typeof val === 'string') {
-          lines.push(key === 'detail' ? val : `${key}: ${val}`)
-        }
-      }
-      throw new Error(lines.join('\n') || 'Error al actualizar notificación')
-    }
-    return data
   }
 
-  async function cancelNotification(uuid: string): Promise<Notification> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/cancel/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({}) },
+  function sendNotification(
+    uuid: string
+  ): Promise<{ notification: Notification; result: unknown }> {
+    return apiClient.post(
+      `/notifications/${uuid}/send/`,
+      {},
+      { fallback: 'Error al enviar notificación' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? data.detail ?? 'Error al cancelar notificación')
-    return data
   }
 
-  async function deleteNotification(uuid: string): Promise<void> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/`,
-      { method: 'DELETE' },
-    )
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.detail ?? 'Error al eliminar notificación')
-    }
+  function updateNotification(
+    uuid: string,
+    payload: UpdateNotificationPayload
+  ): Promise<Notification> {
+    return apiClient.patch<Notification>(`/notifications/${uuid}/`, payload, {
+      fallback: 'Error al actualizar notificación',
+      allFieldErrors: true,
+    })
   }
 
-  async function addContacts(uuid: string, contactUuids: string[]): Promise<unknown> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/contacts/add/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ contact_uuids: contactUuids }) },
+  function cancelNotification(uuid: string): Promise<Notification> {
+    return apiClient.post<Notification>(
+      `/notifications/${uuid}/cancel/`,
+      {},
+      { fallback: 'Error al cancelar notificación' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al agregar contactos')
-    return data
   }
 
-  async function removeContacts(uuid: string, contactUuids: string[]): Promise<unknown> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/contacts/remove/`,
-      { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ contact_uuids: contactUuids }) },
+  function deleteNotification(uuid: string): Promise<void> {
+    return apiClient.delete(`/notifications/${uuid}/`, {
+      fallback: 'Error al eliminar notificación',
+    })
+  }
+
+  function addContacts(uuid: string, contactUuids: string[]): Promise<unknown> {
+    return apiClient.post(
+      `/notifications/${uuid}/contacts/add/`,
+      { contact_uuids: contactUuids },
+      { fallback: 'Error al añadir contactos' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.detail ?? 'Error al eliminar contactos')
-    return data
+  }
+
+  function removeContacts(uuid: string, contactUuids: string[]): Promise<unknown> {
+    return apiClient.post(
+      `/notifications/${uuid}/contacts/remove/`,
+      { contact_uuids: contactUuids },
+      { fallback: 'Error al eliminar contactos' }
+    )
   }
 
   async function listContacts(uuid: string): Promise<NotificationRecipient[]> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/contacts/`,
+    const data = await apiClient.get<Paginated<NotificationRecipient> | NotificationRecipient[]>(
+      `/notifications/${uuid}/contacts/`,
+      { fallback: 'Error al cargar contactos' }
     )
-    if (!res.ok) throw new Error('Error al cargar contactos')
-    const data = await res.json()
-    return data.results ?? data
+    return toArray(data)
   }
 
-  async function sendWhatsAppBulk(
+  function sendWhatsAppBulk(
     uuid: string,
     templateSid: string,
-    variables: Record<string, string>,
+    variables: Record<string, string>
   ): Promise<unknown> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/notifications/${uuid}/send-whatsapp-bulk/`,
-      {
-        method: 'POST',
-        headers: jsonHeaders,
-        body: JSON.stringify({ template_sid: templateSid, variables }),
-      },
+    return apiClient.post(
+      `/notifications/${uuid}/send-whatsapp-bulk/`,
+      { template_sid: templateSid, variables },
+      { fallback: 'Error al enviar WhatsApp' }
     )
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? data.detail ?? 'Error al enviar WhatsApp')
-    return data
   }
 
   async function listGlobalContacts(search = ''): Promise<ContactListItem[]> {
     const qs = new URLSearchParams({ page_size: '100' })
     if (search) qs.set('search', search)
-    const res = await auth().fetchWithAuth(`${API_BASE}/contacts/?${qs}`)
-    if (!res.ok) throw new Error('Error al cargar contactos')
-    const data = await res.json()
-    return data.results ?? data
+    const data = await apiClient.get<Paginated<ContactListItem> | ContactListItem[]>(
+      `/contacts/?${qs}`,
+      { fallback: 'Error al cargar contactos' }
+    )
+    return toArray(data)
   }
 
   return {

@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/stores/auth'
+import { apiClient } from '@/utils/apiClient'
 
 export interface SpotifyArtist {
   id: string
@@ -9,21 +9,13 @@ export interface SpotifyArtist {
   genres: string[]
 }
 
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
-
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function searchSpotifyArtists(query: string): Promise<SpotifyArtist[]> {
-  const auth = useAuthStore()
-  const res = await auth.fetchWithAuth(
-    `${API_BASE}/tours/spotify_search/?q=${encodeURIComponent(query)}`,
+export function searchSpotifyArtists(query: string): Promise<SpotifyArtist[]> {
+  return apiClient.get<SpotifyArtist[]>(
+    `/tours/spotify_search/?q=${encodeURIComponent(query)}`,
+    { fallback: 'Error al buscar artistas en Spotify' }
   )
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error ?? `Error ${res.status}`)
-  }
-  return (await res.json()) as SpotifyArtist[]
 }
 
 export function formatFollowers(n: number): string {

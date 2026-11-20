@@ -1,7 +1,7 @@
-import { useAuthStore } from '@/stores/auth'
-
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api'
+import { DateTime } from 'luxon'
+import { apiClient } from '@/utils/apiClient'
+import { toArray } from '@/utils/pagination'
+import type { Paginated } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,41 +105,32 @@ export interface GoogleCalendarItem {
 }
 
 export function useCalendarImport() {
-  function auth() {
-    return useAuthStore()
-  }
-
   /** GET /api/integrations/calendars/google_calendars/ — calendarios disponibles en la cuenta de Google */
-  async function listGoogleCalendars(): Promise<GoogleCalendarItem[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/calendars/google_calendars/`)
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(
-        (err as { error?: string }).error ?? 'No se pudo obtener la lista de calendarios de Google',
-      )
-    }
-    return res.json()
+  function listGoogleCalendars(): Promise<GoogleCalendarItem[]> {
+    return apiClient.get<GoogleCalendarItem[]>('/integrations/calendars/google_calendars/', {
+      fallback: 'No se pudo obtener la lista de calendarios de Google',
+    })
   }
 
   /** GET /api/integrations/calendars/ — calendarios suscritos del usuario */
   async function listCalendars(): Promise<CalendarSubscription[]> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/calendars/`)
-    if (!res.ok) throw new Error('Error al cargar calendarios')
-    const data = await res.json()
-    return data.results ?? data
+    const data = await apiClient.get<Paginated<CalendarSubscription> | CalendarSubscription[]>(
+      '/integrations/calendars/',
+      { fallback: 'Error al cargar calendarios' }
+    )
+    return toArray(data)
   }
 
   /**
    * POST /api/integrations/calendars/{id}/sync_now/
    * Sincronización síncrona: espera resultado con stats.
    */
-  async function syncCalendarNow(subscriptionId: number): Promise<SyncStats> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/integrations/calendars/${subscriptionId}/sync_now/`,
-      { method: 'POST' },
+  function syncCalendarNow(subscriptionId: number): Promise<SyncStats> {
+    return apiClient.post<SyncStats>(
+      `/integrations/calendars/${subscriptionId}/sync_now/`,
+      undefined,
+      { fallback: 'Error al sincronizar el calendario' }
     )
-    if (!res.ok) throw new Error('Error al sincronizar el calendario')
-    return res.json()
   }
 
   /**
@@ -148,80 +139,60 @@ export function useCalendarImport() {
    * El filtrado de fechas futuras se hace en cliente.
    */
   async function listCalendarEvents(subscriptionId: number): Promise<ImportedEvent[]> {
-    const all: ImportedEvent[] = []
-    let url: string | null =
-      `${API_BASE}/integrations/events/?subscription=${subscriptionId}&ordering=start_datetime&page_size=100`
-    while (url) {
-      const res = await auth().fetchWithAuth(url)
-      if (!res.ok) throw new Error('Error al cargar eventos del calendario')
-      const data = await res.json()
-      all.push(...(data.results ?? data))
-      url = data.next ?? null
-    }
+    const all = await apiClient.getAll<ImportedEvent>(
+      `/integrations/events/?subscription=${subscriptionId}&ordering=start_datetime&page_size=100`,
+      { fallback: 'Error al cargar eventos del calendario' }
+    )
     // Exclude already imported/ignored; keep only future events
-    const now = new Date()
+    const now = DateTime.now()
     return all.filter(
       (e) =>
         e.import_status !== 'imported' &&
         e.import_status !== 'ignored' &&
-        new Date(e.start_datetime) >= now,
+        DateTime.fromISO(e.start_datetime) >= now
     )
   }
 
   /** GET /api/integrations/events/{id}/preview_parse/ — AI preview without committing */
-  async function previewParse(eventId: number): Promise<ParsedPreview> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/integrations/events/${eventId}/preview_parse/`,
-    )
-    if (!res.ok) throw new Error('Error al obtener previsualización de IA')
-    return res.json()
+  function previewParse(eventId: number): Promise<ParsedPreview> {
+    return apiClient.get<ParsedPreview>(`/integrations/events/${eventId}/preview_parse/`, {
+      fallback: 'Error al obtener previsualización de IA',
+    })
   }
 
   /** POST /api/integrations/events/bulk_smart_import/ — import + mark as imported */
-  async function bulkSmartImport(eventIds: number[]): Promise<BulkImportResult> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/integrations/events/bulk_smart_import/`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_ids: eventIds }),
-      },
+  function bulkSmartImport(eventIds: number[]): Promise<BulkImportResult> {
+    return apiClient.post<BulkImportResult>(
+      '/integrations/events/bulk_smart_import/',
+      { event_ids: eventIds },
+      { fallback: 'Error al importar actividades' }
     )
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(
-        (err as { detail?: string; error?: string }).detail ??
-          (err as { detail?: string; error?: string }).error ??
-          'Error al importar actividades',
-      )
-    }
-    return res.json()
   }
 
   /** POST /api/integrations/calendars/ — connect a new calendar subscription */
-  async function createCalendar(calendarId: string, calendarName: string): Promise<CalendarSubscription> {
-    const res = await auth().fetchWithAuth(`${API_BASE}/integrations/calendars/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ calendar_id: calendarId, calendar_name: calendarName }),
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(
-        (err as { detail?: string }).detail ?? 'Error al conectar el calendario',
-      )
-    }
-    return res.json()
+  function createCalendar(calendarId: string, calendarName: string): Promise<CalendarSubscription> {
+    return apiClient.post<CalendarSubscription>(
+      '/integrations/calendars/',
+      { calendar_id: calendarId, calendar_name: calendarName },
+      { fallback: 'Error al conectar el calendario' }
+    )
   }
 
   /** DELETE /api/integrations/calendars/{id}/ — disconnect a calendar subscription */
-  async function deleteCalendar(subscriptionId: number): Promise<void> {
-    const res = await auth().fetchWithAuth(
-      `${API_BASE}/integrations/calendars/${subscriptionId}/`,
-      { method: 'DELETE' },
-    )
-    if (!res.ok && res.status !== 204) throw new Error('Error al desconectar el calendario')
+  function deleteCalendar(subscriptionId: number): Promise<void> {
+    return apiClient.delete(`/integrations/calendars/${subscriptionId}/`, {
+      fallback: 'Error al desconectar el calendario',
+    })
   }
 
-  return { listGoogleCalendars, listCalendars, syncCalendarNow, listCalendarEvents, previewParse, bulkSmartImport, createCalendar, deleteCalendar }
+  return {
+    listGoogleCalendars,
+    listCalendars,
+    syncCalendarNow,
+    listCalendarEvents,
+    previewParse,
+    bulkSmartImport,
+    createCalendar,
+    deleteCalendar,
+  }
 }
