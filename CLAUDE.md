@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**GigSync** — a tour/gig management dashboard (Spanish-language UI, "Giras" = Tours). This is a Vue 3 frontend project in early setup phase. The `sample/gigsync-v2.html` file is the reference design/mockup built with Vue 3 via CDN.
+**Giras** (formerly GigSync) — tour logistics and notification platform for the live music industry. This is the Vue 3 frontend, in active development against the real Django API (`../backend`, see its CLAUDE.md). Public site at `giras.pro`, app at `app.giras.pro`. `sample/gigsync-v2.html` is the original design mockup, kept only as visual reference.
+
+This repo is part of the `giras/` workspace; the root `../CLAUDE.md` describes the agent pool and the cross-repo workflow. All product copy must be Spanish (Spain), "tú" form, never "vos".
 
 ## Package Manager
 
@@ -55,7 +57,9 @@ When building components, follow the glass-morphism card style and dark theme es
 
 **Stack:** Vite + Vue 3 (Composition API + `<script setup>`) + TypeScript + Tailwind CSS + Pinia + Vue Router + vue-i18n
 
-**Routing:** `/login` → `LoginView`, then `/notifs`, `/calendar`, `/contacts`, `/reports` all nested under `AppLayout` (has the sidebar). Auth guard redirects unauthenticated users to `/login`.
+**Routing:** public `/` (LandingView), `/terminos-y-condiciones`, `/soporte` (under `PublicLayout`), `/login`; authenticated routes (`/notifs`, `/events`, `/calendar`, `/contacts`, `/reports`, `/settings`, admin panel gated by `authStore.user?.is_superuser`) nested under `AppLayout` (sidebar + `MobileNav`). Auth guard redirects unauthenticated users to `/login`. `router/index.ts` defines `scrollBehavior` (top, hash anchors, savedPosition).
+
+**API access pattern:** each resource has a composable in `src/composables/useXxx.ts` that builds `API_BASE` from `import.meta.env.VITE_API_URL` (fallback `http://localhost:8000/api`), declares TS interfaces matching the backend serializer, and uses the `useAuthStore` token. Pinia stores hold shared state; composables talk to the API. Never mix the two roles. URLs returned by the backend are already absolute.
 
 **State (Pinia stores):**
 - `useAuthStore` — user session, `loginWithGoogle()`, `loginDemo()`, `logout()`
@@ -92,6 +96,8 @@ src/
 └── types/index.ts               # Shared TypeScript types
 ```
 
-**Mock data:** `src/data/mock.ts` — Duki MTZ Tour (April 2025, CDMX/GDL/MTY) and Bizarrap European Summer Run (Jun–Jul 2025). All stores initialize from this file.
+**Mock data:** `src/data/mock.ts` is legacy demo data (used by `loginDemo()` only). Real stores load from the API; do not add new features on top of the mock.
 
-**i18n:** `locale` is a reactive ref exposed by vue-i18n; the language toggle in Login and Settings directly sets it. Keys are nested: `t('notif.title')`, `t('calendar.months[3]')`, etc.
+**i18n:** `locale` is a reactive ref exposed by vue-i18n, persisted to `localStorage` in `src/i18n/index.ts`; toggles in Login, Settings and the landing `LanguageSwitcher` set it. Keys are nested: `t('notif.title')`. Every new key goes in **both** `es.ts` and `en.ts`. Keys whose value is an array must be read with `tm()`, not `t()` (`t()` returns the key string and a `v-for` iterates characters). Namespaces: `landing`, `termsPage` (not `terms`, which is a flat key), `support`.
+
+**Checks:** `pnpm exec vue-tsc --noEmit`, `pnpm exec eslint src --ext .vue,.js,.ts`, `pnpm build`. There is no test suite yet. `vite-ssg build` fails on `window`/`document` access outside `onMounted`.
