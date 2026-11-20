@@ -643,7 +643,7 @@ export default {
       },
       {
         title: '9. Contacto',
-        body: 'Ante cualquier consulta sobre estos términos, escríbenos a legal@giras.pro o visita nuestra sección de Soporte.',
+        body: 'Ante cualquier consulta sobre estos términos, escríbenos a giras@nubedeideas.com o visita nuestra sección de Soporte.',
       },
     ],
   },
@@ -667,8 +667,8 @@ export default {
         id: 'responsable',
         title: '1. Responsable del tratamiento',
         paragraphs: [
-          'El responsable del tratamiento de los datos de tu cuenta es Nube de Ideas, titular del servicio Giras (giras.pro).',
-          'Puedes escribirnos para cualquier cuestión relacionada con la privacidad a soporte@giras.pro.',
+          'El responsable del tratamiento de los datos de tu cuenta es Nube De Ideas Consulting (NIF B86209434), con domicilio en Calle Impresores, 20, 28660 Madrid (España), titular del servicio Giras (giras.pro).',
+          'Puedes escribirnos para cualquier cuestión relacionada con la privacidad a giras@nubedeideas.com.',
           'Respecto de los datos de tu crew y de los demás contactos que introduces o importas en Giras, tú (o la empresa para la que gestionas la gira) eres el responsable del tratamiento y Giras actúa como encargado, tratándolos solo para prestarte el servicio y siguiendo tus instrucciones.',
         ],
       },
@@ -710,8 +710,8 @@ export default {
         paragraphsAfter: [
           'Usamos estos datos exclusivamente para ofrecerte esas funciones dentro de Giras. No vendemos los datos de Google, no los usamos para publicidad ni para crear perfiles, y no los compartimos con terceros salvo con los proveedores necesarios para prestar el servicio descritos en esta política. Ninguna persona de Giras los lee salvo que nos des tu permiso expreso (por ejemplo, para resolver una incidencia de soporte), cuando sea necesario por seguridad o cuando lo exija la ley.',
           'Los eventos de tus calendarios conectados pueden procesarse con Google Gemini para extraer la información logística (horarios, lugares, vuelos) y para generar los resúmenes diarios. Los datos de Google no se usan para entrenar modelos de inteligencia artificial generalizados.',
-          'Los datos se transmiten cifrados (HTTPS/TLS) y se almacenan en servidores de la Unión Europea gestionados por Hostinger, con acceso restringido. Las copias de seguridad se guardan cifradas.',
-          'Puedes desconectar tus calendarios en cualquier momento desde Ajustes y pedirnos la desconexión completa de tu cuenta de Google escribiendo a soporte@giras.pro. También puedes revocar el acceso de Giras directamente desde tu cuenta de Google. Al revocarlo, dejamos de acceder a tus datos de Google y, si nos lo pides, eliminamos los que hayamos importado.',
+          'Los datos se transmiten cifrados (HTTPS/TLS) y se almacenan en servidores situados en Lituania (Unión Europea) gestionados por Hostinger, con acceso restringido. Las copias de seguridad se guardan cifradas.',
+          'Puedes desconectar tus calendarios en cualquier momento desde Ajustes y pedirnos la desconexión completa de tu cuenta de Google escribiendo a giras@nubedeideas.com. También puedes revocar el acceso de Giras directamente desde tu cuenta de Google. Al revocarlo, dejamos de acceder a tus datos de Google y, si nos lo pides, eliminamos los que hayamos importado.',
         ],
         statement:
           'El uso que Giras hace de la información recibida de las APIs de Google se ajusta a la Política de datos de usuario de los servicios de API de Google, incluidos los requisitos de uso limitado.',
@@ -740,9 +740,10 @@ export default {
           'Cirium: consulta del estado y los horarios de los vuelos de tus actividades a partir del número de vuelo.',
           'Cobry y Viva Wallet: procesamiento de los pagos de las suscripciones.',
           'Spotify y Chartmetric: búsqueda de datos públicos del artista al crear una gira.',
+          'Apple Wallet y Google Wallet: emisión de pases de gira para el equipo (nombre, rol y fechas de la gira), solo si activas esa función.',
         ],
         paragraphsAfter: [
-          'Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo (por ejemplo, en Estados Unidos). En esos casos, la transferencia se ampara en las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en el Marco de Privacidad de Datos UE-EE. UU.',
+          'Transferencias internacionales. Hostinger (Lituania) y Mailgun (región UE) tratan los datos dentro del Espacio Económico Europeo. Twilio, Google, Cirium, Apple, Spotify y Chartmetric pueden tratar datos en Estados Unidos: Twilio, Google y Apple están adheridos al Marco de Privacidad de Datos UE-EE. UU. (Data Privacy Framework) y, además, aplican las Cláusulas Contractuales Tipo de la Comisión Europea; con Cirium, Spotify y Chartmetric la transferencia se ampara en las Cláusulas Contractuales Tipo. Cobry y Viva Wallet operan en la Unión Europea.',
           'Solo comunicaremos datos a autoridades cuando una ley nos obligue a ello.',
         ],
       },
@@ -776,7 +777,7 @@ export default {
         title: '9. Tus derechos',
         paragraphs: [
           'Puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, portabilidad, oposición y limitación del tratamiento, así como retirar los consentimientos que nos hayas dado.',
-          'Para ello, escríbenos a soporte@giras.pro desde el email de tu cuenta indicando el derecho que quieres ejercer. Te responderemos en el plazo máximo de un mes.',
+          'Para ello, escríbenos a giras@nubedeideas.com desde el email de tu cuenta indicando el derecho que quieres ejercer. Te responderemos en el plazo máximo de un mes.',
           'Si eres miembro del crew de una gira gestionada en Giras, puedes dirigirte al responsable de esa gira o escribirnos y trasladaremos tu solicitud.',
           'Si consideras que no hemos atendido correctamente tu solicitud, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).',
         ],

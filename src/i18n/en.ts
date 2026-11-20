@@ -642,7 +642,7 @@ export default {
       },
       {
         title: '9. Contact',
-        body: 'For any questions about these terms, write to us at legal@giras.pro or visit our Support section.',
+        body: 'For any questions about these terms, write to us at giras@nubedeideas.com or visit our Support section.',
       },
     ],
   },
@@ -666,8 +666,8 @@ export default {
         id: 'responsable',
         title: '1. Data controller',
         paragraphs: [
-          'The controller of your account data is Nube de Ideas, owner of the Giras service (giras.pro).',
-          'For any privacy-related question, write to us at soporte@giras.pro.',
+          'The controller of your account data is Nube De Ideas Consulting (tax ID B86209434), Calle Impresores, 20, 28660 Madrid (Spain), owner of the Giras service (giras.pro).',
+          'For any privacy-related question, write to us at giras@nubedeideas.com.',
           'For your crew data and any other contacts you enter or import into Giras, you (or the company you manage the tour for) are the controller and Giras acts as processor, handling that data only to provide the service and following your instructions.',
         ],
       },
@@ -709,8 +709,8 @@ export default {
         paragraphsAfter: [
           'We use this data exclusively to provide those features within Giras. We do not sell Google data, we do not use it for advertising or profiling, and we do not share it with third parties other than the service providers described in this policy that are required to run the service. No one at Giras reads it unless you give us explicit permission (for example, to solve a support issue), when necessary for security or when required by law.',
           'Events from your connected calendars may be processed with Google Gemini to extract logistics information (times, venues, flights) and to generate daily summaries. Google data is not used to train generalized artificial intelligence models.',
-          'Data is transmitted encrypted (HTTPS/TLS) and stored on servers in the European Union managed by Hostinger, with restricted access. Backups are stored encrypted.',
-          "You can disconnect your calendars at any time from Settings and ask us to fully disconnect your Google account by writing to soporte@giras.pro. You can also revoke Giras' access directly from your Google account. Once revoked, we stop accessing your Google data and, if you ask us to, we delete the data we imported.",
+          'Data is transmitted encrypted (HTTPS/TLS) and stored on servers located in Lithuania (European Union) managed by Hostinger, with restricted access. Backups are stored encrypted.',
+          "You can disconnect your calendars at any time from Settings and ask us to fully disconnect your Google account by writing to giras@nubedeideas.com. You can also revoke Giras' access directly from your Google account. Once revoked, we stop accessing your Google data and, if you ask us to, we delete the data we imported.",
         ],
         statement:
           "Giras' use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements.",
@@ -739,9 +739,10 @@ export default {
           'Cirium: checking the status and schedule of the flights in your activities from the flight number.',
           'Cobry and Viva Wallet: processing subscription payments.',
           'Spotify and Chartmetric: looking up public artist data when you create a tour.',
+          'Apple Wallet and Google Wallet: issuing tour passes for the crew (name, role and tour dates), only if you enable that feature.',
         ],
         paragraphsAfter: [
-          'Some of these providers may process data outside the European Economic Area (for example, in the United States). In those cases, the transfer is covered by the Standard Contractual Clauses approved by the European Commission or by the EU-U.S. Data Privacy Framework.',
+          'International transfers. Hostinger (Lithuania) and Mailgun (EU region) process data within the European Economic Area. Twilio, Google, Cirium, Apple, Spotify and Chartmetric may process data in the United States: Twilio, Google and Apple are certified under the EU-U.S. Data Privacy Framework and additionally apply the European Commission Standard Contractual Clauses; for Cirium, Spotify and Chartmetric the transfer relies on the Standard Contractual Clauses. Cobry and Viva Wallet operate within the European Union.',
           'We will only disclose data to authorities when required by law.',
         ],
       },
@@ -775,7 +776,7 @@ export default {
         title: '9. Your rights',
         paragraphs: [
           'You can exercise at any time your rights of access, rectification, erasure, portability, objection and restriction of processing, and withdraw any consent you have given us.',
-          'To do so, write to soporte@giras.pro from your account email stating the right you want to exercise. We will reply within one month at the latest.',
+          'To do so, write to giras@nubedeideas.com from your account email stating the right you want to exercise. We will reply within one month at the latest.',
           'If you are a crew member on a tour managed in Giras, you can contact the person in charge of that tour or write to us and we will forward your request.',
           'If you believe we have not handled your request properly, you can file a complaint with the Spanish Data Protection Agency (www.aepd.es).',
         ],
