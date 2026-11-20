@@ -157,6 +157,9 @@ export const NOTIF_STATUS_COLORS: Record<NotificationStatus, { bg: string; text:
 export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   activity_rescheduled_past:
     'Cancelada automáticamente: el evento se reprogramó y este recordatorio quedó en el pasado.',
+  activity_deleted: 'Cancelada automáticamente: la actividad se eliminó.',
+  tour_deleted: 'Cancelada automáticamente: la gira se eliminó.',
+  no_recipients: 'Cancelada automáticamente: no había ningún destinatario.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────
