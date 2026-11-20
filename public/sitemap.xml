@@ -11,7 +11,12 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://giras.pro/terminos-y-condiciones</loc>
+    <loc>https://giras.pro/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://giras.pro/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

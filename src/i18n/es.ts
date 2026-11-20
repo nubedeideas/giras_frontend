@@ -586,9 +586,10 @@ export default {
     },
     footer: {
       termsLink: 'Términos & Condiciones',
+      privacyLink: 'Privacidad',
       supportLink: 'Soporte',
-      instagramLabel: 'Seguinos en Instagram',
-      xLabel: 'Seguinos en X',
+      instagramLabel: 'Síguenos en Instagram',
+      xLabel: 'Síguenos en X',
     },
   },
 
@@ -643,6 +644,164 @@ export default {
       {
         title: '9. Contacto',
         body: 'Ante cualquier consulta sobre estos términos, escríbenos a legal@giras.pro o visita nuestra sección de Soporte.',
+      },
+    ],
+  },
+
+  privacy: {
+    lastUpdated: '20 de noviembre de 2026',
+    lastUpdatedLabel: 'Última actualización:',
+    metaTitle: 'Política de privacidad — Giras',
+    metaDescription:
+      'Cómo trata Giras tus datos personales: cuenta, giras, contactos del crew, notificaciones por WhatsApp y email, integración con Google Calendar y Google Contacts y tus derechos RGPD.',
+    eyebrow: 'Legal',
+    titleLine1: 'Política de',
+    titleHighlight: 'Privacidad',
+    intro:
+      'En esta política te explicamos qué datos personales tratamos cuando usas Giras, para qué los usamos, con quién los compartimos y cómo puedes ejercer tus derechos.',
+    linkLabel: 'Política de privacidad',
+    loginAnd: 'y la',
+    termsCta: 'Consulta cómo tratamos tus datos en nuestra',
+    sections: [
+      {
+        id: 'responsable',
+        title: '1. Responsable del tratamiento',
+        paragraphs: [
+          'El responsable del tratamiento de los datos de tu cuenta es Nube de Ideas, titular del servicio Giras (giras.pro).',
+          'Puedes escribirnos para cualquier cuestión relacionada con la privacidad a soporte@giras.pro.',
+          'Respecto de los datos de tu crew y de los demás contactos que introduces o importas en Giras, tú (o la empresa para la que gestionas la gira) eres el responsable del tratamiento y Giras actúa como encargado, tratándolos solo para prestarte el servicio y siguiendo tus instrucciones.',
+        ],
+      },
+      {
+        id: 'datos',
+        title: '2. Qué datos tratamos',
+        paragraphs: ['Según cómo uses Giras, tratamos las siguientes categorías de datos:'],
+        items: [
+          'Datos de cuenta: nombre, email y foto de perfil, obtenidos al iniciar sesión con Google o mediante enlace mágico (magic link) enviado a tu email, además de los datos que completas en tu perfil y en el onboarding.',
+          'Giras y actividades: nombre de la gira y del artista, fechas, horarios, lugares, vuelos, hoteles, transportes, notas y documentos que añades o importas.',
+          'Contactos del crew: nombre, rol, teléfono, email, organización y foto de las personas que añades a tus giras, ya sea a mano o importándolas desde Google Contacts.',
+          'Notificaciones: contenido de los mensajes que Giras envía por WhatsApp y email, destinatarios, fecha de envío, estados de entrega y lectura, confirmaciones y respuestas.',
+          'Facturación: plan contratado, importes y estado de los pagos. Los datos de tu tarjeta los introduces directamente en la pasarela de pago y Giras no los almacena.',
+          'Solicitudes de acceso: si nos dejas tu email en la web, guardamos ese email junto con datos de la campaña de origen (parámetros UTM y similares).',
+          'Datos técnicos y de uso: dirección IP, tipo de navegador y dispositivo, registros de acceso y de errores y, solo si lo aceptas, datos de analítica de navegación.',
+        ],
+      },
+      {
+        id: 'finalidades',
+        title: '3. Para qué usamos tus datos',
+        paragraphs: [
+          'Usamos tus datos para prestarte el servicio: crear y gestionar tus giras, sincronizar actividades, enviar automáticamente las notificaciones logísticas a tu crew por WhatsApp y email, mostrarte informes de entrega y confirmaciones y generar los resúmenes diarios de la gira.',
+          'También los usamos para gestionar tu suscripción y los pagos, darte soporte, mantener la seguridad de la plataforma, prevenir abusos y, si lo aceptas, medir el uso de la web para mejorarla.',
+          'No vendemos tus datos ni los de tu crew, y no los usamos para publicidad.',
+        ],
+      },
+      {
+        id: 'datos-de-google',
+        title: '4. Datos de Google',
+        paragraphs: [
+          'Si inicias sesión con Google, recibimos tu nombre, tu email y tu foto de perfil (permisos openid, email y profile) para crear y verificar tu cuenta.',
+          'Si conectas tu cuenta de Google, Giras solicita además los siguientes permisos:',
+        ],
+        items: [
+          'Google Calendar, lectura (calendar.readonly): leemos los eventos de los calendarios que eliges conectar (título, fechas, horas, ubicación y descripción) para crear y actualizar automáticamente las actividades de tu gira.',
+          'Google Calendar, eventos (calendar.events): escribimos en los eventos ya importados una marca interna privada que los vincula con su gira en Giras, para no procesarlos dos veces. No creamos ni borramos eventos en tu calendario.',
+          'Google Contacts, lectura (contacts.readonly): leemos nombre, emails, teléfonos, organización, dirección y foto de tus contactos solo cuando decides importarlos, para añadirlos al crew de tus giras.',
+        ],
+        paragraphsAfter: [
+          'Usamos estos datos exclusivamente para ofrecerte esas funciones dentro de Giras. No vendemos los datos de Google, no los usamos para publicidad ni para crear perfiles, y no los compartimos con terceros salvo con los proveedores necesarios para prestar el servicio descritos en esta política. Ninguna persona de Giras los lee salvo que nos des tu permiso expreso (por ejemplo, para resolver una incidencia de soporte), cuando sea necesario por seguridad o cuando lo exija la ley.',
+          'Los eventos de tus calendarios conectados pueden procesarse con Google Gemini para extraer la información logística (horarios, lugares, vuelos) y para generar los resúmenes diarios. Los datos de Google no se usan para entrenar modelos de inteligencia artificial generalizados.',
+          'Los datos se transmiten cifrados (HTTPS/TLS) y se almacenan en servidores de la Unión Europea gestionados por Hostinger, con acceso restringido. Las copias de seguridad se guardan cifradas.',
+          'Puedes desconectar tus calendarios en cualquier momento desde Ajustes y pedirnos la desconexión completa de tu cuenta de Google escribiendo a soporte@giras.pro. También puedes revocar el acceso de Giras directamente desde tu cuenta de Google. Al revocarlo, dejamos de acceder a tus datos de Google y, si nos lo pides, eliminamos los que hayamos importado.',
+        ],
+        statement:
+          'El uso que Giras hace de la información recibida de las APIs de Google se ajusta a la Política de datos de usuario de los servicios de API de Google, incluidos los requisitos de uso limitado.',
+        links: [
+          {
+            label: 'Política de datos de usuario de los servicios de API de Google',
+            href: 'https://developers.google.com/terms/api-services-user-data-policy',
+          },
+          {
+            label: 'Revocar el acceso de Giras en tu cuenta de Google',
+            href: 'https://myaccount.google.com/permissions',
+          },
+        ],
+      },
+      {
+        id: 'proveedores',
+        title: '5. Con quién compartimos tus datos',
+        paragraphs: [
+          'Para prestar el servicio trabajamos con los siguientes proveedores, que tratan los datos solo por cuenta de Giras y con las garantías contractuales correspondientes:',
+        ],
+        items: [
+          'Hostinger: alojamiento de los servidores y de la base de datos.',
+          'Twilio: envío de las notificaciones por WhatsApp Business y recepción de sus estados de entrega y respuestas.',
+          'Mailgun: envío de emails (notificaciones, enlaces de acceso y resúmenes), en su región de la UE.',
+          'Google: inicio de sesión, Google Calendar y Google Contacts; Google Maps para geolocalizar lugares y estimar trayectos; Google Gemini para la importación inteligente de actividades y los resúmenes diarios; Google Drive para guardar las copias de seguridad cifradas; y Google Tag Manager y Google Analytics, solo si aceptas las cookies de analítica.',
+          'Cirium: consulta del estado y los horarios de los vuelos de tus actividades a partir del número de vuelo.',
+          'Cobry y Viva Wallet: procesamiento de los pagos de las suscripciones.',
+          'Spotify y Chartmetric: búsqueda de datos públicos del artista al crear una gira.',
+        ],
+        paragraphsAfter: [
+          'Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo (por ejemplo, en Estados Unidos). En esos casos, la transferencia se ampara en las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en el Marco de Privacidad de Datos UE-EE. UU.',
+          'Solo comunicaremos datos a autoridades cuando una ley nos obligue a ello.',
+        ],
+      },
+      {
+        id: 'base-legal',
+        title: '6. Base legal',
+        items: [
+          'Ejecución del contrato: tratamos los datos de tu cuenta, tus giras, tu crew, las notificaciones y la facturación porque son necesarios para prestarte el servicio que contratas.',
+          'Consentimiento: conectar Google Calendar o Google Contacts y las cookies de analítica dependen de tu consentimiento, que puedes retirar en cualquier momento sin que afecte a la licitud del tratamiento anterior.',
+          'Interés legítimo: tratamos datos técnicos para mantener la seguridad de la plataforma, prevenir fraudes y abusos y resolver errores, y el email de las solicitudes de acceso para responderte.',
+          'Obligación legal: conservamos los datos de facturación durante los plazos que exige la normativa fiscal y mercantil.',
+        ],
+      },
+      {
+        id: 'conservacion',
+        title: '7. Cuánto tiempo conservamos los datos',
+        paragraphs: [
+          'Conservamos tus datos mientras tu cuenta esté activa. Si nos pides eliminar tu cuenta o algún dato concreto, lo borramos de nuestros sistemas, salvo la información que debamos guardar por obligación legal (por ejemplo, las facturas), que se conserva bloqueada durante el plazo legal.',
+          'Las copias de seguridad están cifradas y se renuevan periódicamente, de modo que los datos eliminados desaparecen también de ellas al caducar las copias.',
+        ],
+      },
+      {
+        id: 'seguridad',
+        title: '8. Seguridad',
+        paragraphs: [
+          'Aplicamos medidas técnicas y organizativas razonables para proteger tus datos: conexiones cifradas (HTTPS/TLS), acceso restringido a los servidores y a la base de datos, credenciales y claves de API fuera del código y copias de seguridad cifradas.',
+        ],
+      },
+      {
+        id: 'derechos',
+        title: '9. Tus derechos',
+        paragraphs: [
+          'Puedes ejercer en cualquier momento tus derechos de acceso, rectificación, supresión, portabilidad, oposición y limitación del tratamiento, así como retirar los consentimientos que nos hayas dado.',
+          'Para ello, escríbenos a soporte@giras.pro desde el email de tu cuenta indicando el derecho que quieres ejercer. Te responderemos en el plazo máximo de un mes.',
+          'Si eres miembro del crew de una gira gestionada en Giras, puedes dirigirte al responsable de esa gira o escribirnos y trasladaremos tu solicitud.',
+          'Si consideras que no hemos atendido correctamente tu solicitud, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).',
+        ],
+      },
+      {
+        id: 'cookies',
+        title: '10. Cookies y almacenamiento local',
+        paragraphs: [
+          'Giras usa almacenamiento local del navegador estrictamente necesario para funcionar: mantener tu sesión iniciada y recordar tu idioma, tu tema visual y tu elección sobre las cookies. Este almacenamiento no requiere consentimiento.',
+          'La web carga Google Tag Manager y, solo si aceptas el aviso de cookies, Google Analytics instala cookies de analítica para medir de forma agregada cómo se usa la web. Mientras no aceptes, esas cookies permanecen desactivadas. Si rechazas o no respondes, no se instalan.',
+        ],
+      },
+      {
+        id: 'menores',
+        title: '11. Menores',
+        paragraphs: [
+          'Giras es una herramienta profesional y no está dirigida a menores de edad. No tratamos conscientemente datos de menores de 14 años. Si crees que se ha registrado un menor, escríbenos y eliminaremos sus datos.',
+        ],
+      },
+      {
+        id: 'cambios',
+        title: '12. Cambios en esta política',
+        paragraphs: [
+          'Podemos actualizar esta política para reflejar cambios en el servicio o en la normativa. Publicaremos siempre la versión vigente en esta página con su fecha de actualización y, si los cambios son relevantes, te avisaremos por email o dentro de la aplicación.',
+        ],
       },
     ],
   },

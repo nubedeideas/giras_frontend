@@ -20,7 +20,18 @@ export default defineConfig({
     // session (dashboard) or is a transient redirect target (auth callbacks), neither of
     // which makes sense as a static snapshot.
     includedRoutes() {
-      return ['/', '/terminos-y-condiciones', '/soporte', '/landing']
+      // /terms and /privacy are the primary legal URLs (registered with Google OAuth); their
+      // Spanish aliases are prerendered too so every public legal URL answers 200 directly.
+      return [
+        '/',
+        '/terms',
+        '/terminos-y-condiciones',
+        '/privacy',
+        '/politica-de-privacidad',
+        '/privacidad',
+        '/soporte',
+        '/landing',
+      ]
     },
     // "nested" writes e.g. dist/soporte/index.html instead of dist/soporte.html — required
     // for a standard SPA-fallback static host (nginx `try_files $uri $uri/ /index.html`) to

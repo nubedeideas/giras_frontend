@@ -73,12 +73,18 @@ const currentYear = new Date().getFullYear()
         </div>
       </div>
 
-      <div class="flex gap-6 text-[10px] uppercase font-bold tracking-widest">
+      <div class="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] uppercase font-bold tracking-widest">
         <RouterLink
-          to="/terminos-y-condiciones"
+          to="/terms"
           class="hover:text-acid-green transition-colors"
         >
           {{ t('landing.footer.termsLink') }}
+        </RouterLink>
+        <RouterLink
+          to="/privacy"
+          class="hover:text-acid-green transition-colors"
+        >
+          {{ t('landing.footer.privacyLink') }}
         </RouterLink>
         <RouterLink
           to="/soporte"

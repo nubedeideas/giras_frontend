@@ -19,5 +19,6 @@
 ## Páginas
 
 - Landing principal: https://giras.pro/
-- Términos y condiciones: https://giras.pro/terminos-y-condiciones
+- Términos y condiciones: https://giras.pro/terms
+- Política de privacidad: https://giras.pro/privacy
 - Centro de soporte / FAQ: https://giras.pro/soporte

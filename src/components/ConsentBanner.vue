@@ -20,7 +20,7 @@ const { status, accept, reject } = useConsent()
         <p class="flex-1 text-[12px] text-ink-2 leading-relaxed">
           {{ t('consent.message') }}
           <a
-            href="/terminos-y-condiciones"
+            href="/terms"
             class="text-acid-muted hover:text-acid no-underline"
           >{{ t('consent.more') }}</a>
         </p>

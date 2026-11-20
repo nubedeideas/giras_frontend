@@ -9,7 +9,7 @@ const { t, tm } = useI18n()
 usePageMeta({
   title: `${t('termsPage.titleLine1')} ${t('termsPage.titleHighlight')} — Giras`,
   description: t('termsPage.metaDescription'),
-  path: '/terminos-y-condiciones',
+  path: '/terms',
 })
 
 const lastUpdated = computed(() => t('termsPage.lastUpdated'))
@@ -49,6 +49,15 @@ const sections = computed(
             {{ section.body }}
           </p>
         </section>
+        <p class="text-sm leading-relaxed text-white/60 font-mono">
+          {{ t('privacy.termsCta') }}
+          <RouterLink
+            to="/privacy"
+            class="acid-green underline underline-offset-4 hover:opacity-80 transition-opacity"
+          >
+            {{ t('privacy.linkLabel') }}
+          </RouterLink>
+        </p>
       </div>
     </div>
   </PublicLayout>

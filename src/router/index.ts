@@ -33,9 +33,20 @@ export const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
-    path: '/terminos-y-condiciones',
+    // /terms and /privacy are the URLs registered in the Google OAuth consent screen: they
+    // must answer 200 with the full page (prerendered), so the Spanish paths are aliases that
+    // render the same view instead of redirects. Canonical points at the primary path.
+    path: '/terms',
+    alias: ['/terminos-y-condiciones'],
     name: 'terms',
     component: () => import('@/views/TermsView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/privacy',
+    alias: ['/politica-de-privacidad', '/privacidad'],
+    name: 'privacy',
+    component: () => import('@/views/PrivacyView.vue'),
     meta: { public: true },
   },
   {

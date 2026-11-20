@@ -236,9 +236,14 @@ function doGoogleLogin() {
       <p class="text-[9px] text-white/25 mt-5 leading-relaxed uppercase tracking-wider">
         {{ t('loginNote') }}
         <a
-          href="/terminos-y-condiciones"
+          href="/terms"
           class="text-acid-green/60 hover:text-acid-green no-underline transition-colors"
         >{{ t('terms') }}</a>
+        {{ t('privacy.loginAnd') }}
+        <a
+          href="/privacy"
+          class="text-acid-green/60 hover:text-acid-green no-underline transition-colors"
+        >{{ t('privacy.linkLabel') }}</a>
       </p>
     </div>
   </div>
