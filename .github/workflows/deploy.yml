@@ -101,7 +101,11 @@ jobs:
       - name: Smoke test público
         run: |
           curl -fsS --retry 6 --retry-delay 5 -o /dev/null https://giras.pro/
-          curl -fsS https://giras.pro/ | grep -q "${{ vars.VITE_API_URL }}" \
-            || { echo "La home publicada no contiene VITE_API_URL esperado"; exit 1; }
+          # La URL de la API vive en los bundles JS, no en el HTML: localizar el bundle
+          # principal que referencia la home y comprobar que contiene VITE_API_URL.
+          BUNDLE=$(curl -fsS https://giras.pro/ | grep -oE '/assets/app-[A-Za-z0-9_-]+\.js' | head -1)
+          test -n "$BUNDLE" || { echo "La home no referencia ningún bundle /assets/app-*.js"; exit 1; }
+          curl -fsS "https://giras.pro$BUNDLE" | grep -q "${{ vars.VITE_API_URL }}" \
+            || { echo "El bundle publicado no contiene VITE_API_URL esperado"; exit 1; }
           curl -fsS -o /dev/null https://giras.pro/soporte/
           echo "Frontend desplegado"
