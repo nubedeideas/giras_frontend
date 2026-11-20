@@ -58,6 +58,8 @@ export interface TourFull extends TourListItem {
    * Opcional mientras el backend no lo exponga (se usa un fallback por owner).
    */
   current_user_is_admin?: boolean
+  /** Puede gestionar el portal del crew y la visibilidad de documentos: admin de la gira o staff. */
+  can_manage_crew?: boolean
   /** Solo en GET /api/tours/{uuid}/: YYYY-MM-DD en que caducan los enlaces del crew, o null. */
   crew_portal_expires_on?: string | null
 }

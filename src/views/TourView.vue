@@ -60,12 +60,24 @@ const isAdmin = computed(() => {
   return fallbackIsAdmin.value
 })
 
-// La pestaña del portal del crew solo la ven los admins (el backend da 403 al resto).
+// Gestión del portal del crew y de la visibilidad de documentos: admin de la gira o staff
+// (`can_manage_crew` del detalle); si el backend no lo expone, se usa `isAdmin`.
+const canManageCrew = computed(() => {
+  const detail = tourDetail.value
+  if (detail && detail.uuid === toursStore.activeTour?.uuid) {
+    if (typeof detail.can_manage_crew === 'boolean') return detail.can_manage_crew
+  }
+  return isAdmin.value
+})
+
+// La pestaña del portal del crew solo la ven quienes pueden gestionarlo (el backend da 403 al resto).
 const TABS = computed(() =>
-  isAdmin.value ? [...BASE_TABS, { key: 'crew' as Tab, labelKey: 'tourHub.tabs.crew' }] : BASE_TABS
+  canManageCrew.value
+    ? [...BASE_TABS, { key: 'crew' as Tab, labelKey: 'tourHub.tabs.crew' }]
+    : BASE_TABS
 )
-watch(isAdmin, (admin) => {
-  if (!admin && activeTab.value === 'crew') activeTab.value = 'insights'
+watch(canManageCrew, (can) => {
+  if (!can && activeTab.value === 'crew') activeTab.value = 'insights'
 })
 </script>
 
@@ -109,13 +121,14 @@ watch(isAdmin, (admin) => {
         v-else-if="activeTab === 'documents'"
         :tour-uuid="toursStore.activeTour!.uuid"
         :is-admin="isAdmin"
+        :can-manage-crew="canManageCrew"
       />
       <ScheduleConflictsPanel
         v-else-if="activeTab === 'conflicts'"
         :tour-uuid="toursStore.activeTour!.uuid"
       />
       <CrewPortalPanel
-        v-else-if="activeTab === 'crew' && isAdmin"
+        v-else-if="activeTab === 'crew' && canManageCrew"
         :tour-uuid="toursStore.activeTour!.uuid"
       />
     </div>

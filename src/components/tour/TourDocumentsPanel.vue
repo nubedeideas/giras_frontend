@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Pill from '@/components/ui/Pill.vue'
 import {
@@ -9,7 +9,12 @@ import {
   type TourDocumentType,
 } from '@/composables/useTourDocuments'
 
-const props = defineProps<{ tourUuid: string; isAdmin: boolean }>()
+const props = withDefaults(
+  defineProps<{ tourUuid: string; isAdmin: boolean; canManageCrew?: boolean }>(),
+  { canManageCrew: undefined }
+)
+// Visibilidad para el crew: admin de la gira o staff (`can_manage_crew`); por defecto, `isAdmin`.
+const canManageCrew = computed(() => props.canManageCrew ?? props.isAdmin)
 const { t } = useI18n()
 const api = useTourDocuments()
 
@@ -312,7 +317,7 @@ function formatDate(iso: string): string {
               {{ doc.document_type_display }}
             </Pill>
             <Pill
-              v-if="!isAdmin && doc.visible_to_crew"
+              v-if="!canManageCrew && doc.visible_to_crew"
               variant="g"
               data-testid="doc-crew-badge"
             >
@@ -329,7 +334,7 @@ function formatDate(iso: string): string {
             {{ t('tourHub.documents.uploadedBy') }} {{ doc.uploaded_by_name }} · {{ formatSize(doc.file_size) }} · {{ formatDate(doc.created_at) }}
           </p>
           <button
-            v-if="isAdmin"
+            v-if="canManageCrew"
             type="button"
             role="switch"
             data-testid="doc-crew-switch"
