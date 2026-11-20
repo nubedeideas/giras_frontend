@@ -41,7 +41,25 @@ export interface TourFull extends TourListItem {
   default_calendar: number | null
   default_notification_group: string | null
   default_notification_group_name: string | null
+  /** Alerta del día de show (bloque 3.2). */
+  show_day_alert_enabled: boolean
+  /** "HH:MM:SS" o null (= hora por defecto del backend). */
+  show_day_alert_time: string | null
+  /** "HH:MM", p. ej. "09:00". Solo en GET /api/tours/{uuid}/. */
+  show_day_alert_default_time: string
+  /** false mientras Meta no apruebe la plantilla (sin SID). Solo en GET /api/tours/{uuid}/. */
+  show_day_alert_available: boolean
 }
+
+/**
+ * Respuesta de PATCH /api/tours/{uuid}/ (TourUpdateSerializer): los campos del modelo, sin los
+ * calculados del retrieve (`show_day_alert_available`, `show_day_alert_default_time`,
+ * `default_notification_group_name`).
+ */
+export type TourUpdateResponse = Omit<
+  TourFull,
+  'show_day_alert_available' | 'show_day_alert_default_time' | 'default_notification_group_name'
+>
 
 export interface CreateTourPayload {
   name: string
@@ -82,6 +100,9 @@ export interface UpdateTourPayload {
   spotify_synced_at?: string | null
   default_calendar?: number | null
   default_notification_group?: string | null
+  show_day_alert_enabled?: boolean
+  /** "HH:MM" en tramos de 15 min; null = hora por defecto. */
+  show_day_alert_time?: string | null
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────
@@ -101,8 +122,8 @@ export function useTours() {
     return apiClient.post<TourFull>('/tours/', payload, { fallback: 'Error al crear gira' })
   }
 
-  function updateTour(uuid: string, payload: UpdateTourPayload): Promise<TourFull> {
-    return apiClient.patch<TourFull>(`/tours/${uuid}/`, payload, {
+  function updateTour(uuid: string, payload: UpdateTourPayload): Promise<TourUpdateResponse> {
+    return apiClient.patch<TourUpdateResponse>(`/tours/${uuid}/`, payload, {
       fallback: 'Error al actualizar gira',
     })
   }

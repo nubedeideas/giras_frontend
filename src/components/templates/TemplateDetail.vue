@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import TemplatePreviewModal from '@/components/modals/TemplatePreviewModal.vue'
 import {
   useNotificationTemplates,
@@ -7,6 +8,7 @@ import {
   TEMPLATE_CHANNEL_LABELS,
   TEMPLATE_CHANNEL_COLORS,
   ALL_CANONICAL_VARS,
+  isSystemTemplate,
   type NotificationTemplate,
 } from '@/composables/useNotificationTemplates'
 
@@ -18,6 +20,10 @@ const emit = defineEmits<{
 }>()
 
 const api = useNotificationTemplates()
+const { t } = useI18n()
+
+// Las plantillas del sistema (seed de WhatsApp) no se editan ni se borran desde aquí.
+const isSystem = computed(() => isSystemTemplate(props.template))
 
 const settingDefault = ref(false)
 const defaultFeedback = ref('')
@@ -119,6 +125,8 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
             Preview
           </button>
           <button
+            v-if="!isSystem"
+            data-testid="template-edit"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[11px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
             @click="emit('edit')"
           >
@@ -139,6 +147,14 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           </button>
         </div>
       </div>
+
+      <p
+        v-if="isSystem"
+        data-testid="template-system-notice"
+        class="mb-4 text-[11px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
+      >
+        {{ t('notif.templateSystemReadOnly') }}
+      </p>
 
       <!-- Name + slug -->
       <h1 class="text-xl font-bold text-ink tracking-[-0.3px] mb-1">
@@ -326,7 +342,10 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       </div>
 
       <!-- Delete -->
-      <div class="pt-2 border-t border-line">
+      <div
+        v-if="!isSystem"
+        class="pt-2 border-t border-line"
+      >
         <template v-if="!deleteConfirm">
           <button
             class="text-[11px] text-ink-4 hover:text-red-400 transition-colors border-none bg-transparent cursor-pointer p-0"

@@ -91,6 +91,22 @@ export function formatInZone(iso: string | null | undefined, zone: string): stri
 }
 
 /**
+ * Como `formatInZone`, pero con los meses en el idioma de la interfaz (Luxon + Intl).
+ * Ej: es → "1 dic 2026 · 09:00 (GMT+1)", en → "1 Dec 2026 · 09:00 (GMT+1)".
+ */
+export function formatInZoneLocalized(
+  iso: string | null | undefined,
+  zone: string,
+  locale: string
+): string {
+  if (!iso) return '—'
+  const dt = DateTime.fromISO(iso, { zone: 'utc' }).setZone(zone).setLocale(locale)
+  if (!dt.isValid) return '—'
+  // `Z` = offset corto: "+1", "-6", "+5:30".
+  return `${dt.toFormat('d LLL yyyy · HH:mm')} (GMT${dt.toFormat('Z')})`
+}
+
+/**
  * Versión sin indicador de zona — para contextos donde la zona ya es evidente.
  */
 export function formatInZoneShort(iso: string | null | undefined, zone: string): string {

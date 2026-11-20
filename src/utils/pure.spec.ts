@@ -11,6 +11,12 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     'activity_deleted',
     'tour_deleted',
     'no_recipients',
+    'event_deleted',
+    'subscription_cancelled',
+    // Bloque 3.2 (alerta del día de show)
+    'show_day_alert_disabled',
+    'show_changed',
+    'template_not_approved',
   ]
 
   it('tiene etiqueta para cada motivo del backend', () => {

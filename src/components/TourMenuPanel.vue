@@ -9,6 +9,7 @@ import type { Tour, TourStatus } from '@/types'
 import { searchSpotifyArtists, formatFollowers } from '@/composables/useSpotifySearch'
 import type { SpotifyArtist } from '@/composables/useSpotifySearch'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
+import { alertTimePatch, alertTimeToInput } from '@/utils/showDayAlert'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
 
 type Anchor = { top: number; left: number; bottom: number; width: number }
@@ -83,6 +84,18 @@ const formError = ref('')
 const saving = ref(false)
 const loadingEdit = ref(false)
 const notificationGroups = ref<NotificationGroupListItem[]>([])
+
+// Alerta del día de show (solo edición). Se rellena desde GET /tours/{uuid}/; si esa carga
+// falla no se mandan los campos, para no pisar la configuración con valores por defecto.
+const showDayAlert = reactive({
+  loaded: false,
+  enabled: true,
+  time: '',
+  /** Hora tal como llegó del backend: si no cambia, no se manda ni se valida. */
+  initialTime: '',
+  defaultTime: '',
+  available: true,
+})
 
 // ─── Spotify search ───────────────────────────────────────────────────────────
 
@@ -227,10 +240,32 @@ async function openEdit(tour: Tour) {
   formError.value = ''
   spotifyResults.value = []
   showDropdown.value = false
+  Object.assign(showDayAlert, {
+    loaded: false,
+    enabled: true,
+    time: '',
+    initialTime: '',
+    defaultTime: '',
+    available: true,
+  })
+
+  // Si mientras llega la respuesta se abre otra gira (o se vuelve a la lista), se descarta:
+  // si no, el formulario de la otra gira se rellenaría con estos datos.
+  const isCurrent = () => mode.value === 'edit' && editTarget.value?.uuid === tour.uuid
 
   // Fetch full detail from API for complete fields
   try {
     const full = await toursApi.getTour(tour.uuid)
+    if (!isCurrent()) return
+    const time = alertTimeToInput(full.show_day_alert_time)
+    Object.assign(showDayAlert, {
+      loaded: true,
+      enabled: full.show_day_alert_enabled ?? true,
+      time,
+      initialTime: time,
+      defaultTime: full.show_day_alert_default_time ?? '',
+      available: full.show_day_alert_available ?? true,
+    })
     Object.assign(form, {
       description: full.description ?? '',
       genre: full.genre ?? '',
@@ -248,14 +283,16 @@ async function openEdit(tour: Tour) {
   } catch {
     // Silently continue with list data if detail fetch fails
   } finally {
-    loadingEdit.value = false
+    // Otra edición en curso gestiona su propio loadingEdit; fuera de edición, se libera.
+    if (isCurrent() || mode.value !== 'edit') loadingEdit.value = false
   }
 
   // Load groups this tour can use as default (scoped to this tour + globals)
   try {
-    notificationGroups.value = await groupsApi.listGroups(tour.uuid)
+    const groups = await groupsApi.listGroups(tour.uuid)
+    if (isCurrent()) notificationGroups.value = groups
   } catch {
-    notificationGroups.value = []
+    if (isCurrent()) notificationGroups.value = []
   }
 }
 
@@ -306,6 +343,13 @@ async function submitCreate() {
 
 async function submitEdit() {
   if (!editTarget.value || !isFormValid.value || !validateDates() || saving.value) return
+  const showDayTimePatch = showDayAlert.loaded
+    ? alertTimePatch(showDayAlert.time, showDayAlert.initialTime)
+    : {}
+  if (showDayTimePatch === null) {
+    formError.value = t('showDayAlert.invalidTime')
+    return
+  }
   saving.value = true
   formError.value = ''
   try {
@@ -329,6 +373,9 @@ async function submitEdit() {
         spotify_followers: form.spotify_followers ?? null,
         spotify_synced_at: form.spotify_synced_at || null,
         default_notification_group: form.default_notification_group || null,
+        ...(showDayAlert.loaded
+          ? { show_day_alert_enabled: showDayAlert.enabled, ...showDayTimePatch }
+          : {}),
       },
       form.color,
     )
@@ -1139,6 +1186,76 @@ async function confirmDelete(uuid: string) {
               </select>
               <p class="text-[9px] text-ink-4 mt-1">
                 Se usa como destinatarios automáticos cuando una actividad se crea sin una regla de notificación explícita.
+              </p>
+            </div>
+
+            <!-- Alerta del día de show (edit only, tras cargar el detalle) -->
+            <div
+              v-if="mode === 'edit' && showDayAlert.loaded"
+              class="space-y-2"
+              data-testid="show-day-alert-config"
+            >
+              <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block">
+                {{ t('showDayAlert.title') }}
+              </label>
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="showDayAlert.enabled"
+                class="w-full flex items-center gap-2.5 bg-transparent border-none p-0 cursor-pointer text-left"
+                @click="showDayAlert.enabled = !showDayAlert.enabled"
+              >
+                <span
+                  class="relative w-7 h-4 rounded-full flex-shrink-0 border transition-colors"
+                  :class="showDayAlert.enabled ? 'bg-acid border-line-acid' : 'bg-glass-2 border-line'"
+                >
+                  <span
+                    class="absolute top-[1px] w-3 h-3 rounded-full transition-all"
+                    :class="showDayAlert.enabled ? 'left-[13px] bg-bg' : 'left-[1px] bg-ink-3'"
+                  />
+                </span>
+                <span class="text-[12px] text-ink-2">{{ t('showDayAlert.enabled') }}</span>
+              </button>
+              <div>
+                <label
+                  for="show-day-alert-time"
+                  class="text-[10px] text-ink-3 block mb-1"
+                >{{ t('showDayAlert.time') }}</label>
+                <!-- Con la alerta apagada sigue editable (atenuado) para poder corregir o limpiar la hora -->
+                <input
+                  id="show-day-alert-time"
+                  v-model="showDayAlert.time"
+                  type="time"
+                  step="900"
+                  class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+                  :class="showDayAlert.enabled ? '' : 'opacity-50'"
+                >
+                <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mt-1">
+                  <p
+                    v-if="showDayAlert.defaultTime"
+                    class="text-[9px] text-ink-4"
+                  >
+                    {{ t('showDayAlert.timeDefault', { time: showDayAlert.defaultTime }) }}
+                  </p>
+                  <button
+                    v-if="showDayAlert.time"
+                    type="button"
+                    data-testid="show-day-alert-use-default"
+                    class="text-[10px] text-acid bg-transparent border-none p-0 cursor-pointer hover:underline"
+                    @click="showDayAlert.time = ''"
+                  >
+                    {{ t('showDayAlert.useDefault') }}
+                  </button>
+                </div>
+              </div>
+              <p class="text-[9px] text-ink-4 leading-relaxed">
+                {{ t('showDayAlert.help') }}
+              </p>
+              <p
+                v-if="!showDayAlert.available"
+                class="text-[10px] text-brand-orange bg-brand-orange-dim border border-line rounded px-2.5 py-1.5 leading-relaxed"
+              >
+                {{ t('showDayAlert.pendingApproval') }}
               </p>
             </div>
 

@@ -26,6 +26,18 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     )
   })
 
+  it('explica los motivos de la alerta del día de show', () => {
+    expect(AUTO_CANCEL_REASON_LABELS.show_day_alert_disabled).toBe(
+      'Cancelada automáticamente: la alerta del día de show se desactivó para esta gira.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.show_changed).toBe(
+      'Cancelada automáticamente: el show cambió de día o se canceló.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.template_not_approved).toBe(
+      'Cancelada automáticamente: la plantilla de WhatsApp aún no está aprobada.'
+    )
+  })
+
   it('mantiene los motivos anteriores', () => {
     for (const reason of [
       'activity_rescheduled_past',

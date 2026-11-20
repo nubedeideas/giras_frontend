@@ -219,6 +219,11 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   no_recipients: 'Cancelada automáticamente: no había ningún destinatario.',
   event_deleted: 'Cancelada automáticamente: el evento se eliminó.',
   subscription_cancelled: 'Cancelada automáticamente: la suscripción de la gira se canceló.',
+  show_day_alert_disabled:
+    'Cancelada automáticamente: la alerta del día de show se desactivó para esta gira.',
+  show_changed: 'Cancelada automáticamente: el show cambió de día o se canceló.',
+  template_not_approved:
+    'Cancelada automáticamente: la plantilla de WhatsApp aún no está aprobada.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────

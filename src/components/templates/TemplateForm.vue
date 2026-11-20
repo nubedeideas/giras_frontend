@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   useNotificationTemplates,
   TemplateApiError,
@@ -8,6 +9,7 @@ import {
   TEMPLATE_CHANNELS,
   TEMPLATE_CHANNEL_LABELS,
   CANONICAL_VAR_GROUPS,
+  isSystemTemplate,
   type NotificationTemplate,
   type TemplatePayload,
   type TemplateType,
@@ -19,6 +21,16 @@ const props = defineProps<{ template: NotificationTemplate | null }>()
 const emit = defineEmits<{ cancel: []; saved: [template: NotificationTemplate] }>()
 
 const api = useNotificationTemplates()
+const { t: tr } = useI18n()
+
+// Defensa por si se llega a editar una plantilla del sistema: no se guarda.
+const isSystem = computed(() => !!props.template && isSystemTemplate(props.template))
+
+// Los tipos del sistema (day_sheet, show_day_*) no se ofrecen al crear, pero si la plantilla
+// ya los tiene se mantienen como opción para no perder el valor.
+const typeOptions = computed<TemplateType[]>(() =>
+  TEMPLATE_TYPES.includes(notifType.value) ? TEMPLATE_TYPES : [...TEMPLATE_TYPES, notifType.value]
+)
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 
@@ -186,6 +198,10 @@ function validate(): boolean {
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 async function submit() {
+  if (isSystem.value) {
+    globalError.value = tr('notif.templateSystemReadOnly')
+    return
+  }
   if (!validate()) return
   fieldErrors.value = null
   saving.value = true
@@ -257,6 +273,14 @@ const labelClass =
         </button>
       </div>
 
+      <p
+        v-if="isSystem"
+        data-testid="template-system-notice"
+        class="mb-4 text-[11px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
+      >
+        {{ tr('notif.templateSystemReadOnly') }}
+      </p>
+
       <div class="space-y-4">
         <!-- Name -->
         <div>
@@ -283,11 +307,11 @@ const labelClass =
               :class="selectClass"
             >
               <option
-                v-for="t in TEMPLATE_TYPES"
+                v-for="t in typeOptions"
                 :key="t"
                 :value="t"
               >
-                {{ TEMPLATE_TYPE_LABELS[t] }}
+                {{ TEMPLATE_TYPE_LABELS[t] ?? t }}
               </option>
             </select>
             <p
@@ -583,8 +607,8 @@ const labelClass =
         <div class="flex gap-2 pt-2">
           <button
             class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all flex items-center justify-center gap-2"
-            :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
-            :disabled="saving"
+            :class="saving || isSystem ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+            :disabled="saving || isSystem"
             @click="submit"
           >
             <svg

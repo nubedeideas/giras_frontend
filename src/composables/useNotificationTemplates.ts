@@ -13,6 +13,9 @@ export type TemplateType =
   | 'announcement'
   | 'alert'
   | 'night_off_report'
+  | 'day_sheet'
+  | 'show_day_alert'
+  | 'show_day_agenda'
   | 'custom'
 
 export interface NotificationTemplate {
@@ -23,6 +26,10 @@ export interface NotificationTemplate {
   channel: TemplateChannel
   is_active: boolean
   is_default: boolean
+  /** Plantilla del sistema (seed), no editable. Puede no venir aún: ver `isSystemTemplate`. */
+  is_system?: boolean
+  /** PK del usuario creador; `null` en las del sistema (GET /notifications/templates/{uuid}/). */
+  created_by?: number | null
   twilio_template_sid?: string
   subject?: string
   body?: string
@@ -69,6 +76,15 @@ export class TemplateApiError extends ApiError {
   }
 }
 
+/**
+ * ¿Plantilla del sistema? Usa `is_system` si el backend lo manda; si no, `created_by` nulo
+ * (solo si el campo viene en la respuesta: el listado no lo trae).
+ */
+export function isSystemTemplate(t: Pick<NotificationTemplate, 'is_system' | 'created_by'>): boolean {
+  if (typeof t.is_system === 'boolean') return t.is_system
+  return 'created_by' in t && t.created_by === null
+}
+
 // ─── Display constants ────────────────────────────────────────────────────────
 
 export const TEMPLATE_TYPES: TemplateType[] = [
@@ -94,6 +110,9 @@ export const TEMPLATE_TYPE_LABELS: Record<TemplateType, string> = {
   announcement: 'Anuncio',
   alert: 'Alerta',
   night_off_report: 'Informe nocturno',
+  day_sheet: 'Day sheet',
+  show_day_alert: 'Alerta del día de show',
+  show_day_agenda: 'Agenda del día de show',
   custom: 'Personalizado',
 }
 

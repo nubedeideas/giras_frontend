@@ -41,4 +41,35 @@ describe('useTours', () => {
     expect(err).toBeInstanceOf(ApiError)
     expect((err as ApiError).message).toBe('No se ha encontrado el recurso.')
   })
+
+  it('updateTour manda la config de la alerta y expone el 400 del campo como mensaje', async () => {
+    const fetchMock = mockFetch(
+      jsonResponse(
+        {
+          success: false,
+          error: {
+            message: 'Error de validación',
+            status_code: 400,
+            details: {
+              show_day_alert_time: ['La hora de la alerta debe ir en tramos de 15 minutos.'],
+            },
+          },
+        },
+        400
+      )
+    )
+    const err = await useTours()
+      .updateTour('a', { show_day_alert_enabled: true, show_day_alert_time: '09:10' })
+      .catch((e: unknown) => e)
+    const { init } = callAt(fetchMock, 0)
+    expect(init.method).toBe('PATCH')
+    expect(JSON.parse(init.body as string)).toEqual({
+      show_day_alert_enabled: true,
+      show_day_alert_time: '09:10',
+    })
+    expect(err).toBeInstanceOf(ApiError)
+    expect((err as ApiError).message).toBe(
+      'La hora de la alerta debe ir en tramos de 15 minutos.'
+    )
+  })
 })

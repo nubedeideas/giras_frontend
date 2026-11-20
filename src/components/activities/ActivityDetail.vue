@@ -16,6 +16,9 @@ import EditActivityModal from '@/components/modals/EditActivityModal.vue'
 import CreateNotificationModal from '@/components/modals/CreateNotificationModal.vue'
 import AddContactsToNotificationModal from '@/components/modals/AddContactsToNotificationModal.vue'
 import NotificationCard from '@/components/activities/NotificationCard.vue'
+import ShowDayAlertStatus from '@/components/activities/ShowDayAlertStatus.vue'
+import { SHOW_ACTIVITY_CODE } from '@/utils/showDayAlert'
+import { useTours } from '@/composables/useTours'
 import { activityConfirmationSummary } from '@/utils/confirmations'
 
 const store = useActivitiesStore()
@@ -45,6 +48,27 @@ const notifsError = ref('')
 
 // Resumen en cliente: suma de las notificaciones confirmables ya enviadas.
 const confirmationSummary = computed(() => activityConfirmationSummary(notifications.value))
+
+const isShow = computed(() => activity.value?.activity_type?.code === SHOW_ACTIVITY_CODE)
+
+// `show_day_alert_enabled` solo viene en el detalle de la gira: se pide únicamente para shows.
+// Si falla, se queda en undefined y el bloque no dice nada de la configuración.
+const toursApi = useTours()
+const tourAlertEnabled = ref<boolean | undefined>(undefined)
+watch(
+  () => (isShow.value ? activity.value?.tour : undefined),
+  async (tourUuid) => {
+    tourAlertEnabled.value = undefined
+    if (!tourUuid) return
+    try {
+      const full = await toursApi.getTour(tourUuid)
+      if (activity.value?.tour === tourUuid) tourAlertEnabled.value = full.show_day_alert_enabled
+    } catch {
+      // Sin dato: el bloque muestra el estado de las notificaciones sin más.
+    }
+  },
+  { immediate: true },
+)
 
 async function loadNotifications() {
   if (!activity.value) return
@@ -552,6 +576,14 @@ async function confirmDelete() {
             >
               {{ notifsError }}
             </p>
+
+            <!-- Alerta del día de show (solo shows; el error de carga lo cubre la lista) -->
+            <ShowDayAlertStatus
+              v-if="isShow && !loadingNotifs && !notifsError"
+              :notifications="notifications"
+              :activity-scheduled-at="activity.scheduled_at"
+              :show-day-alert-enabled="tourAlertEnabled"
+            />
 
             <!-- Confirmaciones de la actividad -->
             <p

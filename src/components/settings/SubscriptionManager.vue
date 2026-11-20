@@ -192,7 +192,7 @@ const barColor = computed(() => {
             class="mt-1.5 space-y-1.5"
           >
             <p class="text-[11px] text-ink-3">
-              ¿Confirmás la cancelación de la suscripción de esta gira?
+              ¿Confirmas la cancelación de la suscripción de esta gira?
             </p>
             <p
               v-if="cancelError"

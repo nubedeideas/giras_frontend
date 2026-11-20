@@ -106,6 +106,7 @@ export default {
 
   notif: {
     title: 'Notifications',
+    templateSystemReadOnly: 'System template, not editable',
     eventsTitle: 'Events',
     import: 'Import',
     tour: 'Tour',
@@ -274,6 +275,8 @@ export default {
       alert: 'Alert',
       night_off_report: 'Night report',
       day_sheet: 'Day sheet',
+      show_day_alert: 'Show day alert',
+      show_day_agenda: 'Show day agenda',
       custom: 'Custom',
     },
   },
@@ -311,6 +314,28 @@ export default {
     remindError: 'The reminder could not be sent',
     recipients: 'Recipients',
     noRecipients: 'No recipients',
+  },
+
+  showDayAlert: {
+    title: 'Show day alert',
+    enabled: 'Send the show day alert',
+    time: 'Send time (show local time)',
+    timeDefault: 'Default: {time}',
+    help:
+      'On the morning of each show, the team gets a WhatsApp with the venue, the soundcheck time and the show time, plus a button to request the day agenda. It goes to the default notification group or, if there is none, to the tour members with a phone number.',
+    pendingApproval:
+      'Pending WhatsApp approval: the alert will start sending once Meta approves the template.',
+    invalidTime: 'The alert time must be in 15-minute steps.',
+    useDefault: 'Use default time',
+    state: {
+      none: 'Show day alert: it is scheduled the day before the show.',
+      scheduled: 'Show day alert scheduled for {at}',
+      sending: 'Sending the show day alert…',
+      sent: 'Show day alert sent · {confirmed}/{total} confirmed',
+      failed: 'The show day alert could not be sent',
+      cancelled: 'Show day alert cancelled',
+      disabled: 'Show day alert disabled for this tour',
+    },
   },
 
   modal: {

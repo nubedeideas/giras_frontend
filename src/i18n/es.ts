@@ -106,6 +106,7 @@ export default {
 
   notif: {
     title: 'Notificaciones',
+    templateSystemReadOnly: 'Plantilla del sistema, no editable',
     eventsTitle: 'Eventos',
     import: 'Importar',
     tour: 'Gira',
@@ -274,6 +275,8 @@ export default {
       alert: 'Alerta',
       night_off_report: 'Informe nocturno',
       day_sheet: 'Day sheet',
+      show_day_alert: 'Alerta del día de show',
+      show_day_agenda: 'Agenda del día de show',
       custom: 'Personalizada',
     },
   },
@@ -312,6 +315,28 @@ export default {
     remindError: 'No se ha podido enviar el recordatorio',
     recipients: 'Destinatarios',
     noRecipients: 'Sin destinatarios',
+  },
+
+  showDayAlert: {
+    title: 'Alerta del día de show',
+    enabled: 'Enviar la alerta del día de show',
+    time: 'Hora de envío (hora local del show)',
+    timeDefault: 'Por defecto: {time}',
+    help:
+      'La mañana de cada show, el equipo recibe por WhatsApp el lugar, la hora de la prueba de sonido y la del show, con un botón para pedir la agenda del día. Se envía al grupo de notificación por defecto o, si no hay, a los miembros de la gira con teléfono.',
+    pendingApproval:
+      'Pendiente de aprobación de WhatsApp: la alerta empezará a enviarse cuando Meta apruebe la plantilla.',
+    invalidTime: 'La hora de la alerta debe ir en tramos de 15 minutos.',
+    useDefault: 'Usar hora por defecto',
+    state: {
+      none: 'Alerta del día de show: se programa el día antes del show.',
+      scheduled: 'Alerta del día de show programada para {at}',
+      sending: 'Enviando la alerta del día de show…',
+      sent: 'Alerta del día de show enviada · {confirmed}/{total} confirmados',
+      failed: 'La alerta del día de show no se ha podido enviar',
+      cancelled: 'Alerta del día de show cancelada',
+      disabled: 'Alerta del día de show desactivada en la gira',
+    },
   },
 
   modal: {

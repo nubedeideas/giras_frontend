@@ -2,7 +2,13 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Tour, TourStatus } from '@/types'
 import { useTours as useToursApi } from '@/composables/useTours'
-import type { TourFull, TourListItem, CreateTourPayload, UpdateTourPayload } from '@/composables/useTours'
+import type {
+  TourFull,
+  TourListItem,
+  TourUpdateResponse,
+  CreateTourPayload,
+  UpdateTourPayload,
+} from '@/composables/useTours'
 
 // ─── Synthetic ID helpers ─────────────────────────────────────────────────────
 // Se mantiene un activeTourId numérico por compatibilidad con la selección por id
@@ -19,8 +25,8 @@ function syntheticId(uuid: string): number {
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────
 
-function mapTour(data: TourFull | TourListItem): Tour {
-  const full = data as TourFull
+function mapTour(data: TourFull | TourUpdateResponse | TourListItem): Tour {
+  const full = data as Partial<TourFull>
   return {
     id: syntheticId(data.uuid),
     uuid: data.uuid,
