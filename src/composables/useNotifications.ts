@@ -224,6 +224,7 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   show_changed: 'Cancelada automáticamente: el show cambió de día o se canceló.',
   template_not_approved:
     'Cancelada automáticamente: la plantilla de WhatsApp aún no está aprobada.',
+  show_passed: 'Cancelada automáticamente: el día del show ya había pasado.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────
