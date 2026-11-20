@@ -110,7 +110,7 @@ async function choose(code: PlanCode) {
         class="bg-glass border border-line-acid rounded-lg px-3 py-2.5 space-y-2"
       >
         <p class="text-[12px] text-ink-2">
-          Te enviamos el link de pago por email y WhatsApp. También podés pagarlo ahora directamente:
+          Te enviamos el link de pago por email y WhatsApp. También puedes pagarlo ahora directamente:
         </p>
         <a
           :href="result.payment_url"

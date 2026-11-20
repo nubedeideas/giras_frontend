@@ -1,22 +1,71 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Contact } from '@/types'
-import { useNotificationsStore } from '@/stores/notifications'
 import { useContactsStore } from '@/stores/contacts'
+import {
+  useNotificationReports,
+  type ContactHistoryItem,
+} from '@/composables/useNotificationReports'
+import { browserZone, formatInZoneShort } from '@/utils/datetime'
 import GlassBlock from '@/components/ui/GlassBlock.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
+import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
 
 const props = defineProps<{ contact: Contact }>()
 const emit = defineEmits<{ edit: [] }>()
 const { t } = useI18n()
-const notifStore = useNotificationsStore()
 const contactStore = useContactsStore()
+const reportsApi = useNotificationReports()
 
-// Events where this contact appears (matched by UUID)
-const contactEvents = computed(() =>
-  notifStore.events.filter((e) => e.contacts.some((c) => c.uuid === props.contact.uuid)),
+// ─── Historial real de notificaciones (GET /notifications/reports/contact-history/) ───
+
+const HISTORY_PAGE_SIZE = 20
+const history = ref<ContactHistoryItem[]>([])
+const historyPage = ref(1)
+const historyHasMore = ref(false)
+const historyLoading = ref(false)
+const historyError = ref('')
+let historyRequest = 0
+
+async function loadHistory(reset: boolean) {
+  const requestId = ++historyRequest
+  const page = reset ? 1 : historyPage.value + 1
+  historyLoading.value = true
+  historyError.value = ''
+  if (reset) {
+    history.value = []
+    historyHasMore.value = false
+  }
+  try {
+    const data = await reportsApi.getContactHistory(props.contact.uuid, {
+      page,
+      pageSize: HISTORY_PAGE_SIZE,
+    })
+    if (requestId !== historyRequest) return
+    // Dedup por notificación: un envío nuevo entre páginas desplaza y repetiría filas.
+    const seen = new Set(reset ? [] : history.value.map((h) => h.notification_uuid))
+    const fresh = data.results.filter((h) => !seen.has(h.notification_uuid))
+    history.value = reset ? data.results : [...history.value, ...fresh]
+    historyPage.value = page
+    historyHasMore.value = !!data.next
+  } catch (e) {
+    if (requestId !== historyRequest) return
+    historyError.value = e instanceof Error && e.message ? e.message : t('contacts.historyError')
+  } finally {
+    if (requestId === historyRequest) historyLoading.value = false
+  }
+}
+
+watch(
+  () => props.contact.uuid,
+  () => loadHistory(true),
+  { immediate: true }
 )
+
+function historyDate(iso: string): string {
+  return formatInZoneShort(iso, browserZone())
+}
 
 // Extra emails (beyond primary)
 const extraEmails = computed(() =>
@@ -29,13 +78,11 @@ const extraPhones = computed(() =>
 )
 
 const typeIconPath: Record<string, string> = {
-  wa: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`,
-  sms: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`,
+  whatsapp: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`,
   email: `<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>`,
 }
 const typeIconClass: Record<string, string> = {
-  wa: 'bg-wa-green-dim text-wa-green',
-  sms: 'bg-acid-dim text-acid-muted',
+  whatsapp: 'bg-wa-green-dim text-wa-green',
   email: 'bg-brand-blue-dim text-brand-blue',
 }
 
@@ -417,17 +464,17 @@ const EMAIL_LABEL: Record<string, string> = {
       <!-- Notifications received -->
       <GlassBlock :title="t('contacts.notifications')">
         <div
-          v-if="contactEvents.length > 0"
+          v-if="history.length > 0"
           class="flex flex-col gap-2"
         >
           <div
-            v-for="ev in contactEvents"
-            :key="ev.id"
+            v-for="item in history"
+            :key="item.notification_uuid"
             class="flex items-center gap-2.5 p-2.5 rounded-lg bg-bg-2 border border-line"
           >
             <div
               class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-              :class="typeIconClass[ev.type]"
+              :class="typeIconClass[item.channel]"
             >
               <svg
                 width="11"
@@ -438,33 +485,73 @@ const EMAIL_LABEL: Record<string, string> = {
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                v-html="typeIconPath[ev.type]"
+                v-html="typeIconPath[item.channel]"
               />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-[11px] font-semibold text-ink truncate">
-                {{ ev.title }}
+                {{ item.title }}
               </p>
-              <p class="text-[10px] text-ink-3">
-                {{ ev.fullDate }} · {{ ev.city }}
-              </p>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <p class="text-[10px] font-bold text-acid">
-                {{ ev.stats.sent }}
-              </p>
-              <p class="text-[9px] text-ink-4">
-                env.
+              <p class="text-[10px] text-ink-3 truncate">
+                {{ historyDate(item.reference_at) }} · {{ item.tour_name }}
               </p>
             </div>
+            <RecipientStatusChip
+              :recipient="item"
+              :confirmable="item.confirmable"
+            />
           </div>
         </div>
+
+        <!-- Loading -->
+        <div
+          v-if="historyLoading"
+          class="flex flex-col gap-2"
+          :class="history.length ? 'mt-2' : ''"
+        >
+          <div
+            v-for="i in history.length ? 1 : 3"
+            :key="i"
+            class="h-[50px] rounded-lg bg-bg-2 border border-line animate-pulse"
+          />
+        </div>
+
+        <!-- Error -->
+        <div
+          v-else-if="historyError"
+          class="flex flex-col items-center gap-2 py-2"
+        >
+          <p class="text-[12px] text-red-400 text-center">
+            {{ historyError }}
+          </p>
+          <BtnSecondary
+            small
+            @click="loadHistory(history.length === 0)"
+          >
+            {{ t('reports.retry') }}
+          </BtnSecondary>
+        </div>
+
+        <!-- Empty -->
         <p
-          v-else
+          v-else-if="history.length === 0"
           class="text-[12px] text-ink-3 text-center py-2"
         >
           {{ t('contacts.noNotifications') }}
         </p>
+
+        <!-- Load more -->
+        <div
+          v-else-if="historyHasMore"
+          class="flex justify-center mt-2"
+        >
+          <BtnSecondary
+            small
+            @click="loadHistory(false)"
+          >
+            {{ t('contacts.historyLoadMore') }}
+          </BtnSecondary>
+        </div>
       </GlassBlock>
     </div>
   </div>

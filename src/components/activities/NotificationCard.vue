@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   useNotifications,
   CHANNEL_LABELS,
-  NOTIF_STATUS_LABELS,
-  NOTIF_STATUS_COLORS,
+  notifStatusLabel,
+  notifStatusColors,
   type NotificationListItem,
   type NotificationRecipient,
 } from '@/composables/useNotifications'
@@ -12,10 +13,23 @@ import { formatInZone, browserZone } from '@/utils/datetime'
 import AddContactsToNotificationModal from '@/components/modals/AddContactsToNotificationModal.vue'
 import EditRecipientModal from '@/components/modals/EditRecipientModal.vue'
 import EditNotificationModal from '@/components/modals/EditNotificationModal.vue'
+import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
+import RemindUnconfirmedButton from '@/components/activities/RemindUnconfirmedButton.vue'
+import {
+  canRemindUnconfirmed,
+  isActivityPast,
+  sortRecipientsForConfirmation,
+} from '@/utils/confirmations'
 
-const props = defineProps<{ notification: NotificationListItem; activityUuid: string }>()
+const props = defineProps<{
+  notification: NotificationListItem
+  activityUuid: string
+  /** `scheduled_at` de la actividad: si ya pasó, el backend no admite recordatorios. */
+  activityScheduledAt?: string | null
+}>()
 const emit = defineEmits<{ refresh: [] }>()
 
+const { t } = useI18n()
 const api = useNotifications()
 const showAddContacts = ref(false)
 const showEdit = ref(false)
@@ -27,7 +41,12 @@ const expanded = ref(false)
 // Recipients list
 const recipients = ref<NotificationRecipient[]>([])
 const loadingRecipients = ref(false)
+const recipientsError = ref('')
 const editingRecipient = ref<NotificationRecipient | null>(null)
+
+const sortedRecipients = computed(() =>
+  sortRecipientsForConfirmation(recipients.value, props.notification.confirmable)
+)
 
 watch(expanded, async (val) => {
   if (val && recipients.value.length === 0) {
@@ -37,10 +56,12 @@ watch(expanded, async (val) => {
 
 async function loadRecipients() {
   loadingRecipients.value = true
+  recipientsError.value = ''
   try {
     recipients.value = await api.listContacts(props.notification.uuid)
-  } catch {
+  } catch (e) {
     recipients.value = []
+    recipientsError.value = e instanceof Error ? e.message : 'Error al cargar contactos'
   } finally {
     loadingRecipients.value = false
   }
@@ -50,23 +71,47 @@ function formatDateTime(iso: string | null | undefined, zone?: string): string {
   return formatInZone(iso, zone || browserZone())
 }
 
-const RECIPIENT_STATUS_COLORS: Record<string, string> = {
-  pending: '#94a3b8',
-  sent: '#1a8fff',
-  delivered: '#1fad5a',
-  read: '#a8d800',
-  failed: '#f87171',
-  skipped: '#64748b',
+const RECIPIENT_DOT_CLASS: Record<string, string> = {
+  pending: 'bg-ink-4',
+  sent: 'bg-brand-blue',
+  delivered: 'bg-wa-green',
+  read: 'bg-acid-muted',
+  confirmed: 'bg-acid',
+  failed: 'bg-red-400',
+  bounced: 'bg-red-400',
 }
 
-const n = props.notification
-const colors = NOTIF_STATUS_COLORS[n.status]
+// Las acciones y colores siguen a la prop: tras un `refresh` el padre pasa un objeto nuevo
+// con la misma key y el componente se reutiliza.
+const n = computed(() => props.notification)
+const colors = computed(() => notifStatusColors(props.notification.status))
+
+const showConfirmBadge = computed(
+  () => props.notification.confirmable && props.notification.status === 'sent'
+)
+const canRemind = computed(() =>
+  canRemindUnconfirmed(props.notification, isActivityPast(props.activityScheduledAt))
+)
+
+let reloadTimer: ReturnType<typeof setTimeout> | null = null
+function onReminderQueued() {
+  if (reloadTimer) clearTimeout(reloadTimer)
+  // El envío va en una task de Celery: se recargan los destinatarios cuando ya ha salido.
+  reloadTimer = setTimeout(() => {
+    reloadTimer = null
+    loadRecipients()
+    emit('refresh')
+  }, 5000)
+}
+onBeforeUnmount(() => {
+  if (reloadTimer) clearTimeout(reloadTimer)
+})
 
 async function send() {
   actionLoading.value = true
   actionError.value = ''
   try {
-    await api.sendNotification(n.uuid)
+    await api.sendNotification(n.value.uuid)
     emit('refresh')
   } catch (e) {
     actionError.value = e instanceof Error ? e.message : 'Error al enviar'
@@ -79,7 +124,7 @@ async function cancel() {
   actionLoading.value = true
   actionError.value = ''
   try {
-    await api.cancelNotification(n.uuid)
+    await api.cancelNotification(n.value.uuid)
     emit('refresh')
   } catch (e) {
     actionError.value = e instanceof Error ? e.message : 'Error al cancelar'
@@ -92,7 +137,7 @@ async function doDelete() {
   actionLoading.value = true
   actionError.value = ''
   try {
-    await api.deleteNotification(n.uuid)
+    await api.deleteNotification(n.value.uuid)
     emit('refresh')
   } catch (e) {
     actionError.value = e instanceof Error ? e.message : 'Error al eliminar'
@@ -108,11 +153,11 @@ async function onContactsAdded() {
   emit('refresh')
 }
 
-const canSend = ['draft', 'scheduled', 'failed'].includes(n.status)
-const canCancel = ['draft', 'scheduled'].includes(n.status)
-const canDelete = !['sending', 'sent'].includes(n.status)
-const canAddContacts = ['draft', 'scheduled'].includes(n.status)
-const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
+const canSend = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value.status))
+const canCancel = computed(() => ['draft', 'scheduled'].includes(n.value.status))
+const canDelete = computed(() => !['sending', 'sent'].includes(n.value.status))
+const canAddContacts = computed(() => ['draft', 'scheduled'].includes(n.value.status))
+const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value.status))
 </script>
 
 <template>
@@ -140,12 +185,30 @@ const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
         </p>
       </div>
 
+      <!-- Confirmaciones -->
+      <span
+        v-if="showConfirmBadge"
+        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap"
+        :class="
+          notification.confirmed_count >= notification.recipient_count && notification.recipient_count > 0
+            ? 'bg-acid-dim text-acid'
+            : 'bg-glass-2 text-ink-2'
+        "
+      >
+        {{
+          t('confirmations.badge', {
+            confirmed: notification.confirmed_count,
+            total: notification.recipient_count,
+          })
+        }}
+      </span>
+
       <!-- Status pill -->
       <span
         class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
         :style="{ background: colors.bg, color: colors.text }"
       >
-        {{ NOTIF_STATUS_LABELS[notification.status] }}
+        {{ notifStatusLabel(notification.status) }}
       </span>
 
       <!-- Chevron -->
@@ -200,6 +263,13 @@ const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
         </div>
 
         <p
+          v-else-if="recipientsError"
+          class="text-[11px] text-red-400 py-1"
+        >
+          {{ recipientsError }}
+        </p>
+
+        <p
           v-else-if="recipients.length === 0"
           class="text-[11px] text-ink-4 italic py-1"
         >
@@ -211,15 +281,15 @@ const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
           class="space-y-0.5 max-h-36 overflow-y-auto"
         >
           <button
-            v-for="r in recipients"
-            :key="r.contact_uuid ?? r.email ?? r.phone ?? ''"
+            v-for="(r, i) in sortedRecipients"
+            :key="r.contact_uuid || r.email || r.phone || i"
             class="w-full flex items-center gap-2 py-1.5 px-1.5 rounded-lg border-none bg-transparent text-left cursor-pointer hover:bg-glass transition-colors group"
             @click="editingRecipient = r"
           >
             <!-- Status dot -->
             <span
               class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              :style="{ background: RECIPIENT_STATUS_COLORS[r.status] ?? '#94a3b8' }"
+              :class="RECIPIENT_DOT_CLASS[r.status] ?? 'bg-ink-4'"
             />
             <!-- Name + contact -->
             <div class="flex-1 min-w-0">
@@ -231,7 +301,11 @@ const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
               </p>
             </div>
             <!-- Status label + edit hint -->
-            <span class="text-[9px] text-ink-4 flex-shrink-0 capitalize group-hover:hidden">{{ r.status }}</span>
+            <RecipientStatusChip
+              :recipient="r"
+              :confirmable="notification.confirmable"
+              class="group-hover:hidden"
+            />
             <svg
               class="hidden group-hover:block flex-shrink-0 text-ink-3"
               width="10"
@@ -397,6 +471,13 @@ const canEdit = ['draft', 'scheduled', 'failed'].includes(n.status)
             </div>
           </template>
         </div>
+
+        <!-- Recordar a los que no han confirmado -->
+        <RemindUnconfirmedButton
+          v-if="canRemind"
+          :notification-uuid="notification.uuid"
+          @queued="onReminderQueued"
+        />
 
         <!-- Sent summary -->
         <p

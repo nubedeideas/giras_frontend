@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
+import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
+import { sortRecipientsForConfirmation } from '@/utils/confirmations'
 import {
   useNotifications,
   CHANNEL_LABELS,
-  NOTIF_STATUS_LABELS,
+  notifStatusLabel,
   AUTO_CANCEL_REASON_LABELS,
   type Notification,
+  type NotificationRecipient,
   type NotificationPriority,
   type NotificationChannel,
 } from '@/composables/useNotifications'
@@ -25,6 +29,7 @@ import {
 const props = defineProps<{ show: boolean; notificationUuid: string | null }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
+const { t } = useI18n()
 const api = useNotifications()
 const templateApi = useNotificationTemplates()
 
@@ -78,6 +83,7 @@ async function load() {
   try {
     const notif = await api.getNotification(props.notificationUuid)
     original.value = notif
+    recipients.value = notif.recipients ?? []
 
     title.value = notif.title
     message.value = notif.message ?? ''
@@ -153,6 +159,15 @@ async function save() {
   }
 }
 
+// ─── Destinatarios ────────────────────────────────────────────────────────────
+// Solo lectura: el modal se abre con draft/scheduled/failed, así que aquí no hay recordatorio.
+
+const recipients = ref<NotificationRecipient[]>([])
+
+const sortedRecipients = computed(() =>
+  sortRecipientsForConfirmation(recipients.value, original.value?.confirmable ?? false)
+)
+
 // ─── Derived ──────────────────────────────────────────────────────────────────
 
 const channel = computed<NotificationChannel>(() => original.value?.channel ?? 'email')
@@ -215,7 +230,7 @@ const selectClass =
             :style="{ background: statusColor.bg, color: statusColor.text }"
             :title="autoCancelledMessage ?? undefined"
           >
-            {{ NOTIF_STATUS_LABELS[original.status] }}
+            {{ notifStatusLabel(original.status) }}
           </span>
         </div>
         <p
@@ -326,11 +341,11 @@ const selectClass =
               {{ templatesLoading ? 'Cargando…' : 'Sin template' }}
             </option>
             <option
-              v-for="t in waTemplates"
-              :key="t.uuid"
-              :value="t.uuid"
+              v-for="tpl in waTemplates"
+              :key="tpl.uuid"
+              :value="tpl.uuid"
             >
-              {{ t.name }}{{ t.is_default ? ' (predeterminado)' : '' }}
+              {{ tpl.name }}{{ tpl.is_default ? ' (predeterminado)' : '' }}
             </option>
           </select>
         </div>
@@ -401,6 +416,36 @@ const selectClass =
             <p class="text-[10px] text-ink-4">
               Deja la fecha en blanco para guardar como borrador sin programar.
             </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destinatarios -->
+      <div
+        v-if="recipients.length"
+        class="mt-3 bg-glass border border-line rounded-lg px-3 py-2.5"
+      >
+        <p class="text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+          {{ t('confirmations.recipients') }}
+        </p>
+        <div class="space-y-1 max-h-40 overflow-y-auto">
+          <div
+            v-for="(r, i) in sortedRecipients"
+            :key="r.contact_uuid || r.email || r.phone || i"
+            class="flex items-center gap-2"
+          >
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] text-ink truncate">
+                {{ r.contact_name || r.recipient_display || '—' }}
+              </p>
+              <p class="text-[10px] text-ink-4 truncate">
+                {{ r.contact_phone || r.phone || r.contact_email || r.email || '' }}
+              </p>
+            </div>
+            <RecipientStatusChip
+              :recipient="r"
+              :confirmable="original.confirmable"
+            />
           </div>
         </div>
       </div>

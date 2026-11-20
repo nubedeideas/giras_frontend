@@ -64,7 +64,6 @@ When building components, follow the glass-morphism card style and dark theme es
 
 **State (Pinia stores):**
 - `useAuthStore` — user session, `loginWithGoogle()`, `loginDemo()`, `logout()`
-- `useNotificationsStore` — events list, selectedId, filterTab, searchQuery, groupedEvents computed
 - `useContactsStore` — contacts list, selectedId, searchQuery, filtered computed
 - `useToursStore` — tours list, createTour()
 - `useCalendarStore` — calendar events, month navigation, daysGrid computed (6×7 grid, Monday-first)
@@ -87,16 +86,15 @@ src/
 │   ├── MobileNav.vue            # Mobile bottom nav
 │   ├── calendar/                # CalendarGrid (month view), CalendarSidePanel
 │   ├── contacts/                # ContactCard, ContactDetail
-│   ├── reports/                 # StatsCards, ChannelBreakdown, ActivityList
+│   ├── reports/                 # ReportsSummaryPanel, SummaryDonut, ChannelBreakdown, DailySeriesChart, TypeBreakdown, FailuresPanel, RecentNotifications
 │   ├── modals/                  # Create/Edit Activity & Notification, ImportContactsModal, ImportCalActivitiesModal...
 │   └── ui/                      # AppModal, GlassBlock, Pill, BtnPrimary, BtnSecondary, MobileDetailOverlay
 ├── stores/                      # Pinia stores (see above)
 ├── i18n/                        # es.ts, en.ts, index.ts (vue-i18n, locale switchable in UI)
-├── data/mock.ts                 # All mock data (events, contacts, tours, calendar events)
 └── types/index.ts               # Shared TypeScript types
 ```
 
-**Mock data:** `src/data/mock.ts` is legacy demo data (used by `loginDemo()` only). Real stores load from the API; do not add new features on top of the mock.
+**Reports y confirmaciones:** `/reports` y el historial de `ContactDetail` leen datos reales de `useNotificationReports` (`/api/notifications/reports/summary/` y `contact-history/`); el mock se eliminó el 2026-11-20. Las confirmaciones de lectura (`confirmed_at`, `confirmed_count`, `confirmable`) y el botón "Recordar a los que faltan" (`remind-unconfirmed`, con dry run previo) viven en `components/activities/`.
 
 **i18n:** `locale` is a reactive ref exposed by vue-i18n, persisted to `localStorage` in `src/i18n/index.ts`; toggles in Login, Settings and the landing `LanguageSwitcher` set it. Keys are nested: `t('notif.title')`. Every new key goes in **both** `es.ts` and `en.ts`. Keys whose value is an array must be read with `tm()`, not `t()` (`t()` returns the key string and a `v-for` iterates characters). Namespaces: `landing`, `termsPage` (not `terms`, which is a flat key), `support`.
 

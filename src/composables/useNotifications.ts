@@ -7,15 +7,26 @@ import { formatInZoneShort, browserZone } from '@/utils/datetime'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push'
+// `pending` es un valor heredado que existe en datos reales aunque no esté en STATUS_CHOICES.
 export type NotificationStatus =
   | 'draft'
+  | 'pending'
   | 'scheduled'
   | 'sending'
   | 'sent'
   | 'failed'
   | 'cancelled'
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type RecipientStatus =
+  | 'pending'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'confirmed'
+  | 'failed'
+  | 'bounced'
 
+// GET /api/notifications/{uuid}/contacts/ y `recipients` del detalle (NotificationRecipientSerializer)
 export interface NotificationRecipient {
   contact_uuid: string | null
   contact_name: string | null
@@ -23,14 +34,20 @@ export interface NotificationRecipient {
   contact_phone: string | null
   email: string | null
   phone: string | null
-  status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed' | 'skipped'
+  status: RecipientStatus
   sent_at: string | null
   delivered_at: string | null
   read_at: string | null
+  confirmed_at: string | null
   error_message: string | null
   attempts: number
   external_id: string
   recipient_display: string | null
+  /** Recordatorios de confirmación reenviados (remind-unconfirmed). */
+  reminder_count: number
+  last_reminded_at: string | null
+  /** `''` si no hay. */
+  last_reminder_error: string
   created_at: string
 }
 
@@ -57,6 +74,9 @@ export interface Notification {
   recipient_count: number
   sent_count: number
   failed_count: number
+  confirmed_count: number
+  /** WhatsApp con template aprobada (con SID) que lleva botón "Confirmar". */
+  confirmable: boolean
   created_at: string
   updated_at: string
 }
@@ -70,10 +90,36 @@ export interface NotificationListItem {
   status: NotificationStatus
   sender_name: string | null
   recipient_count: number
+  confirmed_count: number
+  /** WhatsApp con template aprobada (con SID) que lleva botón "Confirmar". */
+  confirmable: boolean
   scheduled_for: string | null
   send_timezone: string
   sent_at: string | null
   created_at: string
+}
+
+// POST /api/notifications/{uuid}/remind-unconfirmed/
+export interface RemindUnconfirmedExcluded {
+  confirmed: number
+  /** pending, failed o bounced */
+  not_delivered: number
+  no_phone: number
+  /** Ya tienen el máximo de recordatorios. */
+  max_reminders: number
+  /** Último envío hace menos de `min_interval_minutes`. */
+  too_soon: number
+}
+
+export interface RemindUnconfirmedResult {
+  dry_run: boolean
+  /** A quién se reenviaría (o se ha encolado). */
+  eligible: number
+  /** 0 si `dry_run` o si no había elegibles. */
+  queued: number
+  excluded: RemindUnconfirmedExcluded
+  max_reminders_per_recipient: number
+  min_interval_minutes: number
 }
 
 export interface CreateNotificationPayload {
@@ -134,6 +180,7 @@ export const CHANNEL_ICONS: Record<NotificationChannel, string> = {
 
 export const NOTIF_STATUS_LABELS: Record<NotificationStatus, string> = {
   draft: 'Borrador',
+  pending: 'Pendiente',
   scheduled: 'Programada',
   sending: 'Enviando',
   sent: 'Enviada',
@@ -143,11 +190,22 @@ export const NOTIF_STATUS_LABELS: Record<NotificationStatus, string> = {
 
 export const NOTIF_STATUS_COLORS: Record<NotificationStatus, { bg: string; text: string }> = {
   draft: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
+  pending: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
   scheduled: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
   sending: { bg: 'rgba(168,216,0,0.12)', text: '#a8d800' },
   sent: { bg: 'rgba(31,173,90,0.15)', text: '#34d399' },
   failed: { bg: 'rgba(239,68,68,0.12)', text: '#f87171' },
   cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
+}
+
+/** Etiqueta de estado con fallback al valor crudo (el backend puede traer estados heredados). */
+export function notifStatusLabel(status: string): string {
+  return NOTIF_STATUS_LABELS[status as NotificationStatus] ?? status
+}
+
+/** Colores de estado con fallback a los de borrador. */
+export function notifStatusColors(status: string): { bg: string; text: string } {
+  return NOTIF_STATUS_COLORS[status as NotificationStatus] ?? NOTIF_STATUS_COLORS.draft
 }
 
 // Populated by the backend in `metadata.auto_cancelled_reason` when a reminder is
@@ -159,6 +217,8 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   activity_deleted: 'Cancelada automáticamente: la actividad se eliminó.',
   tour_deleted: 'Cancelada automáticamente: la gira se eliminó.',
   no_recipients: 'Cancelada automáticamente: no había ningún destinatario.',
+  event_deleted: 'Cancelada automáticamente: el evento se eliminó.',
+  subscription_cancelled: 'Cancelada automáticamente: la suscripción de la gira se canceló.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────
@@ -317,6 +377,19 @@ export function useNotifications() {
     )
   }
 
+  /**
+   * Reenvía la misma template a los destinatarios que no han confirmado.
+   * Con `dryRun` solo devuelve los recuentos: sin envío, sin cupo y sin gastar el throttle de
+   * recordatorios (que solo cuenta el envío real).
+   */
+  function remindUnconfirmed(uuid: string, dryRun = false): Promise<RemindUnconfirmedResult> {
+    return apiClient.post<RemindUnconfirmedResult>(
+      `/notifications/${uuid}/remind-unconfirmed/`,
+      { dry_run: dryRun },
+      { fallback: 'No se ha podido enviar el recordatorio' }
+    )
+  }
+
   async function listGlobalContacts(search = ''): Promise<ContactListItem[]> {
     const qs = new URLSearchParams({ page_size: '100' })
     if (search) qs.set('search', search)
@@ -340,6 +413,7 @@ export function useNotifications() {
     removeContacts,
     listContacts,
     sendWhatsAppBulk,
+    remindUnconfirmed,
     listGlobalContacts,
   }
 }

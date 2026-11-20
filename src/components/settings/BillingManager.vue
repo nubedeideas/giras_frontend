@@ -70,7 +70,7 @@ function formatDate(iso: string | null) {
         v-else-if="payments.length === 0"
         class="text-[11px] text-ink-4"
       >
-        Todavía no tenés pagos registrados.
+        Todavía no tienes pagos registrados.
       </p>
 
       <div

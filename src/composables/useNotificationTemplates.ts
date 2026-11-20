@@ -93,7 +93,7 @@ export const TEMPLATE_TYPE_LABELS: Record<TemplateType, string> = {
   task_assigned: 'Tarea Asignada',
   announcement: 'Anuncio',
   alert: 'Alerta',
-  night_off_report: 'Reporte Nocturno',
+  night_off_report: 'Informe nocturno',
   custom: 'Personalizado',
 }
 

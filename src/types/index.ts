@@ -1,6 +1,5 @@
 import type { ActivityListItem } from '@/composables/useActivities'
 
-export type Channel = 'wa' | 'sms' | 'email'
 export type PillVariant = 'g' | 'b' | 'o' | 'n'
 
 /** Raw DRF pagination envelope — used as-is (no fetch-all loop) by the admin panel's list endpoints */
@@ -120,37 +119,6 @@ export interface Contact {
 }
 
 // ─── Other types ─────────────────────────────────────────────────────────────
-
-export interface DeliveryStats {
-  sent: number
-  opened: number
-  clicked: number
-}
-
-export interface NotifEvent {
-  id: number
-  type: Channel
-  title: string
-  venue: string
-  city: string
-  group: string
-  pc: PillVariant
-  time: string
-  preview: string
-  fullDate: string
-  isoDate: string      // YYYY-MM-DD — used for chronological filtering
-  startTime: string
-  endTime: string
-  callTime: string
-  doors: string
-  tour: string
-  tourId: number
-  tourDates: string
-  message: string
-  stats: DeliveryStats
-  contacts: Contact[]
-  dateGroup: string
-}
 
 export type TourStatus = 'draft' | 'active' | 'completed' | 'cancelled'
 

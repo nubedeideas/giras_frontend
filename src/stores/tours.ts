@@ -5,9 +5,9 @@ import { useTours as useToursApi } from '@/composables/useTours'
 import type { TourFull, TourListItem, CreateTourPayload, UpdateTourPayload } from '@/composables/useTours'
 
 // ─── Synthetic ID helpers ─────────────────────────────────────────────────────
-// We keep a numeric activeTourId for backward-compat with the notifications
-// store (which filters mock events by numeric tourId). A session-stable map
-// from UUID → synthetic int avoids index-drift on reload.
+// Se mantiene un activeTourId numérico por compatibilidad con la selección por id
+// numérico que siguen usando varias vistas. Un mapa UUID → entero estable durante la
+// sesión evita que el índice cambie al recargar la lista.
 
 let _nextId = 100
 const _uuidToId = new Map<string, number>()

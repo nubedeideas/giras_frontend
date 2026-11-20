@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useActivitiesStore } from '@/stores/activities'
 import { useActivities } from '@/composables/useActivities'
 import {
@@ -15,10 +16,12 @@ import EditActivityModal from '@/components/modals/EditActivityModal.vue'
 import CreateNotificationModal from '@/components/modals/CreateNotificationModal.vue'
 import AddContactsToNotificationModal from '@/components/modals/AddContactsToNotificationModal.vue'
 import NotificationCard from '@/components/activities/NotificationCard.vue'
+import { activityConfirmationSummary } from '@/utils/confirmations'
 
 const store = useActivitiesStore()
 const api = useActivities()
 const notifApi = useNotifications()
+const { t } = useI18n()
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -38,14 +41,20 @@ const newNotifChannel = ref<NotificationChannel>('whatsapp')
 
 const notifications = ref<NotificationListItem[]>([])
 const loadingNotifs = ref(false)
+const notifsError = ref('')
+
+// Resumen en cliente: suma de las notificaciones confirmables ya enviadas.
+const confirmationSummary = computed(() => activityConfirmationSummary(notifications.value))
 
 async function loadNotifications() {
   if (!activity.value) return
   loadingNotifs.value = true
+  notifsError.value = ''
   try {
     notifications.value = await notifApi.listForActivity(activity.value.uuid)
-  } catch {
+  } catch (e) {
     notifications.value = []
+    notifsError.value = e instanceof Error ? e.message : 'Error al cargar notificaciones'
   } finally {
     loadingNotifs.value = false
   }
@@ -536,18 +545,40 @@ async function confirmDelete() {
               </svg>
             </div>
 
+            <!-- Error -->
+            <p
+              v-if="notifsError"
+              class="text-[11px] text-red-400 text-center py-2"
+            >
+              {{ notifsError }}
+            </p>
+
+            <!-- Confirmaciones de la actividad -->
+            <p
+              v-if="!loadingNotifs && confirmationSummary"
+              class="text-[11px] font-semibold"
+              :class="
+                confirmationSummary.confirmed >= confirmationSummary.total
+                  ? 'text-acid'
+                  : 'text-ink-2'
+              "
+            >
+              {{ t('confirmations.activitySummary', confirmationSummary) }}
+            </p>
+
             <!-- List -->
             <NotificationCard
               v-for="notif in notifications"
               :key="notif.uuid"
               :notification="notif"
               :activity-uuid="activity.uuid"
+              :activity-scheduled-at="activity.scheduled_at"
               @refresh="loadNotifications"
             />
 
             <!-- Empty state -->
             <p
-              v-if="!loadingNotifs && notifications.length === 0"
+              v-if="!loadingNotifs && !notifsError && notifications.length === 0"
               class="text-[11px] text-ink-4 text-center py-2"
             >
               Sin notificaciones creadas
