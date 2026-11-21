@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { InboxItem } from '@/composables/useInbox'
-import { formatInboxItem } from '@/utils/inbox'
+import { formatInboxItem, isNoticeTarget } from '@/utils/inbox'
 import { formatRelativeTime } from '@/utils/relativeTime'
 
 const props = defineProps<{ item: InboxItem }>()
@@ -20,6 +20,9 @@ const SEVERITY_BAR: Record<string, string> = {
   warning: 'bg-acid',
   info: 'bg-brand-blue',
 }
+// Solo mientras no se ha leído: al enviar el aviso, el backend marca leídos sus ítems.
+const reviewAndSend = computed(() => isNoticeTarget(props.item) && !props.item.read_at)
+
 const severityClass = computed(() => SEVERITY_BAR[props.item.severity] ?? SEVERITY_BAR.info)
 
 const meta = computed(() => {
@@ -59,6 +62,11 @@ const meta = computed(() => {
           data-testid="inbox-item-body"
           class="text-ink-2 text-[12px] leading-snug break-words whitespace-pre-line"
         >{{ text.body }}</span>
+        <span
+          v-if="reviewAndSend"
+          data-testid="inbox-item-review"
+          class="self-start mt-1 inline-flex items-center min-h-[28px] px-2.5 rounded-full bg-acid-dim text-acid text-[11px] font-bold"
+        >{{ t('inbox.reviewAndSend') }} →</span>
         <span class="text-ink-3 text-[11px] mt-0.5 truncate">{{ meta }}</span>
       </span>
     </button>

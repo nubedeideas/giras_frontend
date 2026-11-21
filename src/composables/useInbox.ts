@@ -11,6 +11,8 @@ export type InboxKind =
   | 'flight_delay'
   | 'flight_cancelled'
   | 'flight_diverted'
+  // Avisos bajo demanda (R2): salida adelantada; params `{ flight_number, minutes, route, notice_uuid }`.
+  | 'flight_early'
   | 'plan_limit'
   | 'delivery_failed'
   // Bloque 3.5: solo superusuarios, sin gira; params `{ new_count, date }`.
@@ -25,6 +27,8 @@ export type InboxTargetType =
   | 'reports'
   // Bloque 3.5: `/admin?tab=costs`.
   | 'admin_costs'
+  // Avisos bajo demanda (R2): `/tour?tab=notices&notice=<uuid>`.
+  | 'notice'
   | 'none'
 
 export interface InboxTarget {
@@ -34,6 +38,8 @@ export interface InboxTarget {
   activity_uuid: string | null
   /** Solo si el conflicto existe y no está borrado. */
   conflict_uuid: string | null
+  /** Solo en `type: 'notice'`. */
+  notice_uuid?: string | null
 }
 
 // GET /api/notifications/inbox/ (results), `item` de POST /inbox/{uuid}/read/

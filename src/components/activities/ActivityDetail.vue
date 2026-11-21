@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { activityHasEnded } from '@/utils/notices'
 import { useActivitiesStore } from '@/stores/activities'
 import { useActivities } from '@/composables/useActivities'
 import {
@@ -18,6 +19,7 @@ import AddContactsToNotificationModal from '@/components/modals/AddContactsToNot
 import NotificationCard from '@/components/activities/NotificationCard.vue'
 import ShowDayAlertStatus from '@/components/activities/ShowDayAlertStatus.vue'
 import ActivityRecipientsPanel from '@/components/activities/ActivityRecipientsPanel.vue'
+import UrgentNoticeModal from '@/components/activities/UrgentNoticeModal.vue'
 import { useToursStore } from '@/stores/tours'
 import { SHOW_ACTIVITY_CODE } from '@/utils/showDayAlert'
 import { useTours } from '@/composables/useTours'
@@ -40,6 +42,26 @@ const isTourAdmin = computed(() => {
   if (!tourUuid) return false
   return !!toursStore.tours.find((x) => x.uuid === tourUuid)?.current_user_is_admin
 })
+
+// "Aviso urgente" (R2, C2.4): solo admins y solo en actividades que siguen vivas y no han
+// terminado. Mismo criterio que `activity_past` del backend: `end_at` pasado o, sin `end_at`,
+// `scheduled_at` + 2 h pasado.
+const showUrgent = ref(false)
+const activityIsPast = computed(() => !!activity.value && activityHasEnded(activity.value))
+const canSendUrgent = computed(
+  () =>
+    isTourAdmin.value &&
+    !!activity.value?.tour &&
+    activity.value.status !== 'cancelled' &&
+    activity.value.status !== 'completed' &&
+    !activityIsPast.value
+)
+watch(
+  () => activity.value?.uuid,
+  () => {
+    showUrgent.value = false
+  }
+)
 
 const actionLoading = ref(false)
 const actionError = ref('')
@@ -303,6 +325,38 @@ async function confirmDelete() {
               <span v-if="activity.destination_name"> → {{ activity.destination_name }}</span>
             </span>
           </div>
+          <button
+            v-if="canSendUrgent"
+            type="button"
+            class="mt-2.5 inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-[30px] px-3 rounded-sm bg-brand-orange-dim text-brand-orange border border-brand-orange text-[12px] font-bold cursor-pointer hover:bg-glass-hover"
+            data-test="urgent-notice-button"
+            @click="showUrgent = true"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line
+                x1="12"
+                y1="9"
+                x2="12"
+                y2="13"
+              /><line
+                x1="12"
+                y1="17"
+                x2="12.01"
+                y2="17"
+              />
+            </svg>
+            {{ t('notices.urgent.button') }}
+          </button>
         </div>
 
         <button
@@ -667,6 +721,18 @@ async function confirmDelete() {
         </GlassBlock>
       </div>
     </template>
+
+    <!-- Aviso urgente -->
+    <UrgentNoticeModal
+      v-if="activity && activity.tour && canSendUrgent"
+      :show="showUrgent"
+      :activity-uuid="activity.uuid"
+      :tour-uuid="activity.tour"
+      :activity-title="activity.title"
+      :activity-type-name="activity.activity_type?.name"
+      @close="showUrgent = false"
+      @sent="() => loadNotifications()"
+    />
 
     <!-- Edit modal -->
     <EditActivityModal

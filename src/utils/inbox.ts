@@ -70,6 +70,19 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
       }
     }
 
+    case 'flight_early': {
+      const flight = str(p.flight_number)
+      const minutes = num(p.minutes ?? p.departure_shift_minutes)
+      if (!flight || Number.isNaN(minutes)) return raw
+      const route = str(p.route)
+      let body = t('inbox.kinds.flight_early.body', { route })
+      if (!route) body = body.replace(/^\s*\.\s*/, '')
+      return {
+        title: t('inbox.kinds.flight_early.title', { flight, minutes: Math.abs(minutes) }),
+        body,
+      }
+    }
+
     case 'plan_limit': {
       // Suscripción no activa (p. ej. pendiente de pago): sin porcentaje.
       if (p.reason === 'subscription_inactive') {
@@ -138,9 +151,20 @@ export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
       return { path: '/reports' }
     case 'admin_costs':
       return { path: '/admin', query: { tab: 'costs' } }
+    case 'notice': {
+      const notice = target.notice_uuid ?? item.params?.notice_uuid
+      return notice
+        ? { path: '/tour', query: { tab: 'notices', notice: String(notice) } }
+        : { path: '/tour', query: { tab: 'notices' } }
+    }
     default:
       return null
   }
+}
+
+/** El ítem lleva a un borrador de aviso que hay que revisar y enviar (R2). */
+export function isNoticeTarget(item: InboxItem): boolean {
+  return item.target?.type === 'notice'
 }
 
 export interface InboxToursStore {

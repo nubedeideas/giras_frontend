@@ -248,3 +248,77 @@ describe('inboxTargetLocation', () => {
     expect(tours.setActiveTourByUuid).not.toHaveBeenCalled()
   })
 })
+
+describe('avisos bajo demanda (R2)', () => {
+  it('formatea flight_early en es y en', () => {
+    const item = {
+      kind: 'flight_early',
+      params: { flight_number: 'IB3456', minutes: 35, route: 'MAD → BCN', notice_uuid: 'N1' },
+    }
+    expect(fmt(item)).toEqual({
+      title: 'Vuelo IB3456 adelantado 35 min',
+      body: 'MAD → BCN. Revisa el aviso y envíalo al equipo.',
+    })
+    i18n.global.locale.value = 'en'
+    expect(fmt(item).title).toBe('Flight IB3456 departing 35 min early')
+  })
+
+  it('flight_early sin ruta no empieza por ". " y sin params cae a la copia del backend', () => {
+    expect(fmt({ kind: 'flight_early', params: { flight_number: 'IB1', minutes: -20 } })).toEqual({
+      title: 'Vuelo IB1 adelantado 20 min',
+      body: 'Revisa el aviso y envíalo al equipo.',
+    })
+    expect(fmt({ kind: 'flight_early', params: {}, title: 'T', body: 'B' })).toEqual({
+      title: 'T',
+      body: 'B',
+    })
+  })
+
+  it('destino notice lleva a la pestaña Avisos con el aviso abierto', () => {
+    const item = inboxItem({
+      kind: 'flight_delay',
+      target: {
+        type: 'notice',
+        tour_uuid: 'T1',
+        activity_uuid: 'A1',
+        conflict_uuid: null,
+        notice_uuid: 'N1',
+      },
+    })
+    expect(inboxTargetLocation(item)).toEqual({
+      path: '/tour',
+      query: { tab: 'notices', notice: 'N1' },
+    })
+  })
+
+  it('destino notice sin uuid en target usa params.notice_uuid, o solo la pestaña', () => {
+    const base = { type: 'notice' as const, tour_uuid: 'T1', activity_uuid: null, conflict_uuid: null }
+    expect(
+      inboxTargetLocation(inboxItem({ params: { notice_uuid: 'N2' }, target: base }))
+    ).toEqual({ path: '/tour', query: { tab: 'notices', notice: 'N2' } })
+    expect(inboxTargetLocation(inboxItem({ target: base }))).toEqual({
+      path: '/tour',
+      query: { tab: 'notices' },
+    })
+  })
+
+  it('goToInboxTarget activa la gira del aviso antes de navegar', async () => {
+    const router = { push: vi.fn().mockResolvedValue(undefined) }
+    const tours = { setActiveTourByUuid: vi.fn().mockReturnValue(true) }
+    const item = inboxItem({
+      target: {
+        type: 'notice',
+        tour_uuid: 'T9',
+        activity_uuid: null,
+        conflict_uuid: null,
+        notice_uuid: 'N1',
+      },
+    })
+    expect(await goToInboxTarget(item, router, tours)).toBe(true)
+    expect(tours.setActiveTourByUuid).toHaveBeenCalledWith('T9')
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/tour',
+      query: { tab: 'notices', notice: 'N1' },
+    })
+  })
+})

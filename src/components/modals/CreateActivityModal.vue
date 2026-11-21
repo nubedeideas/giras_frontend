@@ -5,6 +5,8 @@ import { useActivities, type CreateActivityPayload, type ActivityStatus, type Ac
 import { useActivityTypes, type ActivityType } from '@/composables/useActivityTypes'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
+import { useI18n } from 'vue-i18n'
+import UrgentNoticeModal from '@/components/activities/UrgentNoticeModal.vue'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -13,6 +15,30 @@ const api = useActivities()
 const actTypesApi = useActivityTypes()
 const store = useActivitiesStore()
 const toursStore = useToursStore()
+// `t` ya se usa como variable de `v-for` en la plantilla.
+const { t: tr } = useI18n()
+
+// ─── Reunión urgente: ofrecer el aviso al guardar (R2, C2.4) ──────────────────
+// Vive fuera del modal de alta (que se cierra al crear) para poder seguir abierto después.
+
+interface UrgentOffer {
+  uuid: string
+  tour: string
+  title: string
+  typeName: string
+}
+const URGENT_MEETING_CODE = 'urgent_meeting'
+const urgentOffer = ref<UrgentOffer | null>(null)
+const showUrgentNotice = ref(false)
+
+function acceptUrgentOffer() {
+  showUrgentNotice.value = true
+}
+
+function closeUrgent() {
+  showUrgentNotice.value = false
+  urgentOffer.value = null
+}
 
 // ─── Activity types ───────────────────────────────────────────────────────────
 
@@ -179,6 +205,22 @@ async function submit() {
       category: created.activity_type?.category ?? 'other',
     })
 
+    // Solo admins de la gira (el backend da 403 al resto) y solo si la reunión queda activa.
+    const isAdmin = !!toursStore.activeTour?.current_user_is_admin
+    if (
+      isAdmin &&
+      created.activity_type?.code === URGENT_MEETING_CODE &&
+      (created.status === 'scheduled' || created.status === 'confirmed')
+    ) {
+      urgentOffer.value = {
+        uuid: created.uuid,
+        tour: tourUuid,
+        title: created.title,
+        typeName: created.activity_type?.name ?? '',
+      }
+      showUrgentNotice.value = false
+    }
+
     emit('close')
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Error al crear actividad'
@@ -189,6 +231,45 @@ async function submit() {
 </script>
 
 <template>
+  <!-- Oferta de aviso urgente tras crear una reunión urgente -->
+  <AppModal
+    :show="!!urgentOffer && !showUrgentNotice"
+    @close="closeUrgent"
+  >
+    <div data-test="urgent-offer">
+      <p class="text-[14px] font-semibold text-ink mb-4">
+        {{ tr('notices.urgent.offerAfterCreate') }}
+      </p>
+      <div class="flex flex-col sm:flex-row-reverse gap-2">
+        <button
+          type="button"
+          class="flex-1 min-h-[48px] sm:min-h-[38px] rounded-sm bg-brand-orange text-ink text-[13px] font-bold border-none cursor-pointer"
+          data-test="urgent-offer-accept"
+          @click="acceptUrgentOffer"
+        >
+          {{ tr('notices.urgent.offerAccept') }}
+        </button>
+        <button
+          type="button"
+          class="flex-1 min-h-[44px] sm:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer"
+          data-test="urgent-offer-decline"
+          @click="closeUrgent"
+        >
+          {{ tr('notices.urgent.offerDecline') }}
+        </button>
+      </div>
+    </div>
+  </AppModal>
+  <UrgentNoticeModal
+    v-if="urgentOffer"
+    :show="showUrgentNotice"
+    :activity-uuid="urgentOffer.uuid"
+    :tour-uuid="urgentOffer.tour"
+    :activity-title="urgentOffer.title"
+    :activity-type-name="urgentOffer.typeName"
+    @close="closeUrgent"
+  />
+
   <AppModal
     :show="show"
     @close="emit('close')"
