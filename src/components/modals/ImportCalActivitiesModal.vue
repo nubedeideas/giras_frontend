@@ -9,6 +9,9 @@ import {
 } from '@/composables/useCalendarImport'
 import { useActivitiesStore } from '@/stores/activities'
 import { useUIState } from '@/composables/useUIState'
+import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { useI18n } from 'vue-i18n'
+import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -16,6 +19,7 @@ const emit = defineEmits<{ close: [] }>()
 const calImport = useCalendarImport()
 const store = useActivitiesStore()
 const uiState = useUIState()
+const { t } = useI18n()
 
 // ─── Step machine ─────────────────────────────────────────────────────────────
 // select-cal → select-events → importing → done
@@ -32,6 +36,8 @@ const selectedCal = ref<CalendarSubscription | null>(null)
 const syncing = ref(false)
 const syncStats = ref<{ created: number; routed: number } | null>(null)
 const syncError = ref('')
+// 403 google_scope_missing al sincronizar: se ofrece "Conectar Google Calendar".
+const syncScopeMissing = ref(false)
 
 async function loadCalendars() {
   loadingCals.value = true
@@ -48,6 +54,7 @@ async function loadCalendars() {
 async function syncCalendar(cal: CalendarSubscription) {
   syncing.value = true
   syncError.value = ''
+  syncScopeMissing.value = false
   syncStats.value = null
   try {
     const stats = await calImport.syncCalendarNow(cal.id)
@@ -55,7 +62,8 @@ async function syncCalendar(cal: CalendarSubscription) {
     // Reload calendar list to update last_synced_at
     await loadCalendars()
   } catch (e) {
-    syncError.value = e instanceof Error ? e.message : 'Error al sincronizar'
+    if (isGoogleScopeMissing(e)) syncScopeMissing.value = true
+    else syncError.value = e instanceof Error ? e.message : 'Error al sincronizar'
   } finally {
     syncing.value = false
   }
@@ -172,6 +180,7 @@ function close() {
     importError.value = ''
     syncStats.value = null
     syncError.value = ''
+    syncScopeMissing.value = false
   }, 300)
 }
 
@@ -351,6 +360,13 @@ watch(
         >
           {{ syncError }}
         </p>
+        <GoogleConnectCta
+          v-if="syncScopeMissing"
+          compact
+          purpose="calendar"
+          return-to="/settings?tab=calendars"
+          :intro="t('googleIntegration.missing.calendar')"
+        />
 
         <div
           v-for="cal in calendars"

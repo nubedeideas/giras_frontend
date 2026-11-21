@@ -6,9 +6,14 @@ import OnbCrewStep from './OnbCrewStep.vue'
 import OnbCalendarStep from './OnbCalendarStep.vue'
 import OnbDoneStep from './OnbDoneStep.vue'
 
-const emit = defineEmits<{ complete: [tourId: number | null]; close: [] }>()
-
 type Step = 'tour' | 'crew' | 'calendar' | 'done'
+
+const props = defineProps<{
+  /** Paso inicial (al volver de Google tras conectar desde el asistente). */
+  initialStep?: Step
+  initialTourId?: number | null
+}>()
+const emit = defineEmits<{ complete: [tourId: number | null]; close: [] }>()
 
 const STEPS: Step[] = ['tour', 'crew', 'calendar', 'done']
 
@@ -16,8 +21,8 @@ const { t } = useI18n()
 
 const stepLabel = (s: Step) => t(`onboarding.steps.${s}`)
 
-const currentStep = ref<Step>('tour')
-const createdTourId = ref<number | null>(null)
+const currentStep = ref<Step>(props.initialStep ?? 'tour')
+const createdTourId = ref<number | null>(props.initialTourId ?? null)
 
 const stepIndex = computed(() => STEPS.indexOf(currentStep.value))
 
@@ -161,6 +166,7 @@ function onFinish() {
             <OnbCrewStep
               v-else-if="currentStep === 'crew'"
               key="crew"
+              :tour-id="createdTourId"
               @next="onCrewNext"
               @skip="onCrewNext"
             />

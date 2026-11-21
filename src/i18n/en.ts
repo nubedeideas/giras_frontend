@@ -796,8 +796,8 @@ export default {
         id: 'datos-de-google',
         title: '4. Google data',
         paragraphs: [
-          'If you sign in with Google, we receive your name, email and profile picture (openid, email and profile scopes) to create and verify your account.',
-          'If you connect your Google account, Giras also requests the following permissions:',
+          'If you sign in with Google, we only receive your name, email and profile picture (openid, email and profile scopes) to create and verify your account. Signing in does not give access to your calendars or contacts.',
+          'Other permissions are requested only when you choose to connect Google Calendar or Google Contacts from Giras (under Settings → Calendars, when importing contacts or in the setup wizard), and each time only those for that feature:',
         ],
         items: [
           'Google Calendar, read-only (calendar.readonly): we read events from the calendars you choose to connect (title, dates, times, location and description) to automatically create and update your tour activities.',
@@ -807,8 +807,8 @@ export default {
         paragraphsAfter: [
           'We use this data exclusively to provide those features within Giras. We do not sell Google data, we do not use it for advertising or profiling, and we do not share it with third parties other than the service providers described in this policy that are required to run the service. No one at Giras reads it unless you give us explicit permission (for example, to solve a support issue), when necessary for security or when required by law.',
           'Events from your connected calendars may be processed with Google Gemini to extract logistics information (times, venues, flights) and to generate daily summaries. Google data is not used to train generalized artificial intelligence models.',
-          'Data is transmitted encrypted (HTTPS/TLS) and stored on servers located in Lithuania (European Union) managed by Hostinger, with restricted access. Backups are stored encrypted.',
-          "You can disconnect your calendars at any time from Settings and ask us to fully disconnect your Google account by writing to giras@nubedeideas.com. You can also revoke Giras' access directly from your Google account. Once revoked, we stop accessing your Google data and, if you ask us to, we delete the data we imported.",
+          'Data is transmitted encrypted (HTTPS/TLS) and stored on servers located in Lithuania (European Union) managed by Hostinger, with restricted access. Backups are stored encrypted. Google access tokens are encrypted at rest.',
+          "You can disconnect your Google account at any time from Settings → Calendars → Disconnect Google: we revoke the access in Google and delete the credentials. You can also revoke it from your Google account. Once revoked, we stop accessing your Google data and, if you ask us at giras@nubedeideas.com, we also delete the imported data.",
         ],
         statement:
           "Giras' use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements.",
@@ -934,7 +934,7 @@ export default {
       items: [
         {
           q: 'How do I connect my Google Calendar?',
-          a: 'From the initial setup wizard (or under Settings → Integrations) authorize access to your Google account. Giras automatically syncs the tour events you choose.',
+          a: 'From the initial setup wizard or under Settings → Calendars → Connect Google Calendar, authorize access to your Google calendars. Giras automatically syncs the tour events you choose. You can disconnect it at any time from the same screen.',
         },
         {
           q: "Why aren't WhatsApp notifications arriving?",
@@ -960,6 +960,91 @@ export default {
       emailLabel: 'email:',
       hoursLabel: 'hours:',
       hoursValue: 'Mon-Fri 09:00-18:00 (CET)',
+    },
+  },
+  googleIntegration: {
+    card: {
+      title: 'Google account',
+      notConnected: "You haven't connected a Google account.",
+      notConnectedShort: 'Not connected',
+      connectedAs: 'Connected as {email} since {date}',
+      connectedAsNoDate: 'Connected as {email}',
+      demo: "A Google account can't be connected in demo mode.",
+    },
+    scopes: {
+      calendarRead: 'See your calendars and events',
+      calendarWrite: 'Mark imported events',
+      contactsRead: 'Read your contacts',
+    },
+    connect: {
+      calendar: 'Connect Google Calendar',
+      contacts: 'Connect Google Contacts',
+      redirecting: 'Taking you to Google…',
+    },
+    consent: {
+      calendar:
+        "Google will ask you to allow Giras to see your calendars and events and to add a private marker to the events you import. That's how we create and update your tour activities. We don't create or delete events in your calendar.",
+      contacts:
+        'Google will ask you to allow Giras to read your contacts. We only import them when you decide to, and you choose which ones to add to your crew.',
+    },
+    missing: {
+      calendar: 'To use this feature, connect Google Calendar.',
+      contacts: 'To import from Google, connect Google Contacts.',
+    },
+    disconnect: {
+      button: 'Disconnect Google',
+      confirmTitle: 'Disconnect your Google account?',
+      confirmBody:
+        "We'll revoke Giras' access in Google and delete the credentials. Your calendars will stop syncing. Activities and contacts already imported stay in Giras.",
+      done: 'Google account disconnected.',
+      error: "We couldn't disconnect your Google account. Please try again.",
+    },
+    notice: {
+      ok: '{service} connected.',
+      partial:
+        "You didn't grant the permission {service} needs. You can try again whenever you like.",
+      denied: 'You cancelled the connection with Google.',
+      error: "We couldn't connect to Google. Please try again.",
+      close: 'Dismiss notice',
+    },
+    service: {
+      calendar: 'Google Calendar',
+      contacts: 'Google Contacts',
+    },
+    errors: {
+      google_account_mismatch: 'Connect the same Google account you use to sign in to Giras.',
+      google_account_in_use: 'That Google account is already linked to another Giras user.',
+      state_expired: 'The authorization has expired. Please try again.',
+      invalid_state: 'The authorization is not valid. Please try again.',
+      state_used: 'This authorization has already been used. Please try again.',
+      state_user_mismatch: 'The authorization belongs to another session. Please try again.',
+      exchange_failed: "Google didn't accept the authorization. Please try again.",
+      google_unavailable: "We couldn't reach Google. Please try again later.",
+      google_not_configured: 'The Google integration is not configured.',
+      invalid_purpose: "That Google feature can't be connected.",
+      invalid_return_to: 'The return path is not valid. Please try again.',
+      invalid_redirect_uri: 'This address is not authorized to connect to Google.',
+      rate_limited: 'Too many attempts. Wait a few minutes and try again.',
+    },
+    fallback: {
+      status: "Couldn't load the status of your Google account.",
+      authorize: "Couldn't start the connection with Google. Please try again.",
+    },
+    status: {
+      disabled: 'Disabled',
+    },
+  },
+  googleAuth: {
+    callback: {
+      signingIn: 'Signing in with Google',
+      connecting: 'Connecting to Google',
+      wait: 'One moment…',
+      errorTitle: "Couldn't complete",
+      stateMismatch: "The authorization session doesn't match. Please try again.",
+      denied: 'Access denied. You can close this window and try again.',
+      noCode: 'No authorization code was received from Google.',
+      loginError: 'Error signing in with Google',
+      redirecting: 'Redirecting…',
     },
   },
   onboarding: {
@@ -1009,6 +1094,7 @@ export default {
       lastSync: 'Last sync: {date}',
       never: 'never',
       googleIntro: 'Import your crew straight from Google',
+      connectIntro: 'Connect Google Contacts to import your crew, or add it by hand.',
       sync: 'Sync Google Contacts',
       resync: 'Sync again',
       connecting: 'Connecting...',
@@ -1060,6 +1146,8 @@ export default {
     },
     calendar: {
       demoTitle: 'Real accounts only',
+      connectIntro:
+        'Connect Google Calendar so your tour dates turn into activities. You can do it later from Settings.',
       demoBody: 'Sign in with Google to link your calendar.',
       loading: 'Loading Google calendars…',
       loadError: 'Error loading Google calendars',

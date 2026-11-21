@@ -5,6 +5,10 @@ import { DateTime } from 'luxon'
 import { useCalendarImport, type CalendarSubscription, type GoogleCalendarItem } from '@/composables/useCalendarImport'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
+import { useGoogleStore } from '@/stores/google'
+import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
+import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
@@ -15,10 +19,12 @@ const { t, locale } = useI18n()
 const calImport = useCalendarImport()
 const authStore = useAuthStore()
 const toursStore = useToursStore()
+const googleStore = useGoogleStore()
 
 // ─── State machine ────────────────────────────────────────────────────────────
 
-type Step = 'loading' | 'selecting' | 'connecting' | 'connected' | 'error'
+// 'disconnected': sin permiso de Google Calendar; se ofrece conectar o saltar (es opcional).
+type Step = 'loading' | 'disconnected' | 'selecting' | 'connecting' | 'connected' | 'error'
 const step = ref<Step>('loading')
 const error = ref('')
 
@@ -38,6 +44,11 @@ const existingCals = ref<CalendarSubscription[]>([])
 async function load() {
   step.value = 'loading'
   error.value = ''
+  await googleStore.load()
+  if (googleStore.knownMissing('calendar')) {
+    step.value = 'disconnected'
+    return
+  }
   try {
     const [gcals, existing] = await Promise.all([
       calImport.listGoogleCalendars(),
@@ -55,6 +66,11 @@ async function load() {
 
     step.value = 'selecting'
   } catch (e) {
+    if (isGoogleScopeMissing(e)) {
+      googleStore.load(true)
+      step.value = 'disconnected'
+      return
+    }
     error.value = e instanceof Error ? e.message : t('onboarding.calendar.loadError')
     step.value = 'error'
   }
@@ -162,6 +178,8 @@ onMounted(() => {
     </div>
 
     <template v-else>
+      <GoogleConnectNotice purpose="calendar" />
+
       <!-- LOADING -->
       <div
         v-if="step === 'loading'"
@@ -187,6 +205,27 @@ onMounted(() => {
         <p class="text-[12px] text-ink-3">
           {{ t('onboarding.calendar.loading') }}
         </p>
+      </div>
+
+      <!-- SIN CONECTAR (opcional: conectar o saltar) -->
+      <div
+        v-else-if="step === 'disconnected'"
+        class="space-y-3"
+        data-testid="onb-calendar-disconnected"
+      >
+        <GoogleConnectCta
+          purpose="calendar"
+          return-to="/home"
+          :intro="t('onboarding.calendar.connectIntro')"
+          :onboarding="{ step: 'calendar', tourId }"
+        />
+        <BtnSecondary
+          full
+          data-testid="onb-calendar-skip"
+          @click="emit('skip')"
+        >
+          {{ t('onboarding.skip') }}
+        </BtnSecondary>
       </div>
 
       <!-- ERROR -->

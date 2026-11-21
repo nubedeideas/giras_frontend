@@ -69,6 +69,22 @@ describe('router guards', () => {
     )
   })
 
+  it('el page_view del callback de OAuth no incluye code ni state', async () => {
+    const router = makeRouter()
+    await router.push('/auth/callback?code=SECRET_CODE&state=SECRET_STATE&scope=openid')
+    const views = window.dataLayer.filter((e) => (e as { event?: string }).event === 'page_view')
+    expect(views).toHaveLength(1)
+    expect((views[0] as { page_path: string }).page_path).toBe('/auth/callback')
+    expect(JSON.stringify(window.dataLayer)).not.toMatch(/SECRET_CODE|SECRET_STATE/)
+  })
+
+  it('las demás rutas conservan la query en page_path', async () => {
+    const router = makeRouter()
+    await router.push('/soporte?utm_source=x')
+    const views = window.dataLayer.filter((e) => (e as { event?: string }).event === 'page_view')
+    expect((views[0] as { page_path: string }).page_path).toBe('/soporte?utm_source=x')
+  })
+
   it('los enlaces antiguos tours/... redirigen (a /login sin sesión)', async () => {
     const router = makeRouter()
     await router.push('/tours/abc/activities/def')

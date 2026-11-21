@@ -12,11 +12,19 @@ import {
   type SyncStats,
 } from '@/composables/useGoogleContactsImport'
 import { useContacts } from '@/composables/useContacts'
+import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { useGoogleStore } from '@/stores/google'
 import AppModal from '@/components/ui/AppModal.vue'
+import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
+import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
-const props = defineProps<{ show: boolean }>()
+const props = defineProps<{
+  show: boolean
+  /** Al abrirse, sincroniza Google sola (vuelta de "Conectar Google Contactos"). */
+  autoSync?: boolean
+}>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const contactsStore = useContactsStore()
@@ -24,6 +32,16 @@ const authStore = useAuthStore()
 const toursStore = useToursStore()
 const api = useGoogleContactsImport()
 const contactsApi = useContacts()
+const googleStore = useGoogleStore()
+
+// Vuelta tras conectar Google: `/contacts?import=google` reabre este modal en la pestaña Google.
+const CONNECT_RETURN_TO = '/contacts?import=google'
+
+// Sin permiso de Contactos se ofrece "Conectar Google Contactos" en lugar de sincronizar.
+const scopeMissing = ref(false)
+const needsConnect = computed(
+  () => !authStore.isDemoMode && (scopeMissing.value || googleStore.knownMissing('contacts'))
+)
 
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
@@ -109,10 +127,26 @@ async function startSync() {
     initContactState(list)
     step.value = 'selecting'
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error desconocido'
+    if (isGoogleScopeMissing(e)) {
+      // Sin texto de error genérico: el estado `idle` ya muestra "Conectar Google Contactos".
+      scopeMissing.value = true
+      googleStore.load(true)
+    } else {
+      error.value = e instanceof Error ? e.message : 'Error desconocido'
+    }
     step.value = 'idle'
   }
 }
+
+watch(
+  () => props.show,
+  async (val) => {
+    if (!val || authStore.isDemoMode) return
+    await googleStore.load()
+    if (props.autoSync && !needsConnect.value && step.value === 'idle') startSync()
+  },
+  { immediate: true }
+)
 
 async function doImport() {
   if (selectedUuids.value.length === 0) return
@@ -259,6 +293,7 @@ watch(
         contactState.value = {}
         resetManualForm()
         source.value = 'google'
+        scopeMissing.value = false
       }, 300)
     }
   },
@@ -423,10 +458,21 @@ watch(
       </div>
 
       <template v-else>
+        <GoogleConnectNotice purpose="contacts" />
+
+        <!-- IDLE sin permiso de Google Contactos -->
+        <GoogleConnectCta
+          v-if="step === 'idle' && needsConnect"
+          purpose="contacts"
+          :return-to="CONNECT_RETURN_TO"
+          :intro="t('googleIntegration.missing.contacts')"
+        />
+
         <!-- IDLE -->
         <div
-          v-if="step === 'idle'"
+          v-else-if="step === 'idle'"
           class="text-center"
+          data-testid="contacts-sync-idle"
         >
           <div class="bg-glass border border-line rounded-xl p-5 mb-4">
             <div class="w-10 h-10 rounded-xl bg-[rgba(26,143,255,0.1)] flex items-center justify-center mx-auto mb-3">
@@ -477,6 +523,7 @@ watch(
           </p>
           <BtnPrimary
             full
+            data-testid="contacts-start-sync"
             @click="startSync"
           >
             <svg

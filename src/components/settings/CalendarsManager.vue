@@ -1,10 +1,38 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCalendarImport, type CalendarSubscription, type GoogleCalendarItem } from '@/composables/useCalendarImport'
+import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
 import { useToursStore } from '@/stores/tours'
+import { useGoogleStore } from '@/stores/google'
+import { useAuthStore } from '@/stores/auth'
+import GoogleConnectCta from './GoogleConnectCta.vue'
+import Pill from '@/components/ui/Pill.vue'
 
 const calImport = useCalendarImport()
 const toursStore = useToursStore()
+const googleStore = useGoogleStore()
+const authStore = useAuthStore()
+const route = useRoute()
+const { t } = useI18n()
+
+// Sin permiso de Calendar no se llama a google_calendars: se ofrece "Conectar Google Calendar".
+// `scopeMissing` cubre el caso de un 403 google_scope_missing con el estado aún sin refrescar.
+const scopeMissing = ref(false)
+const needsConnect = computed(
+  () => !authStore.isDemoMode && (scopeMissing.value || googleStore.knownMissing('calendar'))
+)
+
+// Con el estado cargado y sin Calendar, la tarjeta "Cuenta de Google" de encima ya enseña el
+// bloque completo con el consentimiento: aquí basta el aviso con el botón.
+const compactCta = computed(() => googleStore.knownMissing('calendar'))
+
+function onScopeMissing() {
+  scopeMissing.value = true
+  showForm.value = false
+  googleStore.load(true)
+}
 
 // Map from subscription id → list of tour names using it as default_calendar
 const toursByCalendar = computed(() => {
@@ -46,7 +74,8 @@ async function loadGoogleCals() {
       formCalName.value = primary.summary
     }
   } catch (e) {
-    googleCalsError.value = e instanceof Error ? e.message : 'Error al cargar calendarios de Google'
+    if (isGoogleScopeMissing(e)) onScopeMissing()
+    else googleCalsError.value = e instanceof Error ? e.message : 'Error al cargar calendarios de Google'
   } finally {
     loadingGoogleCals.value = false
   }
@@ -75,6 +104,7 @@ async function load() {
 }
 
 function openForm() {
+  if (needsConnect.value) return
   showForm.value = true
   formCalId.value = ''
   formCalName.value = ''
@@ -100,7 +130,8 @@ async function connectCalendar() {
     formCalId.value = ''
     formCalName.value = ''
   } catch (e) {
-    formError.value = e instanceof Error ? e.message : 'Error al conectar'
+    if (isGoogleScopeMissing(e)) onScopeMissing()
+    else formError.value = e instanceof Error ? e.message : 'Error al conectar'
   } finally {
     formLoading.value = false
   }
@@ -111,8 +142,9 @@ async function syncCalendar(cal: CalendarSubscription) {
   try {
     await calImport.syncCalendarNow(cal.id)
     await load()
-  } catch {
-    // silent – user sees no change
+  } catch (e) {
+    // Sin permiso: se muestra el bloque "Conectar"; el resto de errores sigue en silencio.
+    if (isGoogleScopeMissing(e)) onScopeMissing()
   } finally {
     syncingId.value = null
   }
@@ -137,7 +169,19 @@ function formatDate(iso: string | null): string {
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
 }
 
-onMounted(load)
+onMounted(async () => {
+  await Promise.all([load(), authStore.isDemoMode ? null : googleStore.load()])
+  // Vuelta de Google tras conectar Calendar: se abre el formulario con los calendarios listados.
+  if (
+    route.query.google_connect === 'ok' &&
+    route.query.purpose === 'calendar' &&
+    !needsConnect.value
+  ) {
+    openForm()
+  }
+})
+
+defineExpose({ load })
 </script>
 
 <template>
@@ -158,7 +202,9 @@ onMounted(load)
       Calendarios conectados
     </label>
     <button
+      v-if="!needsConnect"
       class="flex items-center gap-1 text-[10px] font-semibold text-acid bg-[rgba(168,216,0,0.1)] border border-[rgba(168,216,0,0.2)] rounded-md px-2 py-1 cursor-pointer hover:bg-[rgba(168,216,0,0.18)] transition-colors"
+      data-testid="calendar-open-form"
       @click="showForm ? (showForm = false) : openForm()"
     >
       <svg
@@ -187,10 +233,21 @@ onMounted(load)
     </button>
   </div>
 
+  <!-- Sin permiso de Google Calendar -->
+  <GoogleConnectCta
+    v-if="needsConnect"
+    class="mb-3"
+    :compact="compactCta"
+    purpose="calendar"
+    return-to="/settings?tab=calendars"
+    :intro="t('googleIntegration.missing.calendar')"
+  />
+
   <!-- Connect form -->
   <div
-    v-if="showForm"
+    v-else-if="showForm"
     class="bg-glass border border-line rounded-xl px-3.5 py-3 mb-3 space-y-2.5"
+    data-testid="calendar-connect-form"
   >
     <p class="text-[11px] font-semibold text-ink">
       Conectar nuevo calendario
@@ -456,7 +513,10 @@ onMounted(load)
     <p class="text-[11px] text-ink-3">
       No hay calendarios conectados
     </p>
-    <p class="text-[10px] text-ink-4">
+    <p
+      v-if="!needsConnect"
+      class="text-[10px] text-ink-4"
+    >
       Pulsa "Conectar" para añadir tu Google Calendar
     </p>
   </div>
@@ -504,8 +564,15 @@ onMounted(load)
             <p class="text-[12px] font-semibold text-ink truncate">
               {{ cal.calendar_name }}
             </p>
+            <Pill
+              v-if="cal.is_active === false"
+              data-testid="calendar-disabled"
+            >
+              {{ t('googleIntegration.status.disabled') }}
+            </Pill>
             <!-- Webhook status badge -->
             <span
+              v-else
               class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border flex-shrink-0"
               :class="cal.webhook_status === 'active'
                 ? 'bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border-[rgba(31,173,90,0.2)]'
@@ -548,6 +615,7 @@ onMounted(load)
       <!-- Action buttons -->
       <div class="flex items-center gap-2 pt-1 border-t border-line">
         <button
+          v-if="cal.is_active !== false"
           class="flex items-center gap-1 text-[10px] font-semibold text-ink-3 hover:text-acid bg-transparent border-none cursor-pointer transition-colors px-0 py-0"
           :class="syncingId === cal.id ? 'opacity-50 cursor-not-allowed' : ''"
           :disabled="syncingId === cal.id"
@@ -571,7 +639,10 @@ onMounted(load)
           {{ syncingId === cal.id ? 'Sincronizando…' : 'Sincronizar ahora' }}
         </button>
 
-        <span class="text-ink-4 text-[10px]">·</span>
+        <span
+          v-if="cal.is_active !== false"
+          class="text-ink-4 text-[10px]"
+        >·</span>
 
         <button
           class="flex items-center gap-1 text-[10px] font-semibold text-ink-4 hover:text-red-400 bg-transparent border-none cursor-pointer transition-colors px-0 py-0"

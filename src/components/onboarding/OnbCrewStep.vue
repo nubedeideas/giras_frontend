@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { useContactsStore } from '@/stores/contacts'
@@ -11,15 +12,29 @@ import {
   type ContactSubscription,
   type SyncStats,
 } from '@/composables/useGoogleContactsImport'
+import { useGoogleStore } from '@/stores/google'
+import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
+import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
+const props = defineProps<{ tourId?: number | null }>()
 const emit = defineEmits<{ next: []; skip: [] }>()
 
 const { t, locale } = useI18n()
 const contactsStore = useContactsStore()
 const authStore = useAuthStore()
 const api = useGoogleContactsImport()
+const googleStore = useGoogleStore()
+const route = useRoute()
+
+// Sin permiso de Contactos se ofrece conectar (opcional: la pestaña manual sigue disponible).
+const scopeMissing = ref(false)
+const needsConnect = computed(
+  () => !authStore.isDemoMode && (scopeMissing.value || googleStore.knownMissing('contacts'))
+)
+const onboardingResume = computed(() => ({ step: 'crew' as const, tourId: props.tourId ?? null }))
 
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
@@ -100,10 +115,29 @@ async function startSync() {
     initContactState(list)
     gStep.value = 'selecting'
   } catch (e) {
-    gError.value = e instanceof Error ? e.message : t('onboarding.crew.unknownError')
+    if (isGoogleScopeMissing(e)) {
+      scopeMissing.value = true
+      googleStore.load(true)
+    } else {
+      gError.value = e instanceof Error ? e.message : t('onboarding.crew.unknownError')
+    }
     gStep.value = 'idle'
   }
 }
+
+onMounted(async () => {
+  if (authStore.isDemoMode) return
+  await googleStore.load()
+  // Vuelta de "Conectar Google Contactos" desde este paso: sincroniza sola.
+  if (
+    route.query.google_connect === 'ok' &&
+    route.query.purpose === 'contacts' &&
+    !needsConnect.value &&
+    gStep.value === 'idle'
+  ) {
+    startSync()
+  }
+})
 
 async function doImport() {
   if (selectedUuids.value.length === 0) return
@@ -274,9 +308,20 @@ watch(source, (val) => {
       </div>
 
       <template v-else>
+        <GoogleConnectNotice purpose="contacts" />
+
+        <!-- IDLE sin permiso de Google Contactos -->
+        <GoogleConnectCta
+          v-if="gStep === 'idle' && needsConnect"
+          purpose="contacts"
+          return-to="/home"
+          :intro="t('onboarding.crew.connectIntro')"
+          :onboarding="onboardingResume"
+        />
+
         <!-- IDLE -->
         <div
-          v-if="gStep === 'idle'"
+          v-else-if="gStep === 'idle'"
           class="text-center"
         >
           <div class="bg-glass border border-line rounded-xl p-5 mb-4">

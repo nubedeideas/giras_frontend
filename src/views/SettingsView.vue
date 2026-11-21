@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +8,8 @@ import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
 import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue'
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
+import GoogleConnectionCard from '@/components/settings/GoogleConnectionCard.vue'
+import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import NotificationGroupsManager from '@/components/settings/NotificationGroupsManager.vue'
 import NotificationTemplatesView from '@/views/NotificationTemplatesView.vue'
 import SubscriptionManager from '@/components/settings/SubscriptionManager.vue'
@@ -71,6 +73,9 @@ const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
     iconPath: `<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
   },
 ]
+
+// Se incrementa al desconectar Google para que CalendarsManager recargue (calendarios desactivados).
+const calendarsKey = ref(0)
 
 const activeTab = computed<SettingsTab>({
   get: () => (route.query.tab as SettingsTab | undefined) ?? 'general',
@@ -417,7 +422,9 @@ async function signOut() {
                 Conecta Google Calendars para sincronizar eventos automáticamente.
               </p>
             </div>
-            <CalendarsManager />
+            <GoogleConnectNotice />
+            <GoogleConnectionCard @disconnected="calendarsKey++" />
+            <CalendarsManager :key="calendarsKey" />
           </template>
 
           <!-- ── Actividades ─────────────────────────────────────────────────── -->

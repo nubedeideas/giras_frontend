@@ -12,10 +12,19 @@ import { useAuthStore } from '@/stores/auth'
 import { useUIState } from '@/composables/useUIState'
 import { useUIStore } from '@/stores/ui'
 import { useNoIndex } from '@/composables/usePageMeta'
+import { takeOnboardingResume } from '@/utils/googleOAuth'
 
 useNoIndex()
 
-const { openSettings, wizardOpen, wizardDismissed, closeWizard, dismissWizard } = useUIState()
+const {
+  openSettings,
+  wizardOpen,
+  wizardDismissed,
+  wizardResume,
+  openWizard,
+  closeWizard,
+  dismissWizard,
+} = useUIState()
 const toursStore = useToursStore()
 const authStore = useAuthStore()
 // Instantiating the store here triggers the watcher that applies data-theme to <html>
@@ -48,6 +57,9 @@ function onWizardClose() {
 onMounted(async () => {
   await toursStore.loadTours()
   toursLoaded.value = true
+  // Vuelta de Google tras conectar Calendar o Contactos desde el asistente: mismo paso y gira.
+  const resume = authStore.isDemoMode ? null : takeOnboardingResume()
+  if (resume) openWizard({ step: resume.step, tourId: resume.tourId })
 })
 </script>
 
@@ -71,6 +83,8 @@ onMounted(async () => {
 
       <OnboardingWizard
         v-if="showWizard"
+        :initial-step="wizardResume?.step"
+        :initial-tour-id="wizardResume?.tourId ?? null"
         @complete="onOnboardingComplete"
         @close="onWizardClose"
       />

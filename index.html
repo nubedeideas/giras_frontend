@@ -19,9 +19,13 @@
       })
     </script>
     <!-- ── Google Tag Manager ── -->
-    <!-- No se carga en el portal del crew (/crew/<token>): el token no puede llegar a GTM -->
+    <!-- No se carga en el portal del crew (/crew/<token>) ni en el callback de OAuth
+         (/auth/callback?code=...&state=...): ni el token ni el código pueden llegar a GTM -->
     <script>
-      if (location.pathname.indexOf('/crew/') !== 0) {
+      if (
+        location.pathname.indexOf('/crew/') !== 0 &&
+        location.pathname.indexOf('/auth/callback') !== 0
+      ) {
         (function (w, d, s, l, i) {
           w[l] = w[l] || []
           w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })

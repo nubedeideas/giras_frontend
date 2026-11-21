@@ -797,8 +797,8 @@ export default {
         id: 'datos-de-google',
         title: '4. Datos de Google',
         paragraphs: [
-          'Si inicias sesión con Google, recibimos tu nombre, tu email y tu foto de perfil (permisos openid, email y profile) para crear y verificar tu cuenta.',
-          'Si conectas tu cuenta de Google, Giras solicita además los siguientes permisos:',
+          'Si inicias sesión con Google, recibimos solo tu nombre, tu email y tu foto de perfil (permisos openid, email y profile) para crear y verificar tu cuenta. Iniciar sesión no da acceso a tus calendarios ni a tus contactos.',
+          'Los demás permisos se piden solo cuando eliges conectar Google Calendar o Google Contactos desde Giras (en Ajustes → Calendarios, al importar contactos o en el asistente inicial), y en cada caso únicamente los de esa función:',
         ],
         items: [
           'Google Calendar, lectura (calendar.readonly): leemos los eventos de los calendarios que eliges conectar (título, fechas, horas, ubicación y descripción) para crear y actualizar automáticamente las actividades de tu gira.',
@@ -808,8 +808,8 @@ export default {
         paragraphsAfter: [
           'Usamos estos datos exclusivamente para ofrecerte esas funciones dentro de Giras. No vendemos los datos de Google, no los usamos para publicidad ni para crear perfiles, y no los compartimos con terceros salvo con los proveedores necesarios para prestar el servicio descritos en esta política. Ninguna persona de Giras los lee salvo que nos des tu permiso expreso (por ejemplo, para resolver una incidencia de soporte), cuando sea necesario por seguridad o cuando lo exija la ley.',
           'Los eventos de tus calendarios conectados pueden procesarse con Google Gemini para extraer la información logística (horarios, lugares, vuelos) y para generar los resúmenes diarios. Los datos de Google no se usan para entrenar modelos de inteligencia artificial generalizados.',
-          'Los datos se transmiten cifrados (HTTPS/TLS) y se almacenan en servidores situados en Lituania (Unión Europea) gestionados por Hostinger, con acceso restringido. Las copias de seguridad se guardan cifradas.',
-          'Puedes desconectar tus calendarios en cualquier momento desde Ajustes y pedirnos la desconexión completa de tu cuenta de Google escribiendo a giras@nubedeideas.com. También puedes revocar el acceso de Giras directamente desde tu cuenta de Google. Al revocarlo, dejamos de acceder a tus datos de Google y, si nos lo pides, eliminamos los que hayamos importado.',
+          'Los datos se transmiten cifrados (HTTPS/TLS) y se almacenan en servidores situados en Lituania (Unión Europea) gestionados por Hostinger, con acceso restringido. Las copias de seguridad se guardan cifradas. Los tokens de acceso a Google se guardan cifrados en reposo.',
+          'Puedes desconectar tu cuenta de Google en cualquier momento desde Ajustes → Calendarios → Desconectar Google: revocamos el acceso en Google y borramos las credenciales. También puedes revocarlo desde tu cuenta de Google. Al revocarlo, dejamos de acceder a tus datos de Google y, si nos lo pides en giras@nubedeideas.com, eliminamos además los datos importados.',
         ],
         statement:
           'El uso que Giras hace de la información recibida de las APIs de Google se ajusta a la Política de datos de usuario de los servicios de API de Google, incluidos los requisitos de uso limitado.',
@@ -936,7 +936,7 @@ export default {
       items: [
         {
           q: '¿Cómo conecto mi Google Calendar?',
-          a: 'Desde el asistente de configuración inicial (o en Ajustes → Integraciones) autoriza el acceso a tu cuenta de Google. Giras sincroniza automáticamente los eventos de la gira que elijas.',
+          a: 'Desde el asistente de configuración inicial o en Ajustes → Calendarios → Conectar Google Calendar, autoriza el acceso a tus calendarios de Google. Giras sincroniza automáticamente los eventos de la gira que elijas. Puedes desconectarlo cuando quieras desde la misma pantalla.',
         },
         {
           q: '¿Por qué no llegan las notificaciones por WhatsApp?',
@@ -962,6 +962,91 @@ export default {
       emailLabel: 'email:',
       hoursLabel: 'horario:',
       hoursValue: 'Lun-Vie 09:00-18:00 (CET)',
+    },
+  },
+  googleIntegration: {
+    card: {
+      title: 'Cuenta de Google',
+      notConnected: 'No has conectado ninguna cuenta de Google.',
+      notConnectedShort: 'No conectado',
+      connectedAs: 'Conectado como {email} desde {date}',
+      connectedAsNoDate: 'Conectado como {email}',
+      demo: 'En el modo demo no se puede conectar una cuenta de Google.',
+    },
+    scopes: {
+      calendarRead: 'Ver tus calendarios y eventos',
+      calendarWrite: 'Marcar los eventos importados',
+      contactsRead: 'Leer tus contactos',
+    },
+    connect: {
+      calendar: 'Conectar Google Calendar',
+      contacts: 'Conectar Google Contactos',
+      redirecting: 'Te llevamos a Google…',
+    },
+    consent: {
+      calendar:
+        'Google te pedirá permiso para que Giras vea tus calendarios y eventos y añada una marca privada a los eventos que importes. Así creamos y actualizamos las actividades de tu gira. No creamos ni borramos eventos en tu calendario.',
+      contacts:
+        'Google te pedirá permiso para que Giras lea tus contactos. Solo los importamos cuando tú lo decides y eliges cuáles añadir al crew.',
+    },
+    missing: {
+      calendar: 'Para usar esta función, conecta Google Calendar.',
+      contacts: 'Para importar desde Google, conecta Google Contactos.',
+    },
+    disconnect: {
+      button: 'Desconectar Google',
+      confirmTitle: '¿Desconectar tu cuenta de Google?',
+      confirmBody:
+        'Revocaremos el acceso de Giras en Google y borraremos las credenciales. Tus calendarios dejarán de sincronizarse. Las actividades y los contactos ya importados se quedan en Giras.',
+      done: 'Cuenta de Google desconectada.',
+      error: 'No hemos podido desconectar tu cuenta de Google. Inténtalo de nuevo.',
+    },
+    notice: {
+      ok: '{service} conectado.',
+      partial:
+        'No has concedido el permiso necesario para {service}. Puedes volver a intentarlo cuando quieras.',
+      denied: 'Has cancelado la conexión con Google.',
+      error: 'No hemos podido conectar con Google. Inténtalo de nuevo.',
+      close: 'Cerrar aviso',
+    },
+    service: {
+      calendar: 'Google Calendar',
+      contacts: 'Google Contactos',
+    },
+    errors: {
+      google_account_mismatch: 'Conecta la misma cuenta de Google con la que entras en Giras.',
+      google_account_in_use: 'Esa cuenta de Google ya está vinculada a otro usuario de Giras.',
+      state_expired: 'La autorización ha caducado. Vuelve a intentarlo.',
+      invalid_state: 'La autorización no es válida. Vuelve a intentarlo.',
+      state_used: 'Esta autorización ya se ha usado. Vuelve a intentarlo.',
+      state_user_mismatch: 'La autorización pertenece a otra sesión. Vuelve a intentarlo.',
+      exchange_failed: 'Google no ha aceptado la autorización. Vuelve a intentarlo.',
+      google_unavailable: 'No hemos podido contactar con Google. Inténtalo más tarde.',
+      google_not_configured: 'La integración con Google no está configurada.',
+      invalid_purpose: 'No se puede conectar esa función de Google.',
+      invalid_return_to: 'La ruta de vuelta no es válida. Vuelve a intentarlo.',
+      invalid_redirect_uri: 'Esta dirección no está autorizada para conectar con Google.',
+      rate_limited: 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.',
+    },
+    fallback: {
+      status: 'No se ha podido cargar el estado de tu cuenta de Google.',
+      authorize: 'No se ha podido iniciar la conexión con Google. Inténtalo de nuevo.',
+    },
+    status: {
+      disabled: 'Desactivado',
+    },
+  },
+  googleAuth: {
+    callback: {
+      signingIn: 'Entrando con Google',
+      connecting: 'Conectando con Google',
+      wait: 'Un momento…',
+      errorTitle: 'No se ha podido completar',
+      stateMismatch: 'La sesión de autorización no coincide. Vuelve a intentarlo.',
+      denied: 'Acceso denegado. Puedes cerrar esta ventana e intentarlo de nuevo.',
+      noCode: 'No se recibió un código de autorización de Google.',
+      loginError: 'Error al autenticar con Google',
+      redirecting: 'Redirigiendo…',
     },
   },
   onboarding: {
@@ -1011,6 +1096,7 @@ export default {
       lastSync: 'Última sincronización: {date}',
       never: 'nunca',
       googleIntro: 'Importa tu crew directamente desde Google',
+      connectIntro: 'Conecta Google Contactos para importar a tu crew, o añádelo a mano.',
       sync: 'Sincronizar Google Contacts',
       resync: 'Volver a sincronizar',
       connecting: 'Conectando...',
@@ -1062,6 +1148,8 @@ export default {
     },
     calendar: {
       demoTitle: 'Solo con cuenta real',
+      connectIntro:
+        'Conecta Google Calendar para que las fechas de la gira se conviertan en actividades. Puedes hacerlo más tarde desde Ajustes.',
       demoBody: 'Conéctate con Google para vincular tu calendario.',
       loading: 'Cargando calendarios de Google…',
       loadError: 'Error al cargar los calendarios de Google',

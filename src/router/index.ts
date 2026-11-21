@@ -128,7 +128,8 @@ export function setupRouterGuards(router: Router) {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({
       event: 'page_view',
-      page_path: to.fullPath,
+      // El callback de OAuth lleva `code` y `state` de Google en la query: no pueden llegar a GTM.
+      page_path: to.name === 'auth-callback' ? to.path : to.fullPath,
       page_title: document.title,
     })
   })

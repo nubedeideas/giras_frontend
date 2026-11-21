@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { redirectTo } from '@/utils/navigation'
+import { oauthRedirectUri, randomLoginState, savePending } from '@/utils/googleOAuth'
+import { useGoogleStore } from '@/stores/google'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,6 +67,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function clearSession() {
+    // El estado de Google es del usuario que sale: no puede verlo el siguiente.
+    useGoogleStore().reset()
     user.value = null
     accessToken.value = null
     refreshToken.value = null
@@ -131,29 +136,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ─── Google OAuth ────────────────────────────────────────────────────────────
 
+  /**
+   * Login con Google: solo identidad (`openid email profile`), sin `access_type=offline` y con
+   * `prompt=select_account`. Calendar y Contactos se piden aparte, cuando el usuario conecta esa
+   * función (`useGoogleIntegration().startConnect`). El `state` se genera aquí y se guarda en
+   * `sessionStorage` para que el callback rechace vueltas que no empezaron en esta pestaña.
+   */
   function startGoogleLogin() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
     if (!clientId) {
       error.value = 'Google Client ID no configurado'
       return
     }
-    const redirectUri = `${window.location.origin}/auth/callback`
+    const state = randomLoginState()
+    savePending({ kind: 'login', state, createdAt: Date.now() })
     const params = new URLSearchParams({
       client_id: clientId,
-      redirect_uri: redirectUri,
+      redirect_uri: oauthRedirectUri(),
       response_type: 'code',
-      scope: [
-        'openid',
-        'email',
-        'profile',
-        'https://www.googleapis.com/auth/contacts.readonly',
-        'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar.events',
-      ].join(' '),
-      access_type: 'offline',
-      prompt: 'consent',
+      scope: 'openid email profile',
+      prompt: 'select_account',
+      state,
     })
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
+    redirectTo(`https://accounts.google.com/o/oauth2/v2/auth?${params}`)
   }
 
   async function loginWithGoogle(code: string, redirectUri: string): Promise<void> {
@@ -254,6 +259,7 @@ export const useAuthStore = defineStore('auth', () => {
   // ─── Demo mode ───────────────────────────────────────────────────────────────
 
   function loginDemo() {
+    useGoogleStore().reset()
     isDemoMode.value = true
     isLoggedIn.value = true
     user.value = {

@@ -1,35 +1,125 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useGoogleStore } from '@/stores/google'
+import { googleErrorCode, googleIntegrationApi } from '@/composables/useGoogleIntegration'
+import {
+  clearOnboardingResume,
+  DEFAULT_RETURN_TO,
+  isSafeReturnTo,
+  oauthRedirectUri,
+  takePending,
+  withQuery,
+  type GoogleOAuthPending,
+} from '@/utils/googleOAuth'
+
+/**
+ * Vuelta de Google (`/auth/callback`), compartida por el login y por la conexión de Calendar o
+ * Contactos. Qué era lo decide el `pending` guardado en `sessionStorage` antes de salir, cuyo
+ * `state` tiene que coincidir con el de la query; si no, no se llama a la API.
+ */
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const auth = useAuthStore()
+const googleStore = useGoogleStore()
 
+const kind = ref<GoogleOAuthPending['kind'] | null>(null)
 const errorMsg = ref('')
 
-onMounted(async () => {
-  const code = route.query.code as string | undefined
-  const oauthError = route.query.error as string | undefined
+const title = computed(() =>
+  t(kind.value === 'connect' ? 'googleAuth.callback.connecting' : 'googleAuth.callback.signingIn')
+)
 
+function queryString(key: string): string | undefined {
+  const v = route.query[key]
+  return typeof v === 'string' && v ? v : undefined
+}
+
+function failAndGo(message: string, target: string) {
+  errorMsg.value = message
+  setTimeout(() => router.replace(target), 3000)
+}
+
+async function handleLogin(code: string | undefined, oauthError: string | undefined) {
   if (oauthError || !code) {
-    errorMsg.value =
+    failAndGo(
       oauthError === 'access_denied'
-        ? 'Acceso denegado. Puedes cerrar esta ventana e intentarlo de nuevo.'
-        : 'No se recibió un código de autorización de Google.'
-    setTimeout(() => router.replace('/login'), 3000)
+        ? t('googleAuth.callback.denied')
+        : t('googleAuth.callback.noCode'),
+      '/login'
+    )
+    return
+  }
+  try {
+    await auth.loginWithGoogle(code, oauthRedirectUri())
+    router.replace('/home')
+  } catch {
+    failAndGo(auth.error ?? t('googleAuth.callback.loginError'), '/login')
+  }
+}
+
+async function handleConnect(
+  pending: GoogleOAuthPending,
+  code: string | undefined,
+  state: string,
+  oauthError: string | undefined
+) {
+  const purpose = pending.purpose
+  const returnTo = isSafeReturnTo(pending.returnTo) ? pending.returnTo : DEFAULT_RETURN_TO
+
+  if (oauthError) {
+    router.replace(withQuery(returnTo, { google_connect: 'denied', purpose }))
+    return
+  }
+  if (!code) {
+    router.replace(withQuery(returnTo, { google_connect: 'error', purpose, reason: 'no_code' }))
+    return
+  }
+  try {
+    const result = await googleIntegrationApi.connect(code, state, oauthRedirectUri())
+    if (result?.status) googleStore.setStatus(result.status)
+    else await googleStore.load(true)
+    const target = isSafeReturnTo(result?.return_to) ? result.return_to : DEFAULT_RETURN_TO
+    router.replace(
+      withQuery(target, {
+        google_connect: result?.purpose_granted === false ? 'partial' : 'ok',
+        purpose: result?.purpose ?? purpose,
+      })
+    )
+  } catch (e) {
+    router.replace(
+      withQuery(returnTo, { google_connect: 'error', purpose, reason: googleErrorCode(e) })
+    )
+  }
+}
+
+onMounted(async () => {
+  // Se borra siempre: un `pending` solo vale para una vuelta.
+  const pending = takePending()
+  const state = queryString('state')
+  const code = queryString('code')
+  const oauthError = queryString('error')
+  // Fuera de la URL `code` y `state` antes de nada (historial, GTM, Referer), también si falla.
+  await router.replace({ path: route.path })
+
+  if (!pending || !state || pending.state !== state) {
+    kind.value = pending?.kind ?? null
+    // Sin esto, AppLayout reabriría el asistente encima de Ajustes.
+    clearOnboardingResume()
+    failAndGo(
+      t('googleAuth.callback.stateMismatch'),
+      pending?.kind === 'login' ? '/login' : DEFAULT_RETURN_TO
+    )
     return
   }
 
-  try {
-    const redirectUri = `${window.location.origin}/auth/callback`
-    await auth.loginWithGoogle(code, redirectUri)
-    router.replace('/home')
-  } catch {
-    errorMsg.value = auth.error ?? 'Error al autenticar con Google'
-    setTimeout(() => router.replace('/login'), 3000)
-  }
+  kind.value = pending.kind
+  if (pending.kind === 'login') await handleLogin(code, oauthError)
+  else await handleConnect(pending, code, state, oauthError)
 })
 </script>
 
@@ -92,21 +182,24 @@ onMounted(async () => {
 
       <template v-if="!errorMsg">
         <p class="text-[14px] font-semibold text-ink mb-1">
-          Autenticando con Google
+          {{ title }}
         </p>
         <p class="text-[12px] text-ink-3">
-          Un momento...
+          {{ t('googleAuth.callback.wait') }}
         </p>
       </template>
       <template v-else>
         <p class="text-[14px] font-semibold text-red-400 mb-1">
-          Error de autenticación
+          {{ t('googleAuth.callback.errorTitle') }}
         </p>
-        <p class="text-[12px] text-ink-3 max-w-[280px]">
+        <p
+          class="text-[12px] text-ink-3 max-w-[280px]"
+          data-testid="callback-error"
+        >
           {{ errorMsg }}
         </p>
         <p class="text-[11px] text-ink-4 mt-3">
-          Redirigiendo al login...
+          {{ t('googleAuth.callback.redirecting') }}
         </p>
       </template>
     </div>

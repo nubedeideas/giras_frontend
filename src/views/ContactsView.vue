@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useContactsStore } from '@/stores/contacts'
 import { useToursStore } from '@/stores/tours'
@@ -17,12 +18,31 @@ const store = useContactsStore()
 const toursStore = useToursStore()
 const { isMobile } = useIsMobile()
 const showImport = ref(false)
+const autoSyncImport = ref(false)
+const route = useRoute()
+const router = useRouter()
 const editMode = ref(false)
 const showRoleFilter = ref(false)
 
 onMounted(() => {
   store.fetchContacts()
+  // Vuelta de "Conectar Google Contactos": `?import=google` reabre el modal en la pestaña Google
+  // y, si la conexión fue bien, sincroniza sola. Los parámetros google_connect/purpose/reason se
+  // quedan para el aviso del modal, que los limpia.
+  if (route.query.import === 'google') {
+    autoSyncImport.value =
+      route.query.google_connect === 'ok' && route.query.purpose === 'contacts'
+    showImport.value = true
+    const query = { ...route.query }
+    delete query.import
+    router.replace({ query })
+  }
 })
+
+function closeImport() {
+  showImport.value = false
+  autoSyncImport.value = false
+}
 
 // Unique roles present in the contacts list
 const availableRoles = computed(() => {
@@ -397,7 +417,8 @@ const groupedContacts = computed(() => {
 
     <ImportContactsModal
       :show="showImport"
-      @close="showImport = false"
+      :auto-sync="autoSyncImport"
+      @close="closeImport"
     />
   </div>
 </template>

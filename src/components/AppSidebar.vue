@@ -82,7 +82,7 @@ function isActive(to: string) {
       <button
         class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[10px] border border-dashed border-line-2 text-ink-4 bg-transparent cursor-pointer transition-all duration-200 hover:border-acid hover:text-acid hover:bg-glass-active group"
         :title="t('tours.newTour')"
-        @click="openWizard"
+        @click="openWizard()"
       >
         <svg
           width="13"
