@@ -233,6 +233,14 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   rule_rescheduled:
     'Cancelada automáticamente: la actividad cambió de hora y el aviso se volvió a programar.',
   replaced_by_rule: 'Cancelada automáticamente: una regla de la gira sustituye a este recordatorio.',
+  activity_unavailable:
+    'Cancelada automáticamente: la actividad se canceló, se completó o volvió a borrador.',
+  activity_type_changed:
+    'Cancelada automáticamente: la actividad cambió de tipo y sus recordatorios se regeneraron.',
+  activity_type_mismatch:
+    'Cancelada automáticamente: la actividad ya no es del tipo que cubre la regla.',
+  template_unavailable:
+    'Cancelada automáticamente: la plantilla de la regla ya no está disponible para la gira.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────

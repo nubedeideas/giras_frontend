@@ -1821,7 +1821,7 @@ export default {
       },
       flight_24h_members: {
         title: 'Vuelos con 24 h de antelación',
-        desc: 'Todo el equipo recibe por WhatsApp el recordatorio de cada vuelo un día antes.',
+        desc: 'Todo el equipo recibe por WhatsApp el recordatorio de cada vuelo un día antes, además de los recordatorios automáticos.',
       },
     },
   },

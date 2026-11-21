@@ -22,6 +22,10 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     'rule_changed',
     'rule_rescheduled',
     'replaced_by_rule',
+    'activity_unavailable',
+    'activity_type_changed',
+    'activity_type_mismatch',
+    'template_unavailable',
   ]
 
   it('tiene etiqueta para cada motivo del backend', () => {

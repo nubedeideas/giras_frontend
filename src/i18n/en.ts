@@ -1815,7 +1815,7 @@ export default {
       },
       flight_24h_members: {
         title: 'Flights 24 h ahead',
-        desc: 'The whole team gets each flight reminder by WhatsApp one day before.',
+        desc: 'The whole team gets each flight reminder by WhatsApp one day before, on top of the automatic reminders.',
       },
     },
   },
