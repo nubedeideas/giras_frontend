@@ -146,6 +146,30 @@ describe('formatInboxItem', () => {
   })
 })
 
+describe('formatInboxItem: billing_discrepancy', () => {
+  it('formats billing_discrepancy in es and en with plural', () => {
+    const one = {
+      kind: 'billing_discrepancy',
+      tour: null,
+      params: { new_count: 1, date: '2026-11-21' },
+    }
+    const many = { ...one, params: { new_count: 4, date: '2026-11-21' } }
+    expect(fmt(one)).toEqual({
+      title: 'Discrepancias en la facturación de Twilio',
+      body: '1 discrepancia nueva en la auditoría de Twilio.',
+    })
+    expect(fmt(many).body).toBe('4 discrepancias nuevas en la auditoría de Twilio.')
+    i18n.global.locale.value = 'en'
+    expect(fmt(one)).toEqual({
+      title: 'Twilio billing discrepancies',
+      body: '1 new discrepancy in the Twilio audit.',
+    })
+    expect(fmt(many).body).toBe('4 new discrepancies in the Twilio audit.')
+    // Sin `new_count`, cuerpo del backend.
+    expect(fmt({ kind: 'billing_discrepancy', params: {}, body: 'B' }).body).toBe('B')
+  })
+})
+
 describe('inboxTargetLocation', () => {
   const target = (type: string, activity_uuid: string | null = null) =>
     inboxItem({
@@ -166,6 +190,20 @@ describe('inboxTargetLocation', () => {
       query: { tab: 'subscription' },
     })
     expect(inboxTargetLocation(target('reports'))).toEqual({ path: '/reports' })
+  })
+
+  it('maps admin_costs target to admin costs tab', async () => {
+    const item = inboxItem({
+      kind: 'billing_discrepancy',
+      tour: null,
+      target: { type: 'admin_costs', tour_uuid: null, activity_uuid: null, conflict_uuid: null },
+    })
+    expect(inboxTargetLocation(item)).toEqual({ path: '/admin', query: { tab: 'costs' } })
+    const router = { push: vi.fn().mockResolvedValue(undefined) }
+    const tours = { setActiveTourByUuid: vi.fn(() => true) }
+    expect(await goToInboxTarget(item, router, tours)).toBe(true)
+    expect(router.push).toHaveBeenCalledWith({ path: '/admin', query: { tab: 'costs' } })
+    expect(tours.setActiveTourByUuid).not.toHaveBeenCalled()
   })
 
   it('returns null for none and missing activity uuid', () => {

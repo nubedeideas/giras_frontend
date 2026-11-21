@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 import {
   useNotificationReports,
   rangeForPreset,
@@ -19,9 +20,11 @@ import ReportsSummaryPanel from '@/components/reports/ReportsSummaryPanel.vue'
 import DailySeriesChart from '@/components/reports/DailySeriesChart.vue'
 import TypeBreakdown from '@/components/reports/TypeBreakdown.vue'
 import FailuresPanel from '@/components/reports/FailuresPanel.vue'
+import CostPanel from '@/components/reports/CostPanel.vue'
 
 const { t } = useI18n()
 const toursStore = useToursStore()
+const auth = useAuthStore()
 const reportsApi = useNotificationReports()
 const zone = browserZone()
 
@@ -68,6 +71,12 @@ watch(
 // ─── Carga ────────────────────────────────────────────────────────────────────
 
 const summary = ref<ReportsSummary | null>(null)
+/** Filtros con los que carga `CostPanel`: se fijan en `load()`, así comparte el debounce. */
+const costParams = ref<{ tour: string; from?: string; to?: string } | null>(null)
+
+// Decisión de Oscar (2026-11-21): el coste solo lo ve el superusuario (`current_user_is_admin`
+// no cuenta) y solo con una gira seleccionada.
+const showCosts = computed(() => !!selectedTour.value && auth.user?.is_superuser === true)
 const loading = ref(false)
 const error = ref('')
 let requestId = 0
@@ -78,6 +87,9 @@ async function load() {
   const range = rangeForPreset(rangePreset.value, zone, tourObj.value)
   loading.value = true
   error.value = ''
+  costParams.value = selectedTour.value
+    ? { tour: selectedTour.value, from: range?.from, to: range?.to }
+    : null
   try {
     const data = await reportsApi.getSummary({
       tour: selectedTour.value || undefined,
@@ -312,6 +324,23 @@ const selectClass =
           </div>
         </div>
       </template>
+
+      <!-- Coste de WhatsApp (solo superusuario): independiente del resumen, para que no
+           desaparezca si el resumen está vacío (p. ej. filtro de canal) o falla. -->
+      <div
+        v-if="showCosts && costParams"
+        data-testid="cost-zone"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4"
+      >
+        <div class="min-w-0 lg:col-start-3">
+          <CostPanel
+            :tour="costParams.tour"
+            :from="costParams.from"
+            :to="costParams.to"
+            :tz="zone"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>

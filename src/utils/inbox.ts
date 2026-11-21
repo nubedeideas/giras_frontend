@@ -98,6 +98,13 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
       return { title, body: t('inbox.kinds.delivery_failed.body', { count, tour }, count) }
     }
 
+    case 'billing_discrepancy': {
+      const title = t('inbox.kinds.billing_discrepancy.title')
+      const count = num(p.new_count)
+      if (Number.isNaN(count)) return { title, body: item.body }
+      return { title, body: t('inbox.kinds.billing_discrepancy.body', { count }, count) }
+    }
+
     default:
       return raw
   }
@@ -117,6 +124,8 @@ export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
       return { path: '/settings', query: { tab: 'subscription' } }
     case 'reports':
       return { path: '/reports' }
+    case 'admin_costs':
+      return { path: '/admin', query: { tab: 'costs' } }
     default:
       return null
   }

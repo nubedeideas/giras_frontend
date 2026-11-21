@@ -13,10 +13,19 @@ export type InboxKind =
   | 'flight_diverted'
   | 'plan_limit'
   | 'delivery_failed'
+  // Bloque 3.5: solo superusuarios, sin gira; params `{ new_count, date }`.
+  | 'billing_discrepancy'
 
 export type InboxSeverity = 'info' | 'warning' | 'critical'
 
-export type InboxTargetType = 'activity' | 'conflict' | 'plan' | 'reports' | 'none'
+export type InboxTargetType =
+  | 'activity'
+  | 'conflict'
+  | 'plan'
+  | 'reports'
+  // Bloque 3.5: `/admin?tab=costs`.
+  | 'admin_costs'
+  | 'none'
 
 export interface InboxTarget {
   type: InboxTargetType

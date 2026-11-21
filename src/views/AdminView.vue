@@ -9,12 +9,20 @@ import CustomPoolsTab from '@/components/admin/CustomPoolsTab.vue'
 import PaymentsTab from '@/components/admin/PaymentsTab.vue'
 import UsageLogTab from '@/components/admin/UsageLogTab.vue'
 import AllowlistTab from '@/components/admin/AllowlistTab.vue'
+import TwilioCostsTab from '@/components/admin/TwilioCostsTab.vue'
 import { useNoIndex } from '@/composables/usePageMeta'
 
 useNoIndex()
 
 const { t } = useI18n()
-type AdminTab = 'subscriptions' | 'plans' | 'pools' | 'payments' | 'usage' | 'allowlist'
+type AdminTab =
+  | 'subscriptions'
+  | 'plans'
+  | 'pools'
+  | 'payments'
+  | 'usage'
+  | 'allowlist'
+  | 'costs'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,12 +53,25 @@ const TABS: { key: AdminTab; iconPath: string }[] = [
     key: 'allowlist',
     iconPath: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`,
   },
+  {
+    key: 'costs',
+    iconPath: `<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/>`,
+  },
 ]
 
 const activeTab = computed<AdminTab>({
-  get: () => (route.query.tab as AdminTab | undefined) ?? 'subscriptions',
+  // `?tab=costs` llega desde el aviso `billing_discrepancy` del inbox y desde Informes.
+  get: () => {
+    const tab = route.query.tab
+    return TABS.some((x) => x.key === tab) ? (tab as AdminTab) : 'subscriptions'
+  },
   set: (tab) => router.replace({ path: '/admin', query: { tab } }),
 })
+
+/** `?tour=` solo lo usa la pestaña Costes (enlace "N discrepancias abiertas" de Informes). */
+const costsTour = computed(() =>
+  typeof route.query.tour === 'string' && route.query.tour ? route.query.tour : null
+)
 
 async function signOut() {
   await auth.logout()
@@ -160,6 +181,11 @@ async function signOut() {
       <PaymentsTab v-else-if="activeTab === 'payments'" />
       <UsageLogTab v-else-if="activeTab === 'usage'" />
       <AllowlistTab v-else-if="activeTab === 'allowlist'" />
+      <TwilioCostsTab
+        v-else-if="activeTab === 'costs'"
+        :tour="costsTour"
+        @clear-tour="router.replace({ path: '/admin', query: { tab: 'costs' } })"
+      />
     </div>
   </div>
 </template>
