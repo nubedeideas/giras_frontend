@@ -71,6 +71,14 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
     }
 
     case 'plan_limit': {
+      // Suscripción no activa (p. ej. pendiente de pago): sin porcentaje.
+      if (p.reason === 'subscription_inactive') {
+        const named = { plan: str(p.plan_name), tour }
+        return {
+          title: t('inbox.kinds.plan_limit.titleInactive', named),
+          body: t('inbox.kinds.plan_limit.bodyInactive', named),
+        }
+      }
       const percentage = num(p.percentage)
       if (Number.isNaN(percentage)) return raw
       const named = {

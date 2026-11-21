@@ -287,6 +287,9 @@ export default {
         titleWarning: "You've used {percentage}% of your notifications",
         bodyWarning:
           'The tour {tour} has used {used} of {limit} WhatsApp notifications in the {plan} plan.',
+        titleInactive: 'Your plan is not active yet',
+        bodyInactive:
+          'The {plan} plan for the tour {tour} is not active yet. Automatic reminders go by email and in-app notice; notices you send yourself still go by WhatsApp.',
       },
       delivery_failed: {
         title: 'Undelivered messages',

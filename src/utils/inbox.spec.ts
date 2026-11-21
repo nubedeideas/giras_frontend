@@ -141,6 +141,17 @@ describe('formatInboxItem', () => {
     ).not.toContain('recordatorios automáticos')
   })
 
+  it('plan_limit con suscripción no activa usa su propio texto, sin porcentaje', () => {
+    const item = fmt({
+      kind: 'plan_limit',
+      params: { automatic_degraded: true, reason: 'subscription_inactive', plan_name: 'Starter', status: 'pending' },
+    })
+    expect(item.title).toBe('Tu plan aún no está activo')
+    expect(item.body).toBe(
+      'El plan Starter de la gira Gira Norte todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
+    )
+  })
+
   it('pluralizes delivery_failed', () => {
     expect(
       fmt({ kind: 'delivery_failed', params: { failed_count: 1, date: '2026-11-21' } }).body

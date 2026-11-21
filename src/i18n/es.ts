@@ -287,6 +287,9 @@ export default {
         titleWarning: 'Has usado el {percentage} % de tus notificaciones',
         bodyWarning:
           'La gira {tour} lleva {used} de {limit} notificaciones de WhatsApp del plan {plan}.',
+        titleInactive: 'Tu plan aún no está activo',
+        bodyInactive:
+          'El plan {plan} de la gira {tour} todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.',
       },
       delivery_failed: {
         title: 'Envíos no entregados',
