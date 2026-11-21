@@ -106,6 +106,14 @@ export const useToursStore = defineStore('tours', () => {
     activeTourId.value = id
   }
 
+  /** Activa la gira por uuid (deep links del inbox). `false` si no está en la lista. */
+  function setActiveTourByUuid(uuid: string): boolean {
+    const tour = tours.value.find((t) => t.uuid === uuid)
+    if (!tour) return false
+    setActiveTour(tour.id)
+    return true
+  }
+
   // ── Create ────────────────────────────────────────────────────────────────
 
   async function createTour(payload: CreateTourPayload, color = '#a8d800'): Promise<Tour> {
@@ -167,6 +175,7 @@ export const useToursStore = defineStore('tours', () => {
     error,
     loadTours,
     setActiveTour,
+    setActiveTourByUuid,
     createTour,
     updateTour,
     deleteTour,

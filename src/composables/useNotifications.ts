@@ -6,7 +6,7 @@ import { formatInZoneShort, browserZone } from '@/utils/datetime'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push'
+export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push' | 'in_app'
 // `pending` es un valor heredado que existe en datos reales aunque no esté en STATUS_CHOICES.
 export type NotificationStatus =
   | 'draft'
@@ -169,6 +169,7 @@ export const CHANNEL_LABELS: Record<NotificationChannel, string> = {
   sms: 'SMS',
   whatsapp: 'WhatsApp',
   push: 'Push',
+  in_app: 'En la app',
 }
 
 export const CHANNEL_ICONS: Record<NotificationChannel, string> = {
@@ -176,6 +177,7 @@ export const CHANNEL_ICONS: Record<NotificationChannel, string> = {
   sms: '📱',
   whatsapp: '💬',
   push: '🔔',
+  in_app: '📥',
 }
 
 export const NOTIF_STATUS_LABELS: Record<NotificationStatus, string> = {

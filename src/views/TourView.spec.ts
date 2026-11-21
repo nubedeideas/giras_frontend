@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
@@ -8,9 +9,9 @@ import { jsonResponse } from '@/test/http'
 import TourView from './TourView.vue'
 
 const stubs = {
-  TourInsightsPanel: true,
+  TourInsightsPanel: { template: '<div data-testid="insights" />' },
   TourDocumentsPanel: { props: ['isAdmin'], template: '<div data-testid="docs" :data-admin="String(isAdmin)" />' },
-  ScheduleConflictsPanel: true,
+  ScheduleConflictsPanel: { template: '<div data-testid="conflicts" />' },
   TourSelectPrompt: true,
   CrewPortalPanel: { template: '<div data-testid="crew-panel" />' },
 }
@@ -51,18 +52,29 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function mountView() {
-  return mount(TourView, { global: { plugins: [i18n], stubs } })
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/tour', name: 'tour', component: { template: '<div />' } }],
+  })
 }
 
-function tabLabels(w: ReturnType<typeof mountView>) {
+async function mountView(query: Record<string, string> = {}) {
+  const router = makeRouter()
+  await router.push({ path: '/tour', query })
+  await router.isReady()
+  const w = mount(TourView, { global: { plugins: [i18n, router], stubs } })
+  return Object.assign(w, { router })
+}
+
+function tabLabels(w: Awaited<ReturnType<typeof mountView>>) {
   return w.findAll('button').map((b) => b.text())
 }
 
 describe('TourView: rol de admin', () => {
   it('current_user_is_admin=true (miembro tour_manager, no owner) muestra Crew', async () => {
     setup({ current_user_is_admin: true })
-    const w = mountView()
+    const w = await mountView()
     await flushPromises()
     expect(tabLabels(w)).toContain('Crew')
     await w.findAll('button').find((b) => b.text() === 'Documentos')!.trigger('click')
@@ -71,15 +83,77 @@ describe('TourView: rol de admin', () => {
 
   it('current_user_is_admin=false manda aunque el email coincida con el owner', async () => {
     setup({ current_user_is_admin: false }, 'me@x.es')
-    const w = mountView()
+    const w = await mountView()
     await flushPromises()
     expect(tabLabels(w)).not.toContain('Crew')
   })
 
   it('sin el campo en el detalle se usa el fallback por owner', async () => {
     setup({}, 'me@x.es')
-    const w = mountView()
+    const w = await mountView()
     await flushPromises()
     expect(tabLabels(w)).toContain('Crew')
   })
+})
+
+describe('TourView: pestaña desde la query', () => {
+  it('opens conflicts tab from query', async () => {
+    setup({ current_user_is_admin: true })
+    const w = await mountView({ tab: 'conflicts' })
+    await flushPromises()
+    expect(w.find('[data-testid="conflicts"]').exists()).toBe(true)
+    expect(w.find('[data-testid="insights"]').exists()).toBe(false)
+    expect(w.router.currentRoute.value.query.tab).toBeUndefined()
+  })
+
+  it('ignores crew tab from query without permission', async () => {
+    setup({ current_user_is_admin: false, can_manage_crew: false })
+    const w = await mountView({ tab: 'crew' })
+    await flushPromises()
+    expect(w.find('[data-testid="crew-panel"]').exists()).toBe(false)
+    expect(w.find('[data-testid="insights"]').exists()).toBe(true)
+    expect(w.router.currentRoute.value.query.tab).toBeUndefined()
+  })
+
+  it('opens crew tab from query with permission and ignores unknown tabs', async () => {
+    // Caso real: tour_manager que no es owner. El fallback (owner/superuser) diría que no; la
+    // pestaña tiene que esperar al detalle, que trae can_manage_crew=true.
+    let resolveDetail: (r: Response) => void = () => {}
+    setup({})
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() => new Promise<Response>((r) => (resolveDetail = r)))
+    )
+    const w = await mountView({ tab: 'crew' })
+    await flushPromises()
+    // Sin detalle todavía: ni se abre ni se pierde la query.
+    expect(w.find('[data-testid="crew-panel"]').exists()).toBe(false)
+    expect(w.router.currentRoute.value.query.tab).toBe('crew')
+
+    resolveDetail(
+      jsonResponse({ uuid: 'T1', current_user_is_admin: true, can_manage_crew: true })
+    )
+    await flushPromises()
+    expect(w.find('[data-testid="crew-panel"]').exists()).toBe(true)
+    expect(w.router.currentRoute.value.query.tab).toBeUndefined()
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => jsonResponse({ uuid: 'T1' }))
+    )
+    const w2 = await mountView({ tab: 'nope' })
+    await flushPromises()
+    expect(w2.find('[data-testid="insights"]').exists()).toBe(true)
+    expect(w2.router.currentRoute.value.query.tab).toBeUndefined()
+  })
+
+  it('drops crew tab from query once the detail denies it', async () => {
+    setup({ current_user_is_admin: false, can_manage_crew: false }, 'me@x.es')
+    const w = await mountView({ tab: 'crew' })
+    await flushPromises()
+    expect(w.find('[data-testid="crew-panel"]').exists()).toBe(false)
+    expect(w.find('[data-testid="insights"]').exists()).toBe(true)
+    expect(w.router.currentRoute.value.query.tab).toBeUndefined()
+  })
+
 })

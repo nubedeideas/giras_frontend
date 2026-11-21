@@ -12,9 +12,12 @@ import { useAuthStore } from '@/stores/auth'
 import { useUIState } from '@/composables/useUIState'
 import { useUIStore } from '@/stores/ui'
 import { useNoIndex } from '@/composables/usePageMeta'
+import { useInboxPolling } from '@/composables/useInboxPolling'
 import { takeOnboardingResume } from '@/utils/googleOAuth'
 
 useNoIndex()
+// Contador del inbox: un único polling para toda la app autenticada.
+useInboxPolling()
 
 const {
   openSettings,

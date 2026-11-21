@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
@@ -11,6 +12,8 @@ import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import CrewPortalPanel from '@/components/tour/CrewPortalPanel.vue'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const toursStore = useToursStore()
 const toursApi = useTours()
@@ -32,15 +35,22 @@ const hasTourUuid = computed(() => !!toursStore.activeTour?.uuid)
 const tourDetail = ref<TourFull | null>(null)
 let detailRequest = 0
 
+// uuid de la gira cuyo detalle ya ha respondido (bien o mal): hasta entonces los permisos salen
+// del fallback y no son fiables para decidir la pestaña `crew` pedida por query.
+const detailSettledFor = ref<string | null>(null)
+
 async function loadDetail(uuid: string | undefined) {
   const req = ++detailRequest
   tourDetail.value = null
+  detailSettledFor.value = null
   if (!uuid) return
   try {
     const full = await toursApi.getTour(uuid)
     if (req === detailRequest) tourDetail.value = full
   } catch {
     // Sin detalle se queda el fallback.
+  } finally {
+    if (req === detailRequest) detailSettledFor.value = uuid
   }
 }
 
@@ -79,6 +89,34 @@ const TABS = computed(() =>
 watch(canManageCrew, (can) => {
   if (!can && activeTab.value === 'crew') activeTab.value = 'insights'
 })
+
+// Deep link `/tour?tab=<pestaña>` (inbox → Conflictos): solo pestañas visibles; luego se limpia.
+// `crew` depende del permiso real, así que espera a que responda el detalle de la gira.
+const requestedTab = ref<string | null>(null)
+
+function applyRequestedTab() {
+  const tab = requestedTab.value
+  if (tab === null) return
+  const needsDetail = tab === 'crew'
+  const detailReady =
+    !!toursStore.activeTour?.uuid && detailSettledFor.value === toursStore.activeTour.uuid
+  if (needsDetail && !detailReady) return
+  const match = TABS.value.find((x) => x.key === tab)
+  if (match) activeTab.value = match.key
+  requestedTab.value = null
+  void router.replace({ query: { ...route.query, tab: undefined } })
+}
+
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (tab === undefined) return
+    requestedTab.value = typeof tab === 'string' ? tab : ''
+    applyRequestedTab()
+  },
+  { immediate: true }
+)
+watch([TABS, detailSettledFor], applyRequestedTab)
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
 import { useIsMobile } from '@/composables/useIsMobile'
@@ -32,6 +33,29 @@ function handleOpenAdd() {
 onMounted(() => {
   store.loadActivities()
 })
+
+// Deep link `/events?activity=<uuid>` (inbox): selecciona la actividad y limpia la query.
+const route = useRoute()
+const router = useRouter()
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+watch(
+  () => route.query.activity,
+  async (value) => {
+    if (value === undefined) return
+    const uuid = typeof value === 'string' && UUID_RE.test(value) ? value : null
+    // Deja que el `watch` de `activeTourId` del store limpie la selección antes de elegir.
+    await nextTick()
+    void router.replace({ query: { ...route.query, activity: undefined } })
+    if (!uuid) return
+    try {
+      await store.selectActivity(uuid)
+    } catch {
+      // El detalle muestra el fallo igual que al seleccionar desde la lista.
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

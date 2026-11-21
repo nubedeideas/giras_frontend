@@ -14,7 +14,6 @@ export default {
 
   nav: {
     home: 'Inicio',
-    notif: 'Notifs',
     events: 'Actividades',
     cal: 'Calendario',
     contacts: 'Contactos',
@@ -236,6 +235,63 @@ export default {
     clicked: 'Clicks',
     recipients: 'Destinatarios',
     contacts: 'contactos',
+  },
+
+  inbox: {
+    title: 'Notificaciones',
+    bellLabel: 'Notificaciones | Notificaciones, 1 sin leer | Notificaciones, {n} sin leer',
+    close: 'Cerrar',
+    filters: {
+      all: 'Todas',
+      unread: 'Sin leer',
+    },
+    markAllRead: 'Marcar todo como leído',
+    dismiss: 'Descartar',
+    loadMore: 'Cargar más',
+    retry: 'Reintentar',
+    empty: {
+      all: 'No tienes notificaciones.',
+      unread: 'Lo tienes todo al día.',
+    },
+    errors: {
+      load: 'No se han podido cargar las notificaciones.',
+      action: 'No se ha podido completar la acción. Inténtalo de nuevo.',
+    },
+    time: {
+      now: 'Ahora',
+    },
+    kinds: {
+      schedule_conflict: {
+        title: 'Conflicto de agenda',
+        overlap: '«{a}» se solapa con «{b}».',
+        travel_time: 'No hay tiempo suficiente para llegar de «{a}» a «{b}».',
+      },
+      flight_delay: {
+        title: 'Vuelo {flight} con {delay} min de retraso',
+        body: '{route}. Antes llevaba {prev} min de retraso.',
+        gate: 'Puerta {gate}.',
+      },
+      flight_cancelled: {
+        title: 'Vuelo {flight} cancelado',
+        body: 'Contacta con la aerolínea para buscar alternativas.',
+      },
+      flight_diverted: {
+        title: 'Vuelo {flight} desviado',
+        body: 'Comprueba el nuevo destino con la aerolínea.',
+      },
+      plan_limit: {
+        titleReached: 'Has alcanzado el límite de notificaciones',
+        bodyReached:
+          'La gira {tour} ha usado las {limit} notificaciones de WhatsApp del plan {plan}. Cambia de plan para seguir enviando.',
+        titleWarning: 'Has usado el {percentage} % de tus notificaciones',
+        bodyWarning:
+          'La gira {tour} lleva {used} de {limit} notificaciones de WhatsApp del plan {plan}.',
+      },
+      delivery_failed: {
+        title: 'Envíos no entregados',
+        body: '{count} envío de {tour} no se ha entregado hoy. Revisa los fallos en Informes. | {count} envíos de {tour} no se han entregado hoy. Revisa los fallos en Informes.',
+      },
+    },
   },
 
   calendar: {

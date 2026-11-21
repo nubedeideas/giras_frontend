@@ -14,7 +14,6 @@ export default {
 
   nav: {
     home: 'Home',
-    notif: 'Notifs',
     events: 'Activities',
     cal: 'Calendar',
     contacts: 'Contacts',
@@ -236,6 +235,63 @@ export default {
     clicked: 'Clicked',
     recipients: 'Recipients',
     contacts: 'contacts',
+  },
+
+  inbox: {
+    title: 'Notifications',
+    bellLabel: 'Notifications | Notifications, 1 unread | Notifications, {n} unread',
+    close: 'Close',
+    filters: {
+      all: 'All',
+      unread: 'Unread',
+    },
+    markAllRead: 'Mark all as read',
+    dismiss: 'Dismiss',
+    loadMore: 'Load more',
+    retry: 'Retry',
+    empty: {
+      all: 'You have no notifications.',
+      unread: "You're all caught up.",
+    },
+    errors: {
+      load: "Couldn't load your notifications.",
+      action: "Couldn't complete the action. Please try again.",
+    },
+    time: {
+      now: 'Just now',
+    },
+    kinds: {
+      schedule_conflict: {
+        title: 'Schedule conflict',
+        overlap: '"{a}" overlaps with "{b}".',
+        travel_time: 'There isn\'t enough time to get from "{a}" to "{b}".',
+      },
+      flight_delay: {
+        title: 'Flight {flight} delayed {delay} min',
+        body: '{route}. Previous delay: {prev} min.',
+        gate: 'Gate {gate}.',
+      },
+      flight_cancelled: {
+        title: 'Flight {flight} cancelled',
+        body: 'Contact the airline to arrange alternatives.',
+      },
+      flight_diverted: {
+        title: 'Flight {flight} diverted',
+        body: 'Check the new destination with the airline.',
+      },
+      plan_limit: {
+        titleReached: "You've reached your notification limit",
+        bodyReached:
+          'The tour {tour} has used all {limit} WhatsApp notifications in the {plan} plan. Change plan to keep sending.',
+        titleWarning: "You've used {percentage}% of your notifications",
+        bodyWarning:
+          'The tour {tour} has used {used} of {limit} WhatsApp notifications in the {plan} plan.',
+      },
+      delivery_failed: {
+        title: 'Undelivered messages',
+        body: "{count} message from {tour} wasn't delivered today. Check the failures in Reports. | {count} messages from {tour} weren't delivered today. Check the failures in Reports.",
+      },
+    },
   },
 
   calendar: {

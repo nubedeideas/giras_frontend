@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { redirectTo } from '@/utils/navigation'
 import { oauthRedirectUri, randomLoginState, savePending } from '@/utils/googleOAuth'
 import { useGoogleStore } from '@/stores/google'
+import { useInboxStore } from '@/stores/inbox'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
   function clearSession() {
     // El estado de Google es del usuario que sale: no puede verlo el siguiente.
     useGoogleStore().reset()
+    useInboxStore().reset()
     user.value = null
     accessToken.value = null
     refreshToken.value = null
@@ -260,6 +262,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function loginDemo() {
     useGoogleStore().reset()
+    useInboxStore().reset()
     isDemoMode.value = true
     isLoggedIn.value = true
     user.value = {
