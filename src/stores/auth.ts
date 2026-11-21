@@ -243,6 +243,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** Sustituye el usuario con la respuesta de la API (`useAuthProfile().updateMe`). */
+  function setUser(data: AuthUser) {
+    user.value = data
+  }
+
   async function logout(): Promise<void> {
     if (!isDemoMode.value && accessToken.value) {
       try {
@@ -298,6 +303,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithGoogle,
     requestMagicLink,
     verifyMagicLink,
+    setUser,
     fetchMe,
     logout,
     loginDemo,

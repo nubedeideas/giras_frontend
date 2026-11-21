@@ -14,6 +14,7 @@ const stubs = {
   ScheduleConflictsPanel: { template: '<div data-testid="conflicts" />' },
   TourSelectPrompt: true,
   CrewPortalPanel: { template: '<div data-testid="crew-panel" />' },
+  TourRemindersPanel: { template: '<div data-testid="reminders-panel" />' },
 }
 
 function setup(detail: Record<string, unknown>, ownerEmail = 'owner@x.es') {
@@ -156,4 +157,32 @@ describe('TourView: pestaña desde la query', () => {
     expect(w.router.currentRoute.value.query.tab).toBeUndefined()
   })
 
+})
+
+describe('TourView: pestaña Recordatorios', () => {
+  it('solo la ven los admins de la gira', async () => {
+    setup({ current_user_is_admin: true, can_manage_crew: true })
+    const w = await mountView()
+    await flushPromises()
+    expect(tabLabels(w)).toContain('Recordatorios')
+
+    setup({ current_user_is_admin: false, can_manage_crew: false })
+    const w2 = await mountView()
+    await flushPromises()
+    expect(tabLabels(w2)).not.toContain('Recordatorios')
+  })
+
+  it('?tab=reminders abre el panel cuando el detalle confirma el permiso', async () => {
+    setup({ current_user_is_admin: true })
+    const w = await mountView({ tab: 'reminders' })
+    await flushPromises()
+    expect(w.find('[data-testid="reminders-panel"]').exists()).toBe(true)
+    expect(w.router.currentRoute.value.query.tab).toBeUndefined()
+
+    setup({ current_user_is_admin: false })
+    const w2 = await mountView({ tab: 'reminders' })
+    await flushPromises()
+    expect(w2.find('[data-testid="reminders-panel"]').exists()).toBe(false)
+    expect(w2.find('[data-testid="insights"]').exists()).toBe(true)
+  })
 })

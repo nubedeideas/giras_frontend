@@ -1,6 +1,7 @@
 import { apiClient } from '@/utils/apiClient'
 import { toArray } from '@/utils/pagination'
 import type { Paginated } from '@/types'
+import type { ReminderStep } from '@/utils/reminders'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,10 @@ export interface ActivityTypeRef {
   has_destination: boolean
   has_duration: boolean
   metadata_schema?: Record<string, unknown>
-  default_reminder_minutes?: number[]
+  /** Espejo de `reminder_steps`, solo lectura. */
+  readonly default_reminder_minutes?: number[]
+  /** `null` = fila legada (pasos derivados de `default_reminder_minutes` por WhatsApp). */
+  reminder_steps?: ReminderStep[] | null
 }
 
 export interface ActivityTypeListItem {

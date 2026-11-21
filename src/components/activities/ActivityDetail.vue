@@ -17,6 +17,8 @@ import CreateNotificationModal from '@/components/modals/CreateNotificationModal
 import AddContactsToNotificationModal from '@/components/modals/AddContactsToNotificationModal.vue'
 import NotificationCard from '@/components/activities/NotificationCard.vue'
 import ShowDayAlertStatus from '@/components/activities/ShowDayAlertStatus.vue'
+import ActivityRecipientsPanel from '@/components/activities/ActivityRecipientsPanel.vue'
+import { useToursStore } from '@/stores/tours'
 import { SHOW_ACTIVITY_CODE } from '@/utils/showDayAlert'
 import { useTours } from '@/composables/useTours'
 import { activityConfirmationSummary } from '@/utils/confirmations'
@@ -29,6 +31,15 @@ const { t } = useI18n()
 const emit = defineEmits<{ close: [] }>()
 
 const activity = computed(() => store.selectedDetail)
+
+// Bloque "Destinatarios": solo para admins de la gira de la actividad (el listado de giras trae
+// `current_user_is_admin`; el backend da 403 al resto).
+const toursStore = useToursStore()
+const isTourAdmin = computed(() => {
+  const tourUuid = activity.value?.tour
+  if (!tourUuid) return false
+  return !!toursStore.tours.find((x) => x.uuid === tourUuid)?.current_user_is_admin
+})
 
 const actionLoading = ref(false)
 const actionError = ref('')
@@ -541,6 +552,13 @@ async function confirmDelete() {
             {{ activity.description }}
           </p>
         </GlassBlock>
+
+        <!-- Destinatarios de los recordatorios (solo admins) -->
+        <ActivityRecipientsPanel
+          v-if="isTourAdmin && activity.tour"
+          :activity-uuid="activity.uuid"
+          :tour-uuid="activity.tour"
+        />
 
         <!-- Notifications -->
         <GlassBlock title="Notificaciones">

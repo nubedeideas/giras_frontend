@@ -45,7 +45,8 @@ export interface InboxItem {
   /** Copia en español; la UI usa i18n salvo en `message` y en kinds desconocidos. */
   title: string
   body: string
-  params: Record<string, string | number>
+  /** `plan_limit` añade `automatic_degraded: boolean` al 100 % (recordatorios por tipo, D7). */
+  params: Record<string, string | number | boolean>
   is_read: boolean
   /** ISO 8601 UTC. */
   read_at: string | null

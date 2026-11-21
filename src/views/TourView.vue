@@ -10,6 +10,7 @@ import TourDocumentsPanel from '@/components/tour/TourDocumentsPanel.vue'
 import ScheduleConflictsPanel from '@/components/tour/ScheduleConflictsPanel.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import CrewPortalPanel from '@/components/tour/CrewPortalPanel.vue'
+import TourRemindersPanel from '@/components/tour/TourRemindersPanel.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -18,7 +19,7 @@ const auth = useAuthStore()
 const toursStore = useToursStore()
 const toursApi = useTours()
 
-type Tab = 'insights' | 'documents' | 'conflicts' | 'crew'
+type Tab = 'insights' | 'documents' | 'conflicts' | 'crew' | 'reminders'
 const activeTab = ref<Tab>('insights')
 
 const BASE_TABS: { key: Tab; labelKey: string }[] = [
@@ -81,13 +82,18 @@ const canManageCrew = computed(() => {
 })
 
 // La pestaña del portal del crew solo la ven quienes pueden gestionarlo (el backend da 403 al resto).
-const TABS = computed(() =>
-  canManageCrew.value
-    ? [...BASE_TABS, { key: 'crew' as Tab, labelKey: 'tourHub.tabs.crew' }]
-    : BASE_TABS
-)
+// La de recordatorios, solo los admins de la gira (`current_user_is_admin`; staff no cuenta).
+const TABS = computed(() => {
+  const tabs = [...BASE_TABS]
+  if (isAdmin.value) tabs.push({ key: 'reminders', labelKey: 'tourHub.tabs.reminders' })
+  if (canManageCrew.value) tabs.push({ key: 'crew', labelKey: 'tourHub.tabs.crew' })
+  return tabs
+})
 watch(canManageCrew, (can) => {
   if (!can && activeTab.value === 'crew') activeTab.value = 'insights'
+})
+watch(isAdmin, (admin) => {
+  if (!admin && activeTab.value === 'reminders') activeTab.value = 'insights'
 })
 
 // Deep link `/tour?tab=<pestaña>` (inbox → Conflictos): solo pestañas visibles; luego se limpia.
@@ -97,7 +103,7 @@ const requestedTab = ref<string | null>(null)
 function applyRequestedTab() {
   const tab = requestedTab.value
   if (tab === null) return
-  const needsDetail = tab === 'crew'
+  const needsDetail = tab === 'crew' || tab === 'reminders'
   const detailReady =
     !!toursStore.activeTour?.uuid && detailSettledFor.value === toursStore.activeTour.uuid
   if (needsDetail && !detailReady) return
@@ -167,6 +173,10 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       />
       <CrewPortalPanel
         v-else-if="activeTab === 'crew' && canManageCrew"
+        :tour-uuid="toursStore.activeTour!.uuid"
+      />
+      <TourRemindersPanel
+        v-else-if="activeTab === 'reminders' && isAdmin"
         :tour-uuid="toursStore.activeTour!.uuid"
       />
     </div>

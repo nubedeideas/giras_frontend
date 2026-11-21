@@ -241,6 +241,13 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
     'Cancelada automáticamente: la actividad ya no es del tipo que cubre la regla.',
   template_unavailable:
     'Cancelada automáticamente: la plantilla de la regla ya no está disponible para la gira.',
+  // Recordatorios por tipo (spec 2026-11-21, C1.8)
+  reminder_config_changed:
+    'Cancelada automáticamente: cambió la configuración de recordatorios de este tipo.',
+  plan_limit_degraded:
+    'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan y se envió por email o en la app.',
+  plan_limit_reached: 'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan.',
+  flight_cancelled: 'Cancelada automáticamente: la aerolínea canceló el vuelo.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────
@@ -412,9 +419,14 @@ export function useNotifications() {
     )
   }
 
-  async function listGlobalContacts(search = ''): Promise<ContactListItem[]> {
+  /**
+   * GET /api/contacts/ (una página). Con `tourUuid`, `?tour=` devuelve también los contactos
+   * asignables de la gira (los del owner y del resto de admins), no solo los propios.
+   */
+  async function listGlobalContacts(search = '', tourUuid?: string): Promise<ContactListItem[]> {
     const qs = new URLSearchParams({ page_size: '100' })
     if (search) qs.set('search', search)
+    if (tourUuid) qs.set('tour', tourUuid)
     const data = await apiClient.get<Paginated<ContactListItem> | ContactListItem[]>(
       `/contacts/?${qs}`,
       { fallback: 'Error al cargar contactos' }

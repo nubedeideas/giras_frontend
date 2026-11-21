@@ -26,12 +26,34 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     'activity_type_changed',
     'activity_type_mismatch',
     'template_unavailable',
+    // Recordatorios por tipo (reminders.py, quota.py, on_demand)
+    'reminder_config_changed',
+    'plan_limit_degraded',
+    'plan_limit_reached',
+    'flight_cancelled',
   ]
 
   it('tiene etiqueta para cada motivo del backend', () => {
     for (const reason of backendReasons) {
       expect(AUTO_CANCEL_REASON_LABELS[reason]).toMatch(/^Cancelada automáticamente: .+\.$/)
     }
+  })
+})
+
+describe('motivos de cancelación de los recordatorios por tipo', () => {
+  it('usa los textos de la spec', () => {
+    expect(AUTO_CANCEL_REASON_LABELS.reminder_config_changed).toBe(
+      'Cancelada automáticamente: cambió la configuración de recordatorios de este tipo.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.plan_limit_degraded).toBe(
+      'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan y se envió por email o en la app.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.plan_limit_reached).toBe(
+      'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.flight_cancelled).toBe(
+      'Cancelada automáticamente: la aerolínea canceló el vuelo.'
+    )
   })
 })
 

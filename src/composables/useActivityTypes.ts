@@ -1,4 +1,7 @@
 import { apiClient } from '@/utils/apiClient'
+import type { ReminderStep } from '@/utils/reminders'
+
+export type { ReminderChannel, ReminderStep } from '@/utils/reminders'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +28,13 @@ export interface ActivityType {
   has_destination: boolean
   has_duration: boolean
   default_duration_minutes: number
+  /**
+   * Recordatorios del tipo (plantilla del usuario). `null` = fila legada: los pasos salen de
+   * `default_reminder_minutes` por WhatsApp. Ver spec de recordatorios por tipo, D2.
+   */
+  reminder_steps?: ReminderStep[] | null
+  /** Espejo de `reminder_steps` (solo lectura: el PATCH lo ignora). */
+  readonly default_reminder_minutes?: number[]
   activity_count?: number
   created_at?: string
   updated_at?: string
@@ -84,5 +94,30 @@ export function useActivityTypes() {
     })
   }
 
-  return { listActivityTypes, createActivityType, updateActivityType, deleteActivityType }
+  /** PATCH /api/events/activity-types/{uuid}/ con `{reminder_steps}`. 400 con `code` de pasos. */
+  function updateReminderSteps(uuid: string, steps: ReminderStep[]): Promise<ActivityType> {
+    return apiClient.patch<ActivityType>(
+      `/events/activity-types/${uuid}/`,
+      { reminder_steps: steps },
+      { fallback: 'No se han podido guardar los recordatorios' }
+    )
+  }
+
+  /** POST /api/events/activity-types/reset-reminders/: valores de Giras (todos o esos códigos). */
+  function resetReminders(codes?: string[]): Promise<{ updated: number }> {
+    return apiClient.post<{ updated: number }>(
+      '/events/activity-types/reset-reminders/',
+      codes ? { codes } : {},
+      { fallback: 'No se han podido restablecer los recordatorios' }
+    )
+  }
+
+  return {
+    listActivityTypes,
+    createActivityType,
+    updateActivityType,
+    deleteActivityType,
+    updateReminderSteps,
+    resetReminders,
+  }
 }

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useUIStore } from '@/stores/ui'
+import { ApiError } from '@/utils/apiClient'
+import { useAuthProfile } from '@/composables/useAuthProfile'
 import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
 import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue'
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
 import GoogleConnectionCard from '@/components/settings/GoogleConnectionCard.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
+import ReminderTemplatesManager from '@/components/settings/reminders/ReminderTemplatesManager.vue'
 import NotificationGroupsManager from '@/components/settings/NotificationGroupsManager.vue'
 import NotificationRulesManager from '@/components/settings/rules/NotificationRulesManager.vue'
 import NotificationTemplatesView from '@/views/NotificationTemplatesView.vue'
@@ -20,6 +23,7 @@ type SettingsTab =
   | 'general'
   | 'calendars'
   | 'activities'
+  | 'reminders'
   | 'roles'
   | 'groups'
   | 'rules'
@@ -49,6 +53,11 @@ const TABS = computed<{ key: SettingsTab; label: string; iconPath: string }[]>((
     key: 'activities',
     label: 'Actividades',
     iconPath: `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
+  },
+  {
+    key: 'reminders',
+    label: t('reminders.tab'),
+    iconPath: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`,
   },
   {
     key: 'roles',
@@ -96,6 +105,56 @@ const integrations = [
   { name: 'Mailgun (Email)', variant: 'n' as const, label: 'configure' },
   { name: 'Apple Wallet Pass', variant: 'o' as const, label: 'beta' },
 ]
+
+// ─── Teléfono del usuario (C1.6): fallback de admins por WhatsApp y alertas de borradores ───
+
+// Mismo patrón que el backend (A1.7): E.164 laxo, se guarda sin espacios.
+const PHONE_RE = /^\+?[0-9 ]{7,20}$/
+const PHONE_MAX_LENGTH = 20
+const { updateMe } = useAuthProfile()
+
+const phone = ref(auth.user?.phone_number ?? '')
+const phoneSaving = ref(false)
+const phoneError = ref('')
+const phoneSaved = ref(false)
+
+watch(
+  () => auth.user?.phone_number,
+  (v) => {
+    phone.value = v ?? ''
+  }
+)
+
+const phoneDirty = computed(() => phone.value.trim() !== (auth.user?.phone_number ?? ''))
+
+async function savePhone() {
+  const value = phone.value.trim()
+  phoneSaved.value = false
+  phoneError.value = ''
+  const normalized = value.replace(/ /g, '')
+  // Como el backend: patrón laxo con espacios y, ya sin ellos, 20 caracteres como máximo.
+  if (value && (!PHONE_RE.test(value) || normalized.length > PHONE_MAX_LENGTH)) {
+    phoneError.value = t('settings.phoneInvalid')
+    return
+  }
+  phoneSaving.value = true
+  try {
+    await updateMe({ phone_number: normalized })
+    phoneSaved.value = true
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 400) {
+      const msg = e.fieldErrors?.phone_number
+      phoneError.value =
+        (Array.isArray(msg) ? (msg[0] as string) : (msg as string)) || t('settings.phoneInvalid')
+    } else if (e instanceof ApiError && e.status === 429) {
+      phoneError.value = t('common.tooManyRequests')
+    } else {
+      phoneError.value = t('settings.phoneError')
+    }
+  } finally {
+    phoneSaving.value = false
+  }
+}
 
 async function signOut() {
   await auth.logout()
@@ -244,7 +303,7 @@ async function signOut() {
         v-else
         class="h-full overflow-y-auto bg-bg-3"
       >
-        <div class="max-w-2xl mx-auto px-8 py-8">
+        <div class="max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <!-- ── General ────────────────────────────────────────────────────── -->
           <template v-if="activeTab === 'general'">
             <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">
@@ -269,6 +328,58 @@ async function signOut() {
               </div>
               <p class="text-[10px] text-ink-4 mt-2">
                 Cambia el idioma de la interfaz al instante, sin necesidad de recargar.
+              </p>
+            </section>
+
+            <!-- Teléfono (WhatsApp) -->
+            <section class="mb-8">
+              <label
+                for="settings-phone"
+                class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3"
+              >
+                {{ t('settings.phone') }}
+              </label>
+              <form
+                class="flex flex-col sm:flex-row gap-2"
+                data-test="phone-form"
+                @submit.prevent="savePhone"
+              >
+                <input
+                  id="settings-phone"
+                  v-model="phone"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  :placeholder="t('settings.phonePlaceholder')"
+                  class="flex-1 min-w-0 h-11 sm:h-9 px-3 rounded-sm bg-glass border border-line text-[13px] text-ink outline-none focus:border-line-acid"
+                  data-test="phone-input"
+                  @input="phoneSaved = false"
+                >
+                <button
+                  type="submit"
+                  class="h-11 sm:h-9 px-4 rounded-sm text-[12px] font-bold bg-acid text-black border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  :disabled="phoneSaving || !phoneDirty"
+                  data-test="phone-save"
+                >
+                  {{ phoneSaving ? t('settings.phoneSaving') : t('settings.phoneSave') }}
+                </button>
+              </form>
+              <p
+                v-if="phoneError"
+                class="text-[11px] text-red-400 mt-2"
+                data-test="phone-error"
+              >
+                {{ phoneError }}
+              </p>
+              <p
+                v-else-if="phoneSaved"
+                class="text-[11px] text-acid mt-2"
+                data-test="phone-saved"
+              >
+                {{ t('settings.phoneSaved') }}
+              </p>
+              <p class="text-[10px] text-ink-4 mt-2">
+                {{ t('settings.phoneHelp') }}
               </p>
             </section>
 
@@ -446,6 +557,19 @@ async function signOut() {
               </p>
             </div>
             <ActivityTypesManager />
+          </template>
+
+          <!-- ── Recordatorios por tipo ─────────────────────────────────────── -->
+          <template v-else-if="activeTab === 'reminders'">
+            <div class="mb-6">
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                {{ t('reminders.templates.title') }}
+              </h2>
+              <p class="text-[12px] text-ink-3 mt-1">
+                {{ t('reminders.templates.subtitle') }}
+              </p>
+            </div>
+            <ReminderTemplatesManager />
           </template>
 
           <!-- ── Roles ──────────────────────────────────────────────────────── -->

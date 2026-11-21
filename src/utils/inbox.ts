@@ -80,15 +80,19 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
         plan: str(p.plan_name),
         tour,
       }
-      return percentage >= 100
-        ? {
-            title: t('inbox.kinds.plan_limit.titleReached', named),
-            body: t('inbox.kinds.plan_limit.bodyReached', named),
-          }
-        : {
-            title: t('inbox.kinds.plan_limit.titleWarning', named),
-            body: t('inbox.kinds.plan_limit.bodyWarning', named),
-          }
+      if (percentage >= 100) {
+        let body = t('inbox.kinds.plan_limit.bodyReached', named)
+        // Recordatorios por tipo (D7): al 100 % los automáticos pasan a email y aviso en la app.
+        const degraded = p.automatic_degraded
+        if (degraded === true || degraded === 'true' || degraded === 1) {
+          body = `${body} ${t('plan.automaticDegraded')}`
+        }
+        return { title: t('inbox.kinds.plan_limit.titleReached', named), body }
+      }
+      return {
+        title: t('inbox.kinds.plan_limit.titleWarning', named),
+        body: t('inbox.kinds.plan_limit.bodyWarning', named),
+      }
     }
 
     case 'delivery_failed': {

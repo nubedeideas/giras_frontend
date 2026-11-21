@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useToursStore } from '@/stores/tours'
 import type { Rule, RuleOptions } from '@/composables/useNotificationRules'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import { outcomeLabel, ruleSummary, ruleWarningsLabel } from '@/utils/notificationRules'
@@ -20,6 +22,23 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+const router = useRouter()
+const toursStore = useToursStore()
+
+/** D4: los avisos "N antes de la actividad" se configuran ahora en Recordatorios. */
+const movedToReminders = computed(() => props.rule.trigger === 'activity_upcoming')
+
+/**
+ * A la pestaña Recordatorios de la gira de la regla. Si la regla no tiene gira o la gira no está en
+ * la lista, a la plantilla del usuario (Configuración → Recordatorios), no a la gira activa.
+ */
+function goToReminders() {
+  if (props.rule.tour && toursStore.setActiveTourByUuid(props.rule.tour)) {
+    void router.push({ path: '/tour', query: { tab: 'reminders' } })
+    return
+  }
+  void router.push({ path: '/settings', query: { tab: 'reminders' } })
+}
 
 const confirmingDelete = ref(false)
 
@@ -97,6 +116,21 @@ function confirmDelete() {
           data-test="rule-legacy"
         >
           {{ t('rules.list.legacy') }}
+        </p>
+        <p
+          v-if="movedToReminders"
+          class="text-[10px] text-ink-2 mt-0.5"
+          data-test="rule-moved-to-reminders"
+        >
+          {{ t('rules.list.movedToReminders') }}
+          <button
+            type="button"
+            class="text-acid font-semibold bg-transparent border-none p-0 cursor-pointer"
+            data-test="rule-go-to-reminders"
+            @click="goToReminders"
+          >
+            {{ t('rules.list.goToReminders') }}
+          </button>
         </p>
       </div>
 

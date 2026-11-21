@@ -129,6 +129,18 @@ describe('formatInboxItem', () => {
     expect(en.body).toBe('Previous delay: 45 min.')
   })
 
+  it('plan_limit al 100 % con automatic_degraded añade la frase de degradación', () => {
+    const params = { percentage: 100, used: 500, limit: 500, plan_name: 'Starter' }
+    expect(fmt({ kind: 'plan_limit', params: { ...params, automatic_degraded: true } }).body).toBe(
+      'La gira Gira Norte ha usado las 500 notificaciones de WhatsApp del plan Starter. Cambia de plan para seguir enviando. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
+    )
+    expect(fmt({ kind: 'plan_limit', params }).body).not.toContain('recordatorios automáticos')
+    expect(
+      fmt({ kind: 'plan_limit', params: { ...params, percentage: 80, automatic_degraded: true } })
+        .body
+    ).not.toContain('recordatorios automáticos')
+  })
+
   it('pluralizes delivery_failed', () => {
     expect(
       fmt({ kind: 'delivery_failed', params: { failed_count: 1, date: '2026-11-21' } }).body
