@@ -17,6 +17,11 @@ export interface TourListItem {
   events_count: number
   duration_days: number
   owner_email: string
+  /**
+   * Listado y detalle: el usuario administra la gira (owner, o miembro activo y no borrado con
+   * rol admin/tour_manager). Staff **no** cuenta (ver `can_manage_crew`). No viene en el PATCH.
+   */
+  current_user_is_admin?: boolean
   created_at: string
   updated_at: string
 }
@@ -53,11 +58,6 @@ export interface TourFull extends TourListItem {
   crew_portal_enabled: boolean
   /** Días de agenda visibles en el portal, hoy incluido (1-31). */
   crew_portal_days: number
-  /**
-   * Solo en GET /api/tours/{uuid}/: staff, owner o miembro activo admin/tour_manager.
-   * Opcional mientras el backend no lo exponga (se usa un fallback por owner).
-   */
-  current_user_is_admin?: boolean
   /** Puede gestionar el portal del crew y la visibilidad de documentos: admin de la gira o staff. */
   can_manage_crew?: boolean
   /** Solo en GET /api/tours/{uuid}/: YYYY-MM-DD en que caducan los enlaces del crew, o null. */
@@ -67,11 +67,14 @@ export interface TourFull extends TourListItem {
 /**
  * Respuesta de PATCH /api/tours/{uuid}/ (TourUpdateSerializer): los campos del modelo, sin los
  * calculados del retrieve (`show_day_alert_available`, `show_day_alert_default_time`,
- * `default_notification_group_name`).
+ * `default_notification_group_name`, `current_user_is_admin`).
  */
 export type TourUpdateResponse = Omit<
   TourFull,
-  'show_day_alert_available' | 'show_day_alert_default_time' | 'default_notification_group_name'
+  | 'show_day_alert_available'
+  | 'show_day_alert_default_time'
+  | 'default_notification_group_name'
+  | 'current_user_is_admin'
 >
 
 export interface CreateTourPayload {

@@ -138,6 +138,11 @@ export interface Tour {
   notes?: string
   color: string         // stored in backend settings JSONField
   owner_email: string
+  /**
+   * Admin de la gira: owner, o miembro activo y no borrado con rol admin/tour_manager (staff no
+   * cuenta), de `current_user_is_admin` del listado. Respaldo: `owner_email` = usuario actual.
+   */
+  current_user_is_admin?: boolean
   members_count?: number
   events_count?: number
   // Google Calendar assignment

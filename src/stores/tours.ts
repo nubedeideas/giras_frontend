@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Tour, TourStatus } from '@/types'
 import { useTours as useToursApi } from '@/composables/useTours'
+import { useAuthStore } from '@/stores/auth'
 import type {
   TourFull,
   TourListItem,
@@ -25,8 +26,20 @@ function syntheticId(uuid: string): number {
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────
 
-function mapTour(data: TourFull | TourUpdateResponse | TourListItem): Tour {
+function mapTour(
+  data: TourFull | TourUpdateResponse | TourListItem,
+  currentUserEmail?: string | null,
+  previous?: Tour
+): Tour {
   const full = data as Partial<TourFull>
+  // `current_user_is_admin` viene en el listado y en el detalle, no en la respuesta del PATCH:
+  // ahí se conserva el valor anterior. Último respaldo: el owner siempre es admin de su gira.
+  const fromApi = (data as Partial<TourListItem>).current_user_is_admin
+  const isAdmin =
+    typeof fromApi === 'boolean'
+      ? fromApi
+      : (previous?.current_user_is_admin ??
+        (!!currentUserEmail && data.owner_email === currentUserEmail))
   return {
     id: syntheticId(data.uuid),
     uuid: data.uuid,
@@ -44,6 +57,7 @@ function mapTour(data: TourFull | TourUpdateResponse | TourListItem): Tour {
     // color is stored in settings JSONField
     color: (full.settings?.color as string) || '#a8d800',
     owner_email: data.owner_email,
+    current_user_is_admin: isAdmin,
     default_calendar_id: full.default_calendar ?? null,
     default_notification_group_id: full.default_notification_group ?? null,
     default_notification_group_name: full.default_notification_group_name ?? null,
@@ -61,6 +75,12 @@ function mapTour(data: TourFull | TourUpdateResponse | TourListItem): Tour {
 
 export const useToursStore = defineStore('tours', () => {
   const api = useToursApi()
+  const auth = useAuthStore()
+
+  function toTour(data: TourFull | TourUpdateResponse | TourListItem): Tour {
+    const previous = tours.value.find((t) => t.uuid === data.uuid)
+    return mapTour(data, auth.user?.email, previous)
+  }
 
   const tours = ref<Tour[]>([])
   const activeTourId = ref<number | null>(null)
@@ -92,7 +112,7 @@ export const useToursStore = defineStore('tours', () => {
     error.value = null
     try {
       const items = await api.listTours()
-      tours.value = items.map(mapTour)
+      tours.value = items.map(toTour)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Error al cargar giras'
     } finally {
@@ -121,7 +141,7 @@ export const useToursStore = defineStore('tours', () => {
       ...payload,
       settings: { ...(payload.settings ?? {}), color },
     })
-    const tour = mapTour(full)
+    const tour = toTour(full)
     tours.value.push(tour)
     return tour
   }
@@ -140,7 +160,7 @@ export const useToursStore = defineStore('tours', () => {
       if (existing?.color) patchPayload.settings = { color }
     }
     const full = await api.updateTour(uuid, patchPayload)
-    const updated = mapTour(full)
+    const updated = toTour(full)
     const idx = tours.value.findIndex((t) => t.uuid === uuid)
     if (idx >= 0) tours.value[idx] = updated
   }
@@ -160,7 +180,7 @@ export const useToursStore = defineStore('tours', () => {
 
   async function assignCalendar(uuid: string, subscriptionId: number | null): Promise<void> {
     const full = await api.updateTour(uuid, { default_calendar: subscriptionId })
-    const updated = mapTour(full)
+    const updated = toTour(full)
     const idx = tours.value.findIndex((t) => t.uuid === uuid)
     if (idx >= 0) tours.value[idx] = updated
   }

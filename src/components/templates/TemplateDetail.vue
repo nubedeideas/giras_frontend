@@ -11,6 +11,7 @@ import {
   isSystemTemplate,
   type NotificationTemplate,
 } from '@/composables/useNotificationTemplates'
+import { inUseErrorMessage } from '@/utils/notificationRules'
 
 const props = defineProps<{ template: NotificationTemplate }>()
 const emit = defineEmits<{
@@ -57,9 +58,10 @@ async function confirmDelete() {
     await api.deleteTemplate(props.template.uuid)
     emit('deleted')
   } catch (e) {
-    deleteError.value = e instanceof Error ? e.message : 'Error al eliminar'
+    // 409 `template_in_use` (la usan reglas activas). Se mantiene abierta la confirmación:
+    // el error se pinta dentro de ella y antes se cerraba, tragándose el mensaje.
+    deleteError.value = inUseErrorMessage(e, 'template', 'Error al eliminar')
     deleting.value = false
-    deleteConfirm.value = false
   }
 }
 
@@ -368,7 +370,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
             </button>
             <button
               class="px-4 py-2 rounded-lg bg-glass border border-line text-ink-2 text-[12px] font-semibold cursor-pointer hover:bg-glass-hover transition-colors"
-              @click="deleteConfirm = false"
+              @click="deleteConfirm = false; deleteError = ''"
             >
               Cancelar
             </button>

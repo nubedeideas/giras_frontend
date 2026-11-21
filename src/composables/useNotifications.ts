@@ -227,6 +227,12 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
   template_not_approved:
     'Cancelada automáticamente: la plantilla de WhatsApp aún no está aprobada.',
   show_passed: 'Cancelada automáticamente: el día del show ya había pasado.',
+  // Bloque 3.6 (reglas de notificación)
+  rule_disabled: 'Cancelada automáticamente: la regla que la generó se desactivó o se eliminó.',
+  rule_changed: 'Cancelada automáticamente: la regla que la generó cambió y se volvió a programar.',
+  rule_rescheduled:
+    'Cancelada automáticamente: la actividad cambió de hora y el aviso se volvió a programar.',
+  replaced_by_rule: 'Cancelada automáticamente: una regla de la gira sustituye a este recordatorio.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────

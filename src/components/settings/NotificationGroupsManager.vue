@@ -6,6 +6,7 @@ import {
   type NotificationGroupListItem,
 } from '@/composables/useNotificationGroups'
 import ManageGroupContactsModal from '@/components/modals/ManageGroupContactsModal.vue'
+import { inUseErrorMessage } from '@/utils/notificationRules'
 
 const api = useNotificationGroups()
 const toursStore = useToursStore()
@@ -153,7 +154,8 @@ async function confirmDelete() {
     groups.value = groups.value.filter((g) => g.uuid !== deletingUuid.value)
     deletingUuid.value = null
   } catch (e) {
-    deleteError.value = e instanceof Error ? e.message : 'Error al eliminar'
+    // 409 `group_in_use` (lo usan reglas activas): el mensaje del backend dice cuántas.
+    deleteError.value = inUseErrorMessage(e, 'group', 'Error al eliminar')
   } finally {
     deleteSaving.value = false
   }

@@ -11,6 +11,7 @@ import CalendarsManager from '@/components/settings/CalendarsManager.vue'
 import GoogleConnectionCard from '@/components/settings/GoogleConnectionCard.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import NotificationGroupsManager from '@/components/settings/NotificationGroupsManager.vue'
+import NotificationRulesManager from '@/components/settings/rules/NotificationRulesManager.vue'
 import NotificationTemplatesView from '@/views/NotificationTemplatesView.vue'
 import SubscriptionManager from '@/components/settings/SubscriptionManager.vue'
 import BillingManager from '@/components/settings/BillingManager.vue'
@@ -21,6 +22,7 @@ type SettingsTab =
   | 'activities'
   | 'roles'
   | 'groups'
+  | 'rules'
   | 'templates'
   | 'subscription'
   | 'billing'
@@ -31,7 +33,8 @@ const { t, locale } = useI18n()
 const auth = useAuthStore()
 const uiStore = useUIStore()
 
-const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
+// computed: la etiqueta de "Reglas" va por i18n y sigue al cambio de idioma.
+const TABS = computed<{ key: SettingsTab; label: string; iconPath: string }[]>(() => [
   {
     key: 'general',
     label: 'General',
@@ -58,6 +61,11 @@ const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
     iconPath: `<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>`,
   },
   {
+    key: 'rules',
+    label: t('rules.tab'),
+    iconPath: `<polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
+  },
+  {
     key: 'templates',
     label: 'Templates',
     iconPath: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`,
@@ -72,7 +80,7 @@ const TABS: { key: SettingsTab; label: string; iconPath: string }[] = [
     label: 'Facturación',
     iconPath: `<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
   },
-]
+])
 
 // Se incrementa al desconectar Google para que CalendarsManager recargue (calendarios desactivados).
 const calendarsKey = ref(0)
@@ -464,6 +472,19 @@ async function signOut() {
               </p>
             </div>
             <NotificationGroupsManager />
+          </template>
+
+          <!-- ── Reglas de notificación ─────────────────────────────────────── -->
+          <template v-else-if="activeTab === 'rules'">
+            <div class="mb-6">
+              <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
+                {{ t('rules.title') }}
+              </h2>
+              <p class="text-[12px] text-ink-3 mt-1">
+                {{ t('rules.subtitle') }}
+              </p>
+            </div>
+            <NotificationRulesManager />
           </template>
         </div>
       </div>

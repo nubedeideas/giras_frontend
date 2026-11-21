@@ -17,6 +17,11 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     'show_day_alert_disabled',
     'show_changed',
     'template_not_approved',
+    // Bloque 3.6 (reglas de notificación)
+    'rule_disabled',
+    'rule_changed',
+    'rule_rescheduled',
+    'replaced_by_rule',
   ]
 
   it('tiene etiqueta para cada motivo del backend', () => {
