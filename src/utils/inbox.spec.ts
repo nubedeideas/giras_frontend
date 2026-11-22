@@ -390,19 +390,43 @@ describe('import_done (F2)', () => {
     reminders: 120,
     first_send_at: '2026-11-30T08:00:00Z',
     paused: false,
-    timezone: 'Europe/Madrid',
   }
+  // Lo que manda el backend (`import_done_texts`, en la zona de la gira).
+  const backend = { title: 'Importación: 44 actividades creadas', body: 'Cuerpo del backend' }
 
-  it('título con las creadas y cuerpo con recordatorios y primer envío', () => {
-    const text = formatInboxItem(inboxItem({ kind: 'import_done', params }), t, 'es')
+  it('título con las creadas y cuerpo con recordatorios y primer envío en la zona de la gira', () => {
+    const text = formatInboxItem(
+      inboxItem({ kind: 'import_done', params, ...backend }),
+      t,
+      'es',
+      'Europe/Madrid'
+    )
     expect(text.title).toBe('Importación: 44 actividades creadas')
-    expect(text.body).toMatch(/^120 recordatorios programados\. Primer envío: 30 nov/)
+    expect(text.body).toMatch(
+      /^También se ha actualizado 1 actividad\. 120 recordatorios programados\. Primer envío: 30 nov/
+    )
     expect(text.body).toContain('09:00')
+  })
+
+  it('sin la zona de la gira (params no la traen): cuerpo del backend', () => {
+    const text = formatInboxItem(inboxItem({ kind: 'import_done', params, ...backend }), t, 'es')
+    expect(text.title).toBe('Importación: 44 actividades creadas')
+    expect(text.body).toBe('Cuerpo del backend')
+  })
+
+  it('solo sustituciones: el título las cuenta (no "0 actividades creadas")', () => {
+    const only = { ...params, created: 0, replaced: 3 }
+    expect(formatInboxItem(inboxItem({ kind: 'import_done', params: only }), t).title).toBe(
+      'Importación: 3 actividades actualizadas'
+    )
+    expect(
+      formatInboxItem(inboxItem({ kind: 'import_done', params: { ...only, replaced: 1 } }), t).title
+    ).toBe('Importación: 1 actividad actualizada')
   })
 
   it('con la gira en pausa, el cuerpo lo dice; singular con una actividad', () => {
     const text = formatInboxItem(
-      inboxItem({ kind: 'import_done', params: { ...params, created: 1, paused: true } }),
+      inboxItem({ kind: 'import_done', params: { ...params, created: 1, replaced: 0, paused: true } }),
       t
     )
     expect(text.title).toBe('Importación: 1 actividad creada')
@@ -412,7 +436,7 @@ describe('import_done (F2)', () => {
   it('sin recordatorios, sin params o en inglés', () => {
     expect(
       formatInboxItem(
-        inboxItem({ kind: 'import_done', params: { ...params, reminders: 0, first_send_at: '' } }),
+        inboxItem({ kind: 'import_done', params: { ...params, replaced: 0, reminders: 0, first_send_at: '' } }),
         t
       ).body
     ).toBe('No hay recordatorios programados.')
@@ -421,7 +445,12 @@ describe('import_done (F2)', () => {
       body: 'Cuerpo',
     })
     i18n.global.locale.value = 'en'
-    const en = formatInboxItem(inboxItem({ kind: 'import_done', params }), t, 'en')
+    const en = formatInboxItem(
+      inboxItem({ kind: 'import_done', params: { ...params, replaced: 0 } }),
+      t,
+      'en',
+      'Europe/Madrid'
+    )
     expect(en.title).toBe('Import: 44 activities created')
     expect(en.body).toMatch(/^120 reminders scheduled\. First send: 30 Nov/)
   })

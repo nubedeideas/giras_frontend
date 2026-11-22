@@ -281,6 +281,13 @@ export function groupActivitiesByDay(rows: ImportActivityRow[], tz: string): Act
     .map(([date, list]) => ({ date, rows: sortActivityRows(list) }))
 }
 
+/** Documento de origen de una fila ("Abrir documento" lo descarga con el token, vía `apiClient`). */
+export interface ImportSourceDocument {
+  tourUuid: string
+  uuid: string
+  filename: string
+}
+
 export type ActivityStatus =
   | 'new'
   | 'duplicate'
@@ -288,7 +295,13 @@ export type ActivityStatus =
   | 'duplicate_in_draft'
   | 'replace'
   | 'skipped'
+  | 'duplicate_kept'
+  | 'duplicate_in_draft_kept'
 
+/**
+ * Estado de la fila. Un duplicado seguro (`duplicate`, `duplicate_in_draft`) que el usuario recupera
+ * (`create`) conserva su insignia (`*_kept`) y el resolutor de duplicado.
+ */
 export function activityStatus(r: ImportActivityRow): ActivityStatus {
   if (r.action === 'replace') return 'replace'
   const status = r.match?.status
@@ -297,6 +310,8 @@ export function activityStatus(r: ImportActivityRow): ActivityStatus {
     if (status === 'duplicate_in_draft' || r.duplicate_of) return 'duplicate_in_draft'
     return 'skipped'
   }
+  if (status === 'duplicate') return 'duplicate_kept'
+  if (status === 'duplicate_in_draft' || r.duplicate_of) return 'duplicate_in_draft_kept'
   // "Crear igualmente" ya decidido (`reviewed`): se crea como nueva.
   if (status === 'possible_duplicate' && !r.reviewed) return 'possible_duplicate'
   return 'new'
@@ -308,6 +323,7 @@ export function activityStatusKey(r: ImportActivityRow): string {
 }
 
 const ACTIVITY_ISSUES = new Set([
+  'month_inferred',
   'time_missing',
   'time_unverified',
   'time_assumed',

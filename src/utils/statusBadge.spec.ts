@@ -101,6 +101,8 @@ describe('importActivityBadge', () => {
     ['duplicate_in_draft', 'off'],
     ['replace', 'pending'],
     ['skipped', 'off'],
+    ['duplicate_kept', 'pending'],
+    ['duplicate_in_draft_kept', 'pending'],
     ['otro', 'off'],
   ])('%s → %s', (status, badge) => {
     expect(importActivityBadge(status)).toBe(badge)

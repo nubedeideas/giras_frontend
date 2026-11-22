@@ -52,11 +52,14 @@ function shortDateTime(iso: string, locale: string, zone?: string): string {
  * Título y cuerpo de un ítem en el idioma de la UI, a partir de `kind` + `params`.
  * `message` y los kinds desconocidos usan `title`/`body` del backend tal cual (texto plano,
  * nunca HTML). Si faltan los `params` necesarios, también se cae a la copia del backend.
+ * `tourTimezone` es la zona de la gira del ítem si está en el store (para fechas que el backend
+ * no acompaña de zona, como el primer envío de `import_done`).
  */
 export function formatInboxItem(
   item: InboxItem,
   t: InboxTranslate,
-  locale: string = 'es'
+  locale: string = 'es',
+  tourTimezone?: string | null
 ): InboxText {
   const p = item.params ?? {}
   const tour = item.tour?.name ?? ''
@@ -169,17 +172,36 @@ export function formatInboxItem(
     }
 
     case 'import_done': {
-      // F2 §3.9: `params = {job_uuid, created, replaced, reminders, first_send_at, paused}`.
+      // F2 §3.9: `params = {job_uuid, created, replaced, reminders, first_send_at, paused}`, sin
+      // zona: la hora del primer envío va en la de la gira (store) o, sin ella, el cuerpo del
+      // backend (que ya la formatea en la zona de la gira).
       const created = num(p.created)
       if (Number.isNaN(created)) return raw
-      const title = t('inbox.kinds.import_done.title', { created }, created)
-      if (truthy(p.paused)) return { title, body: t('inbox.kinds.import_done.bodyPaused') }
+      const replacedRaw = num(p.replaced)
+      const replaced = Number.isNaN(replacedRaw) ? 0 : replacedRaw
+      // Solo sustituciones: el título las cuenta a ellas (no "0 actividades creadas").
+      const title =
+        created === 0 && replaced > 0
+          ? t('inbox.kinds.import_done.titleReplaced', { replaced }, replaced)
+          : t('inbox.kinds.import_done.title', { created }, created)
+      const also =
+        created > 0 && replaced > 0
+          ? `${t('inbox.kinds.import_done.alsoReplaced', { replaced }, replaced)} `
+          : ''
+      if (truthy(p.paused)) return { title, body: also + t('inbox.kinds.import_done.bodyPaused') }
       const reminders = num(p.reminders)
       if (Number.isNaN(reminders)) return { title, body: item.body }
       const first = str(p.first_send_at)
-      const date = first ? shortDateTime(first, locale, str(p.timezone) || undefined) : ''
-      if (reminders <= 0 || !date) return { title, body: t('inbox.kinds.import_done.bodyNone') }
-      return { title, body: t('inbox.kinds.import_done.body', { reminders, date }, reminders) }
+      if (reminders <= 0 || !first) {
+        return { title, body: also + t('inbox.kinds.import_done.bodyNone') }
+      }
+      const zone = str(p.timezone) || str(tourTimezone)
+      const date = zone ? shortDateTime(first, locale, zone) : ''
+      if (!date) return { title, body: item.body }
+      return {
+        title,
+        body: also + t('inbox.kinds.import_done.body', { reminders, date }, reminders),
+      }
     }
 
     default:

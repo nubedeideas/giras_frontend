@@ -16,9 +16,9 @@ const types = [
 ]
 const cities = activityJob().draft.assumptions!.cities
 
-function mountResolver(row: ImportActivityRow) {
+function mountResolver(row: ImportActivityRow, extra: Record<string, unknown> = {}) {
   return mount(ImportActivityResolver, {
-    props: { row, types, cities },
+    props: { row, types, cities, ...extra },
     global: { plugins: [i18n] },
   })
 }
@@ -108,5 +108,53 @@ describe('ImportActivityResolver', () => {
   it('sustitución elegida: el botón queda marcado', () => {
     const w = mountResolver(activityRow({ match: dupMatch, action: 'replace', reviewed: true }))
     expect(w.get('[data-test="resolver-dup-replace"]').attributes('aria-pressed')).toBe('true')
+  })
+
+  it('mes deducido: ofrece la fecha', () => {
+    const w = mountResolver(activityRow({ issues: ['month_inferred'], needs_action: true }))
+    expect(w.find('[data-test="resolver-date"]').exists()).toBe(true)
+  })
+
+  it('duplicado seguro recuperado: resolutor con Sustituir', async () => {
+    const w = mountResolver(
+      activityRow({ match: { ...dupMatch, status: 'duplicate' }, action: 'create' })
+    )
+    expect(w.get('[data-test="resolver-duplicate"]').text()).toContain(
+      '¿Es la misma que Show WiZink (jue 3 dic 21:00)?'
+    )
+    await w.get('[data-test="resolver-dup-replace"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([[{ client_id: 'a1', action: 'replace', reviewed: true }]])
+  })
+
+  it('posible duplicado sin hora: sin paréntesis vacíos', () => {
+    const w = mountResolver(
+      activityRow({ match: { ...dupMatch, activity_scheduled_at: null }, needs_action: true })
+    )
+    const text = w.get('[data-test="resolver-duplicate"]').text()
+    expect(text).toContain('¿Es la misma que Show WiZink?')
+    expect(text).not.toContain('()')
+  })
+
+  it('repetida dentro de lo importado: texto propio y sin Sustituir', () => {
+    const row = activityRow({
+      action: 'create',
+      duplicate_of: 'a0',
+      match: {
+        ...dupMatch,
+        status: 'duplicate_in_draft',
+        activity_uuid: null,
+        activity_title: null,
+        activity_scheduled_at: null,
+      },
+    })
+    let w = mountResolver(row, { duplicateOfTitle: 'Vuelo IB3456' })
+    const text = w.get('[data-test="resolver-duplicate"]').text()
+    expect(text).toContain('Parece repetida de Vuelo IB3456')
+    expect(text).not.toContain('()')
+    expect(w.find('[data-test="resolver-dup-replace"]').exists()).toBe(false)
+    w = mountResolver(row)
+    expect(w.get('[data-test="resolver-duplicate"]').text()).toContain(
+      'Parece repetida de otra fila de lo importado'
+    )
   })
 })

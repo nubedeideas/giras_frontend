@@ -62,6 +62,7 @@ import {
   isHotelRow,
   needsResolver,
   pendingCounts,
+  type ImportSourceDocument,
 } from '@/utils/importReview'
 import { FALLBACK_TOUR_ZONE } from '@/utils/timezones'
 
@@ -98,6 +99,7 @@ async function load() {
   assumptionsError.value = ''
   discardError.value = ''
   discardOpen.value = false
+  pushedNotices = false
   try {
     const j = await getImportJob(uuid)
     if (id !== request) return
@@ -212,14 +214,27 @@ const showNotices = computed(
     route.query.step === 'notices'
 )
 
+/**
+ * Se entró al paso con `push` desde la revisión (la entrada anterior del historial es la
+ * revisión). Al salir se vuelve con `back()` en vez de `replace` para no dejar la revisión repetida
+ * en el historial; al recargar con `?step=notices` no hay entrada previa propia y se usa `replace`.
+ */
+let pushedNotices = false
+
 /** `push`: el botón atrás del navegador vuelve a la revisión. */
 function openNotices() {
   if (!confirmable.value) return
+  pushedNotices = true
   void router.push({ query: { ...route.query, step: 'notices' } })
 }
 
 function closeNotices() {
   if (route.query.step === undefined) return
+  if (pushedNotices) {
+    pushedNotices = false
+    router.back()
+    return
+  }
   const query = { ...route.query }
   delete query.step
   void router.replace({ query })
@@ -280,9 +295,14 @@ const baseYear = computed(() => {
   return dt?.isValid ? dt.year : null
 })
 const typeOptions = computed(() => activityTypeOptions(activityTypes.value, activityRows.value))
-const documentUrls = computed(() =>
-  Object.fromEntries((job.value?.documents ?? []).map((d) => [d.uuid, d.download_url]))
-)
+/** "Abrir documento" descarga con el token (`download_url` exige JWT: no sirve como enlace). */
+const sourceDocuments = computed<Record<string, ImportSourceDocument>>(() => {
+  const j = job.value
+  if (!j) return {}
+  return Object.fromEntries(
+    (j.documents ?? []).map((d) => [d.uuid, { tourUuid: j.tour, uuid: d.uuid, filename: d.filename }])
+  )
+})
 const showDayOne = computed(() =>
   hasDayNumbers(activityRows.value, assumptions.value?.day_one_date ?? null)
 )
@@ -667,6 +687,7 @@ function onProcessed(j: ImportJob) {
         >
           <ImportProgress
             :job-uuid="job.uuid"
+            :expected="job.expected ?? 'any'"
             @ready="onProcessed"
             @failed="onProcessed"
           />
@@ -926,7 +947,7 @@ function onProcessed(j: ImportJob) {
                 :row-errors="rowErrors"
                 :only-pending="onlyPending"
                 :selected-id="isMobile ? null : selectedId"
-                :document-urls="documentUrls"
+                :source-documents="sourceDocuments"
                 :recalculating="assumptionsSaving"
                 @patch="patchRow"
                 @city="onCityZone"

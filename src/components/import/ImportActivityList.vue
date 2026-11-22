@@ -15,6 +15,7 @@ import {
   activityNeedsAction,
   groupActivitiesByDay,
   type ActivityTypeOption,
+  type ImportSourceDocument,
 } from '@/utils/importReview'
 
 const props = withDefaults(
@@ -27,7 +28,8 @@ const props = withDefaults(
     rowErrors?: Record<string, string>
     onlyPending?: boolean
     selectedId?: string | null
-    documentUrls?: Record<string, string>
+    /** Documento de origen por `document_uuid` (para "Abrir documento"). */
+    sourceDocuments?: Record<string, ImportSourceDocument>
     /** Un PATCH de supuestos en curso: la lista se bloquea con "Recalculando…". */
     recalculating?: boolean
   }>(),
@@ -37,7 +39,7 @@ const props = withDefaults(
     rowErrors: () => ({}),
     onlyPending: false,
     selectedId: null,
-    documentUrls: () => ({}),
+    sourceDocuments: () => ({}),
     recalculating: false,
   }
 )
@@ -51,6 +53,7 @@ defineSlots<{ expanded?: (props: { row: ImportActivityRow }) => unknown }>()
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
 
+const titles = computed(() => Object.fromEntries(props.rows.map((r) => [r.client_id, r.title])))
 const pendingRows = computed(() => props.rows.filter(activityNeedsAction))
 const readyRows = computed(() =>
   props.onlyPending ? [] : props.rows.filter((r) => !activityNeedsAction(r))
@@ -121,7 +124,8 @@ const readyOpen = computed(
           :saving="saving"
           :row-errors="rowErrors"
           :selected-id="selectedId"
-          :document-urls="documentUrls"
+          :source-documents="sourceDocuments"
+          :titles="titles"
           @patch="emit('patch', $event)"
           @city="emit('city', $event)"
           @edit="emit('edit', $event)"
@@ -180,7 +184,8 @@ const readyOpen = computed(
             :saving="saving"
             :row-errors="rowErrors"
             :selected-id="selectedId"
-            :document-urls="documentUrls"
+            :source-documents="sourceDocuments"
+            :titles="titles"
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
             @edit="emit('edit', $event)"

@@ -12,6 +12,7 @@ import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import { useToursStore } from '@/stores/tours'
 import type { ImportJob } from '@/composables/useImportJobs'
 import type { Tour } from '@/types'
+import ImportProgress from '@/components/import/ImportProgress.vue'
 import ImportReviewView from './ImportReviewView.vue'
 
 type Call = { method: string; path: string; body: Record<string, unknown> | null }
@@ -462,7 +463,7 @@ describe('ImportReviewView', () => {
         activate_tour: true,
       })
       expect(w.get('[data-test="import-result-activities"]').text()).toBe(
-        '1 actividad creada, 0 sustituidas, 0 omitidas'
+        'Actividades creadas: 1 · Sustituidas: 0 · Omitidas: 0'
       )
       expect(w.router.currentRoute.value.query.step).toBeUndefined()
       expect(invalidate).toHaveBeenCalledWith('T1')
@@ -494,6 +495,43 @@ describe('ImportReviewView', () => {
       expect(w.find('[data-test="import-notices"]').exists()).toBe(false)
     })
 
+    it('"Volver" tras entrar con push usa back(): sin entrada repetida y adelante vuelve al paso', async () => {
+      setupFetch(actJob(), (c) =>
+        c.path === `${JOB_PATH}preview-notifications/` ? jsonResponse(notificationsPreview()) : undefined
+      )
+      const w = await mountView()
+      const back = vi.spyOn(w.router, 'back')
+      await w.get('[data-test="import-confirm"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBe('notices')
+      await w.get('[data-test="import-notices-back"]').trigger('click')
+      await flushPromises()
+      expect(back).toHaveBeenCalledTimes(1)
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+      expect(w.find('[data-test="import-confirm-bar"]').exists()).toBe(true)
+      // La entrada del paso sigue delante (no se sustituyó la revisión por otra revisión).
+      w.router.forward()
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBe('notices')
+      expect(w.find('[data-test="import-notices"]').exists()).toBe(true)
+    })
+
+    it('al recargar en el paso (sin push propio), "Volver" usa replace', async () => {
+      setupFetch(actJob(), (c) =>
+        c.path === `${JOB_PATH}preview-notifications/` ? jsonResponse(notificationsPreview()) : undefined
+      )
+      const w = await mountView()
+      await w.router.replace({ query: { step: 'notices' } })
+      await flushPromises()
+      const back = vi.spyOn(w.router, 'back')
+      const replace = vi.spyOn(w.router, 'replace')
+      await w.get('[data-test="import-notices-back"]').trigger('click')
+      await flushPromises()
+      expect(back).not.toHaveBeenCalled()
+      expect(replace).toHaveBeenCalled()
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+    })
+
     it('preview con 409 job_not_ready sale del paso y recarga el job', async () => {
       const log = setupFetch(actJob(), (c) =>
         c.path === `${JOB_PATH}preview-notifications/` ? wrapped(409, 'job_not_ready') : undefined
@@ -504,5 +542,16 @@ describe('ImportReviewView', () => {
       expect(w.router.currentRoute.value.query.step).toBeUndefined()
       expect(log.filter((c) => c.path === JOB_PATH && c.method === 'GET')).toHaveLength(2)
     })
+  })
+
+  it('procesando: ImportProgress recibe el expected del job (any si no lo trae)', async () => {
+    setupFetch(importJob({ status: 'extracting', summary: null, expected: 'itinerary' }))
+    let w = await mountView()
+    expect(w.findComponent(ImportProgress).props('expected')).toBe('itinerary')
+    w.unmount()
+    setupFetch(importJob({ status: 'extracting', summary: null }))
+    w = await mountView()
+    expect(w.findComponent(ImportProgress).props('expected')).toBe('any')
+    w.unmount()
   })
 })

@@ -158,8 +158,14 @@ const backToDraftSaving = ref(false)
 const backToDraftError = ref('')
 
 const tourActivated = computed(() => result.value.tour_activated === true)
-// El estado real es el de la gira en el store; sin ella, lo que diga `result`.
-const tourIsDraft = computed(() => tour.value?.status === 'draft')
+// Tras confirmar, el store sigue con la gira en `draft` hasta que `loadTours()` responde: no se lee
+// de ahí. Se fía de `result.tour_activated` hasta que "Volver a borrador" sale bien aquí.
+const revertedToDraft = ref(false)
+watch(
+  () => props.job.uuid,
+  () => (revertedToDraft.value = false)
+)
+const tourIsDraft = computed(() => revertedToDraft.value)
 
 async function backToDraft() {
   const uuid = props.job.tour
@@ -168,6 +174,7 @@ async function backToDraft() {
   backToDraftError.value = ''
   try {
     await toursStore.updateTour(uuid, { status: 'draft' })
+    revertedToDraft.value = true
     backToDraftOpen.value = false
   } catch {
     backToDraftError.value = t('importer.result.backToDraftError')
@@ -205,15 +212,11 @@ const canSendPortal = computed(
       data-test="import-result-activities"
     >
       {{
-        t(
-          'importer.result.activities',
-          {
-            created: n(result.activities_created),
-            replaced: n(result.activities_replaced),
-            skipped: n(result.activities_skipped),
-          },
-          n(result.activities_created)
-        )
+        t('importer.result.activities', {
+          created: n(result.activities_created),
+          replaced: n(result.activities_replaced),
+          skipped: n(result.activities_skipped),
+        })
       }}
     </p>
     <p

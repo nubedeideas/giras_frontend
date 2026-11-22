@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { InboxItem } from '@/composables/useInbox'
+import { useToursStore } from '@/stores/tours'
 import { formatInboxItem, isNoticeTarget } from '@/utils/inbox'
 import { formatRelativeTime } from '@/utils/relativeTime'
 
@@ -12,8 +13,15 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+const toursStore = useToursStore()
 
-const text = computed(() => formatInboxItem(props.item, t, locale.value))
+// Zona de la gira del ítem si está cargada (el backend no la manda en `params`).
+const tourTimezone = computed(() => {
+  const uuid = props.item.tour?.uuid
+  return (uuid && toursStore.tours.find((tr) => tr.uuid === uuid)?.timezone) || null
+})
+
+const text = computed(() => formatInboxItem(props.item, t, locale.value, tourTimezone.value))
 
 const SEVERITY_BAR: Record<string, string> = {
   critical: 'bg-brand-orange',

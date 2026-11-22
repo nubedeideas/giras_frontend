@@ -16,6 +16,7 @@ import {
   activityStatus,
   formatDayLabel,
   type ActivityTypeOption,
+  type ImportSourceDocument,
 } from '@/utils/importReview'
 
 const props = withDefaults(
@@ -28,15 +29,18 @@ const props = withDefaults(
     saving: Set<string>
     rowErrors?: Record<string, string>
     selectedId?: string | null
-    /** `download_url` por `document_uuid` (para "Abrir documento"). */
-    documentUrls?: Record<string, string>
+    /** Documento de origen por `document_uuid` (para "Abrir documento"). */
+    sourceDocuments?: Record<string, ImportSourceDocument>
+    /** Título por `client_id` de todas las filas (para "Parece repetida de {title}"). */
+    titles?: Record<string, string>
   }>(),
   {
     types: () => [],
     cities: () => ({}),
     rowErrors: () => ({}),
     selectedId: null,
-    documentUrls: () => ({}),
+    sourceDocuments: () => ({}),
+    titles: () => ({}),
   }
 )
 const emit = defineEmits<{
@@ -74,12 +78,18 @@ const colorByCode = computed(() => new Map(props.types.map((o) => [o.code, o.col
 
 function hasResolver(r: Row): boolean {
   const s = activityStatus(r)
-  return activityNeedsAction(r) || s === 'replace' || (s === 'new' && r.match?.status === 'possible_duplicate')
+  return (
+    activityNeedsAction(r) ||
+    s === 'replace' ||
+    s === 'duplicate_kept' ||
+    s === 'duplicate_in_draft_kept' ||
+    (s === 'new' && r.match?.status === 'possible_duplicate')
+  )
 }
 
-function docUrl(r: Row): string | null {
+function sourceDocument(r: Row): ImportSourceDocument | null {
   const uuid = r.source_ref?.document_uuid
-  return (uuid && props.documentUrls[uuid]) || null
+  return (uuid && props.sourceDocuments[uuid]) || null
 }
 </script>
 
@@ -118,7 +128,7 @@ function docUrl(r: Row): string | null {
         :saving="saving.has(r.client_id)"
         :error="rowErrors[r.client_id]"
         :selected="selectedId === r.client_id"
-        :document-url="docUrl(r)"
+        :source-document="sourceDocument(r)"
         @patch="emit('patch', $event)"
         @edit="emit('edit', $event)"
       >
@@ -139,6 +149,7 @@ function docUrl(r: Row): string | null {
             :types="types"
             :cities="cities"
             :saving="saving.has(r.client_id)"
+            :duplicate-of-title="(r.duplicate_of && titles[r.duplicate_of]) || null"
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
           />

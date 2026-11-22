@@ -20,6 +20,7 @@ import {
   isPairedCheckout,
   timezoneSourceKey,
   zoneShortName,
+  type ImportSourceDocument,
 } from '@/utils/importReview'
 import { importActivityBadge, importConfidenceBadge } from '@/utils/statusBadge'
 
@@ -31,9 +32,9 @@ const props = withDefaults(
     saving?: boolean
     error?: string
     selected?: boolean
-    documentUrl?: string | null
+    sourceDocument?: ImportSourceDocument | null
   }>(),
-  { typeColor: null, saving: false, error: '', selected: false, documentUrl: null }
+  { typeColor: null, saving: false, error: '', selected: false, sourceDocument: null }
 )
 const emit = defineEmits<{ patch: [patch: ImportActivityRowPatch]; edit: [row: ImportActivityRow] }>()
 
@@ -235,7 +236,7 @@ const LINK_BTN =
       v-if="peekOpen"
       class="mt-2"
       :source-ref="row.source_ref"
-      :document-url="documentUrl"
+      :source-document="sourceDocument"
     />
 
     <p

@@ -25,8 +25,10 @@ const props = withDefaults(
     types?: ActivityTypeOption[]
     cities?: Record<string, ImportCityTz>
     saving?: boolean
+    /** Título de la fila de la que esta es repetida (`duplicate_of`), si se conoce. */
+    duplicateOfTitle?: string | null
   }>(),
-  { types: () => [], cities: () => ({}), saving: false }
+  { types: () => [], cities: () => ({}), saving: false, duplicateOfTitle: null }
 )
 const emit = defineEmits<{
   patch: [patch: ImportActivityRowPatch]
@@ -40,18 +42,28 @@ const issues = computed(() => new Set<string>(props.row.issues))
 const status = computed(() => activityStatus(props.row))
 const skipped = computed(() => props.row.action === 'skip')
 
+// Posible duplicado, sustitución o duplicado seguro recuperado ("Recuperar" → `create`).
 const showDuplicate = computed(
-  () => status.value === 'possible_duplicate' || status.value === 'replace' ||
+  () =>
+    ['possible_duplicate', 'replace', 'duplicate_kept', 'duplicate_in_draft_kept'].includes(
+      status.value
+    ) ||
     (props.row.match?.status === 'possible_duplicate' && props.row.reviewed && !skipped.value)
 )
 const existingText = computed(() => {
   const m = props.row.match
+  // Repetida de otra fila del borrador: no hay actividad existente que nombrar.
+  if (!m?.activity_uuid && (props.row.duplicate_of || m?.status === 'duplicate_in_draft')) {
+    return props.duplicateOfTitle
+      ? t('importer.duplicate.repeatedOf', { title: props.duplicateOfTitle })
+      : t('importer.duplicate.repeated')
+  }
   const when = m?.activity_scheduled_at
+  const title = m?.activity_title ?? ''
+  if (!when) return t('importer.duplicate.sameAsNoTime', { title })
   const tz = props.row.timezone
-  const time = when
-    ? `${formatLocalDate(when, tz, locale.value)} ${formatLocalTime(when, tz)}`
-    : ''
-  return t('importer.activityStatus.possible_duplicate', { title: m?.activity_title ?? '', time })
+  const time = `${formatLocalDate(when, tz, locale.value)} ${formatLocalTime(when, tz)}`
+  return t('importer.activityStatus.possible_duplicate', { title, time })
 })
 const canReplace = computed(() => !!props.row.match?.activity_uuid)
 
@@ -60,9 +72,13 @@ const showDate = computed(
   () =>
     !skipped.value &&
     (!props.row.date ||
-      ['outside_tour', 'date_unverified', 'weekday_mismatch', 'date_ambiguous_dmy'].some((i) =>
-        issues.value.has(i)
-      ))
+      [
+        'outside_tour',
+        'date_unverified',
+        'weekday_mismatch',
+        'date_ambiguous_dmy',
+        'month_inferred',
+      ].some((i) => issues.value.has(i)))
 )
 const showTime = computed(
   () =>

@@ -120,8 +120,11 @@ describe('ImportResultSummary', () => {
       const w = mountWith(f2Result())
       expect(w.text()).toContain('Importación completada')
       expect(w.get('[data-test="import-result-activities"]').text()).toBe(
-        '44 actividades creadas, 1 sustituidas, 2 omitidas'
+        'Actividades creadas: 44 · Sustituidas: 1 · Omitidas: 2'
       )
+      expect(
+        i18n.global.t('importer.result.activities', { created: 1, replaced: 0, skipped: 0 }, { locale: 'en' })
+      ).toBe('Activities created: 1 · Replaced: 0 · Skipped: 0')
       // Sin equipo en el job: no se pinta la línea de contactos.
       expect(w.find('[data-test="import-result-summary"]').exists()).toBe(false)
       expect(w.get('[data-test="import-result-flights"]').text()).toBe(
@@ -204,6 +207,14 @@ describe('ImportResultSummary', () => {
       expect(updateTour).toHaveBeenCalledWith('T1', { status: 'draft' })
       expect(w.get('[data-test="import-result-tour-state"]').text()).toBe('La gira está en borrador.')
       expect(w.find('[data-test="import-result-back-to-draft"]').exists()).toBe(false)
+    })
+
+    it('recién confirmada con la gira aún en draft en el store: se fía de tour_activated', () => {
+      // `loadTours()` todavía no ha respondido: el store sigue con la gira en borrador.
+      useToursStore().tours = [tour({ status: 'draft' })]
+      const w = mountWith(f2Result())
+      expect(w.get('[data-test="import-result-tour-state"]').text()).toContain('La gira ha pasado a activa.')
+      expect(w.find('[data-test="import-result-back-to-draft"]').exists()).toBe(true)
     })
 
     it('error al volver a borrador se muestra traducido', async () => {

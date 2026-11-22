@@ -50,4 +50,32 @@ describe('ImportActivityDay', () => {
     expect(w.find('[data-test="slot-editor"]').exists()).toBe(true)
     expect(w.find('[data-test="import-activity-resolver"]').exists()).toBe(false)
   })
+
+  it('duplicado seguro recuperado: resolutor con Sustituir y título de la fila repetida', () => {
+    const kept = activityRow({
+      match: { ...activityRow().match, status: 'duplicate', activity_uuid: 'X', activity_title: 'Vuelo' },
+    })
+    let w = mount(ImportActivityDay, {
+      props: { date: '2026-12-03', rows: [kept], tourTimezone: 'Europe/Madrid', saving: new Set<string>() },
+      global: { plugins: [i18n] },
+    })
+    expect(w.find('[data-test="resolver-dup-replace"]').exists()).toBe(true)
+    const inDraft = activityRow({
+      client_id: 'a2',
+      duplicate_of: 'a0',
+      match: { ...activityRow().match, status: 'duplicate_in_draft' },
+    })
+    w = mount(ImportActivityDay, {
+      props: {
+        date: '2026-12-03',
+        rows: [inDraft],
+        tourTimezone: 'Europe/Madrid',
+        saving: new Set<string>(),
+        titles: { a0: 'Vuelo IB3456', a2: 'Vuelo IB3456 bis' },
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="resolver-duplicate"]').text()).toContain('Parece repetida de Vuelo IB3456')
+    expect(w.find('[data-test="resolver-dup-replace"]').exists()).toBe(false)
+  })
 })

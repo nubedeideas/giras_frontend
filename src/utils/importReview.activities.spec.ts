@@ -83,6 +83,10 @@ describe('activityStatus / activityStatusKey', () => {
     [{ match: match('possible_duplicate') }, 'possible_duplicate'],
     [{ match: match('possible_duplicate'), reviewed: true }, 'new'],
     [{ action: 'replace' as const, match: match('possible_duplicate') }, 'replace'],
+    // Duplicado seguro recuperado ("Recuperar" → create): conserva la insignia.
+    [{ match: match('duplicate') }, 'duplicate_kept'],
+    [{ match: match('duplicate_in_draft'), duplicate_of: 'a1' }, 'duplicate_in_draft_kept'],
+    [{ action: 'replace' as const, match: match('duplicate') }, 'replace'],
   ])('%o → %s', (o, status) => {
     const row = activityRow(o)
     expect(activityStatus(row)).toBe(status)
@@ -94,6 +98,7 @@ describe('claves de issues y zonas', () => {
   it('nunca el código crudo', () => {
     expect(activityIssueKey('time_missing')).toBe('importer.activityIssues.time_missing')
     expect(activityIssueKey('in_past')).toBe('importer.activityIssues.in_past')
+    expect(activityIssueKey('month_inferred')).toBe('importer.activityIssues.month_inferred')
     expect(activityIssueKey('possible_duplicate')).toBeNull()
     expect(activityIssueKey('inventado')).toBeNull()
     expect(timezoneSourceKey('iata')).toBe('importer.tzSource.iata')

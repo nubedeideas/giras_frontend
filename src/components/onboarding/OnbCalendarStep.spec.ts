@@ -143,6 +143,28 @@ describe('OnbCalendarStep: Archivo o foto (F2 A9)', () => {
     )
   })
 
+  it('sin actividades: equipo encontrado o "no hemos encontrado agenda", nunca "0 actividades"', async () => {
+    const w = await openFileSource()
+    w.findComponent({ name: 'ImportDropZone' }).vm.$emit('created', importJob({ status: 'uploaded' }))
+    await flushPromises()
+    // Solo equipo (una fila de equipo por defecto en el fixture).
+    w.findComponent({ name: 'ImportProgress' }).vm.$emit('ready', importJob({ status: 'ready' }))
+    await flushPromises()
+    let found = w.get('[data-test="calendar-import-found"]').text()
+    expect(found).toBe('No hemos encontrado agenda, pero sí 1 persona del equipo')
+    expect(w.get('[data-test="calendar-import-ready"]').text()).not.toContain('0 actividades')
+
+    const w2 = await openFileSource()
+    w2.findComponent({ name: 'ImportDropZone' }).vm.$emit('created', importJob({ status: 'uploaded' }))
+    await flushPromises()
+    const empty = importJob({ status: 'ready', draft: { team: [], activities: [] } })
+    w2.findComponent({ name: 'ImportProgress' }).vm.$emit('ready', empty)
+    await flushPromises()
+    found = w2.get('[data-test="calendar-import-found"]').text()
+    expect(found).toBe('No hemos encontrado agenda en lo que has subido.')
+    expect(w2.get('[data-test="calendar-import-ready"]').text()).not.toContain('Revísalas')
+  })
+
   it('fallo: mensaje traducido y "Probar otra vez" vuelve a la zona', async () => {
     const w = await openFileSource()
     w.findComponent({ name: 'ImportDropZone' }).vm.$emit('created', importJob({ status: 'uploaded' }))

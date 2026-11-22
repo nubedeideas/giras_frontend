@@ -396,6 +396,10 @@ export default {
         body: '{reminders} recordatorio programado. Primer envío: {date}. | {reminders} recordatorios programados. Primer envío: {date}.',
         bodyPaused: 'Los avisos de la gira están en pausa.',
         bodyNone: 'No hay recordatorios programados.',
+        titleReplaced:
+          'Importación: {replaced} actividad actualizada | Importación: {replaced} actividades actualizadas',
+        alsoReplaced:
+          'También se ha actualizado {replaced} actividad. | También se han actualizado {replaced} actividades.',
       },
       billing_discrepancy: {
         title: 'Discrepancias en la facturación de Twilio',
@@ -1422,7 +1426,11 @@ export default {
       fileSourceSub: 'Itinerario, PDF, Excel o foto',
       noTour: 'Crea la gira en el primer paso para importar su agenda.',
       found: 'Hemos encontrado {n} actividad | Hemos encontrado {n} actividades',
+      foundTeamOnly:
+        'No hemos encontrado agenda, pero sí {n} persona del equipo | No hemos encontrado agenda, pero sí {n} personas del equipo',
+      foundNone: 'No hemos encontrado agenda en lo que has subido.',
       reviewHint: 'Revísalas antes de crearlas: no se crea nada hasta que confirmes.',
+      reviewHintTeam: 'Revísalo antes de añadirlo: no se crea nada hasta que confirmes.',
       reviewNow: 'Revisar ahora',
       reviewLater: 'Revisar después',
     },
@@ -2542,7 +2550,7 @@ export default {
       empty: 'Has omitido todas las filas: no hay nada que confirmar.',
       saving: 'Confirmando…',
       summaryAll:
-        'Se crearán {contacts} contactos y {activities} actividades ({skipped} omitidas, {replaced} sustituidas)',
+        'Contactos nuevos: {contacts} · Actividades nuevas: {activities} · Sustituidas: {replaced} · Omitidas: {skipped}',
       viewNotices: 'Ver avisos',
     },
     discard: {
@@ -2631,8 +2639,7 @@ export default {
         'Los avisos de esta gira van al grupo «{group}», no al Equipo de la gira. Cámbialo en la gira si quieres que les lleguen.',
       confirmerOutside: 'Tú no estás en el Equipo de la gira: los avisos solo te llegarán en la app.',
       titleAll: 'Importación completada',
-      activities:
-        '{created} actividad creada, {replaced} sustituidas, {skipped} omitidas | {created} actividades creadas, {replaced} sustituidas, {skipped} omitidas',
+      activities: 'Actividades creadas: {created} · Sustituidas: {replaced} · Omitidas: {skipped}',
       flights:
         '{n} vuelo se completará con los datos de la aerolínea | {n} vuelos se completarán con los datos de la aerolínea',
       reminders:
@@ -2792,6 +2799,8 @@ export default {
       viewSource: 'Ver origen',
       hideSource: 'Ocultar origen',
       openDocument: 'Abrir documento',
+      openingDocument: 'Abriendo documento…',
+      openDocumentError: 'No hemos podido descargar el documento. Inténtalo de nuevo.',
       sourcePage: '{file}, página {page}',
       sourceRow: '{file}, {row}',
       sourceContext: 'Cabecera:',
@@ -2842,11 +2851,16 @@ export default {
       duplicate_in_draft: 'Repetida en lo importado',
       replace: 'Sustituirá a la existente',
       skipped: 'Omitida',
+      duplicate_kept: 'Ya está en la gira',
+      duplicate_in_draft_kept: 'Repetida en lo importado',
     },
     duplicate: {
       skip: 'Omitir',
       create: 'Crear igualmente',
       replace: 'Sustituir',
+      sameAsNoTime: '¿Es la misma que {title}?',
+      repeatedOf: 'Parece repetida de {title}',
+      repeated: 'Parece repetida de otra fila de lo importado',
     },
     activityIssues: {
       month_inferred: 'Mes deducido de la fila anterior',

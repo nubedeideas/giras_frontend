@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { useToursStore } from '@/stores/tours'
+import type { Tour } from '@/types'
 import i18n from '@/i18n'
 import { inboxItem } from '@/test/inbox'
 import InboxItemRow from './InboxItemRow.vue'
 
 beforeEach(() => {
   i18n.global.locale.value = 'es'
+  setActivePinia(createPinia())
 })
 
 describe('InboxItemRow', () => {
@@ -53,5 +57,22 @@ describe('InboxItemRow', () => {
       global: { plugins: [i18n] },
     })
     expect(w.find('[data-testid="inbox-item-review"]').exists()).toBe(false)
+  })
+
+  it('import_done: primer envío en la zona de la gira del store (params no la traen)', () => {
+    const item = inboxItem({
+      kind: 'import_done',
+      title: 'Importación: 2 actividades creadas',
+      body: 'Cuerpo del backend',
+      tour: { uuid: 'T1', name: 'Gira' },
+      params: { job_uuid: 'J1', created: 2, replaced: 0, reminders: 3, first_send_at: '2026-11-30T08:00:00Z', paused: false },
+    })
+    let w = mount(InboxItemRow, { props: { item }, global: { plugins: [i18n] } })
+    expect(w.text()).toContain('Cuerpo del backend')
+    const store = useToursStore()
+    store.tours = [{ id: 1, uuid: 'T1', name: 'Gira', timezone: 'America/Mexico_City' } as Tour]
+    w = mount(InboxItemRow, { props: { item }, global: { plugins: [i18n] } })
+    expect(w.text()).toContain('3 recordatorios programados. Primer envío: 30 nov')
+    expect(w.text()).toContain('02:00')
   })
 })

@@ -72,11 +72,25 @@ function fromRow(r: ImportActivityRow): Form {
 
 const form = reactive<Form>(fromRow(props.row))
 
-// La respuesta del PATCH sustituye la fila: el formulario vuelve a partir de ella. Por valor, para
-// que el PATCH de otra fila (que también sustituye el job) no borre lo que se está escribiendo.
+// La respuesta de un PATCH sustituye la fila (también un supuesto en bloque que la recalcula). Se
+// fusiona campo a campo: solo se toman del servidor los que han cambiado allí y el usuario no ha
+// tocado (siguen igual que la versión anterior de la fila); lo escrito no se pierde. Otra fila
+// (`client_id` distinto) parte de cero.
 watch(
   () => JSON.stringify([props.row.client_id, fromRow(props.row)]),
-  () => Object.assign(form, fromRow(props.row))
+  (next, prev) => {
+    const [id, base] = JSON.parse(next) as [string, Form]
+    const [prevId, prevBase] = (prev ? JSON.parse(prev) : [null, null]) as [string | null, Form | null]
+    if (!prevBase || id !== prevId) {
+      Object.assign(form, base)
+      return
+    }
+    for (const key of Object.keys(base) as (keyof Form)[]) {
+      if (base[key] !== prevBase[key] && form[key] === prevBase[key]) {
+        Object.assign(form, { [key]: base[key] })
+      }
+    }
+  }
 )
 
 const isFlight = computed(() => form.activity_type_code === 'flight')
@@ -102,9 +116,14 @@ const changed = computed<Partial<ImportActivityFields>>(() => {
 const dirty = computed(() => Object.keys(changed.value).length > 0)
 const titleMissing = computed(() => !form.title.trim())
 
-// "Dar por buena" no aplica sin fecha (400 `date_required`).
+// "Dar por buena" solo con fecha (400 `date_required`) y hora o "Todo el día" (sin instante,
+// `confirm` la rechazaría igual): como `canReview` del resolutor, con lo que haya en el formulario.
 const showReviewed = computed(
-  () => props.row.needs_action && props.row.action !== 'skip' && !!(form.date || props.row.date)
+  () =>
+    props.row.needs_action &&
+    props.row.action !== 'skip' &&
+    !!form.date.trim() &&
+    (form.all_day || !!form.start_time.trim())
 )
 
 function save(reviewed = false) {
@@ -256,7 +275,9 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
         {{ t('importer.activities.editor.locationAddress') }}
         <input
           v-model="form.location_address"
+          data-test="activity-editor-location-address"
           type="text"
+          maxlength="500"
           :class="INPUT"
           autocomplete="off"
         >
@@ -275,7 +296,9 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
         {{ t('importer.activities.editor.destinationAddress') }}
         <input
           v-model="form.destination_address"
+          data-test="activity-editor-destination-address"
           type="text"
+          maxlength="500"
           :class="INPUT"
           autocomplete="off"
         >
@@ -286,6 +309,7 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
           <input
             v-model="form.flight_number"
             type="text"
+            maxlength="12"
             :class="[INPUT, 'font-time tnum uppercase']"
             autocomplete="off"
             data-test="activity-editor-flight"
@@ -295,7 +319,9 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
           {{ t('importer.activities.editor.bookingReference') }}
           <input
             v-model="form.booking_reference"
+            data-test="activity-editor-booking"
             type="text"
+            maxlength="50"
             :class="[INPUT, 'font-time tnum']"
             autocomplete="off"
           >
@@ -307,6 +333,7 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
           <input
             v-model="form.hotel_name"
             type="text"
+            maxlength="200"
             :class="INPUT"
             autocomplete="off"
             data-test="activity-editor-hotel"
@@ -316,7 +343,9 @@ const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
           {{ t('importer.activities.editor.confirmationNumber') }}
           <input
             v-model="form.confirmation_number"
+            data-test="activity-editor-confirmation"
             type="text"
+            maxlength="50"
             :class="[INPUT, 'font-time tnum']"
             autocomplete="off"
           >

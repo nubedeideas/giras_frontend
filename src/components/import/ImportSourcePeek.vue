@@ -1,17 +1,37 @@
 <script setup lang="ts">
 // "Ver origen" de una fila de actividad (F2 §4.3): archivo, hoja/página/fila, la cabecera de día
 // que se usó como contexto y el texto original de la fila (`snippet`, sin enmascarar). En fotos y
-// PDF escaneados no hay texto: enlace "Abrir documento" (`documents[].download_url`) y página.
-import { computed } from 'vue'
+// PDF escaneados no hay texto: botón "Abrir documento" y página. `download_url` exige JWT (en una
+// pestaña nueva da 401): el documento se descarga con `apiClient`, como en Documentos de Mi Gira.
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ImportActivitySourceRef } from '@/composables/useImportJobs'
+import { useTourDocuments } from '@/composables/useTourDocuments'
+import type { ImportSourceDocument } from '@/utils/importReview'
 
 const props = withDefaults(
-  defineProps<{ sourceRef: ImportActivitySourceRef; documentUrl?: string | null }>(),
-  { documentUrl: null }
+  defineProps<{ sourceRef: ImportActivitySourceRef; sourceDocument?: ImportSourceDocument | null }>(),
+  { sourceDocument: null }
 )
 
 const { t } = useI18n()
+
+const downloading = ref(false)
+const downloadError = ref(false)
+
+async function openDocument() {
+  const doc = props.sourceDocument
+  if (!doc || downloading.value) return
+  downloading.value = true
+  downloadError.value = false
+  try {
+    await useTourDocuments().downloadDocument(doc.tourUuid, doc.uuid, doc.filename)
+  } catch {
+    downloadError.value = true
+  } finally {
+    downloading.value = false
+  }
+}
 
 const file = computed(() => props.sourceRef.filename || t('importer.pastedText'))
 const isVisual = computed(() => ['image', 'pdf_scan'].includes(props.sourceRef.kind))
@@ -55,18 +75,27 @@ const where = computed(() => {
     >
       {{ t('importer.activities.noSnippet') }}
     </p>
-    <a
-      v-if="documentUrl && (isVisual || !sourceRef.snippet)"
-      :href="documentUrl"
-      target="_blank"
-      rel="noopener"
-      class="self-start inline-flex items-center min-h-[44px] lg:min-h-0 font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+    <button
+      v-if="sourceDocument && (isVisual || !sourceRef.snippet)"
+      type="button"
+      class="self-start inline-flex items-center min-h-[44px] lg:min-h-0 p-0 font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      :disabled="downloading"
+      :aria-busy="downloading"
       data-test="import-source-open"
+      @click="openDocument"
     >
-      {{ t('importer.activities.openDocument') }}
+      {{ downloading ? t('importer.activities.openingDocument') : t('importer.activities.openDocument') }}
       <template v-if="sourceRef.page">
         · {{ t('importer.activities.pageN', { page: sourceRef.page }) }}
       </template>
-    </a>
+    </button>
+    <p
+      v-if="downloadError"
+      class="text-failed-fg"
+      role="alert"
+      data-test="import-source-open-error"
+    >
+      {{ t('importer.activities.openDocumentError') }}
+    </p>
   </div>
 </template>

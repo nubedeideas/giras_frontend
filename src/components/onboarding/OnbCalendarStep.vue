@@ -149,6 +149,26 @@ const activitiesFound = computed(() => {
   return j.summary?.activities?.total ?? j.draft?.activities?.length ?? j.activities_found ?? 0
 })
 
+/** Personas del equipo encontradas (filas del borrador o recuento de la lista). */
+const teamFound = computed(() => {
+  const j = importJob.value
+  if (!j) return 0
+  return j.draft?.team?.length ?? j.people_found ?? 0
+})
+
+/** Sin agenda no se dice "Hemos encontrado 0 actividades": el equipo, si lo hay, o que no hay. */
+const foundText = computed(() => {
+  const n = activitiesFound.value
+  if (n > 0) return t('onboarding.calendar.found', { n }, n)
+  const people = teamFound.value
+  if (people > 0) return t('onboarding.calendar.foundTeamOnly', { n: people }, people)
+  return t('onboarding.calendar.foundNone')
+})
+const foundHint = computed(() => {
+  if (activitiesFound.value > 0) return t('onboarding.calendar.reviewHint')
+  return teamFound.value > 0 ? t('onboarding.calendar.reviewHintTeam') : ''
+})
+
 function onImportCreated(job: ImportJob) {
   importJobUuid.value = job.uuid
   importJob.value = null
@@ -314,11 +334,17 @@ function reviewNow() {
             class="flex flex-col gap-3"
             data-test="calendar-import-ready"
           >
-            <p class="text-[15px] font-semibold text-ink">
-              {{ t('onboarding.calendar.found', { n: activitiesFound }, activitiesFound) }}
+            <p
+              class="text-[15px] font-semibold text-ink"
+              data-test="calendar-import-found"
+            >
+              {{ foundText }}
             </p>
-            <p class="text-[14px] text-ink-2">
-              {{ t('onboarding.calendar.reviewHint') }}
+            <p
+              v-if="foundHint"
+              class="text-[14px] text-ink-2"
+            >
+              {{ foundHint }}
             </p>
             <div class="flex flex-col sm:flex-row gap-2">
               <BtnPrimary

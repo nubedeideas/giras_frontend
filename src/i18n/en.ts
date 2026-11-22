@@ -394,6 +394,9 @@ export default {
         body: '{reminders} reminder scheduled. First send: {date}. | {reminders} reminders scheduled. First send: {date}.',
         bodyPaused: "The tour's notifications are paused.",
         bodyNone: 'No reminders scheduled.',
+        titleReplaced:
+          'Import: {replaced} activity updated | Import: {replaced} activities updated',
+        alsoReplaced: '{replaced} activity was also updated. | {replaced} activities were also updated.',
       },
       billing_discrepancy: {
         title: 'Twilio billing discrepancies',
@@ -1417,7 +1420,11 @@ export default {
       fileSourceSub: 'Itinerary, PDF, Excel or photo',
       noTour: 'Create the tour in the first step to import its schedule.',
       found: 'We found {n} activity | We found {n} activities',
+      foundTeamOnly:
+        "We didn't find a schedule, but we found {n} team member | We didn't find a schedule, but we found {n} team members",
+      foundNone: "We didn't find a schedule in what you uploaded.",
       reviewHint: 'Review them before they are created: nothing is created until you confirm.',
+      reviewHintTeam: 'Review it before it is added: nothing is created until you confirm.',
       reviewNow: 'Review now',
       reviewLater: 'Review later',
     },
@@ -2527,7 +2534,7 @@ export default {
       empty: "You've skipped every row: there's nothing to confirm.",
       saving: 'Confirming…',
       summaryAll:
-        '{contacts} contacts and {activities} activities will be created ({skipped} skipped, {replaced} replaced)',
+        'New contacts: {contacts} · New activities: {activities} · Replaced: {replaced} · Skipped: {skipped}',
       viewNotices: 'Review notifications',
     },
     discard: {
@@ -2616,8 +2623,7 @@ export default {
         'This tour\'s notifications go to the "{group}" group, not the Tour team. Change it in the tour if you want them to get them.',
       confirmerOutside: "You're not in the Tour team: you'll only get notifications in the app.",
       titleAll: 'Import completed',
-      activities:
-        '{created} activity created, {replaced} replaced, {skipped} skipped | {created} activities created, {replaced} replaced, {skipped} skipped',
+      activities: 'Activities created: {created} · Replaced: {replaced} · Skipped: {skipped}',
       flights:
         '{n} flight will be completed with airline data | {n} flights will be completed with airline data',
       reminders:
@@ -2777,6 +2783,8 @@ export default {
       viewSource: 'View source',
       hideSource: 'Hide source',
       openDocument: 'Open document',
+      openingDocument: 'Opening document…',
+      openDocumentError: "We couldn't download the document. Please try again.",
       sourcePage: '{file}, page {page}',
       sourceRow: '{file}, {row}',
       sourceContext: 'Header:',
@@ -2827,11 +2835,16 @@ export default {
       duplicate_in_draft: 'Repeated in the import',
       replace: 'Will replace the existing one',
       skipped: 'Skipped',
+      duplicate_kept: 'Already in the tour',
+      duplicate_in_draft_kept: 'Repeated in the import',
     },
     duplicate: {
       skip: 'Skip',
       create: 'Create anyway',
       replace: 'Replace',
+      sameAsNoTime: 'Is it the same as {title}?',
+      repeatedOf: 'Looks like a repeat of {title}',
+      repeated: 'Looks like a repeat of another imported row',
     },
     activityIssues: {
       month_inferred: 'Month inferred from the previous row',

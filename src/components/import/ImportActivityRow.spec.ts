@@ -61,6 +61,28 @@ describe('ImportActivityRow', () => {
     expect(w.emitted('patch')).toEqual([[{ client_id: 'a1', action: 'create' }]])
   })
 
+  it('duplicado seguro recuperado: conserva la insignia', () => {
+    let w = mountRow({
+      row: activityRow({ match: { ...activityRow().match, status: 'duplicate', activity_uuid: 'X' } }),
+    })
+    let status = w.get('[data-test="import-activity-status"]')
+    expect(status.text()).toBe('Ya está en la gira')
+    expect(status.attributes('data-status')).toBe('pending')
+    w = mountRow({
+      row: activityRow({
+        duplicate_of: 'a0',
+        match: { ...activityRow().match, status: 'duplicate_in_draft' },
+      }),
+    })
+    status = w.get('[data-test="import-activity-status"]')
+    expect(status.text()).toBe('Repetida en lo importado')
+  })
+
+  it('mes deducido: issue traducido', () => {
+    const w = mountRow({ row: activityRow({ issues: ['month_inferred'] }) })
+    expect(w.text()).toContain('Mes deducido de la fila anterior')
+  })
+
   it('zona distinta de la de la gira con su origen en title; issues traducidos', () => {
     const w = mountRow({
       row: activityRow({

@@ -92,6 +92,8 @@ const IMPORT_ACTIVITY: Record<string, BadgeStatus> = {
   duplicate_in_draft: 'off',
   replace: 'pending',
   skipped: 'off',
+  duplicate_kept: 'pending',
+  duplicate_in_draft_kept: 'pending',
 }
 
 /** Estado de una fila de actividad del importador (`activityStatus` de `utils/importReview.ts`). */
