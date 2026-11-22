@@ -23,7 +23,7 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropZone from '@/components/import/ImportDropZone.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
-import ImportCompactReview from '@/components/import/ImportCompactReview.vue'
+import ImportTeamTable from '@/components/import/ImportTeamTable.vue'
 import {
   confirmImportJob,
   getImportJob,
@@ -947,7 +947,8 @@ async function confirmFileImport() {
           <p class="text-[13px] text-ink-2">
             {{ t('onboarding.crew.importReviewHint') }}
           </p>
-          <ImportCompactReview
+          <ImportTeamTable
+            compact
             :job="importJob"
             :saving="savingRows"
             :row-errors="rowErrors"

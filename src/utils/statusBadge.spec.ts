@@ -3,6 +3,7 @@ import {
   activityBadge,
   importConfidenceBadge,
   importJobBadge,
+  importRowBadge,
   notificationBadge,
   tourBadge,
 } from './statusBadge'
@@ -74,5 +75,19 @@ describe('importJobBadge', () => {
     ['constructor', 'off'],
   ])('%s → %s', (status, badge) => {
     expect(importJobBadge(status)).toBe(badge)
+  })
+})
+
+describe('importRowBadge', () => {
+  it.each([
+    ['new', 'scheduled'],
+    ['existing', 'sent'],
+    ['adds_info', 'sent'],
+    ['already_in_tour', 'sent'],
+    ['name_suggestion', 'pending'],
+    ['skipped', 'off'],
+    ['otro', 'off'],
+  ])('%s → %s', (status, badge) => {
+    expect(importRowBadge(status)).toBe(badge)
   })
 })

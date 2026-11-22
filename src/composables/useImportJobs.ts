@@ -113,7 +113,8 @@ export interface ImportMatchCandidate {
 
 export interface ImportRowMatch {
   status: ImportMatchStatus
-  by: 'phone' | 'email' | null
+  /** `user` cuando el usuario ha elegido el contacto (`link_contact_uuid`). */
+  by: 'phone' | 'email' | 'user' | null
   contact_uuid: string | null
   contact_name: string | null
   contact_phone: string | null
@@ -157,6 +158,10 @@ export interface ImportTeamRow {
   needs_action: boolean
   reviewed: boolean
   edited: boolean
+  /** Decisión explícita del usuario sobre la acción (lote B); `null`/ausente si no ha tocado nada. */
+  user_action?: ImportRowAction | null
+  /** El teléfono se ha editado a mano: el cambio de región lo re-normaliza sin volver a `phone_raw`. */
+  phone_edited?: boolean
 }
 
 export interface ImportPdfPages {

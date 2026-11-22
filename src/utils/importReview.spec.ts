@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/utils/apiClient'
 import { importJob, teamRow } from '@/test/importJobs'
 import {
+  apiErrorRows,
   canConfirm,
+  detectedTeam,
+  linkedContactUuid,
+  matchCandidates,
+  needsResolver,
+  restoreAction,
+  rowDisplayName,
   confidenceTone,
   deferredSources,
   errorKey,
@@ -215,5 +222,69 @@ describe('validateImportFiles', () => {
     expect(validateImportFiles([file('a.xlsx', 15 * MB), file('b.pdf', 6 * MB)])).toEqual({
       code: 'too_large',
     })
+  })
+})
+
+describe('resolutor y filas', () => {
+  const cand = (u: string) => ({ contact_uuid: u, contact_name: `N${u}`, contact_phone: null })
+
+  it('matchCandidates: name_suggestion usa los candidatos o el contacto sugerido', () => {
+    const withCands = teamRow({
+      match: { status: 'name_suggestion', by: null, contact_uuid: 'C1', contact_name: 'Uno', contact_phone: null, candidates: [cand('C2'), cand('C3')] },
+    })
+    expect(matchCandidates(withCands).map((c) => c.contact_uuid)).toEqual(['C2', 'C3'])
+    const single = teamRow({
+      match: { status: 'name_suggestion', by: null, contact_uuid: 'C1', contact_name: 'Uno', contact_phone: '+34600', candidates: [] },
+    })
+    expect(matchCandidates(single)).toEqual([{ contact_uuid: 'C1', contact_name: 'Uno', contact_phone: '+34600' }])
+    expect(needsResolver(single)).toBe(true)
+    expect(needsResolver({ ...single, action: 'skip' })).toBe(false)
+  })
+
+  it('matchCandidates: multiple_matches incluye el elegido y sin duplicados', () => {
+    const r = teamRow({
+      action: 'link',
+      issues: ['multiple_matches'],
+      match: { status: 'existing', by: 'phone', contact_uuid: 'C1', contact_name: 'Uno', contact_phone: null, candidates: [cand('C1'), cand('C2')] },
+    })
+    expect(matchCandidates(r).map((c) => c.contact_uuid)).toEqual(['C1', 'C2'])
+    expect(linkedContactUuid(r)).toBe('C1')
+    expect(linkedContactUuid({ ...r, link_contact_uuid: 'C2' })).toBe('C2')
+    expect(matchCandidates(teamRow())).toEqual([])
+  })
+
+  it('restoreAction y rowDisplayName', () => {
+    expect(restoreAction(teamRow())).toBe('create')
+    expect(
+      restoreAction(teamRow({ match: { status: 'existing', by: 'phone', contact_uuid: 'C1', contact_name: null, contact_phone: null, candidates: [] } }))
+    ).toBe('link')
+    expect(rowDisplayName(teamRow({ display_name: '', first_name: '', last_name: '', company: 'Autocares' }))).toBe('Autocares')
+  })
+
+  it('detectedTeam agrupa por documento y omite diferidas', () => {
+    const src = (o: Record<string, unknown>) => ({
+      ref: 'd1', document_uuid: 'D1', filename: 'a.pdf', kind: 'pdf_text' as const, sheet: null, doc_kind: 'team' as const,
+      processed: true, deferred: false, deferred_reason: null, rows_scanned: 1, truncated: false, people_found: 2, ...o,
+    })
+    const job = importJob({
+      detected: {
+        sources: [
+          src({}),
+          src({ ref: 'd1s', kind: 'pdf_scan', people_found: 3 }),
+          src({ ref: 'd2', document_uuid: 'D2', filename: 'cal.ics', deferred: true, processed: false, people_found: 0 }),
+        ],
+      },
+    })
+    expect(detectedTeam(job)).toEqual([{ key: 'D1', filename: 'a.pdf', people: 5 }])
+  })
+
+  it('apiErrorRows lee details.rows envuelto', () => {
+    const e = new ApiError(400, {
+      success: false,
+      error: { message: 'x', status_code: 400, details: { code: ['unresolved_rows'], rows: ['t1', 't3'] } },
+    })
+    expect(apiErrorRows(e)).toEqual(['t1', 't3'])
+    expect(apiErrorRows(new Error('x'))).toEqual([])
+    expect(errorKey('invalid_value')).toBe('importer.errors.invalid_value')
   })
 })

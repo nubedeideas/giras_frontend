@@ -1,0 +1,43 @@
+import { beforeEach, describe, expect, it } from 'vitest'
+import { mount, RouterLinkStub } from '@vue/test-utils'
+import i18n from '@/i18n'
+import ImportResultSummary from './ImportResultSummary.vue'
+
+beforeEach(() => {
+  i18n.global.locale.value = 'es'
+})
+
+const result = {
+  contacts_created: 3,
+  contacts_linked: 1,
+  linked_late: 1,
+  already_in_tour: 1,
+  added_to_group: 4,
+  skipped: 2,
+  team_group_uuid: 'G1',
+  team_group_is_default: false,
+  contact_uuids: [],
+}
+
+describe('ImportResultSummary', () => {
+  it('recuentos, aviso de grupo por defecto ajeno e "Importar más"', async () => {
+    const w = mount(ImportResultSummary, {
+      props: {
+        job: {
+          result,
+          team_group: { uuid: 'G1', name: 'Equipo de la gira', exists: true, is_default: false, default_group_name: 'Todos' },
+        },
+      },
+      global: { plugins: [i18n], stubs: { RouterLink: RouterLinkStub } },
+    })
+    expect(w.get('[data-test="import-result-summary"]').text()).toBe(
+      '3 contactos creados, 2 vinculados, 4 en el Equipo de la gira'
+    )
+    expect(w.text()).toContain('1 ya estaba en la gira')
+    expect(w.text()).toContain('2 omitidos')
+    expect(w.get('[data-test="import-result-not-default"]').text()).toContain('«Todos»')
+    expect(w.findComponent(RouterLinkStub).props('to')).toEqual({ name: 'contacts' })
+    await w.get('[data-test="import-result-more"]').trigger('click')
+    expect(w.emitted('importMore')).toHaveLength(1)
+  })
+})

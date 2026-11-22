@@ -9,6 +9,8 @@ import type {
   ImportDeferredReason,
   ImportJob,
   ImportJobStatus,
+  ImportMatchCandidate,
+  ImportRowAction,
   ImportTeamRow,
 } from '@/composables/useImportJobs'
 
@@ -87,6 +89,79 @@ export function rowStatusKey(row: ImportTeamRow): string {
   return `importer.status.${rowStatus(row)}`
 }
 
+/** Nombre visible de una fila (cae en empresa, puesto o la referencia de origen). */
+export function rowDisplayName(r: ImportTeamRow): string {
+  return (
+    r.display_name ||
+    [r.first_name, r.last_name].filter(Boolean).join(' ') ||
+    r.company ||
+    r.role_text ||
+    r.source_ref?.row ||
+    r.client_id
+  )
+}
+
+/**
+ * Contactos entre los que elegir en el resolutor: con `name_suggestion`, los candidatos (o el
+ * contacto sugerido); con `multiple_matches`, el contacto elegido por el servidor más el resto.
+ * Sin duplicados por `contact_uuid`.
+ */
+export function matchCandidates(r: ImportTeamRow): ImportMatchCandidate[] {
+  const m = r.match
+  if (!m) return []
+  const multiple = r.issues.includes('multiple_matches')
+  if (m.status !== 'name_suggestion' && !multiple) return []
+  const out: ImportMatchCandidate[] = []
+  const seen = new Set<string>()
+  const push = (c: ImportMatchCandidate) => {
+    if (!c.contact_uuid || seen.has(c.contact_uuid)) return
+    seen.add(c.contact_uuid)
+    out.push(c)
+  }
+  if (m.contact_uuid && (multiple || !m.candidates?.length)) {
+    push({ contact_uuid: m.contact_uuid, contact_name: m.contact_name ?? '', contact_phone: m.contact_phone })
+  }
+  for (const c of m.candidates ?? []) push(c)
+  return out
+}
+
+/** La fila pide elegir contacto ("¿Es la misma persona?" o varios contactos coinciden). */
+export function needsResolver(r: ImportTeamRow): boolean {
+  return r.action !== 'skip' && matchCandidates(r).length > 0
+}
+
+/** `uuid` del contacto con el que se vinculará la fila, o `null` si se crea. */
+export function linkedContactUuid(r: ImportTeamRow): string | null {
+  if (r.action !== 'link') return null
+  return r.link_contact_uuid ?? r.match?.contact_uuid ?? null
+}
+
+/** Acción al recuperar una fila omitida: vincular si el servidor encontró el contacto, si no crear. */
+export function restoreAction(r: ImportTeamRow): ImportRowAction {
+  return r.match?.contact_uuid && r.match.status !== 'name_suggestion' ? 'link' : 'create'
+}
+
+export interface DetectedTeamItem {
+  key: string
+  /** `""` para el texto pegado (la vista pone "Texto pegado"). */
+  filename: string
+  people: number
+}
+
+/** Fuentes con equipo, agrupadas por documento (un PDF puede dar fuente de texto y escaneada). */
+export function detectedTeam(job: Pick<ImportJob, 'detected'> | null | undefined): DetectedTeamItem[] {
+  const sources = (job?.detected && 'sources' in job.detected ? job.detected.sources : []) ?? []
+  const byKey = new Map<string, DetectedTeamItem>()
+  for (const s of sources) {
+    if (!s.processed || s.deferred || !s.people_found) continue
+    const key = s.document_uuid ?? s.ref
+    const item = byKey.get(key)
+    if (item) item.people += s.people_found
+    else byKey.set(key, { key, filename: s.filename, people: s.people_found })
+  }
+  return [...byKey.values()]
+}
+
 // ─── Confirmar ────────────────────────────────────────────────────────────────
 
 export function canConfirm(job: ImportJob | null | undefined): boolean {
@@ -157,6 +232,15 @@ const ERROR_CODES = new Set([
   'unresolved_rows',
   'already_confirmed',
   'job_not_ready',
+  // PATCH draft/ (§5)
+  'unknown_row',
+  'invalid_contact',
+  'invalid_email',
+  'invalid_role',
+  'invalid_region',
+  'too_many_rows',
+  'invalid_value',
+  'tour_required',
 ])
 
 /** Errores de validación del archivo (`apps/core/validators.py`, `validate_tour_document_file`). */
@@ -180,6 +264,23 @@ export function errorKey(code: string | null | undefined): string {
   if (code && ERROR_CODES.has(code)) return `importer.errors.${code}`
   if (code && FILE_CODES.has(code)) return 'importer.errors.invalidFile'
   return 'importer.errors.generic'
+}
+
+/**
+ * `client_id` de las filas a las que se refiere un error (`details.rows`: `unknown_row`,
+ * `invalid_contact`, `invalid_email`, `invalid_role`, `unresolved_rows`). Envuelto o en plano.
+ */
+export function apiErrorRows(e: unknown): string[] {
+  if (!(e instanceof ApiError) || !e.fieldErrors) return []
+  const fe = e.fieldErrors as Record<string, unknown>
+  const nested = fe.details
+  const nestedRows =
+    nested && typeof nested === 'object' && !Array.isArray(nested)
+      ? (nested as Record<string, unknown>).rows
+      : undefined
+  const strings = (v: unknown) =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : typeof v === 'string' ? [v] : []
+  return [...new Set([...strings(fe.rows), ...strings(nestedRows)])]
 }
 
 /** Clave i18n de un error de la API del importador (`details.code`, o por estado). */
