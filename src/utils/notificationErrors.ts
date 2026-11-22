@@ -9,6 +9,8 @@
 import { ApiError } from '@/utils/apiClient'
 
 export const PLAN_LIMIT_REACHED = 'plan_limit_reached'
+/** 503 de `send` síncrono y `metadata.quota_error` de una notificación: el limitador no respondió. */
+export const PLAN_LIMIT_UNAVAILABLE = 'plan_limit_unavailable'
 export const SCHEDULED_AFTER_ACTIVITY = 'scheduled_after_activity'
 
 function asStrings(v: unknown): string[] {
@@ -35,4 +37,24 @@ export function hasApiErrorCode(e: unknown, code: string): boolean {
 /** Cupo de WhatsApp agotado (403 de envíos manuales, 409 de avisos). */
 export function isPlanLimitError(e: unknown): boolean {
   return hasApiErrorCode(e, PLAN_LIMIT_REACHED)
+}
+
+/** No se ha podido comprobar el cupo (503 del limitador caído): se puede reintentar. */
+export function isQuotaUnavailableError(e: unknown): boolean {
+  return hasApiErrorCode(e, PLAN_LIMIT_UNAVAILABLE)
+}
+
+/**
+ * Notificación retenida porque el limitador de cupo no respondió (`metadata.quota_error`):
+ * `scheduled` mientras se reintenta, `failed` al agotar los reintentos (la recoge la tarea de
+ * fallidas). En los demás estados la marca ya no aplica.
+ */
+export function isQuotaRetryPending(n: {
+  status: string
+  metadata?: Record<string, unknown> | null
+}): boolean {
+  return (
+    (n.status === 'failed' || n.status === 'scheduled') &&
+    n.metadata?.quota_error === PLAN_LIMIT_UNAVAILABLE
+  )
 }

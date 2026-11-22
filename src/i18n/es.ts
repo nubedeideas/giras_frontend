@@ -277,6 +277,8 @@ export default {
   notif: {
     title: 'Notificaciones',
     planLimitReached: 'Se ha agotado el cupo de WhatsApp del plan de esta gira.',
+    quotaUnavailable: 'No se ha podido comprobar el cupo. Inténtalo de nuevo en unos minutos.',
+    quotaRetryPending: 'Pendiente de reintento: no se pudo comprobar el cupo.',
     scheduledAfterActivity: 'La hora del recordatorio debe ser anterior al inicio de la actividad.',
     templateSystemReadOnly: 'Plantilla del sistema, no editable',
     eventsTitle: 'Eventos',
@@ -370,7 +372,13 @@ export default {
           'La gira {tour} lleva {used} de {limit} notificaciones de WhatsApp del plan {plan}.',
         titleInactive: 'Tu plan aún no está activo',
         bodyInactive:
-          'El plan {plan} de la gira {tour} todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.',
+          'El plan {plan} de la gira {tour} todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app, y no se envía ningún WhatsApp hasta que cambies de plan.',
+        titleUnavailable: 'No se ha podido comprobar el cupo de WhatsApp',
+        bodyUnavailable: 'Los envíos se reintentan solos; si persiste, avísanos.',
+        titleNoticeBlocked: 'Un aviso no se ha enviado por WhatsApp',
+        bodyNoticeBlocked: 'Se ha agotado el cupo del plan. Envíalo por email o en la app, o cambia de plan.',
+        titleNoticeQuotaUnavailable: 'Un aviso se ha cerrado sin enviarse',
+        bodyNoticeQuotaUnavailable: 'No se ha podido comprobar el cupo de WhatsApp del plan.',
       },
       delivery_failed: {
         title: 'Envíos no entregados',
@@ -2191,7 +2199,7 @@ export default {
 
   plan: {
     automaticDegraded:
-      'Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.',
+      'Los recordatorios automáticos pasan a email y aviso en la app, y no se envía ningún WhatsApp hasta que cambies de plan.',
     banner: {
       warning: 'Esta gira ha usado el {percentage} % de sus WhatsApp del plan {plan}.',
       reached: 'Esta gira ha agotado los WhatsApp del plan {plan}.',
@@ -2309,6 +2317,8 @@ export default {
       departed: 'El vuelo ya ha despegado',
       no_longer_applies: 'El retraso ya no es significativo',
       activity_unavailable: 'La actividad ya no está disponible',
+      plan_limit_reached: 'Sin cupo de WhatsApp al enviar',
+      quota_unavailable: 'No se pudo comprobar el cupo al enviar',
     },
     urgent: {
       button: 'Aviso urgente',

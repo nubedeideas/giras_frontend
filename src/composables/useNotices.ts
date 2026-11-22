@@ -73,8 +73,18 @@ export interface NoticePreview {
   variable_positions?: Record<string, number | string> | null // el backend manda la posición como texto ("4")
   people: AudiencePerson[]
   counts: { total: number; reachable: number; no_phone: number; no_email: number; no_account: number }
-  /** `remaining`: `null` (o negativo, legado) con plan ilimitado o sin suscripción. */
-  cost: { whatsapp: number; cost_usd: number; remaining: number | null; over_quota: boolean }
+  /**
+   * `remaining`: `null` (o negativo, legado) con plan ilimitado o sin suscripción.
+   * `quota_exhausted`: el envío por WhatsApp se rechazaría ahora (409 `plan_limit_reached`);
+   * siempre `false` sin WhatsApp.
+   */
+  cost: {
+    whatsapp: number
+    cost_usd: number
+    remaining: number | null
+    over_quota: boolean
+    quota_exhausted?: boolean
+  }
   allowed_channels: ReminderChannel[]
   allowed_templates: { slug: string; name: string; approved: boolean }[]
 }

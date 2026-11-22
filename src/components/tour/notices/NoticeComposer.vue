@@ -9,6 +9,7 @@ import {
   shownRemaining,
   templateLabel,
   variableLabel,
+  whatsappQuotaBlocked,
 } from '@/utils/notices'
 import NoticeRecipientsEditor from './NoticeRecipientsEditor.vue'
 
@@ -106,6 +107,8 @@ const costText = computed(() => {
   if (remaining === null) return t('notices.costNoLimit', { count: c.whatsapp, cost })
   return t('notices.cost', { count: c.whatsapp, cost, remaining })
 })
+
+const quotaBlocked = computed(() => whatsappQuotaBlocked(props.preview, props.channel))
 
 const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
 </script>
@@ -325,7 +328,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
         {{ costText }}
       </p>
       <p
-        v-if="preview.cost.over_quota"
+        v-if="quotaBlocked || preview.cost.over_quota"
         class="text-[13px] text-brand-orange mt-1"
         data-test="notice-over-quota"
       >

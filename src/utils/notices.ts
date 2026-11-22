@@ -8,6 +8,7 @@ import type {
   NoticeEdit,
   NoticeEditableKey,
   NoticeOrigin,
+  NoticePreview,
   NoticeSelection,
 } from '@/composables/useNotices'
 
@@ -118,6 +119,17 @@ export function isExpiredByClock(expiresAt: string | null, now: DateTime = DateT
   if (!expiresAt) return false
   const date = DateTime.fromISO(expiresAt)
   return date.isValid && date.toMillis() <= now.toMillis()
+}
+
+/**
+ * Por WhatsApp no cabe en el cupo del plan (`cost.quota_exhausted`): no se deja enviar; el
+ * usuario puede cambiar a email o en la app.
+ */
+export function whatsappQuotaBlocked(
+  preview: Pick<NoticePreview, 'cost'> | null | undefined,
+  channel: string
+): boolean {
+  return channel === 'whatsapp' && preview?.cost.quota_exhausted === true
 }
 
 /** Motivo de cierre legible; `null` si no hay o no se conoce (nunca el código crudo). */

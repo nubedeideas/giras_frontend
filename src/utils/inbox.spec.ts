@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
 import { inboxItem } from '@/test/inbox'
-import { formatInboxItem, goToInboxTarget, inboxTargetLocation } from './inbox'
+import { formatInboxItem, goToInboxTarget, inboxTargetLocation, isNoticeTarget } from './inbox'
 
 const t = i18n.global.t
 
@@ -132,7 +132,7 @@ describe('formatInboxItem', () => {
   it('plan_limit al 100 % con automatic_degraded añade la frase de degradación', () => {
     const params = { percentage: 100, used: 500, limit: 500, plan_name: 'Starter' }
     expect(fmt({ kind: 'plan_limit', params: { ...params, automatic_degraded: true } }).body).toBe(
-      'La gira Gira Norte ha usado las 500 notificaciones de WhatsApp del plan Starter. Cambia de plan para seguir enviando. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
+      'La gira Gira Norte ha usado las 500 notificaciones de WhatsApp del plan Starter. Cambia de plan para seguir enviando. Los recordatorios automáticos pasan a email y aviso en la app, y no se envía ningún WhatsApp hasta que cambies de plan.'
     )
     expect(fmt({ kind: 'plan_limit', params }).body).not.toContain('recordatorios automáticos')
     expect(
@@ -148,7 +148,7 @@ describe('formatInboxItem', () => {
     })
     expect(item.title).toBe('Tu plan aún no está activo')
     expect(item.body).toBe(
-      'El plan Starter de la gira Gira Norte todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
+      'El plan Starter de la gira Gira Norte todavía no está activo. Los recordatorios automáticos pasan a email y aviso en la app, y no se envía ningún WhatsApp hasta que cambies de plan.'
     )
   })
 
@@ -320,5 +320,64 @@ describe('avisos bajo demanda (R2)', () => {
       path: '/tour',
       query: { tab: 'notices', notice: 'N1' },
     })
+  })
+})
+
+describe('plan_limit sin porcentaje (cupo fail-closed)', () => {
+  const noticeTarget = {
+    type: 'notice' as const,
+    tour_uuid: 'T1',
+    activity_uuid: null,
+    conflict_uuid: null,
+    notice_uuid: 'N9',
+  }
+
+  it('plan_limit_unavailable: el limitador no responde', () => {
+    const item = { kind: 'plan_limit', params: { reason: 'plan_limit_unavailable' } }
+    expect(fmt(item)).toEqual({
+      title: 'No se ha podido comprobar el cupo de WhatsApp',
+      body: 'Los envíos se reintentan solos; si persiste, avísanos.',
+    })
+    i18n.global.locale.value = 'en'
+    expect(fmt(item).title).toBe("We couldn't check the WhatsApp quota")
+  })
+
+  it('notice_blocked: texto propio y enlace al aviso, sin "Revisar y enviar"', () => {
+    const item = inboxItem({
+      kind: 'plan_limit',
+      params: { reason: 'notice_blocked', notice_uuid: 'N9', notice_origin: 'urgent' },
+      target: noticeTarget,
+    })
+    expect(formatInboxItem(item, t)).toEqual({
+      title: 'Un aviso no se ha enviado por WhatsApp',
+      body: 'Se ha agotado el cupo del plan. Envíalo por email o en la app, o cambia de plan.',
+    })
+    expect(inboxTargetLocation(item)).toEqual({
+      path: '/tour',
+      query: { tab: 'notices', notice: 'N9' },
+    })
+    expect(isNoticeTarget(item)).toBe(false)
+    expect(isNoticeTarget(inboxItem({ kind: 'flight_delay', target: noticeTarget }))).toBe(true)
+    i18n.global.locale.value = 'en'
+    expect(formatInboxItem(item, t).title).toBe("A notice wasn't sent by WhatsApp")
+  })
+
+  it('notice_quota_unavailable: aviso cerrado sin enviarse', () => {
+    const item = {
+      kind: 'plan_limit',
+      params: { reason: 'notice_quota_unavailable', notice_uuid: 'N9' },
+    }
+    expect(fmt(item)).toEqual({
+      title: 'Un aviso se ha cerrado sin enviarse',
+      body: 'No se ha podido comprobar el cupo de WhatsApp del plan.',
+    })
+    i18n.global.locale.value = 'en'
+    expect(fmt(item).body).toBe("We couldn't check the plan's WhatsApp quota.")
+  })
+
+  it('un reason desconocido sin porcentaje sigue usando la copia del backend', () => {
+    expect(
+      fmt({ kind: 'plan_limit', params: { reason: 'xyz' }, title: 'T', body: 'B' })
+    ).toEqual({ title: 'T', body: 'B' })
   })
 })

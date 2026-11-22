@@ -85,6 +85,10 @@ describe('tarjetas', () => {
 
   it('motivo de cierre desconocido no se enseña', () => {
     expect(closeReasonLabel('no_longer_applies', t)).toBe('El retraso ya no es significativo')
+    expect(closeReasonLabel('plan_limit_reached', t)).toBe('Sin cupo de WhatsApp al enviar')
+    expect(closeReasonLabel('quota_unavailable', t)).toBe(
+      'No se pudo comprobar el cupo al enviar'
+    )
     expect(closeReasonLabel('xyz', t)).toBeNull()
     expect(closeReasonLabel('', t)).toBeNull()
   })
