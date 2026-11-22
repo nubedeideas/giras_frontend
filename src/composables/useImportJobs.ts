@@ -687,39 +687,81 @@ export interface ImportPreviewRecipients {
   type_groups: { code: string; group_names: string[] }[]
 }
 
+export interface ImportPreviewStep {
+  minutes: number
+  channel: ImportNotificationChannel
+  /** Canal real: un paso de WhatsApp sin plantilla con SID sale por email (contrato real de gnotif). */
+  sends_as?: ImportNotificationChannel
+}
+
 export interface ImportPreviewReminderType {
   code: string
   name: string
+  /** Actividades futuras del borrador (no sustituidas) de este tipo. */
   activities: number
-  steps: { minutes: number; channel: ImportNotificationChannel }[]
+  steps: ImportPreviewStep[]
   messages: Record<ImportNotificationChannel, number>
 }
+
+export type ImportPreviewRuleEffect = 'skipped_on_import' | 'scheduled'
 
 export interface ImportPreviewRule {
   uuid: string
   name: string
+  /** `activity_created`, `activity_updated` o `activity_upcoming`. */
   trigger: string
   channel: ImportNotificationChannel
-  /** `skipped_on_import` para las `activity_created`/`activity_updated`; otros valores según gnotif. */
-  effect: string
+  /** `skipped_on_import` para `activity_created`/`activity_updated`; `scheduled` para `upcoming`. */
+  effect: ImportPreviewRuleEffect
+  /** Altas (o sustituciones) que no avisarán, o avisos que programará. */
   count: number
+  /**
+   * Solo en `scheduled`: la regla no enviará nada (`template_unavailable`, `template_not_approved`,
+   * `recipients_type_not_supported`, `group_unavailable`, `default_group_missing`).
+   */
+  skip_reason?: string
 }
 
-/** Respuesta de POST `{uuid}/preview-notifications/`. */
+export type ImportPreviewWarning =
+  | 'default_group_empty'
+  | 'team_group_not_default'
+  | 'people_without_phone'
+  | 'whatsapp_template_missing'
+  | 'past_activities'
+  | 'subscription_cancelled'
+
+export interface ImportPreviewShowDayAlert {
+  enabled: boolean
+  will_activate: boolean
+  /** Días locales con show (0 si la gira no queda activa). */
+  days: number
+  channel: ImportNotificationChannel
+  /** Plantilla de la alerta con SID (sin ella `enabled` es `false`). */
+  template_ready?: boolean
+  /** Personas con móvil que la recibirán; solo si se enviará algo. */
+  recipients?: number
+}
+
+/**
+ * Respuesta de POST `{uuid}/preview-notifications/` (F2 §5 + contrato real de gnotif,
+ * `apps/notifications/services/import_preview.py`).
+ */
 export interface ImportNotificationsPreview {
   recipients: ImportPreviewRecipients
   reminders_by_type: ImportPreviewReminderType[]
-  rules: ImportPreviewRule[]
-  show_day_alert: {
-    enabled: boolean
-    will_activate: boolean
-    days: number
-    channel: ImportNotificationChannel
+  /** Recordatorios de actividades ya guardadas que empiezan a recibir las personas del borrador. */
+  existing_activities?: {
+    activities: number
+    messages: Record<ImportNotificationChannel, number>
   }
+  rules: ImportPreviewRule[]
+  show_day_alert: ImportPreviewShowDayAlert
+  /** Incluye recordatorios, reglas `upcoming`, actividades existentes y alerta del día de show. */
   totals: Record<ImportNotificationChannel, number>
   /** ISO UTC o null si no hay nada que enviar. */
   first_send_at: string | null
   quota: {
+    /** `null` sin cupo de suscripción. */
     remaining: number | null
     plan_limit: number | null
     exceeds: boolean
@@ -727,7 +769,11 @@ export interface ImportNotificationsPreview {
   }
   paused: { current: boolean; after_confirm: boolean }
   tour_will_activate: boolean
-  warnings: string[]
+  /** Filas que sustituyen actividades existentes (sin aviso por fila, D-P2). */
+  replaced?: number
+  /** Filas a crear que ya han pasado (sin recordatorios). */
+  past_activities?: number
+  warnings: ImportPreviewWarning[]
 }
 
 // ─── Funciones (sin estado) ──────────────────────────────────────────────────

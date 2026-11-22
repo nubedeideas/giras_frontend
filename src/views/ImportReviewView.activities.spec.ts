@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
-import { activityRow, importJob, teamRow } from '@/test/importJobs'
+import { activityRow, importJob, notificationsPreview, teamRow } from '@/test/importJobs'
 import { activityJob } from '@/test/importActivities'
 import { stubMatchMedia } from '@/test/reminders'
 import { useActivitiesStore } from '@/stores/activities'
@@ -231,18 +231,23 @@ describe('ImportReviewView · actividades', () => {
         post_import: { status: 'pending', reminders_created: null, first_send_at: null },
       },
     })
-    const log = setupFetch(activityJob(), (c) =>
-      c.method === 'POST' && c.path === `${JOB_PATH}confirm/` ? jsonResponse(done) : undefined
-    )
+    const log = setupFetch(activityJob(), (c) => {
+      if (c.path === `${JOB_PATH}preview-notifications/`) return jsonResponse(notificationsPreview())
+      if (c.method === 'POST' && c.path === `${JOB_PATH}confirm/`) return jsonResponse(done)
+      return undefined
+    })
     const w = await mountView()
     await w.get('[data-test="import-confirm"]').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.query.step).toBe('notices')
-    expect(w.find('[data-test="import-notices-step"]').exists()).toBe(true)
+    expect(w.find('[data-test="import-notices"]').exists()).toBe(true)
     expect(log.some((c) => c.path === `${JOB_PATH}confirm/`)).toBe(false)
     await w.get('[data-test="import-notices-confirm"]').trigger('click')
     await flushPromises()
-    expect(log.find((c) => c.path === `${JOB_PATH}confirm/`)?.body).toEqual({})
+    expect(log.find((c) => c.path === `${JOB_PATH}confirm/`)?.body).toEqual({
+      pause_notifications: false,
+      activate_tour: true,
+    })
     expect(router.currentRoute.value.query.step).toBeUndefined()
     expect(loadActivities).toHaveBeenCalled()
     expect(loadTours).toHaveBeenCalled()

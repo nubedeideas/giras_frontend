@@ -70,8 +70,9 @@ describe('ImportConfirmBar', () => {
       },
       global: { plugins: [i18n] },
     })
-    // El texto (`importer.confirm.summaryAll`) lo declara el lote 3; aquí solo su presencia.
-    expect(w.find('[data-test="import-confirm-summary-all"]').exists()).toBe(true)
+    expect(w.get('[data-test="import-confirm-summary-all"]').text()).toBe(
+      'Se crearán 3 contactos y 9 actividades (2 omitidas, 1 sustituidas)'
+    )
     expect(w.find('[data-test="import-confirm-summary"]').exists()).toBe(false)
     const btn = w.get('[data-test="import-confirm"]')
     expect(btn.attributes('data-mode')).toBe('notices')
@@ -90,5 +91,21 @@ describe('ImportConfirmBar', () => {
     expect(w.get('[data-test="import-confirm-reason"]').text()).toBe(
       'Resuelve las filas en rojo u omítelas para confirmar'
     )
+  })
+
+  it('F2: modo notices sin actividades: resumen F1 y "Ver avisos →"', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: { summary: summary(), canConfirm: true, mode: 'notices' },
+      global: { plugins: [i18n] },
+    })
+    // Solo equipo que entra al grupo: también pasa por el paso de avisos.
+    expect(w.find('[data-test="import-confirm-summary-all"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-confirm-summary"]').exists()).toBe(true)
+    const btn = w.get('[data-test="import-confirm"]')
+    expect(btn.find('.hidden.lg\\:inline').text()).toBe('Ver avisos →')
+    expect(btn.find('.lg\\:hidden').text()).toBe('Revisar avisos (5)')
+    await btn.trigger('click')
+    expect(w.emitted('notices')).toHaveLength(1)
+    expect(w.emitted('confirm')).toBeUndefined()
   })
 })

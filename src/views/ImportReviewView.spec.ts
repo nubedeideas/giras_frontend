@@ -4,8 +4,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
-import { importJob, teamRow } from '@/test/importJobs'
+import { activityRow, importJob, notificationsPreview, teamRow } from '@/test/importJobs'
 import { stubMatchMedia } from '@/test/reminders'
+import { useActivitiesStore } from '@/stores/activities'
 import { useContactsStore } from '@/stores/contacts'
 import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import { useToursStore } from '@/stores/tours'
@@ -45,34 +46,25 @@ async function mountView() {
       { path: '/tour/import/:jobUuid', name: 'tour-import', component: { template: '<div />' } },
       { path: '/tour', name: 'tour', component: { template: '<div />' } },
       { path: '/contacts', name: 'contacts', component: { template: '<div />' } },
+      { path: '/events', name: 'events', component: { template: '<div />' } },
+      { path: '/settings', name: 'settings', component: { template: '<div />' } },
     ],
   })
   await router.push('/tour/import/J1')
   await router.isReady()
   const w = mount(ImportReviewView, { global: { plugins: [i18n, router] } })
   await flushPromises()
-  return w
+  return Object.assign(w, { router })
 }
+
+/** Fila de equipo que no entra al grupo: "Confirmar" directo, sin paso de avisos (como F1). */
+const outOfGroup = teamRow({ in_group: false })
 
 const wrapped = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   jsonResponse(
     { success: false, error: { message: 'x', status_code: status, details: { code: [code], ...extra } } },
     status
   )
-
-/**
- * Confirmar desde la barra: con equipo que entra al grupo (o actividades) pasa por el paso
- * `?step=notices` (lote 3; en el lote 2, un paso mínimo con "Confirmar").
- */
-async function confirmFromBar(w: Awaited<ReturnType<typeof mountView>>) {
-  await w.get('[data-test="import-confirm"]').trigger('click')
-  await flushPromises()
-  const step = w.find('[data-test="import-notices-confirm"]')
-  if (step.exists()) {
-    await step.trigger('click')
-    await flushPromises()
-  }
-}
 
 const pending = teamRow({ client_id: 't2', display_name: 'Marta', needs_action: true, confidence: 0.5 })
 
@@ -193,12 +185,23 @@ describe('ImportReviewView', () => {
         contact_uuids: ['C9'],
       },
     })
-    const log = setupFetch(importJob(), (c) =>
-      c.method === 'POST' && c.path === `${JOB_PATH}confirm/` ? jsonResponse(done) : undefined
-    )
+    const log = setupFetch(importJob(), (c) => {
+      if (c.path === `${JOB_PATH}preview-notifications/`) return jsonResponse(notificationsPreview())
+      if (c.method === 'POST' && c.path === `${JOB_PATH}confirm/`) return jsonResponse(done)
+      return undefined
+    })
     const w = await mountView()
-    await confirmFromBar(w)
-    expect(log.some((c) => c.method === 'POST' && c.path === `${JOB_PATH}confirm/`)).toBe(true)
+    // Entra gente al Equipo de la gira: "Confirmar" pasa por "Qué se va a enviar y a quién".
+    await w.get('[data-test="import-confirm"]').trigger('click')
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.step).toBe('notices')
+    await w.get('[data-test="import-notices-confirm"]').trigger('click')
+    await flushPromises()
+    expect(log.find((c) => c.path === `${JOB_PATH}confirm/`)?.body).toEqual({
+      pause_notifications: false,
+      activate_tour: true,
+    })
+    expect(w.router.currentRoute.value.query.step).toBeUndefined()
     expect(w.get('[data-test="import-result-summary"]').text()).toBe(
       'Contactos nuevos: 1 · Vinculados: 0 · En el Equipo de la gira: 1'
     )
@@ -207,11 +210,12 @@ describe('ImportReviewView', () => {
   })
 
   it('unresolved_rows al confirmar marca las filas de details.rows', async () => {
-    setupFetch(importJob(), (c) =>
+    setupFetch(importJob({ draft: { team: [outOfGroup] } }), (c) =>
       c.path === `${JOB_PATH}confirm/` ? wrapped(400, 'unresolved_rows', { rows: ['t1'] }) : undefined
     )
     const w = await mountView()
-    await confirmFromBar(w)
+    await w.get('[data-test="import-confirm"]').trigger('click')
+    await flushPromises()
     expect(w.get('[data-test="import-confirm-error"]').text()).toBe('Quedan filas por resolver.')
     expect(w.get('tr[data-row="t1"] [data-test="import-row-error"]').text()).toBe(
       'Resuelve u omite esta fila para poder confirmar.'
@@ -300,7 +304,7 @@ describe('ImportReviewView', () => {
         { path: '/tour', name: 'tour', component: { template: '<div />' } },
       ],
     })
-    setupFetch(importJob(), (c) => {
+    setupFetch(importJob({ draft: { team: [outOfGroup] } }), (c) => {
       if (c.path === `${JOB_PATH}confirm/`) return wrapped(400, 'tour_closed')
       if (c.path === '/integrations/import-jobs/J2/') return jsonResponse(importJob({ uuid: 'J2' }))
       return undefined
@@ -309,7 +313,8 @@ describe('ImportReviewView', () => {
     await router.isReady()
     const w = mount(ImportReviewView, { global: { plugins: [i18n, router] } })
     await flushPromises()
-    await confirmFromBar(w)
+    await w.get('[data-test="import-confirm"]').trigger('click')
+    await flushPromises()
     expect(w.find('[data-test="import-confirm-error"]').exists()).toBe(true)
     await router.push('/tour/import/J2')
     await flushPromises()
@@ -360,5 +365,144 @@ describe('ImportReviewView', () => {
     )
     w = await mountView()
     expect(w.find('[data-test="import-wa-estimate"]').exists()).toBe(false)
+  })
+
+  describe('F2: paso de avisos y estado final', () => {
+    const actJob = () =>
+      importJob({
+        // Con una fila de equipo fuera del grupo: la barra lleva a los avisos por las actividades.
+        draft: {
+          team: [outOfGroup],
+          activities: [activityRow()],
+          warnings: [],
+          assumptions: { default_region: 'ES', default_region_source: 'tour_timezone' },
+        },
+        summary: {
+          total: 1,
+          to_create: 1,
+          to_link: 0,
+          to_skip: 0,
+          in_group: 0,
+          needs_action: 0,
+          without_phone: 0,
+          not_mobile: 0,
+          activities: {
+            total: 1,
+            to_create: 1,
+            to_replace: 0,
+            to_skip: 0,
+            needs_action: 0,
+            duplicates: 0,
+            possible_duplicates: 0,
+            outside_tour: 0,
+            in_past: 0,
+            by_type: { flight: 1 },
+            days: 1,
+          },
+        },
+      })
+    const doneJob = () =>
+      importJob({
+        status: 'done',
+        draft: { team: [] },
+        result: {
+          contacts_created: 0,
+          contacts_linked: 0,
+          linked_late: 0,
+          already_in_tour: 0,
+          added_to_group: 0,
+          skipped: 0,
+          team_group_uuid: '',
+          team_group_is_default: true,
+          contact_uuids: [],
+          activities_created: 1,
+          activities_replaced: 0,
+          activities_skipped: 0,
+          flights_to_enrich: 1,
+          tour_activated: true,
+          notifications_paused: true,
+          post_import: { status: 'done', reminders_created: 3, first_send_at: '2026-12-02T09:30:00Z' },
+        },
+      })
+
+    it('"Ver avisos" → ?step=notices; pausar y confirmar → estado final y recargas', async () => {
+      const tours = useToursStore()
+      tours.tours = [{ id: 1, uuid: 'T1', name: 'Gira', status: 'draft', timezone: 'Europe/Madrid' } as Tour]
+      const loadTours = vi.spyOn(tours, 'loadTours').mockResolvedValue()
+      const loadActivities = vi.spyOn(useActivitiesStore(), 'loadActivities').mockResolvedValue()
+      const invalidate = vi.spyOn(useReminderCatalogStore(), 'invalidate').mockResolvedValue()
+      const fetchContacts = vi.spyOn(useContactsStore(), 'fetchContacts').mockResolvedValue()
+      const log = setupFetch(actJob(), (c) => {
+        if (c.path === `${JOB_PATH}preview-notifications/`) return jsonResponse(notificationsPreview())
+        if (c.path === `${JOB_PATH}confirm/`) return jsonResponse(doneJob())
+        return undefined
+      })
+      const w = await mountView()
+      const bar = w.get('[data-test="import-confirm"]')
+      expect(bar.attributes('data-mode')).toBe('notices')
+      expect(bar.find('.hidden.lg\\:inline').text()).toBe('Ver avisos →')
+      await w.get('[data-test="import-confirm"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBe('notices')
+      expect(w.find('[data-test="import-confirm-bar"]').exists()).toBe(false)
+      expect(w.get('[data-test="import-notices"]').text()).toContain('Qué se va a enviar y a quién')
+      expect(log.find((c) => c.path === `${JOB_PATH}preview-notifications/`)?.body).toEqual({
+        pause_notifications: false,
+        activate_tour: true,
+      })
+      await w.get('[data-test="import-notices-pause"]').setValue(true)
+      await flushPromises()
+      const previews = log.filter((c) => c.path === `${JOB_PATH}preview-notifications/`)
+      expect(previews).toHaveLength(2)
+      expect(previews[1].body).toEqual({ pause_notifications: true, activate_tour: true })
+      await w.get('[data-test="import-notices-confirm"]').trigger('click')
+      await flushPromises()
+      expect(log.find((c) => c.path === `${JOB_PATH}confirm/`)?.body).toEqual({
+        pause_notifications: true,
+        activate_tour: true,
+      })
+      expect(w.get('[data-test="import-result-activities"]').text()).toBe(
+        '1 actividad creada, 0 sustituidas, 0 omitidas'
+      )
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+      expect(invalidate).toHaveBeenCalledWith('T1')
+      expect(loadTours).toHaveBeenCalled()
+      expect(loadActivities).toHaveBeenCalled()
+      expect(fetchContacts).toHaveBeenCalled()
+    })
+
+    it('"Volver" sale del paso; unresolved_rows desde el paso vuelve con el filtro', async () => {
+      setupFetch(actJob(), (c) => {
+        if (c.path === `${JOB_PATH}preview-notifications/`) return jsonResponse(notificationsPreview())
+        if (c.path === `${JOB_PATH}confirm/`) return wrapped(400, 'unresolved_rows', { rows: ['a1'] })
+        return undefined
+      })
+      const w = await mountView()
+      await w.router.push({ query: { step: 'notices' } })
+      await flushPromises()
+      await w.get('[data-test="import-notices-back"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+      expect(w.find('[data-test="import-confirm-bar"]').exists()).toBe(true)
+
+      await w.get('[data-test="import-confirm"]').trigger('click')
+      await flushPromises()
+      await w.get('[data-test="import-notices-confirm"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+      expect(w.get('[data-test="import-confirm-error"]').text()).toBe('Quedan filas por resolver.')
+      expect(w.find('[data-test="import-notices"]').exists()).toBe(false)
+    })
+
+    it('preview con 409 job_not_ready sale del paso y recarga el job', async () => {
+      const log = setupFetch(actJob(), (c) =>
+        c.path === `${JOB_PATH}preview-notifications/` ? wrapped(409, 'job_not_ready') : undefined
+      )
+      const w = await mountView()
+      await w.get('[data-test="import-confirm"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.query.step).toBeUndefined()
+      expect(log.filter((c) => c.path === JOB_PATH && c.method === 'GET')).toHaveLength(2)
+    })
   })
 })

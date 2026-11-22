@@ -4,7 +4,8 @@
 // (ImportResultSummary) y `ready` (avisos, diferidos, "N cosas por resolver", bloques Equipo y
 // Actividades en el orden de `expected` y barra Confirmar). F2 §4.3: supuestos en bloque, bloque
 // Actividades por día con resolutores en línea, editor y "ver origen"; con actividades (o equipo
-// que entra al grupo) la barra lleva al paso `?step=notices` (lote 3).
+// que entra al grupo) la barra lleva al paso `?step=notices` ("Qué se va a enviar y a quién",
+// ImportNotificationsPreview), que confirma con `{pause_notifications, activate_tour: true}`.
 // Los PATCH van en cola secuencial; cada respuesta sustituye al job entero.
 import { computed, onMounted, ref, watch } from 'vue'
 import { DateTime } from 'luxon'
@@ -21,6 +22,7 @@ import ImportConfirmBar from '@/components/import/ImportConfirmBar.vue'
 import ImportDeferredNotice from '@/components/import/ImportDeferredNotice.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
 import ImportMatchResolver from '@/components/import/ImportMatchResolver.vue'
+import ImportNotificationsPreview from '@/components/import/ImportNotificationsPreview.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
 import ImportResultSummary from '@/components/import/ImportResultSummary.vue'
 import ImportTeamRowEditor from '@/components/import/ImportTeamRowEditor.vue'
@@ -196,24 +198,37 @@ const state = computed<ViewState | null>(() => {
 const summary = computed(() => job.value?.summary ?? null)
 const whatsappEstimate = computed(() => job.value?.whatsapp_estimate ?? null)
 
-// ─── Paso "Qué se va a enviar y a quién" (`?step=notices`, lote 3) ─────────────
+// ─── Paso "Qué se va a enviar y a quién" (`?step=notices`, F2 §4.4) ────────────
 
-const noticesStep = computed(() => route.query.step === 'notices')
+/**
+ * Se pinta el paso con `?step=notices` solo si la barra lleva a él y el borrador se puede confirmar
+ * (al recargar con filas por resolver se ve la revisión).
+ */
+const showNotices = computed(
+  () =>
+    state.value === 'ready' &&
+    confirmMode.value === 'notices' &&
+    confirmable.value &&
+    route.query.step === 'notices'
+)
 
+/** `push`: el botón atrás del navegador vuelve a la revisión. */
 function openNotices() {
   if (!confirmable.value) return
-  void router.replace({ query: { ...route.query, step: 'notices' } })
+  void router.push({ query: { ...route.query, step: 'notices' } })
 }
 
 function closeNotices() {
-  if (!noticesStep.value) return
-  void router.replace({ query: { ...route.query, step: undefined } })
+  if (route.query.step === undefined) return
+  const query = { ...route.query }
+  delete query.step
+  void router.replace({ query })
 }
 
 // En móvil la barra de confirmar es fija: el contenido deja sitio para ella (más alta con la
 // estimación de WhatsApp y su aviso).
 const readyPadding = computed(() => {
-  if (state.value !== 'ready' || noticesStep.value) return 'pb-28 lg:pb-6'
+  if (state.value !== 'ready' || showNotices.value) return 'pb-28 lg:pb-6'
   const e = whatsappEstimate.value
   if (e && e.people > 0) {
     return e.exceeds
@@ -479,7 +494,10 @@ const busy = computed(
     confirming.value || regionSaving.value || assumptionsSaving.value || saving.value.size > 0
 )
 
-/** Confirma el borrador (F2: `{pause_notifications, activate_tour}` desde el paso de avisos). */
+/**
+ * Confirma el borrador. Desde el paso de avisos con `{pause_notifications, activate_tour: true}`;
+ * sin paso (ni actividades ni equipo que entre al grupo), sin cuerpo, como F1.
+ */
 async function confirm(opts: ImportConfirmOptions = {}) {
   const uuid = jobUuid.value
   if (!confirmable.value || confirming.value) return
@@ -489,22 +507,11 @@ async function confirm(opts: ImportConfirmOptions = {}) {
     await queue
     const j = await confirmImportJob(uuid, opts)
     if (uuid !== jobUuid.value) return
+    const hadTeam = (job.value?.draft?.team?.length ?? 0) > 0
     job.value = j
     selectedId.value = null
     closeNotices()
-    const r = j.result as Partial<ImportResult>
-    // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
-    if (hasTeam.value) void contactsStore.fetchContacts()
-    void reminderCatalog.invalidate(j.tour)
-    // Actividades nuevas o sustituidas, y la gira puede haber pasado a activa o a pausa.
-    if (
-      (r.activities_created ?? 0) + (r.activities_replaced ?? 0) > 0 ||
-      r.tour_activated ||
-      r.notifications_paused
-    ) {
-      if (toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
-      void toursStore.loadTours()
-    }
+    refreshAfterConfirm(j, hadTeam)
   } catch (e) {
     if (uuid !== jobUuid.value) return
     confirmError.value = t(importErrorKey(e))
@@ -515,15 +522,47 @@ async function confirm(opts: ImportConfirmOptions = {}) {
       const text = t('importer.errors.unresolvedRow')
       rowErrors.value = { ...rowErrors.value, ...Object.fromEntries(rows.map((r) => [r, text])) }
     }
-    const backToReview = codes.includes('unresolved_rows') || codes.includes('activity_gone')
-    // Vuelve a la revisión (con el filtro "por resolver" si, tras recargar, queda algo).
-    if (backToReview) closeNotices()
+    // Estos errores devuelven a la revisión y recargan el job (si ya estaba confirmado, el estado
+    // final lo pinta el job recargado); con filas por resolver, se abre con el filtro "Por resolver".
     const reload = ['unresolved_rows', 'already_confirmed', 'job_not_ready', 'activity_gone']
-    if (reload.some((c) => codes.includes(c))) await refresh()
-    if (backToReview && uuid === jobUuid.value && needsAction.value > 0) onlyPending.value = true
+    if (reload.some((c) => codes.includes(c))) {
+      closeNotices()
+      await refresh()
+      if (uuid === jobUuid.value && needsAction.value > 0) onlyPending.value = true
+    }
   } finally {
     confirming.value = false
   }
+}
+
+/** Tras `confirm`: contactos, catálogo de recordatorios, gira (estado y pausa) y actividades. */
+function refreshAfterConfirm(j: ImportJob, hadTeam: boolean) {
+  const r = j.result as Partial<ImportResult>
+  const activities = (r.activities_created ?? 0) + (r.activities_replaced ?? 0)
+  // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
+  if (hadTeam || activities === 0) void contactsStore.fetchContacts()
+  void reminderCatalog.invalidate(j.tour)
+  if (activities > 0 || r.tour_activated || r.notifications_paused) void toursStore.loadTours()
+  if (activities > 0 && toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
+}
+
+function onNoticesConfirm(pause: boolean) {
+  void confirm({ pause_notifications: pause, activate_tour: true })
+}
+
+function onNoticesBack() {
+  confirmError.value = ''
+  closeNotices()
+}
+
+/** La vista previa respondió 409 `job_not_ready`: vuelve a la revisión con el job recargado. */
+function onNoticesNotReady() {
+  closeNotices()
+  void refresh()
+}
+
+function onResultUpdated(j: ImportJob) {
+  if (j.uuid === jobUuid.value) job.value = j
 }
 
 // ─── Descartar ────────────────────────────────────────────────────────────────
@@ -679,47 +718,20 @@ function onProcessed(j: ImportJob) {
           v-else-if="state === 'done'"
           :job="job"
           @import-more="dropOpen = true"
+          @updated="onResultUpdated"
         />
 
-        <!-- Paso "Qué se va a enviar y a quién" (?step=notices).
-             STUB del lote 2: el lote 3 lo sustituye por ImportNotificationsPreview
-             (vista previa, "Pausar avisos por ahora" y confirmar con esas opciones). -->
-        <div
-          v-else-if="state === 'ready' && noticesStep"
-          class="flex flex-col gap-4"
-          data-test="import-notices-step"
-        >
-          <h1 class="text-[20px] font-bold text-ink">
-            {{ t('importer.title') }}
-          </h1>
-          <p
-            v-if="confirmError"
-            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2"
-            role="alert"
-            data-test="import-confirm-error"
-          >
-            {{ confirmError }}
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <BtnSecondary
-              type="button"
-              :disabled="confirming"
-              data-test="import-notices-back"
-              @click="closeNotices"
-            >
-              {{ t('common.back') }}
-            </BtnSecondary>
-            <BtnPrimary
-              type="button"
-              class="disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="!confirmable || confirming"
-              data-test="import-notices-confirm"
-              @click="confirm()"
-            >
-              {{ t('importer.confirm.button') }}
-            </BtnPrimary>
-          </div>
-        </div>
+        <!-- Qué se va a enviar y a quién (?step=notices, F2 §4.4) -->
+        <ImportNotificationsPreview
+          v-else-if="showNotices"
+          :job-uuid="job.uuid"
+          :timezone="tourTimezone"
+          :busy="confirming"
+          :confirm-error="confirmError"
+          @back="onNoticesBack"
+          @confirm="onNoticesConfirm"
+          @not-ready="onNoticesNotReady"
+        />
 
         <!-- Borrador listo para revisar -->
         <div
