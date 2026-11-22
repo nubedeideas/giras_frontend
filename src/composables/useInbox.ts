@@ -17,6 +17,9 @@ export type InboxKind =
   | 'delivery_failed'
   // Bloque 3.5: solo superusuarios, sin gira; params `{ new_count, date }`.
   | 'billing_discrepancy'
+  // F2: importación confirmada (in-app, solo admins); params
+  // `{ job_uuid, created, replaced, reminders, first_send_at, paused }`. Enlaza a la revisión.
+  | 'import_done'
 
 export type InboxSeverity = 'info' | 'warning' | 'critical'
 

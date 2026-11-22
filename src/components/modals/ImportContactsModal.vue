@@ -1244,6 +1244,7 @@ watch(
           v-if="!importJobUuid"
           :tour-uuid="importTourUuid"
           entry-point="contacts"
+          expected="team"
           compact
           @created="importJobUuid = $event.uuid"
         />

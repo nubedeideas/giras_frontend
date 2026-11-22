@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
 import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityCard from './ActivityCard.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
+import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 
 const store = useActivitiesStore()
 const toursStore = useToursStore()
 const { isMobile } = useIsMobile()
 
-defineEmits<{ openAdd: [] }>()
+// `canImport` (F2 A6): admin de la gira fuera de la demo.
+defineProps<{ canImport?: boolean }>()
+const emit = defineEmits<{ openAdd: []; openImport: [] }>()
+const { t } = useI18n()
 
 const CATEGORIES = [
   { value: 'logistics', label: 'Logística',  color: '#1a8fff' },
@@ -25,6 +30,17 @@ const CATEGORIES = [
 
 const hasTourUuid = computed(() => !!toursStore.activeTour?.uuid)
 const showCategoryFilter = ref(false)
+
+const hasFilters = computed(
+  () =>
+    store.filterTab !== 'all' ||
+    store.filterCategory.length > 0 ||
+    store.searchQuery.trim().length > 0
+)
+/** La gira no tiene ninguna actividad y no hay filtros: CTA de importar o añadir a mano. */
+const tourIsEmpty = computed(
+  () => !store.loading && !store.error && store.activities.length === 0 && !hasFilters.value
+)
 </script>
 
 <template>
@@ -39,7 +55,7 @@ const showCategoryFilter = ref(false)
         </p>
         <BtnPrimary
           small
-          @click="$emit('openAdd')"
+          @click="emit('openAdd')"
         >
           <svg
             width="11"
@@ -297,10 +313,45 @@ const showCategoryFilter = ref(false)
       </template>
 
       <div
-        v-if="store.groupedActivities.length === 0 && !store.loading"
-        class="text-center py-8 text-ink-4 text-[14px]"
+        v-if="tourIsEmpty"
+        class="flex flex-col items-center text-center gap-3 px-3 py-8"
+        data-test="activities-empty-tour"
       >
-        Sin resultados
+        <p class="text-[15px] font-semibold text-ink">
+          {{ t('activities.list.emptyTour') }}
+        </p>
+        <p
+          v-if="canImport"
+          class="text-[14px] text-ink-2"
+        >
+          {{ t('activities.list.emptyTourBody') }}
+        </p>
+        <div class="flex flex-col gap-2 w-full">
+          <BtnPrimary
+            v-if="canImport"
+            type="button"
+            full
+            data-test="activities-empty-import"
+            @click="emit('openImport')"
+          >
+            {{ t('importer.cta.importSchedule') }}
+          </BtnPrimary>
+          <BtnSecondary
+            type="button"
+            full
+            data-test="activities-empty-add"
+            @click="emit('openAdd')"
+          >
+            {{ t('activities.list.manual') }}
+          </BtnSecondary>
+        </div>
+      </div>
+      <div
+        v-else-if="store.groupedActivities.length === 0 && !store.loading"
+        class="text-center py-8 text-ink-2 text-[14px]"
+        data-test="activities-no-results"
+      >
+        {{ t('activities.list.noResults') }}
       </div>
     </div>
   </div>

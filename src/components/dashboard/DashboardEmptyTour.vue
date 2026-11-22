@@ -3,8 +3,13 @@ import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
-/** Gira sin actividades: CTA para crear la primera o traerlas de Google Calendar. */
-const emit = defineEmits<{ add: []; connectCalendar: [] }>()
+/**
+ * Gira sin actividades (F2 A5): con `canImport` (admin fuera de la demo), "Importar agenda" es la
+ * acción principal y "Añadir a mano" y Google Calendar quedan como secundarias; sin él, "Añadir a
+ * mano" pasa a principal.
+ */
+defineProps<{ canImport?: boolean }>()
+const emit = defineEmits<{ add: []; connectCalendar: []; import: [] }>()
 const { t } = useI18n()
 </script>
 
@@ -59,16 +64,33 @@ const { t } = useI18n()
         {{ t('dashboard.empty.title') }}
       </h3>
       <p class="text-[15px] text-ink-2">
-        {{ t('dashboard.empty.body') }}
+        {{ t(canImport ? 'dashboard.empty.body' : 'dashboard.empty.bodyManual') }}
       </p>
     </div>
-    <div class="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-2.5 w-full sm:w-auto">
+      <template v-if="canImport">
+        <BtnPrimary
+          class="justify-center"
+          data-testid="empty-import"
+          @click="emit('import')"
+        >
+          {{ t('dashboard.empty.import') }}
+        </BtnPrimary>
+        <BtnSecondary
+          class="justify-center"
+          data-testid="empty-add"
+          @click="emit('add')"
+        >
+          {{ t('dashboard.empty.manual') }}
+        </BtnSecondary>
+      </template>
       <BtnPrimary
+        v-else
         class="justify-center"
         data-testid="empty-add"
         @click="emit('add')"
       >
-        {{ t('dashboard.empty.add') }}
+        {{ t('dashboard.empty.manual') }}
       </BtnPrimary>
       <BtnSecondary
         class="justify-center"

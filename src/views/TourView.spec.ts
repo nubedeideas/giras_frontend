@@ -265,6 +265,28 @@ describe('TourView: importar (F1)', () => {
     expect(w.get('[data-test="import-pending-link"]').attributes('href')).toBe('/tour/import/J-new')
   })
 
+  it('F2: el aviso cuenta actividades si el job las trae', async () => {
+    setup({})
+    stubByUrl({
+      admin: true,
+      jobs: () => [
+        {
+          uuid: 'J1',
+          tour: 'T1',
+          status: 'ready',
+          filenames: ['Itinerario_MAD.pdf'],
+          created_at: '2026-11-22T09:30:00Z',
+          activities_found: 46,
+        },
+      ],
+    })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    const banner = w.get('[data-test="import-pending-banner"]')
+    expect(banner.text()).toContain('Tienes una importación sin revisar: Itinerario_MAD.pdf · 46 actividades')
+    expect(banner.find('[data-test="import-pending-activities"] .font-time').text()).toBe('46')
+  })
+
   it('ignora la lista atrasada de la gira anterior al cambiar de gira', async () => {
     setup({})
     let resolveT1: (r: Response) => void = () => {}
@@ -307,9 +329,9 @@ describe('TourView: importar (F1)', () => {
           '<div data-testid="crew-panel" :data-can-import="String(canImport)"><button data-testid="crew-import" @click="$emit(\'importTeam\')" /></div>',
       },
       ImportDropModal: {
-        props: ['show', 'entryPoint', 'tourUuid'],
+        props: ['show', 'entryPoint', 'tourUuid', 'expected'],
         template:
-          '<div data-testid="import-modal" :data-show="String(show)" :data-entry="entryPoint" />',
+          '<div data-testid="import-modal" :data-show="String(show)" :data-entry="entryPoint" :data-expected="expected" />',
       },
     }
 
@@ -342,6 +364,7 @@ describe('TourView: importar (F1)', () => {
       await w.get('[data-testid="reminders-import"]').trigger('click')
       expect(modal(w).attributes('data-show')).toBe('true')
       expect(modal(w).attributes('data-entry')).toBe('tour')
+      expect(modal(w).attributes('data-expected')).toBe('team')
 
       setup({})
       stubByUrl({ admin: true })
@@ -351,6 +374,19 @@ describe('TourView: importar (F1)', () => {
       await w2.get('[data-testid="crew-import"]').trigger('click')
       expect(modal(w2).attributes('data-show')).toBe('true')
       expect(modal(w2).attributes('data-entry')).toBe('tour')
+      expect(modal(w2).attributes('data-expected')).toBe('team')
+    })
+
+    it('F2 C1: el botón Importar abre el modal genérico (expected any)', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      const w = await mountEntry({ tab: 'reminders' })
+      await flushPromises()
+      await w.get('[data-testid="reminders-import"]').trigger('click')
+      expect(modal(w).attributes('data-expected')).toBe('team')
+      await w.get('[data-test="import-open"]').trigger('click')
+      expect(modal(w).attributes('data-show')).toBe('true')
+      expect(modal(w).attributes('data-expected')).toBe('any')
     })
 
     it('en la demo los paneles reciben canImport=false', async () => {
@@ -388,6 +424,7 @@ describe('TourView: importar (F1)', () => {
       expect(w.find('[data-testid="reminders-panel"]').exists()).toBe(true)
       expect(modal(w).attributes('data-show')).toBe('true')
       expect(modal(w).attributes('data-entry')).toBe('tour')
+      expect(modal(w).attributes('data-expected')).toBe('team')
       expect(w.replace).toHaveBeenCalledTimes(1)
       const q = w.router.currentRoute.value.query
       expect(q.tab).toBeUndefined()

@@ -13,6 +13,7 @@ import DashboardSendsBlock from '@/components/dashboard/DashboardSendsBlock.vue'
 import DashboardInboxBlock from '@/components/dashboard/DashboardInboxBlock.vue'
 import DashboardPlanBlock from '@/components/dashboard/DashboardPlanBlock.vue'
 import DashboardEmptyTour from '@/components/dashboard/DashboardEmptyTour.vue'
+import ImportDropModal from '@/components/import/ImportDropModal.vue'
 import NotificationsPauseToggle from '@/components/tour/NotificationsPauseToggle.vue'
 import { useToursStore } from '@/stores/tours'
 import { useAuthStore } from '@/stores/auth'
@@ -129,6 +130,15 @@ const todayLabel = computed(() => {
 const showAdd = ref(false)
 const showCreate = ref(false)
 const showImportCal = ref(false)
+
+// Importar agenda (F2 A3-A5, A7): solo admins de la gira fuera de la demo.
+const canImport = computed(() => tour.value?.current_user_is_admin === true && !auth.isDemoMode)
+const showImport = ref(false)
+
+function openImportFromCreate() {
+  showCreate.value = false
+  showImport.value = true
+}
 </script>
 
 <template>
@@ -174,6 +184,8 @@ const showImportCal = ref(false)
 
       <DashboardEmptyTour
         v-if="tourIsEmpty"
+        :can-import="canImport"
+        @import="showImport = true"
         @add="showCreate = true"
         @connect-calendar="showImportCal = true"
       />
@@ -250,13 +262,25 @@ const showImportCal = ref(false)
 
     <AddActivityModal
       :show="showAdd"
+      :can-import="canImport"
       @close="showAdd = false"
       @open-create="showCreate = true"
       @open-import-cal="showImportCal = true"
+      @open-import="showImport = true"
     />
     <CreateActivityModal
       :show="showCreate"
+      :can-import="canImport"
       @close="showCreate = false"
+      @open-import="openImportFromCreate"
+    />
+    <ImportDropModal
+      v-if="canImport && tourUuid"
+      :show="showImport"
+      :tour-uuid="tourUuid"
+      entry-point="dashboard"
+      expected="itinerary"
+      @close="showImport = false"
     />
     <ImportCalActivitiesModal
       :show="showImportCal"

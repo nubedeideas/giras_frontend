@@ -381,3 +381,59 @@ describe('plan_limit sin porcentaje (cupo fail-closed)', () => {
     ).toEqual({ title: 'T', body: 'B' })
   })
 })
+
+describe('import_done (F2)', () => {
+  const params = {
+    job_uuid: 'J1',
+    created: 44,
+    replaced: 1,
+    reminders: 120,
+    first_send_at: '2026-11-30T08:00:00Z',
+    paused: false,
+    timezone: 'Europe/Madrid',
+  }
+
+  it('título con las creadas y cuerpo con recordatorios y primer envío', () => {
+    const text = formatInboxItem(inboxItem({ kind: 'import_done', params }), t, 'es')
+    expect(text.title).toBe('Importación: 44 actividades creadas')
+    expect(text.body).toMatch(/^120 recordatorios programados\. Primer envío: 30 nov/)
+    expect(text.body).toContain('09:00')
+  })
+
+  it('con la gira en pausa, el cuerpo lo dice; singular con una actividad', () => {
+    const text = formatInboxItem(
+      inboxItem({ kind: 'import_done', params: { ...params, created: 1, paused: true } }),
+      t
+    )
+    expect(text.title).toBe('Importación: 1 actividad creada')
+    expect(text.body).toBe('Los avisos de la gira están en pausa.')
+  })
+
+  it('sin recordatorios, sin params o en inglés', () => {
+    expect(
+      formatInboxItem(
+        inboxItem({ kind: 'import_done', params: { ...params, reminders: 0, first_send_at: '' } }),
+        t
+      ).body
+    ).toBe('No hay recordatorios programados.')
+    expect(formatInboxItem(inboxItem({ kind: 'import_done', params: {} }), t)).toEqual({
+      title: 'Título',
+      body: 'Cuerpo',
+    })
+    i18n.global.locale.value = 'en'
+    const en = formatInboxItem(inboxItem({ kind: 'import_done', params }), t, 'en')
+    expect(en.title).toBe('Import: 44 activities created')
+    expect(en.body).toMatch(/^120 reminders scheduled\. First send: 30 Nov/)
+  })
+
+  it('lleva a la revisión del job y activa su gira', async () => {
+    const item = inboxItem({ kind: 'import_done', params })
+    expect(inboxTargetLocation(item)).toEqual({ name: 'tour-import', params: { jobUuid: 'J1' } })
+    expect(inboxTargetLocation(inboxItem({ kind: 'import_done', params: {} }))).toBeNull()
+    const router = { push: vi.fn().mockResolvedValue(undefined) }
+    const tours = { setActiveTourByUuid: vi.fn(() => true) }
+    expect(await goToInboxTarget(item, router, tours)).toBe(true)
+    expect(tours.setActiveTourByUuid).toHaveBeenCalledWith('T1')
+    expect(isNoticeTarget(item)).toBe(false)
+  })
+})

@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 
-const text = computed(() => formatInboxItem(props.item, t))
+const text = computed(() => formatInboxItem(props.item, t, locale.value))
 
 const SEVERITY_BAR: Record<string, string> = {
   critical: 'bg-brand-orange',

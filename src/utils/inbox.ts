@@ -1,4 +1,5 @@
 import type { RouteLocationRaw, Router } from 'vue-router'
+import { DateTime } from 'luxon'
 import type { InboxItem } from '@/composables/useInbox'
 
 /** Subconjunto de `t` de vue-i18n que usan estas funciones (puras, testeables sin montar). */
@@ -30,12 +31,33 @@ const PLAN_LIMIT_REASON_KEYS: Record<string, string> = {
   notice_quota_unavailable: 'NoticeQuotaUnavailable',
 }
 
+function truthy(v: unknown): boolean {
+  return v === true || v === 'true' || v === 1
+}
+
+/** Fecha y hora cortas de un ISO (en `zone` si es válida; si no, la del navegador). */
+function shortDateTime(iso: string, locale: string, zone?: string): string {
+  let d = DateTime.fromISO(iso)
+  if (!d.isValid) return ''
+  if (zone) {
+    const z = d.setZone(zone)
+    if (z.isValid) d = z
+  }
+  return d
+    .setLocale(locale === 'en' ? 'en-GB' : 'es-ES')
+    .toLocaleString({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
 /**
  * Título y cuerpo de un ítem en el idioma de la UI, a partir de `kind` + `params`.
  * `message` y los kinds desconocidos usan `title`/`body` del backend tal cual (texto plano,
  * nunca HTML). Si faltan los `params` necesarios, también se cae a la copia del backend.
  */
-export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
+export function formatInboxItem(
+  item: InboxItem,
+  t: InboxTranslate,
+  locale: string = 'es'
+): InboxText {
   const p = item.params ?? {}
   const tour = item.tour?.name ?? ''
   const raw: InboxText = { title: item.title, body: item.body }
@@ -146,6 +168,20 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
       return { title, body: t('inbox.kinds.billing_discrepancy.body', { count }, count) }
     }
 
+    case 'import_done': {
+      // F2 §3.9: `params = {job_uuid, created, replaced, reminders, first_send_at, paused}`.
+      const created = num(p.created)
+      if (Number.isNaN(created)) return raw
+      const title = t('inbox.kinds.import_done.title', { created }, created)
+      if (truthy(p.paused)) return { title, body: t('inbox.kinds.import_done.bodyPaused') }
+      const reminders = num(p.reminders)
+      if (Number.isNaN(reminders)) return { title, body: item.body }
+      const first = str(p.first_send_at)
+      const date = first ? shortDateTime(first, locale, str(p.timezone) || undefined) : ''
+      if (reminders <= 0 || !date) return { title, body: t('inbox.kinds.import_done.bodyNone') }
+      return { title, body: t('inbox.kinds.import_done.body', { reminders, date }, reminders) }
+    }
+
     default:
       return raw
   }
@@ -153,6 +189,11 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
 
 /** Ruta donde se resuelve el aviso, o `null` si no lleva a ningún sitio. */
 export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
+  // F2: `import_done` lleva a la revisión del job (el backend no le da un `target` propio).
+  if (item.kind === 'import_done') {
+    const job = str(item.params?.job_uuid)
+    return job ? { name: 'tour-import', params: { jobUuid: job } } : null
+  }
   const target = item.target
   switch (target?.type) {
     case 'activity':

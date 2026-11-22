@@ -11,8 +11,10 @@ import { activitySaveErrorMessage } from '@/utils/aiReview'
 import { inputValueToIso } from '@/utils/datetime'
 import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 
-const props = defineProps<{ show: boolean }>()
-const emit = defineEmits<{ close: [] }>()
+// `canImport` (F2 A7): admin de la gira fuera de la demo; la pista emite `openImport` y el padre
+// cierra el formulario y abre el importador.
+const props = defineProps<{ show: boolean; canImport?: boolean }>()
+const emit = defineEmits<{ close: []; openImport: [] }>()
 
 const api = useActivities()
 const actTypesApi = useActivityTypes()
@@ -345,6 +347,22 @@ async function submit() {
         </svg>
       </button>
     </div>
+
+    <p
+      v-if="canImport"
+      class="flex flex-wrap items-center gap-x-1.5 -mt-2 mb-4 rounded-sm bg-bg-2 border border-line px-3 py-1 text-[14px] text-ink-2"
+      data-test="create-import-hint"
+    >
+      <span class="py-2 lg:py-1">{{ tr('activities.create.importHint') }}</span>
+      <button
+        type="button"
+        class="inline-flex items-center min-h-[44px] lg:min-h-0 lg:py-1 font-semibold text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+        data-test="create-import-hint-cta"
+        @click="emit('openImport')"
+      >
+        {{ tr('activities.create.importHintCta') }}
+      </button>
+    </p>
 
     <div
       v-if="loadingTypes"

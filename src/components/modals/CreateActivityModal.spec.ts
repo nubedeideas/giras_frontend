@@ -197,3 +197,33 @@ describe('CreateActivityModal: zona horaria (F0 §4.3)', () => {
     expect(bodies[0].scheduled_at).toBe('2026-12-01T17:00:00.000Z')
   })
 })
+
+describe('CreateActivityModal: pista del importador (F2 A7)', () => {
+  async function mountWith(canImport: boolean) {
+    setTour(true)
+    handler()
+    const w = mount(CreateActivityModal, {
+      props: { show: false, canImport },
+      global: { plugins: [i18n], stubs: { UrgentNoticeModal: true } },
+    })
+    await w.setProps({ show: true })
+    await flushPromises()
+    return w
+  }
+
+  it('solo con canImport, y el botón emite openImport', async () => {
+    const off = await mountWith(false)
+    expect(off.find('[data-test="create-import-hint"]').exists()).toBe(false)
+
+    const w = await mountWith(true)
+    expect(w.get('[data-test="create-import-hint"]').text()).toContain(
+      '¿Tienes el itinerario en un PDF, un Excel o una foto?'
+    )
+    const cta = w.get('[data-test="create-import-hint-cta"]')
+    expect(cta.text()).toBe('Impórtalo de una vez')
+    expect(cta.classes()).toContain('min-h-[44px]')
+    await cta.trigger('click')
+    expect(w.emitted('openImport')).toHaveLength(1)
+  })
+})
+

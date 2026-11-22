@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { computed, ref, onMounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityListPanel from '@/components/activities/ActivityListPanel.vue'
 import ActivityDetail from '@/components/activities/ActivityDetail.vue'
@@ -12,15 +14,29 @@ import SelectTourModal from '@/components/modals/SelectTourModal.vue'
 import AddActivityModal from '@/components/modals/AddActivityModal.vue'
 import CreateActivityModal from '@/components/modals/CreateActivityModal.vue'
 import ImportCalActivitiesModal from '@/components/modals/ImportCalActivitiesModal.vue'
+import ImportDropModal from '@/components/import/ImportDropModal.vue'
 
 const store = useActivitiesStore()
 const toursStore = useToursStore()
+const auth = useAuthStore()
 const { isMobile } = useIsMobile()
+const { t } = useI18n()
 
 const showSelectTour = ref(false)
 const showAddModal = ref(false)
 const showCreate = ref(false)
 const showImportCal = ref(false)
+const showImport = ref(false)
+
+// Importar agenda (F2 A1, A6, A7): solo admins de la gira fuera de la demo.
+const canImport = computed(
+  () => toursStore.activeTour?.current_user_is_admin === true && !auth.isDemoMode
+)
+
+function openImportFromCreate() {
+  showCreate.value = false
+  showImport.value = true
+}
 
 function handleOpenAdd() {
   if (!toursStore.activeTour) {
@@ -61,7 +77,11 @@ watch(
 <template>
   <div class="flex h-full overflow-hidden">
     <!-- List panel -->
-    <ActivityListPanel @open-add="handleOpenAdd" />
+    <ActivityListPanel
+      :can-import="canImport"
+      @open-add="handleOpenAdd"
+      @open-import="showImport = true"
+    />
 
     <!-- Detail panel (desktop only — mobile uses the full-screen overlay below) -->
     <div
@@ -128,7 +148,7 @@ watch(
             </svg>
           </div>
           <p class="text-[14px]">
-            Selecciona una actividad para ver el detalle
+            {{ t('activities.list.selectHint') }}
           </p>
         </div>
       </Transition>
@@ -154,13 +174,25 @@ watch(
     />
     <AddActivityModal
       :show="showAddModal"
+      :can-import="canImport"
       @close="showAddModal = false"
       @open-create="showCreate = true"
       @open-import-cal="showImportCal = true"
+      @open-import="showImport = true"
     />
     <CreateActivityModal
       :show="showCreate"
+      :can-import="canImport"
       @close="showCreate = false"
+      @open-import="openImportFromCreate"
+    />
+    <ImportDropModal
+      v-if="canImport && toursStore.activeTour?.uuid"
+      :show="showImport"
+      :tour-uuid="toursStore.activeTour.uuid"
+      entry-point="activities"
+      expected="itinerary"
+      @close="showImport = false"
     />
     <ImportCalActivitiesModal
       :show="showImportCal"

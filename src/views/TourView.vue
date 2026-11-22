@@ -17,7 +17,11 @@ import { DateTime } from 'luxon'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
-import { listImportJobs, type ImportJobListItem } from '@/composables/useImportJobs'
+import {
+  listImportJobs,
+  type ImportExpected,
+  type ImportJobListItem,
+} from '@/composables/useImportJobs'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -137,6 +141,16 @@ watch(
 // de la demo. Protección frente a respuestas atrasadas al cambiar de gira.
 const canImport = computed(() => isAdmin.value && !auth.isDemoMode)
 const showImport = ref(false)
+/**
+ * F2: el botón "Importar" abre el modal genérico (`any`, C1); "Importar equipo" de Crew y
+ * Recordatorios y el deep link `?import=team` lo abren para el equipo (C8-C10).
+ */
+const importExpected = ref<ImportExpected>('any')
+
+function openImport(expected: ImportExpected) {
+  importExpected.value = expected
+  showImport.value = true
+}
 const pendingImports = ref<ImportJobListItem[]>([])
 let importsRequest = 0
 
@@ -195,7 +209,7 @@ function applyRequestedTab() {
   const match = TABS.value.find((x) => x.key === tab)
   if (match) activeTab.value = match.key
   requestedNotice.value = match?.key === 'notices' ? pendingNotice.value : null
-  if (pendingImport.value && canImport.value) showImport.value = true
+  if (pendingImport.value && canImport.value) openImport('team')
   requestedTab.value = null
   pendingNotice.value = null
   pendingImport.value = false
@@ -259,6 +273,22 @@ watch([TABS, detailSettledFor], applyRequestedTab)
             :label="t('importer.pendingBadge')"
           />
           <I18nT
+            v-if="latestImport.activities_found"
+            keypath="importer.pendingBannerActivities"
+            :plural="latestImport.activities_found"
+            tag="span"
+            class="min-w-0 text-[14px] text-ink break-words"
+            data-test="import-pending-activities"
+          >
+            <template #file>
+              <span class="font-semibold">{{ importFileLabel(latestImport) }}</span>
+            </template>
+            <template #n>
+              <span class="font-time tnum">{{ latestImport.activities_found }}</span>
+            </template>
+          </I18nT>
+          <I18nT
+            v-else
             keypath="importer.pendingBanner"
             tag="span"
             class="min-w-0 text-[14px] text-ink break-words"
@@ -286,7 +316,7 @@ watch([TABS, detailSettledFor], applyRequestedTab)
           type="button"
           class="sm:ml-auto self-start sm:self-auto"
           data-test="import-open"
-          @click="showImport = true"
+          @click="openImport('any')"
         >
           <svg
             width="14"
@@ -351,13 +381,13 @@ watch([TABS, detailSettledFor], applyRequestedTab)
         v-else-if="activeTab === 'crew' && canManageCrew"
         :tour-uuid="toursStore.activeTour!.uuid"
         :can-import="canImport"
-        @import-team="showImport = true"
+        @import-team="openImport('team')"
       />
       <TourRemindersPanel
         v-else-if="activeTab === 'reminders' && isAdmin"
         :tour-uuid="toursStore.activeTour!.uuid"
         :can-import="canImport"
-        @import-team="showImport = true"
+        @import-team="openImport('team')"
       />
       <NoticesPanel
         v-else-if="activeTab === 'notices' && isAdmin"
@@ -372,6 +402,7 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       :show="showImport"
       :tour-uuid="toursStore.activeTour.uuid"
       entry-point="tour"
+      :expected="importExpected"
       @close="closeImport"
     />
   </div>

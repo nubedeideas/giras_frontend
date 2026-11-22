@@ -18,9 +18,9 @@ function stubJobs(...jobs: Partial<ImportJob>[]) {
   return fn
 }
 
-function mountProgress() {
+function mountProgress(expected?: 'team' | 'itinerary' | 'any') {
   return mount(ImportProgress, {
-    props: { jobUuid: 'J1' },
+    props: { jobUuid: 'J1', ...(expected ? { expected } : {}) },
     global: { plugins: [i18n] },
   })
 }
@@ -70,5 +70,39 @@ describe('ImportProgress', () => {
     const w = mountProgress()
     await flushPromises()
     expect(w.emitted('failed')?.[0][0]).toMatchObject({ error_code: 'ai_unavailable' })
+  })
+
+  it('F2: con itinerario habla de la agenda; con any, según lo detectado', async () => {
+    stubJobs({ status: 'extracting', progress: { calls_done: 1, calls_total: 4 } })
+    const w = mountProgress('itinerary')
+    await flushPromises()
+    expect(w.get('[data-phase="extracting"]').text()).toBe('Leyendo la agenda (1/4)')
+    expect(w.get('[data-phase="normalizing"]').text()).toBe('Ajustando fechas, zonas y duplicados')
+    w.unmount()
+
+    const source = {
+      ref: 'd1',
+      document_uuid: 'D1',
+      filename: 'Itinerario.pdf',
+      kind: 'pdf_text' as const,
+      sheet: null,
+      doc_kind: 'itinerary' as const,
+      processed: true,
+      deferred: false,
+      deferred_reason: null,
+      rows_scanned: 0,
+      truncated: false,
+      people_found: 0,
+    }
+    stubJobs({ status: 'normalizing', detected: { sources: [source] } })
+    const any = mountProgress('any')
+    await flushPromises()
+    expect(any.get('[data-phase="extracting"]').text()).toBe('Leyendo la agenda')
+    any.unmount()
+
+    stubJobs({ status: 'normalizing', detected: { sources: [{ ...source, doc_kind: 'team' }] } })
+    const team = mountProgress('any')
+    await flushPromises()
+    expect(team.get('[data-phase="extracting"]').text()).toBe('Extrayendo el equipo')
   })
 })

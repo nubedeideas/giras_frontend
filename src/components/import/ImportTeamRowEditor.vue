@@ -6,14 +6,14 @@ import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import type { ContactRole } from '@/composables/useContactRoles'
-import type { ImportRowFields, ImportRowPatch, ImportTeamRow } from '@/composables/useImportJobs'
+import type { ImportRowFields, ImportTeamRowPatch, ImportTeamRow } from '@/composables/useImportJobs'
 import { rowDisplayName } from '@/utils/importReview'
 
 const props = withDefaults(
   defineProps<{ row: ImportTeamRow; roles?: ContactRole[]; saving?: boolean; error?: string }>(),
   { roles: () => [], saving: false, error: '' }
 )
-const emit = defineEmits<{ patch: [patch: ImportRowPatch]; close: [] }>()
+const emit = defineEmits<{ patch: [patch: ImportTeamRowPatch]; close: [] }>()
 
 const { t } = useI18n()
 
@@ -59,7 +59,7 @@ const dirty = computed(() => Object.keys(changed.value).length > 0)
 const showReviewed = computed(() => props.row.needs_action && props.row.action !== 'skip')
 
 function save(reviewed = false) {
-  const patch: ImportRowPatch = { client_id: props.row.client_id }
+  const patch: ImportTeamRowPatch = { client_id: props.row.client_id }
   if (dirty.value) patch.fields = { ...changed.value }
   if (reviewed) patch.reviewed = true
   if (!patch.fields && !patch.reviewed) return

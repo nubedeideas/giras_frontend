@@ -924,6 +924,7 @@ async function confirmFileImport() {
           v-if="fileStep === 'drop'"
           :tour-uuid="tourUuid"
           entry-point="onboarding"
+          expected="team"
           compact
           @created="onImportCreated"
         />

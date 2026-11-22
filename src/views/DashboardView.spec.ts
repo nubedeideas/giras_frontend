@@ -180,6 +180,11 @@ const stubs = {
     props: ['show'],
     template: '<div data-testid="import-modal" :data-show="String(show)" />',
   },
+  ImportDropModal: {
+    props: ['show', 'tourUuid', 'entryPoint', 'expected'],
+    template:
+      '<div data-testid="import-drop-modal" :data-show="String(show)" :data-entry="entryPoint" :data-expected="expected" />',
+  },
 }
 
 async function mountView() {
@@ -301,6 +306,26 @@ describe('DashboardView', () => {
     expect(w.find('[data-testid="create-modal"]').attributes('data-show')).toBe('true')
     await w.find('[data-testid="empty-calendar"]').trigger('click')
     expect(w.find('[data-testid="import-modal"]').attributes('data-show')).toBe('true')
+  })
+
+  it('F2 A5: gira vacía con admin abre el importador (dashboard · itinerary)', async () => {
+    setupFetch({ '/events/activities/': () => jsonResponse(page([])) })
+    setupStores()
+    const w = await mountView()
+    const modal = () => w.get('[data-testid="import-drop-modal"]')
+    expect(modal().attributes('data-entry')).toBe('dashboard')
+    expect(modal().attributes('data-expected')).toBe('itinerary')
+    expect(modal().attributes('data-show')).toBe('false')
+    await w.get('[data-testid="empty-import"]').trigger('click')
+    expect(modal().attributes('data-show')).toBe('true')
+  })
+
+  it('F2: un member no ve "Importar agenda" ni el importador', async () => {
+    setupFetch({ '/events/activities/': () => jsonResponse(page([])) })
+    setupStores({ admin: false })
+    const w = await mountView()
+    expect(w.find('[data-testid="empty-import"]').exists()).toBe(false)
+    expect(w.find('[data-testid="import-drop-modal"]').exists()).toBe(false)
   })
 
   it('admin con datos: pinta los 5 bloques con una petición por fuente', async () => {

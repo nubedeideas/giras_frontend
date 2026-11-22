@@ -88,8 +88,11 @@ export default {
     },
     empty: {
       title: 'Esta gira todavía no tiene actividades',
-      body: 'Añade la primera a mano o tráelas de Google Calendar.',
+      body: 'Sube el itinerario o el day sheet, añádelas a mano o tráelas de Google Calendar.',
+      bodyManual: 'Añade la primera a mano o tráelas de Google Calendar.',
       add: 'Añadir actividad',
+      import: 'Importar agenda',
+      manual: 'Añadir a mano',
       connectCalendar: 'Conectar Google Calendar',
     },
   },
@@ -386,6 +389,13 @@ export default {
       delivery_failed: {
         title: 'Envíos no entregados',
         body: '{count} envío de {tour} no se ha entregado hoy. Revisa los fallos en Informes. | {count} envíos de {tour} no se han entregado hoy. Revisa los fallos en Informes.',
+      },
+      import_done: {
+        title:
+          'Importación: {created} actividad creada | Importación: {created} actividades creadas',
+        body: '{reminders} recordatorio programado. Primer envío: {date}. | {reminders} recordatorios programados. Primer envío: {date}.',
+        bodyPaused: 'Los avisos de la gira están en pausa.',
+        bodyNone: 'No hay recordatorios programados.',
       },
       billing_discrepancy: {
         title: 'Discrepancias en la facturación de Twilio',
@@ -1281,7 +1291,7 @@ export default {
     steps: {
       tour: 'Gira',
       crew: 'Crew',
-      calendar: 'Calendario',
+      calendar: 'Agenda',
       done: '¡Listo!',
     },
     tour: {
@@ -1407,6 +1417,14 @@ export default {
       never: 'Nunca',
       assignedTo: 'Asignado a',
       yourTour: 'tu gira',
+      googleSourceSub: 'Sincroniza tu calendario',
+      fileSource: 'Archivo o foto',
+      fileSourceSub: 'Itinerario, PDF, Excel o foto',
+      noTour: 'Crea la gira en el primer paso para importar su agenda.',
+      found: 'Hemos encontrado {n} actividad | Hemos encontrado {n} actividades',
+      reviewHint: 'Revísalas antes de crearlas: no se crea nada hasta que confirmes.',
+      reviewNow: 'Revisar ahora',
+      reviewLater: 'Revisar después',
     },
     done: {
       team: '{n} persona en el Equipo de la gira | {n} personas en el Equipo de la gira',
@@ -2436,9 +2454,23 @@ export default {
     review: 'Revisar',
     close: 'Cerrar',
     retry: 'Probar otra vez',
-    modalTitle: 'Importar equipo',
-    modalSub: 'Crea los contactos de tu gente y mételos en el Equipo de la gira.',
+    modal: {
+      team: {
+        title: 'Importar equipo',
+        sub: 'Crea los contactos de tu gente y mételos en el Equipo de la gira.',
+      },
+      itinerary: {
+        title: 'Importar agenda',
+        sub: 'Sube el itinerario, el day sheet o una foto y convertiremos cada fecha en una actividad.',
+      },
+      any: {
+        title: 'Importar a la gira',
+        sub: 'Equipo, itinerario o los dos: detectamos qué trae cada archivo.',
+      },
+    },
     pendingBanner: 'Tienes una importación sin revisar: {file} · {date}',
+    pendingBannerActivities:
+      'Tienes una importación sin revisar: {file} · {n} actividad | Tienes una importación sin revisar: {file} · {n} actividades',
     pendingBadge: 'Sin revisar',
     pendingMore: '+{n}',
     pastedText: 'Texto pegado',
@@ -2552,6 +2584,10 @@ export default {
       pasteToggle: 'Pegar texto',
       pasteLabel: 'Texto pegado con el equipo',
       pastePlaceholder: 'Pega aquí la lista del equipo (de un email, de WhatsApp…)',
+      pastePlaceholderItinerary: 'Pega aquí el itinerario (de un email, de WhatsApp…)',
+      pastePlaceholderAny: 'Pega aquí el itinerario o la lista del equipo',
+      pasteLabelItinerary: 'Texto pegado con el itinerario',
+      pasteLabelAny: 'Texto pegado con el itinerario o el equipo',
       pasteCount: '{n} / {max}',
       privacyNote:
         'Lo que subas se guarda en Documentos de la gira (no lo ve el crew). Nada se crea hasta que lo revises.',
@@ -2568,6 +2604,9 @@ export default {
       detecting: 'Detectando qué contiene',
       extracting: 'Extrayendo el equipo ({done}/{total})',
       extractingShort: 'Extrayendo el equipo',
+      extractingActivities: 'Leyendo la agenda ({done}/{total})',
+      extractingActivitiesShort: 'Leyendo la agenda',
+      normalizingActivities: 'Ajustando fechas, zonas y duplicados',
       normalizing: 'Comprobando duplicados',
       confirming: 'Guardando',
       slow: 'Está tardando más de lo normal. Puedes cerrar: te avisaremos en la gira cuando esté listo para revisar.',
@@ -2640,6 +2679,7 @@ export default {
     },
     cta: {
       importTeam: 'Importar equipo',
+      importSchedule: 'Importar agenda',
     },
     errors: {
       unknown_row: 'Esta fila ya no existe en el borrador. Recarga la página.',
@@ -2679,6 +2719,32 @@ export default {
       throttled: 'Has lanzado muchas importaciones seguidas. Espera un minuto.',
       saveRow: 'No se ha guardado el cambio. Inténtalo de nuevo.',
       generic: 'No se ha podido completar. Inténtalo de nuevo.',
+    },
+  },
+
+  activities: {
+    add: {
+      title: 'Añadir actividad',
+      sub: 'Elige cómo quieres añadir la actividad',
+      close: 'Cerrar',
+      google: 'Google Calendar',
+      googleSub: 'Importar eventos',
+      manual: 'Manual',
+      manualSub: 'Crear con el formulario',
+      file: 'Archivo o foto',
+      fileSub: 'Itinerario, PDF, Excel o foto',
+      continue: 'Continuar',
+    },
+    create: {
+      importHint: '¿Tienes el itinerario en un PDF, un Excel o una foto?',
+      importHintCta: 'Impórtalo de una vez',
+    },
+    list: {
+      emptyTour: 'Esta gira todavía no tiene actividades',
+      emptyTourBody: 'Sube el itinerario o el day sheet y crearemos las actividades por ti.',
+      noResults: 'Sin resultados',
+      manual: 'Añadir a mano',
+      selectHint: 'Selecciona una actividad para ver el detalle',
     },
   },
 }

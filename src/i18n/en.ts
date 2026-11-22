@@ -86,8 +86,11 @@ export default {
     },
     empty: {
       title: 'This tour has no activities yet',
-      body: 'Add the first one manually or bring them from Google Calendar.',
+      body: 'Upload the itinerary or day sheet, add them manually or bring them from Google Calendar.',
+      bodyManual: 'Add the first one manually or bring them from Google Calendar.',
       add: 'Add activity',
+      import: 'Import schedule',
+      manual: 'Add manually',
       connectCalendar: 'Connect Google Calendar',
     },
   },
@@ -385,6 +388,12 @@ export default {
       delivery_failed: {
         title: 'Undelivered messages',
         body: "{count} message from {tour} wasn't delivered today. Check the failures in Reports. | {count} messages from {tour} weren't delivered today. Check the failures in Reports.",
+      },
+      import_done: {
+        title: 'Import: {created} activity created | Import: {created} activities created',
+        body: '{reminders} reminder scheduled. First send: {date}. | {reminders} reminders scheduled. First send: {date}.',
+        bodyPaused: "The tour's notifications are paused.",
+        bodyNone: 'No reminders scheduled.',
       },
       billing_discrepancy: {
         title: 'Twilio billing discrepancies',
@@ -1278,7 +1287,7 @@ export default {
     steps: {
       tour: 'Tour',
       crew: 'Crew',
-      calendar: 'Calendar',
+      calendar: 'Schedule',
       done: 'Done!',
     },
     tour: {
@@ -1403,6 +1412,14 @@ export default {
       never: 'Never',
       assignedTo: 'Assigned to',
       yourTour: 'your tour',
+      googleSourceSub: 'Sync your calendar',
+      fileSource: 'File or photo',
+      fileSourceSub: 'Itinerary, PDF, Excel or photo',
+      noTour: 'Create the tour in the first step to import its schedule.',
+      found: 'We found {n} activity | We found {n} activities',
+      reviewHint: 'Review them before they are created: nothing is created until you confirm.',
+      reviewNow: 'Review now',
+      reviewLater: 'Review later',
     },
     done: {
       team: '{n} person in the Tour team | {n} people in the Tour team',
@@ -2424,9 +2441,23 @@ export default {
     review: 'Review',
     close: 'Close',
     retry: 'Try again',
-    modalTitle: 'Import team',
-    modalSub: 'Create contacts for your people and add them to the Tour team.',
+    modal: {
+      team: {
+        title: 'Import team',
+        sub: "Create your people's contacts and add them to the Tour team.",
+      },
+      itinerary: {
+        title: 'Import schedule',
+        sub: "Upload the itinerary, the day sheet or a photo and we'll turn each date into an activity.",
+      },
+      any: {
+        title: 'Import into the tour',
+        sub: 'Team, itinerary or both: we detect what each file contains.',
+      },
+    },
     pendingBanner: 'You have an import waiting for review: {file} · {date}',
+    pendingBannerActivities:
+      'You have an import waiting for review: {file} · {n} activity | You have an import waiting for review: {file} · {n} activities',
     pendingBadge: 'To review',
     pendingMore: '+{n}',
     pastedText: 'Pasted text',
@@ -2538,6 +2569,10 @@ export default {
       pasteToggle: 'Paste text',
       pasteLabel: 'Pasted text with the team',
       pastePlaceholder: 'Paste the team list here (from an email, WhatsApp…)',
+      pastePlaceholderItinerary: 'Paste the itinerary here (from an email, WhatsApp…)',
+      pastePlaceholderAny: 'Paste the itinerary or the team list here',
+      pasteLabelItinerary: 'Pasted text with the itinerary',
+      pasteLabelAny: 'Pasted text with the itinerary or the team',
       pasteCount: '{n} / {max}',
       privacyNote:
         "What you upload is saved in the tour's Documents (the crew can't see it). Nothing is created until you review it.",
@@ -2554,6 +2589,9 @@ export default {
       detecting: "Detecting what's inside",
       extracting: 'Extracting the team ({done}/{total})',
       extractingShort: 'Extracting the team',
+      extractingActivities: 'Reading the schedule ({done}/{total})',
+      extractingActivitiesShort: 'Reading the schedule',
+      normalizingActivities: 'Checking dates, time zones and duplicates',
       normalizing: 'Checking for duplicates',
       confirming: 'Saving',
       slow: "This is taking longer than usual. You can close this: you'll see it in the tour when it's ready to review.",
@@ -2626,6 +2664,7 @@ export default {
     },
     cta: {
       importTeam: 'Import team',
+      importSchedule: 'Import schedule',
     },
     errors: {
       unknown_row: 'This row is no longer in the draft. Reload the page.',
@@ -2665,6 +2704,32 @@ export default {
       throttled: "You've started many imports in a row. Wait a minute.",
       saveRow: "The change wasn't saved. Try again.",
       generic: "Couldn't complete it. Try again.",
+    },
+  },
+
+  activities: {
+    add: {
+      title: 'Add activity',
+      sub: 'Choose how you want to add the activity',
+      close: 'Close',
+      google: 'Google Calendar',
+      googleSub: 'Import events',
+      manual: 'Manual',
+      manualSub: 'Create with the form',
+      file: 'File or photo',
+      fileSub: 'Itinerary, PDF, Excel or photo',
+      continue: 'Continue',
+    },
+    create: {
+      importHint: 'Got the itinerary in a PDF, an Excel or a photo?',
+      importHintCta: 'Import it in one go',
+    },
+    list: {
+      emptyTour: 'This tour has no activities yet',
+      emptyTourBody: "Upload the itinerary or the day sheet and we'll create the activities for you.",
+      noResults: 'No results',
+      manual: 'Add manually',
+      selectHint: 'Select an activity to see its details',
     },
   },
 }

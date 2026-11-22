@@ -1,31 +1,46 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
+import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
-const props = defineProps<{ show: boolean }>()
-const emit = defineEmits<{ close: []; openCreate: []; openImportCal: [] }>()
+/**
+ * Cómo añadir actividades (A1-A4 de la spec F2 §4.6): Google Calendar, a mano y, con `canImport`
+ * (admin de la gira fuera de la demo), "Archivo o foto", que abre el importador.
+ */
+const props = defineProps<{ show: boolean; canImport?: boolean }>()
+const emit = defineEmits<{ close: []; openCreate: []; openImportCal: []; openImport: [] }>()
 
-const choice = ref<'cal' | 'manual' | null>(null)
+const { t } = useI18n()
+
+type Choice = 'cal' | 'manual' | 'file'
+const choice = ref<Choice | null>(null)
 
 watch(
   () => props.show,
   (val) => {
     if (!val) setTimeout(() => (choice.value = null), 300)
-  },
+  }
 )
 
-function select(opt: 'cal' | 'manual') {
-  choice.value = opt
-}
+const options = computed(() => {
+  const list: { key: Choice; title: string; sub: string }[] = [
+    { key: 'cal', title: t('activities.add.google'), sub: t('activities.add.googleSub') },
+    { key: 'manual', title: t('activities.add.manual'), sub: t('activities.add.manualSub') },
+  ]
+  if (props.canImport) {
+    list.push({ key: 'file', title: t('activities.add.file'), sub: t('activities.add.fileSub') })
+  }
+  return list
+})
 
 function confirm() {
-  if (choice.value === 'cal') {
-    emit('close')
-    emit('openImportCal')
-  } else if (choice.value === 'manual') {
-    emit('close')
-    emit('openCreate')
-  }
+  const c = choice.value
+  if (!c) return
+  emit('close')
+  if (c === 'cal') emit('openImportCal')
+  else if (c === 'manual') emit('openCreate')
+  else emit('openImport')
 }
 </script>
 
@@ -34,9 +49,11 @@ function confirm() {
     :show="show"
     @close="emit('close')"
   >
-    <!-- Close button -->
     <button
-      class="absolute top-3.5 right-3.5 flex items-center justify-center w-[26px] h-[26px] rounded-[7px] border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink"
+      type="button"
+      class="absolute top-3 right-3 flex items-center justify-center w-[44px] h-[44px] lg:w-8 lg:h-8 rounded-sm border border-line bg-bg-2 text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+      :aria-label="t('activities.add.close')"
+      data-test="add-activity-close"
       @click="emit('close')"
     >
       <svg
@@ -48,6 +65,7 @@ function confirm() {
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
+        aria-hidden="true"
       >
         <line
           x1="18"
@@ -63,9 +81,11 @@ function confirm() {
       </svg>
     </button>
 
-    <!-- Header -->
-    <div class="flex items-center gap-2.5 mb-[18px]">
-      <div class="w-[34px] h-[34px] rounded-[9px] bg-acid-dim text-acid-muted flex items-center justify-center flex-shrink-0">
+    <div class="flex items-center gap-2.5 mb-[18px] pr-12">
+      <div
+        class="w-[34px] h-[34px] rounded-sm bg-lime-soft text-olive flex items-center justify-center flex-shrink-0"
+        aria-hidden="true"
+      >
         <svg
           width="15"
           height="15"
@@ -117,27 +137,40 @@ function confirm() {
       </div>
       <div>
         <p class="text-[15px] font-bold text-ink">
-          Agregar actividad
+          {{ t('activities.add.title') }}
         </p>
         <p class="text-[13px] text-ink-2 mt-px">
-          Elige cómo quieres agregar la actividad
+          {{ t('activities.add.sub') }}
         </p>
       </div>
     </div>
 
-    <!-- Option cards -->
-    <div class="grid grid-cols-2 gap-2 mb-5">
-      <!-- Google Calendar -->
-      <div
-        class="bg-glass border rounded-xl p-4 text-center cursor-pointer transition-all duration-200"
-        :class="choice === 'cal' ? 'border-line-acid bg-glass-active' : 'border-line hover:bg-glass-2'"
-        @click="select('cal')"
+    <!-- Opciones: apiladas en móvil, 2 o 3 columnas desde `sm` -->
+    <div
+      class="grid grid-cols-1 gap-2 mb-5"
+      :class="canImport ? 'sm:grid-cols-3' : 'sm:grid-cols-2'"
+      role="radiogroup"
+      :aria-label="t('activities.add.title')"
+    >
+      <button
+        v-for="opt in options"
+        :key="opt.key"
+        type="button"
+        role="radio"
+        :aria-checked="choice === opt.key"
+        class="flex sm:flex-col items-center gap-3 sm:gap-0 min-h-[44px] border rounded p-3 sm:p-4 text-left sm:text-center cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+        :class="choice === opt.key ? 'border-olive bg-glass-active' : 'border-line bg-bg-2 hover:bg-glass-hover'"
+        :data-test="`add-activity-${opt.key}`"
+        @click="choice = opt.key"
       >
-        <div
-          class="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-2.5 transition-colors duration-200"
-          :class="choice === 'cal' ? 'bg-[rgba(26,143,255,0.15)]' : 'bg-glass-2'"
+        <span
+          class="w-9 h-9 rounded-sm flex items-center justify-center flex-shrink-0 sm:mx-auto sm:mb-2.5 transition-colors duration-200"
+          :class="choice === opt.key ? 'bg-bg-3 text-olive' : 'bg-bg-4 text-ink-2'"
+          aria-hidden="true"
         >
+          <!-- Google -->
           <svg
+            v-if="opt.key === 'cal'"
             viewBox="0 0 24 24"
             width="16"
             height="16"
@@ -159,31 +192,14 @@ function confirm() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-        </div>
-        <p class="text-[13px] font-semibold text-ink leading-snug">
-          Google Calendar
-        </p>
-        <p class="text-[12px] text-ink-3 mt-0.5">
-          Importar eventos
-        </p>
-      </div>
-
-      <!-- Manual -->
-      <div
-        class="bg-glass border rounded-xl p-4 text-center cursor-pointer transition-all duration-200"
-        :class="choice === 'manual' ? 'border-line-acid bg-glass-active' : 'border-line hover:bg-glass-2'"
-        @click="select('manual')"
-      >
-        <div
-          class="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-2.5 transition-colors duration-200"
-          :class="choice === 'manual' ? 'bg-acid-dim' : 'bg-glass-2'"
-        >
+          <!-- Manual -->
           <svg
+            v-else-if="opt.key === 'manual'"
             width="16"
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            :stroke="choice === 'manual' ? 'var(--acid-muted)' : 'var(--ink-3)'"
+            stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -191,28 +207,45 @@ function confirm() {
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
-        </div>
-        <p class="text-[13px] font-semibold text-ink leading-snug">
-          Manual
-        </p>
-        <p class="text-[12px] text-ink-3 mt-0.5">
-          Crear formulario
-        </p>
-      </div>
+          <!-- Archivo o foto -->
+          <svg
+            v-else
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line
+              x1="12"
+              y1="18"
+              x2="12"
+              y2="12"
+            />
+            <polyline points="9 15 12 12 15 15" />
+          </svg>
+        </span>
+        <span class="min-w-0">
+          <span class="block text-[14px] font-semibold text-ink leading-snug">{{ opt.title }}</span>
+          <span class="block text-[13px] text-ink-2 mt-0.5">{{ opt.sub }}</span>
+        </span>
+      </button>
     </div>
 
-    <!-- Action -->
-    <button
-      class="w-full py-2.5 rounded-[8px] border-none text-[14px] font-semibold cursor-pointer transition-all duration-200"
-      :class="
-        choice
-          ? 'bg-acid text-ink hover:bg-acid-light'
-          : 'bg-glass border border-line text-ink-4 cursor-not-allowed'
-      "
+    <BtnPrimary
+      type="button"
+      full
+      data-test="add-activity-continue"
       :disabled="!choice"
+      :class="choice ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
       @click="confirm"
     >
-      Continuar
-    </button>
+      {{ t('activities.add.continue') }}
+    </BtnPrimary>
   </AppModal>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import OnbTourStep from './OnbTourStep.vue'
 import OnbCrewStep from './OnbCrewStep.vue'
 import OnbCalendarStep from './OnbCalendarStep.vue'
@@ -18,6 +19,7 @@ const emit = defineEmits<{ complete: [tourId: number | null]; close: [] }>()
 const STEPS: Step[] = ['tour', 'crew', 'calendar', 'done']
 
 const { t } = useI18n()
+const router = useRouter()
 
 const stepLabel = (s: Step) => t(`onboarding.steps.${s}`)
 
@@ -37,6 +39,12 @@ function onCrewNext() {
 
 function onCalendarNext() {
   currentStep.value = 'done'
+}
+
+/** "Revisar ahora" del paso Agenda: cierra el asistente (como al terminar) y abre la revisión. */
+function onReviewImport(jobUuid: string) {
+  emit('complete', createdTourId.value)
+  void router.push({ name: 'tour-import', params: { jobUuid } })
 }
 
 function onFinish() {
@@ -176,6 +184,7 @@ function onFinish() {
               :tour-id="createdTourId"
               @next="onCalendarNext"
               @skip="onCalendarNext"
+              @review-import="onReviewImport"
             />
             <OnbDoneStep
               v-else

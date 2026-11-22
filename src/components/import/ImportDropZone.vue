@@ -7,6 +7,7 @@ import { useIsMobile } from '@/composables/useIsMobile'
 import {
   createImportJob,
   type ImportEntryPoint,
+  type ImportExpected,
   type ImportJob,
 } from '@/composables/useImportJobs'
 import {
@@ -18,11 +19,16 @@ import {
 } from '@/utils/importReview'
 import { downscaleImage, ImageDecodeError } from '@/utils/imageResize'
 
-const props = defineProps<{
-  tourUuid: string
-  entryPoint: ImportEntryPoint
-  compact?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    tourUuid: string
+    entryPoint: ImportEntryPoint
+    /** F2: qué espera la entrada; cambia la ayuda del texto pegado y se manda al backend. */
+    expected?: ImportExpected
+    compact?: boolean
+  }>(),
+  { expected: 'any', compact: false }
+)
 const emit = defineEmits<{ created: [job: ImportJob] }>()
 
 const { t } = useI18n()
@@ -117,6 +123,16 @@ function removeFile(i: number) {
   errorMsg.value = ''
 }
 
+const PASTE_KEYS: Record<ImportExpected, { placeholder: string; label: string }> = {
+  team: { placeholder: 'importer.drop.pastePlaceholder', label: 'importer.drop.pasteLabel' },
+  itinerary: {
+    placeholder: 'importer.drop.pastePlaceholderItinerary',
+    label: 'importer.drop.pasteLabelItinerary',
+  },
+  any: { placeholder: 'importer.drop.pastePlaceholderAny', label: 'importer.drop.pasteLabelAny' },
+}
+const pasteKeys = computed(() => PASTE_KEYS[props.expected])
+
 const textTooLong = computed(() => text.value.length > IMPORT_MAX_TEXT_CHARS)
 
 async function submit() {
@@ -136,6 +152,7 @@ async function submit() {
       files: files.value,
       text: text.value,
       entryPoint: props.entryPoint,
+      expected: props.expected,
     })
     emit('created', job)
   } catch (e) {
@@ -383,8 +400,8 @@ async function submit() {
           v-model="text"
           data-test="import-text"
           :rows="compact ? 4 : 6"
-          :placeholder="t('importer.drop.pastePlaceholder')"
-          :aria-label="t('importer.drop.pasteLabel')"
+          :placeholder="t(pasteKeys.placeholder)"
+          :aria-label="t(pasteKeys.label)"
           :aria-invalid="textTooLong || undefined"
           class="w-full rounded-sm border border-line bg-bg-3 px-3 py-2 text-[15px] text-ink placeholder:text-ink-3 focus:outline-none focus:border-olive resize-y"
         />

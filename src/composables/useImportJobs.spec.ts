@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'v
 import { createPinia, setActivePinia } from 'pinia'
 import { API_BASE } from '@/utils/apiClient'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
-import { importJob, importListItem } from '@/test/importJobs'
+import { importJob, importListItem, notificationsPreview } from '@/test/importJobs'
 import {
   confirmImportJob,
   createImportJob,
@@ -10,7 +10,11 @@ import {
   getImportJob,
   listImportJobs,
   patchImportDraft,
+  previewImportNotifications,
   useImportJobs,
+  type ImportActivityRow,
+  type ImportDraftPatch,
+  type ImportNotificationsPreview,
   type ImportJob,
   type ImportJobListItem,
   type ImportResult,
@@ -59,6 +63,54 @@ describe('useImportJobs', () => {
     expect((callAt(fn, 0).init.body as FormData).has('text')).toBe(false)
   })
 
+  it('createImportJob manda expected salvo con any', async () => {
+    const fn = mockFetch(jsonResponse(importJob(), 202), jsonResponse(importJob(), 202))
+    const files = [new File(['a'], 'Itinerario.pdf')]
+    await createImportJob({ tourUuid: 'T1', files, entryPoint: 'activities', expected: 'itinerary' })
+    await createImportJob({ tourUuid: 'T1', files, entryPoint: 'tour', expected: 'any' })
+    const first = callAt(fn, 0).init.body as FormData
+    expect(first.get('entry_point')).toBe('activities')
+    expect(first.get('expected')).toBe('itinerary')
+    expect((callAt(fn, 1).init.body as FormData).has('expected')).toBe(false)
+  })
+
+  it('confirm y preview-notifications mandan pause_notifications y activate_tour', async () => {
+    const fn = mockFetch(
+      jsonResponse(notificationsPreview()),
+      jsonResponse(importJob({ status: 'done' }))
+    )
+    const preview = await previewImportNotifications('J1', {
+      pause_notifications: true,
+      activate_tour: true,
+    })
+    expect(preview.totals.whatsapp).toBe(311)
+    await confirmImportJob('J1', { pause_notifications: true, activate_tour: true })
+    expect(callAt(fn, 0).url).toBe(`${BASE}J1/preview-notifications/`)
+    expect(callAt(fn, 0).init.method).toBe('POST')
+    expect(JSON.parse(String(callAt(fn, 0).init.body))).toEqual({
+      pause_notifications: true,
+      activate_tour: true,
+    })
+    expect(callAt(fn, 1).url).toBe(`${BASE}J1/confirm/`)
+    expect(JSON.parse(String(callAt(fn, 1).init.body))).toEqual({
+      pause_notifications: true,
+      activate_tour: true,
+    })
+  })
+
+  it('PATCH de actividades y supuestos', async () => {
+    const fn = mockFetch(jsonResponse(importJob()))
+    const body: ImportDraftPatch = {
+      rows: [
+        { client_id: 'a3', action: 'replace' },
+        { client_id: 'a4', fields: { start_time: '21:00', all_day: false } },
+      ],
+      assumptions: { year: 2027, date_order: 'mdy', cities: { 'madrid|es': 'Europe/Madrid' } },
+    }
+    await patchImportDraft('J1', body)
+    expect(JSON.parse(String(callAt(fn, 0).init.body))).toEqual(body)
+  })
+
   it('detalle, lista filtrada, PATCH, confirm y discard van a sus URLs', async () => {
     const fn = mockFetch(
       jsonResponse(importJob()),
@@ -89,6 +141,7 @@ describe('useImportJobs', () => {
     })
     expect(callAt(fn, 3).url).toBe(`${BASE}J1/confirm/`)
     expect(callAt(fn, 3).init.method).toBe('POST')
+    expect(JSON.parse(String(callAt(fn, 3).init.body))).toEqual({})
     expect(callAt(fn, 4).url).toBe(`${BASE}J1/discard/`)
     expect(JSON.parse(String(callAt(fn, 4).init.body))).toEqual({ delete_documents: true })
     expect(JSON.parse(String(callAt(fn, 5).init.body))).toEqual({ delete_documents: false })
@@ -113,5 +166,15 @@ describe('tipos del contrato', () => {
     expectTypeOf<ImportJobListItem['created_by_name']>().toEqualTypeOf<string | null>()
     expectTypeOf<NonNullable<ImportJob['whatsapp_estimate']>>().toEqualTypeOf<ImportWhatsappEstimate>()
     expectTypeOf<ImportResult['confirmer_in_team']>().toEqualTypeOf<boolean | undefined>()
+  })
+
+  it('F2: fila de actividad, resultado ampliado y vista previa', () => {
+    expectTypeOf<ImportActivityRow['scheduled_at']>().toEqualTypeOf<string | null>()
+    expectTypeOf<ImportActivityRow>().not.toHaveProperty('raw')
+    expectTypeOf<ImportActivityRow>().not.toHaveProperty('user_fields')
+    expectTypeOf<NonNullable<ImportResult['post_import']>['status']>().toEqualTypeOf<
+      'pending' | 'done' | 'failed'
+    >()
+    expectTypeOf<ImportNotificationsPreview['quota']['exceeds']>().toEqualTypeOf<boolean>()
   })
 })

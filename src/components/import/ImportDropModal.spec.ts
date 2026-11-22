@@ -12,9 +12,9 @@ const stubs = {
   transition: false,
   ImportDropZone: {
     name: 'ImportDropZone',
-    props: ['tourUuid', 'entryPoint'],
+    props: ['tourUuid', 'entryPoint', 'expected'],
     emits: ['created'],
-    template: '<div data-test="zone-stub" :data-entry="entryPoint" />',
+    template: '<div data-test="zone-stub" :data-entry="entryPoint" :data-expected="expected" />',
   },
 }
 
@@ -25,7 +25,7 @@ function stubDetail(job: Partial<ImportJob>) {
   )
 }
 
-async function mountModal() {
+async function mountModal(extra: Record<string, unknown> = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -36,7 +36,7 @@ async function mountModal() {
   await router.push('/tour')
   await router.isReady()
   const w = mount(ImportDropModal, {
-    props: { show: true, tourUuid: 'T1' },
+    props: { show: true, tourUuid: 'T1', ...extra },
     global: { plugins: [i18n, router], stubs },
   })
   return Object.assign(w, { router })
@@ -77,5 +77,23 @@ describe('ImportDropModal', () => {
     await w.get('[data-test="import-retry"]').trigger('click')
     expect(w.find('[data-test="zone-stub"]').exists()).toBe(true)
     expect(w.emitted('close')).toBeUndefined()
+  })
+
+  it('F2: título y subtítulo por expected (any por defecto) y lo reenvía a la zona', async () => {
+    const cases = [
+      { props: {}, title: 'Importar a la gira', expected: 'any' },
+      { props: { expected: 'team' }, title: 'Importar equipo', expected: 'team' },
+      { props: { expected: 'itinerary' }, title: 'Importar agenda', expected: 'itinerary' },
+    ]
+    for (const c of cases) {
+      const w = await mountModal(c.props)
+      expect(w.text()).toContain(c.title)
+      expect(w.get('[data-test="zone-stub"]').attributes('data-expected')).toBe(c.expected)
+      w.unmount()
+    }
+    const w = await mountModal({ expected: 'itinerary' })
+    expect(w.text()).toContain(
+      'Sube el itinerario, el day sheet o una foto y convertiremos cada fecha en una actividad.'
+    )
   })
 })

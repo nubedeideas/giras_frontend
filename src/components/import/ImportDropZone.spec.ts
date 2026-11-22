@@ -21,9 +21,9 @@ function fakeFile(name: string, size = 1000, type = ''): File {
   return f
 }
 
-function mountZone() {
+function mountZone(props: { expected?: 'team' | 'itinerary' | 'any' } = { expected: 'team' }) {
   return mount(ImportDropZone, {
-    props: { tourUuid: 'T1', entryPoint: 'tour' },
+    props: { tourUuid: 'T1', entryPoint: 'tour', ...props },
     global: { plugins: [i18n] },
   })
 }
@@ -156,6 +156,7 @@ describe('ImportDropZone', () => {
     const body = fn.mock.calls[0][1]!.body as FormData
     expect(body.get('text')).toBe('Juan (FOH) 655 44 33 22')
     expect(body.get('entry_point')).toBe('tour')
+    expect(body.get('expected')).toBe('team')
     expect(w.emitted('created')?.[0][0]).toMatchObject({ uuid: 'J1', status: 'uploaded' })
   })
 
@@ -173,5 +174,33 @@ describe('ImportDropZone', () => {
     await flushPromises()
     expect(fn).not.toHaveBeenCalled()
     expect(w.text()).toContain('El texto pegado supera los 20.000 caracteres.')
+  })
+
+  const ANY_PLACEHOLDER = 'Pega aquí el itinerario o la lista del equipo'
+
+  it('F2: la ayuda del texto pegado y el campo expected dependen de expected', async () => {
+    const fn = vi.fn<typeof fetch>(async () => jsonResponse(importJob({ status: 'uploaded' }), 202))
+    vi.stubGlobal('fetch', fn)
+    const cases = [
+      {
+        expected: 'itinerary' as const,
+        placeholder: 'Pega aquí el itinerario (de un email, de WhatsApp…)',
+        sent: 'itinerary',
+      },
+      { expected: 'any' as const, placeholder: ANY_PLACEHOLDER, sent: null },
+      { expected: undefined, placeholder: ANY_PLACEHOLDER, sent: null },
+    ]
+    for (const [i, c] of cases.entries()) {
+      const w = mountZone(c.expected ? { expected: c.expected } : {})
+      await w.get('[data-test="import-paste-toggle"]').trigger('click')
+      const area = w.get('[data-test="import-text"]')
+      expect(area.attributes('placeholder')).toBe(c.placeholder)
+      await area.setValue('3 dic · 21:00 Show en Madrid')
+      await w.get('[data-test="import-submit"]').trigger('click')
+      await flushPromises()
+      const body = fn.mock.calls[i][1]!.body as FormData
+      expect(body.get('expected')).toBe(c.sent)
+      w.unmount()
+    }
   })
 })

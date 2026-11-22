@@ -6,12 +6,19 @@ import AppModal from '@/components/ui/AppModal.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropZone from '@/components/import/ImportDropZone.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
-import type { ImportEntryPoint, ImportJob } from '@/composables/useImportJobs'
+import type { ImportEntryPoint, ImportExpected, ImportJob } from '@/composables/useImportJobs'
 import { errorKey } from '@/utils/importReview'
 
+// `expected` (F2): `team` desde Contactos, `itinerary` desde las entradas de actividades y `any`
+// (genérico) desde Mi Gira. Elige título, subtítulo y ayuda del texto pegado y va al backend.
 const props = withDefaults(
-  defineProps<{ show: boolean; tourUuid: string; entryPoint?: ImportEntryPoint }>(),
-  { entryPoint: 'tour' }
+  defineProps<{
+    show: boolean
+    tourUuid: string
+    entryPoint?: ImportEntryPoint
+    expected?: ImportExpected
+  }>(),
+  { entryPoint: 'tour', expected: 'any' }
 )
 const emit = defineEmits<{ close: [] }>()
 
@@ -95,10 +102,10 @@ function onFailed(job: ImportJob) {
 
     <div class="pr-12 mb-4">
       <p class="text-[17px] font-bold text-ink">
-        {{ t('importer.modalTitle') }}
+        {{ t(`importer.modal.${expected}.title`) }}
       </p>
       <p class="text-[14px] text-ink-2 mt-0.5">
-        {{ t('importer.modalSub') }}
+        {{ t(`importer.modal.${expected}.sub`) }}
       </p>
     </div>
 
@@ -106,6 +113,7 @@ function onFailed(job: ImportJob) {
       v-if="!jobUuid"
       :tour-uuid="tourUuid"
       :entry-point="entryPoint"
+      :expected="expected"
       @created="onCreated"
     />
 
@@ -135,6 +143,7 @@ function onFailed(job: ImportJob) {
     >
       <ImportProgress
         :job-uuid="jobUuid"
+        :expected="expected"
         @ready="onReady"
         @failed="onFailed"
       />

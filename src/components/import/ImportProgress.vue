@@ -3,14 +3,29 @@ import { computed, toRef, watch } from 'vue'
 import { Translation as I18nT, useI18n } from 'vue-i18n'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import { useImportJobPolling } from '@/composables/useImportJobPolling'
-import type { ImportJob } from '@/composables/useImportJobs'
+import type { ImportExpected, ImportJob } from '@/composables/useImportJobs'
 import { IMPORT_PHASES, importErrorKey, phaseIndex, type ImportPhase } from '@/utils/importReview'
 
-const props = defineProps<{ jobUuid: string | null }>()
+const props = withDefaults(
+  defineProps<{ jobUuid: string | null; expected?: ImportExpected }>(),
+  { expected: 'team' }
+)
 const emit = defineEmits<{ ready: [job: ImportJob]; failed: [job: ImportJob] }>()
 
 const { t } = useI18n()
 const { job, error, slow, start } = useImportJobPolling(toRef(props, 'jobUuid'))
+
+/**
+ * F2: los textos de extracción y normalización hablan de la agenda si se espera un itinerario o
+ * si la detección ha encontrado alguno (`any`); si no, del equipo (F1).
+ */
+const readsSchedule = computed(() => {
+  if (props.expected === 'itinerary') return true
+  if (props.expected === 'team') return false
+  const detected = job.value?.detected
+  const sources = detected && 'sources' in detected ? detected.sources : []
+  return sources.some((s) => s.doc_kind === 'itinerary' || s.doc_kind === 'mixed')
+})
 
 const current = computed(() => (job.value ? phaseIndex(job.value.status) : 0))
 
@@ -20,7 +35,16 @@ const progress = computed(() => {
 })
 
 function phaseLabel(phase: ImportPhase): string {
-  if (phase === 'extracting') return t('importer.progress.extractingShort')
+  if (phase === 'extracting') {
+    return t(
+      readsSchedule.value
+        ? 'importer.progress.extractingActivitiesShort'
+        : 'importer.progress.extractingShort'
+    )
+  }
+  if (phase === 'normalizing' && readsSchedule.value) {
+    return t('importer.progress.normalizingActivities')
+  }
   return t(`importer.progress.${phase}`)
 }
 
@@ -85,7 +109,7 @@ const errorText = computed(() => (error.value ? t(importErrorKey(error.value)) :
         </span>
         <I18nT
           v-if="phase === 'extracting' && progress"
-          keypath="importer.progress.extracting"
+          :keypath="readsSchedule ? 'importer.progress.extractingActivities' : 'importer.progress.extracting'"
           tag="span"
         >
           <template #done>

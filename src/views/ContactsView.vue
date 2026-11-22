@@ -496,6 +496,7 @@ const groupedContacts = computed(() => {
       :show="showTeamImport"
       :tour-uuid="toursStore.activeTour.uuid"
       entry-point="contacts"
+      expected="team"
       @close="showTeamImport = false"
     />
   </div>
