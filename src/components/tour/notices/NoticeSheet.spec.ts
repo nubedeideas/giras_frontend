@@ -237,6 +237,30 @@ describe('NoticeSheet', () => {
     }
   })
 
+  it('sin cupo de WhatsApp avisa y no deja enviar por WhatsApp', async () => {
+    stubFetch(() =>
+      jsonResponse(
+        noticeDetail({
+          preview: preview({
+            cost: {
+              whatsapp: 12,
+              cost_usd: 0.3,
+              remaining: 0,
+              over_quota: true,
+              quota_exhausted: true,
+            },
+          }),
+        })
+      )
+    )
+    const w = await mountSheet()
+    expect(w.get('[data-test="notice-over-quota"]').text()).toBe(
+      'Sin cupo de WhatsApp: envíalo por email o en la app, o cambia de plan.'
+    )
+    expect(w.get('[data-test="notice-send"]').attributes('disabled')).toBeDefined()
+    expect(w.get('[data-test="notice-channel-email"]').attributes('disabled')).toBeUndefined()
+  })
+
   it('usa el detalle en caché sin pedirlo otra vez', async () => {
     const fn = stubFetch(() => jsonResponse(noticeDetail()))
     useNoticesStore().setDetail(noticeDetail())

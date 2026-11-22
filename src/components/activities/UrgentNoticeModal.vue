@@ -14,6 +14,7 @@ import {
   emptySelection,
   noticeErrorMessage,
   selectionEdit,
+  whatsappQuotaBlocked,
 } from '@/utils/notices'
 import NoticeSheetShell from '@/components/tour/notices/NoticeSheetShell.vue'
 import NoticeComposer from '@/components/tour/notices/NoticeComposer.vue'
@@ -124,8 +125,14 @@ const channel = computed<ReminderChannel>(
 const reachable = computed(() => preview.value?.counts.reachable ?? 0)
 const busy = computed(() => loading.value || sending.value)
 const hasBlankTexts = computed(() => blankRequiredTexts(drafts.value).length > 0)
+const quotaBlocked = computed(() => whatsappQuotaBlocked(preview.value, channel.value))
 const canSend = computed(
-  () => !!preview.value && reachable.value > 0 && !busy.value && !hasBlankTexts.value
+  () =>
+    !!preview.value &&
+    reachable.value > 0 &&
+    !busy.value &&
+    !hasBlankTexts.value &&
+    !quotaBlocked.value
 )
 const dirty = computed(
   () =>

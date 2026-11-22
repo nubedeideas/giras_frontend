@@ -2,7 +2,11 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
-import { hasApiErrorCode, SCHEDULED_AFTER_ACTIVITY } from '@/utils/notificationErrors'
+import {
+  hasApiErrorCode,
+  isQuotaRetryPending,
+  SCHEDULED_AFTER_ACTIVITY,
+} from '@/utils/notificationErrors'
 import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
 import { sortRecipientsForConfirmation } from '@/utils/confirmations'
 import {
@@ -203,6 +207,10 @@ const autoCancelledMessage = computed(() => {
   return AUTO_CANCEL_REASON_LABELS[reason] ?? 'Cancelada automáticamente por el sistema.'
 })
 
+const quotaRetryMessage = computed(() =>
+  original.value && isQuotaRetryPending(original.value) ? t('notif.quotaRetryPending') : null
+)
+
 const inputClass =
   'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
 const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
@@ -243,6 +251,13 @@ const selectClass =
           class="text-[10px] text-ink-4 mt-1 max-w-xs"
         >
           {{ autoCancelledMessage }}
+        </p>
+        <p
+          v-if="quotaRetryMessage"
+          class="text-[10px] text-brand-orange mt-1 max-w-xs"
+          data-test="notif-quota-retry"
+        >
+          {{ quotaRetryMessage }}
         </p>
       </div>
       <button

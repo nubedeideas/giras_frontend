@@ -23,6 +23,13 @@ function num(v: unknown): number {
   return Number.NaN
 }
 
+/** `params.reason` de `plan_limit` sin porcentaje → sufijo de sus claves `title*`/`body*`. */
+const PLAN_LIMIT_REASON_KEYS: Record<string, string> = {
+  plan_limit_unavailable: 'Unavailable',
+  notice_blocked: 'NoticeBlocked',
+  notice_quota_unavailable: 'NoticeQuotaUnavailable',
+}
+
 /**
  * Título y cuerpo de un ítem en el idioma de la UI, a partir de `kind` + `params`.
  * `message` y los kinds desconocidos usan `title`/`body` del backend tal cual (texto plano,
@@ -84,6 +91,15 @@ export function formatInboxItem(item: InboxItem, t: InboxTranslate): InboxText {
     }
 
     case 'plan_limit': {
+      // Sin porcentaje: el limitador no responde, o un aviso bajo demanda se cerró por cupo.
+      // Los ítems de aviso llevan `notice_uuid` y el backend los enlaza al aviso (target notice).
+      const special = PLAN_LIMIT_REASON_KEYS[str(p.reason)]
+      if (special) {
+        return {
+          title: t(`inbox.kinds.plan_limit.title${special}`, { tour }),
+          body: t(`inbox.kinds.plan_limit.body${special}`, { tour }),
+        }
+      }
       // Suscripción no activa (p. ej. pendiente de pago): sin porcentaje.
       if (p.reason === 'subscription_inactive') {
         const named = { plan: str(p.plan_name), tour }
@@ -164,7 +180,9 @@ export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
 
 /** El ítem lleva a un borrador de aviso que hay que revisar y enviar (R2). */
 export function isNoticeTarget(item: InboxItem): boolean {
-  return item.target?.type === 'notice'
+  // Un aviso cerrado por cupo (`plan_limit` con `notice_uuid`) lleva al aviso, pero ya no se
+  // puede enviar: no se ofrece "Revisar y enviar".
+  return item.target?.type === 'notice' && item.kind !== 'plan_limit'
 }
 
 export interface InboxToursStore {

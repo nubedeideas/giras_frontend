@@ -4,6 +4,8 @@ import {
   apiErrorCodes,
   hasApiErrorCode,
   isPlanLimitError,
+  isQuotaRetryPending,
+  isQuotaUnavailableError,
   SCHEDULED_AFTER_ACTIVITY,
 } from './notificationErrors'
 import { isStaleNotice } from './notices'
@@ -42,6 +44,28 @@ describe('notificationErrors', () => {
     })
     expect(hasApiErrorCode(e, SCHEDULED_AFTER_ACTIVITY)).toBe(true)
     expect(isPlanLimitError(e)).toBe(false)
+  })
+
+  it('reconoce el 503 plan_limit_unavailable de send', () => {
+    const e = new ApiError(503, {
+      success: false,
+      error: {
+        message: 'No se ha podido comprobar el cupo de WhatsApp.',
+        status_code: 503,
+        details: { plan: ['x'], code: ['plan_limit_unavailable'] },
+      },
+    })
+    expect(isQuotaUnavailableError(e)).toBe(true)
+    expect(isPlanLimitError(e)).toBe(false)
+  })
+
+  it('marca la notificación retenida por quota_error mientras está fallida o programada', () => {
+    const metadata = { quota_error: 'plan_limit_unavailable', quota_retries: 5 }
+    expect(isQuotaRetryPending({ status: 'failed', metadata })).toBe(true)
+    expect(isQuotaRetryPending({ status: 'scheduled', metadata })).toBe(true)
+    expect(isQuotaRetryPending({ status: 'sent', metadata })).toBe(false)
+    expect(isQuotaRetryPending({ status: 'failed', metadata: {} })).toBe(false)
+    expect(isQuotaRetryPending({ status: 'failed', metadata: null })).toBe(false)
   })
 
   it('sin código o sin ApiError devuelve vacío', () => {

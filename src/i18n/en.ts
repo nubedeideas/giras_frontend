@@ -204,6 +204,8 @@ export default {
   notif: {
     title: 'Notifications',
     planLimitReached: "This tour's plan has run out of WhatsApp quota.",
+    quotaUnavailable: "We couldn't check the quota. Try again in a few minutes.",
+    quotaRetryPending: "Pending retry: we couldn't check the quota.",
     scheduledAfterActivity: 'The reminder time must be before the activity starts.',
     templateSystemReadOnly: 'System template, not editable',
     eventsTitle: 'Events',
@@ -297,7 +299,14 @@ export default {
           'The tour {tour} has used {used} of {limit} WhatsApp notifications in the {plan} plan.',
         titleInactive: 'Your plan is not active yet',
         bodyInactive:
-          'The {plan} plan for the tour {tour} is not active yet. Automatic reminders go by email and in-app notice; notices you send yourself still go by WhatsApp.',
+          'The {plan} plan for the tour {tour} is not active yet. Automatic reminders switch to email and in-app notices, and no WhatsApp message is sent until you change your plan.',
+        titleUnavailable: "We couldn't check the WhatsApp quota",
+        bodyUnavailable: 'Messages are retried automatically; if it persists, let us know.',
+        titleNoticeBlocked: "A notice wasn't sent by WhatsApp",
+        bodyNoticeBlocked:
+          "The plan's quota has run out. Send it by email or in the app, or change your plan.",
+        titleNoticeQuotaUnavailable: 'A notice was closed without being sent',
+        bodyNoticeQuotaUnavailable: "We couldn't check the plan's WhatsApp quota.",
       },
       delivery_failed: {
         title: 'Undelivered messages',
@@ -2102,7 +2111,7 @@ export default {
 
   plan: {
     automaticDegraded:
-      'Automatic reminders switch to email and in-app notices; the notices you send yourself still go out by WhatsApp.',
+      'Automatic reminders switch to email and in-app notices, and no WhatsApp message is sent until you change your plan.',
     banner: {
       warning: 'This tour has used {percentage}% of its WhatsApp messages on the {plan} plan.',
       reached: 'This tour has used up the WhatsApp messages on the {plan} plan.',
@@ -2220,6 +2229,8 @@ export default {
       departed: 'The flight has already departed',
       no_longer_applies: 'The delay is no longer significant',
       activity_unavailable: 'The activity is no longer available',
+      plan_limit_reached: 'No WhatsApp quota left when sending',
+      quota_unavailable: "The quota couldn't be checked when sending",
     },
     urgent: {
       button: 'Urgent notice',

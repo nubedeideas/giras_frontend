@@ -26,6 +26,7 @@ import {
   originTone,
   selectionEdit,
   textEdit,
+  whatsappQuotaBlocked,
 } from '@/utils/notices'
 import NoticeSheetShell from './NoticeSheetShell.vue'
 import NoticeComposer from './NoticeComposer.vue'
@@ -146,8 +147,14 @@ const hasTextDrafts = computed(
 )
 const hasBlankTexts = computed(() => blankRequiredTexts(drafts.value).length > 0)
 const reachable = computed(() => preview.value?.counts.reachable ?? 0)
+const quotaBlocked = computed(() => whatsappQuotaBlocked(preview.value, channel.value))
 const canSend = computed(
-  () => editable.value && reachable.value > 0 && !busy.value && !hasBlankTexts.value
+  () =>
+    editable.value &&
+    reachable.value > 0 &&
+    !busy.value &&
+    !hasBlankTexts.value &&
+    !quotaBlocked.value
 )
 
 const tone = computed(() =>

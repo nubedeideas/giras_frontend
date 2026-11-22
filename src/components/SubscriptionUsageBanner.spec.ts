@@ -83,7 +83,7 @@ describe('SubscriptionUsageBanner', () => {
     expect(banner.attributes('data-level')).toBe('reached')
     expect(banner.classes()).toContain('bg-red-500/10')
     expect(w.get('[data-test="usage-banner-text"]').text()).toBe(
-      'Esta gira ha agotado los WhatsApp del plan Starter. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
+      'Esta gira ha agotado los WhatsApp del plan Starter. Los recordatorios automáticos pasan a email y aviso en la app, y no se envía ningún WhatsApp hasta que cambies de plan.'
     )
   })
 })
