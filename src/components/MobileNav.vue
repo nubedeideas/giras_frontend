@@ -2,14 +2,11 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
-import { userInitials } from '@/utils/userInitials'
 
 const route = useRoute()
 const { t } = useI18n()
-const auth = useAuthStore()
 
-// 5 pestañas: Inicio · Actividades · Calendario · Contactos · Ajustes (avatar).
+// 5 pestañas: Inicio · Actividades · Calendario · Contactos · Ajustes.
 // El selector de gira está en el header; Informes se abre desde el dashboard y el sidebar.
 const navItems = [
   {
@@ -41,8 +38,6 @@ function isActive(to: string) {
 }
 
 const settingsActive = computed(() => route.path.startsWith('/settings'))
-
-const initials = computed(() => userInitials(auth.user))
 </script>
 
 <template>
@@ -82,30 +77,38 @@ const initials = computed(() => userInitials(auth.user))
       >{{ t(item.label) }}</span>
     </RouterLink>
 
-    <!-- Ajustes: avatar del usuario en lugar del engranaje -->
+    <!-- Ajustes: engranaje, mismo patrón que el resto de pestañas -->
     <RouterLink
       to="/settings"
       class="flex-1 min-w-0 min-h-[56px] py-2 flex flex-col items-center justify-center gap-1 no-underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-acid"
       :class="settingsActive ? 'text-ink' : 'text-ink-2 hover:text-ink'"
       data-test="mobile-nav-link"
     >
-      <span class="flex items-center justify-center h-7">
-        <span
-          class="w-[26px] h-[26px] rounded-full overflow-hidden bg-acid flex items-center justify-center flex-shrink-0"
-          :class="settingsActive ? 'ring-2 ring-acid ring-offset-2 ring-offset-night' : ''"
-          data-test="mobile-nav-avatar"
+      <span
+        class="flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200"
+        :class="settingsActive ? 'bg-acid text-night' : ''"
+        data-test="mobile-nav-settings-icon"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          <img
-            v-if="auth.user?.avatar"
-            :src="auth.user.avatar"
-            alt=""
-            class="w-full h-full object-cover"
-          >
-          <span
-            v-else
-            class="text-[11px] font-bold text-night"
-          >{{ initials }}</span>
-        </span>
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
+          />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+          />
+        </svg>
       </span>
       <span
         class="text-[12px] leading-tight truncate max-w-full px-0.5"

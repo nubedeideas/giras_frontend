@@ -72,6 +72,23 @@ describe('AppSidebar', () => {
     const w = mount(AppSidebar, { global: { plugins: [i18n, router] } })
     expect(w.find('[data-test="sidebar-admin"]').classes()).toContain('text-[#F4B26B]')
   })
+  it('sin bloque de usuario y "Configuración" como última entrada', async () => {
+    useAuthStore().user = { ...USER, is_superuser: true, avatar: 'https://cdn.example.com/a.png' }
+    const router = await makeRouter('/settings')
+    const w = mount(AppSidebar, { global: { plugins: [i18n, router] } })
+    expect(w.find('[data-test="sidebar-avatar"]').exists()).toBe(false)
+    expect(w.text()).not.toContain('a@b.es')
+    expect(w.text()).not.toContain('Ana Pérez')
+    expect(w.findAll('img').map((i) => i.attributes('alt'))).toEqual(['Giras Pro'])
+    const items = w.findAll('aside > a, aside > button')
+    const last = items[items.length - 1]
+    expect(last.attributes('data-test')).toBe('sidebar-settings')
+    expect(last.text()).toBe('Configuración')
+    expect(last.classes()).toEqual(expect.arrayContaining(['bg-acid', 'text-night']))
+    expect(items[items.length - 2].attributes('data-test')).toBe('sidebar-admin')
+    await last.trigger('click')
+    expect(w.emitted('openSettings')).toHaveLength(1)
+  })
 })
 
 describe('MobileNav', () => {
@@ -92,25 +109,23 @@ describe('MobileNav', () => {
     expect(links[4].text()).toContain('Ajustes')
   })
 
-  it('Ajustes pinta iniciales sin avatar y la imagen si la hay', async () => {
-    const router = await makeRouter('/home')
-    let w = mount(MobileNav, { global: { plugins: [i18n, router] } })
-    const avatar = () => w.find('[data-test="mobile-nav-avatar"]')
-    expect(avatar().find('img').exists()).toBe(false)
-    expect(avatar().text()).toBe('AP')
-
+  it('Ajustes muestra el engranaje, sin avatar ni iniciales', async () => {
     useAuthStore().user = { ...USER, avatar: 'https://cdn.example.com/a.png' }
-    w = mount(MobileNav, { global: { plugins: [i18n, router] } })
-    expect(avatar().find('img').attributes('src')).toBe('https://cdn.example.com/a.png')
-  })
-
-  it('Ajustes sin nombre usa la inicial del email (nunca un círculo vacío)', async () => {
-    useAuthStore().user = { ...USER, first_name: '', last_name: '', full_name: '' }
     const router = await makeRouter('/home')
     const w = mount(MobileNav, { global: { plugins: [i18n, router] } })
-    expect(w.find('[data-test="mobile-nav-avatar"]').text()).toBe('A')
-    const side = mount(AppSidebar, { global: { plugins: [i18n, router] } })
-    expect(side.find('[data-test="sidebar-avatar"]').text()).toBe('A')
+    expect(w.find('[data-test="mobile-nav-avatar"]').exists()).toBe(false)
+    expect(w.find('img').exists()).toBe(false)
+    const icon = w.find('[data-test="mobile-nav-settings-icon"]')
+    expect(icon.find('svg circle').exists()).toBe(true)
+    expect(icon.classes()).not.toContain('bg-acid')
+    expect(w.text()).not.toContain('AP')
+  })
+
+  it('Ajustes activo con píldora lima en /settings', async () => {
+    const router = await makeRouter('/settings')
+    const w = mount(MobileNav, { global: { plugins: [i18n, router] } })
+    const icon = w.find('[data-test="mobile-nav-settings-icon"]')
+    expect(icon.classes()).toEqual(expect.arrayContaining(['bg-acid', 'text-night']))
   })
 
   it('Inicio activo por nombre de ruta', async () => {

@@ -3,7 +3,6 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
 import logoIcon from '@/assets/logo-icon.svg'
-import { userInitials } from '@/utils/userInitials'
 import { useUIState } from '@/composables/useUIState'
 
 const route = useRoute()
@@ -160,10 +159,12 @@ const INACTIVE = 'text-ink-2 hover:bg-glass-hover hover:text-ink'
       <span class="text-[15px] font-medium truncate">Panel Admin</span>
     </RouterLink>
 
-    <!-- Settings -->
+    <!-- Configuración: última entrada del sidebar (la cuenta vive en el avatar del header) -->
     <button
+      type="button"
       class="relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-colors duration-200 border-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid"
       :class="isActive('/settings') ? ACTIVE : `bg-transparent ${INACTIVE}`"
+      data-test="sidebar-settings"
       @click="emit('openSettings')"
     >
       <svg
@@ -187,36 +188,6 @@ const INACTIVE = 'text-ink-2 hover:bg-glass-hover hover:text-ink'
         />
       </svg>
       <span class="text-[15px] font-medium truncate">{{ t('settings.title') }}</span>
-    </button>
-
-    <!-- User footer -->
-    <button
-      class="flex items-center gap-2.5 px-2 py-2 mt-1 rounded-xl cursor-pointer transition-colors duration-200 border-none bg-transparent text-left hover:bg-glass-hover"
-      @click="emit('openSettings')"
-    >
-      <div
-        class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-acid"
-        data-test="sidebar-avatar"
-      >
-        <img
-          v-if="auth.user?.avatar"
-          :src="auth.user.avatar"
-          :alt="auth.user.full_name"
-          class="w-full h-full object-cover"
-        >
-        <span
-          v-else
-          class="text-[12px] font-bold text-night"
-        >{{ userInitials(auth.user) }}</span>
-      </div>
-      <div class="min-w-0 flex-1">
-        <p class="text-[14px] font-semibold text-ink truncate">
-          {{ auth.user?.full_name }}
-        </p>
-        <p class="text-[12px] text-ink-2 truncate">
-          {{ auth.user?.email }}
-        </p>
-      </div>
     </button>
   </aside>
 </template>
