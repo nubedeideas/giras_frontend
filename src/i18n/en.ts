@@ -23,6 +23,13 @@ export default {
     settings: 'Settings',
   },
 
+  header: {
+    openSettings: 'Open settings',
+    tourSelect: 'Tour: {tour}, {status}. Change tour',
+    tourSelectNone: 'All Tours. Choose tour',
+    settings: 'Settings',
+  },
+
   home: {
     eyebrow: 'Giras',
     heading: 'Before we start',
@@ -49,6 +56,10 @@ export default {
     statusCompleted: 'Completed',
     statusCancelled: 'Cancelled',
     viewTour: 'View tour',
+    activeTourLabel: 'Active tour',
+    noTourSelected: 'No tour selected',
+    membersCount: '{n} member | {n} members',
+    retry: 'Retry',
   },
 
   tourHub: {

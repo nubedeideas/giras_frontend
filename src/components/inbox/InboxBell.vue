@@ -10,8 +10,8 @@ const inbox = useInboxStore()
   <button
     id="inbox-bell"
     type="button"
-    class="relative w-9 h-9 flex-shrink-0 flex items-center justify-center bg-transparent hover:bg-glass-hover rounded-full border-none cursor-pointer transition-colors"
-    :class="inbox.isOpen ? 'text-acid' : 'text-ink-2 hover:text-ink'"
+    class="relative w-11 h-11 lg:w-9 lg:h-9 flex-shrink-0 flex items-center justify-center bg-transparent hover:bg-glass-hover rounded-full border-none cursor-pointer transition-colors"
+    :class="inbox.isOpen ? 'text-olive' : 'text-ink-2 hover:text-ink'"
     :aria-label="t('inbox.bellLabel', inbox.unreadCount)"
     :aria-expanded="inbox.isOpen"
     aria-haspopup="dialog"

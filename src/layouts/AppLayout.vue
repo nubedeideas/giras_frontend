@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import AppSidebar from '@/components/AppSidebar.vue'
 import MobileNav from '@/components/MobileNav.vue'
-import TourBand from '@/components/TourBand.vue'
 import SubscriptionUsageBanner from '@/components/SubscriptionUsageBanner.vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
@@ -16,6 +15,7 @@ import { useInboxPolling } from '@/composables/useInboxPolling'
 import { takeOnboardingResume } from '@/utils/googleOAuth'
 
 useNoIndex()
+const route = useRoute()
 // Contador del inbox: un único polling para toda la app autenticada.
 useInboxPolling()
 
@@ -30,7 +30,7 @@ const {
 } = useUIState()
 const toursStore = useToursStore()
 const authStore = useAuthStore()
-// Instantiating the store here triggers the watcher that applies data-theme to <html>
+// El store aún aplica data-theme a <html>, pero ya no hay CSS asociado (Paleta B, tema único).
 useUIStore()
 
 const toursLoaded = ref(false)
@@ -67,16 +67,16 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-bg lg:p-4">
-    <div
-      class="flex h-full overflow-hidden bg-bg-3 lg:rounded-3xl lg:shadow-[0_8px_40px_var(--shadow-md)]"
-    >
+  <!-- Marco exterior negro (escritorio); la tarjeta papel lleva el borde lima con brillo
+       (.app-frame). El overflow-hidden va en la tarjeta para no cortar el halo. -->
+  <div class="h-screen bg-black lg:p-6 xl:p-8">
+    <div class="app-frame flex h-full overflow-hidden bg-bg lg:max-w-[1800px] lg:mx-auto lg:rounded-3xl">
       <AppSidebar @open-settings="openSettings('general')" />
 
       <div class="flex-1 overflow-hidden flex flex-col">
         <DashboardHeader />
-        <TourBand />
-        <SubscriptionUsageBanner />
+        <!-- En /home el dashboard ya enseña el aviso de cupo -->
+        <SubscriptionUsageBanner v-if="route.name !== 'home'" />
         <div class="flex-1 overflow-hidden">
           <RouterView />
         </div>

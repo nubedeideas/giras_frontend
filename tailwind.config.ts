@@ -44,6 +44,7 @@ export default {
           DEFAULT: 'var(--line)',
           2: 'var(--line-2)',
           acid: 'var(--line-acid)',
+          soft: 'var(--line-soft)',
         },
         ink: {
           DEFAULT: 'var(--ink)',
@@ -51,6 +52,19 @@ export default {
           3: 'var(--ink-3)',
           4: 'var(--ink-4)',
         },
+        // Paleta B: olive es el acento de texto sobre claro (lima solo como relleno)
+        olive: { DEFAULT: 'var(--olive)', strong: 'var(--olive-strong)' },
+        // Se fusiona con la paleta lime por defecto de Tailwind; solo se añade `soft`
+        lime: { soft: 'var(--lime-soft)' },
+        night: { DEFAULT: 'var(--night)', 2: 'var(--night-2)', line: 'var(--night-line)' },
+        'on-night': { DEFAULT: 'var(--on-night)', muted: 'var(--on-night-muted)' },
+        sent: { bg: 'var(--sent-bg)', fg: 'var(--sent-fg)' },
+        pending: { bg: 'var(--pending-bg)', fg: 'var(--pending-fg)' },
+        scheduled: { bg: 'var(--scheduled-bg)', fg: 'var(--scheduled-fg)' },
+        failed: { bg: 'var(--failed-bg)', fg: 'var(--failed-fg)' },
+        off: { bg: 'var(--off-bg)', fg: 'var(--off-fg)' },
+        wa: { bg: 'var(--wa-bg)', fg: 'var(--wa-fg)' },
+        priority: { high: 'var(--priority-high)' },
       },
       borderRadius: {
         sm: '9px',
@@ -59,6 +73,8 @@ export default {
       },
       fontFamily: {
         sans: ['Roboto', 'sans-serif'],
+        // Horas y fechas (no se redefine `mono`, que usan landing y plantillas)
+        time: ['"Space Mono"', 'ui-monospace', 'monospace'],
       },
       keyframes: {
         'fade-in': {

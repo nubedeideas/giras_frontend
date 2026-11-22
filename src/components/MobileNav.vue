@@ -1,109 +1,116 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import TourMenuPanel from '@/components/TourMenuPanel.vue'
+import { useAuthStore } from '@/stores/auth'
+import { userInitials } from '@/utils/userInitials'
 
 const route = useRoute()
 const { t } = useI18n()
+const auth = useAuthStore()
 
-const showTours = ref(false)
-
+// 5 pestañas: Inicio · Actividades · Calendario · Contactos · Ajustes (avatar).
+// El selector de gira está en el header; Informes se abre desde el dashboard y el sidebar.
 const navItems = [
   {
+    to: '/home',
+    label: 'nav.home',
+    icon: `<path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>`,
+  },
+  {
     to: '/events',
-    key: 'events',
+    label: 'nav.events',
     icon: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>`,
   },
   {
     to: '/calendar',
-    key: 'cal',
+    label: 'nav.cal',
     icon: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>`,
   },
   {
     to: '/contacts',
-    key: 'contacts',
+    label: 'nav.contacts',
     icon: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>`,
   },
-  {
-    to: '/reports',
-    key: 'reports',
-    icon: `<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`,
-  },
-  {
-    to: '/settings',
-    key: 'settings',
-    icon: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
-  },
 ]
+
+function isActive(to: string) {
+  // Inicio exacto por nombre de ruta (no startsWith) frente a futuras rutas /home/*.
+  if (to === '/home') return route.name === 'home'
+  return route.path.startsWith(to)
+}
+
+const settingsActive = computed(() => route.path.startsWith('/settings'))
+
+const initials = computed(() => userInitials(auth.user))
 </script>
 
 <template>
   <nav
-    class="lg:hidden fixed bottom-0 left-0 right-0 bg-bg-2 border-t border-line flex z-[100]"
+    class="sidebar-dark lg:hidden fixed bottom-0 left-0 right-0 bg-bg-3 border-t border-line flex z-[100]"
     style="padding-bottom: env(safe-area-inset-bottom)"
+    data-test="mobile-nav"
   >
-    <!-- Giras button (tour selector) -->
-    <button
-      class="flex-1 py-2.5 flex flex-col items-center gap-[3px] transition-colors duration-200 bg-transparent border-none cursor-pointer"
-      :class="showTours ? 'text-acid' : 'text-acid-nav hover:text-acid'"
-      @click="showTours = !showTours"
-    >
-      <svg
-        width="19"
-        height="19"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle
-          cx="6"
-          cy="19"
-          r="3"
-        /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle
-          cx="18"
-          cy="5"
-          r="3"
-        />
-      </svg>
-      <span class="text-[9px] font-medium">{{ t('nav.tours') }}</span>
-    </button>
-
-    <!-- Regular nav links -->
     <RouterLink
       v-for="item in navItems"
-      :key="item.key"
+      :key="item.to"
       :to="item.to"
-      class="flex-1 py-2.5 flex flex-col items-center gap-[3px] no-underline text-acid-nav transition-colors duration-200"
-      :class="route.path.startsWith(item.to) ? 'text-acid' : 'hover:text-acid'"
+      class="flex-1 min-w-0 min-h-[56px] py-2 flex flex-col items-center justify-center gap-1 no-underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-acid"
+      :class="isActive(item.to) ? 'text-ink' : 'text-ink-2 hover:text-ink'"
+      data-test="mobile-nav-link"
     >
       <span
-        class="flex items-center justify-center w-8 h-6 rounded-full transition-colors duration-200"
-        :class="route.path.startsWith(item.to) ? 'bg-acid text-black' : ''"
+        class="flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200"
+        :class="isActive(item.to) ? 'bg-acid text-night' : ''"
       >
         <svg
-          width="17"
-          height="17"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
           v-html="item.icon"
         />
       </span>
-      <span class="text-[9px] font-medium">{{ t(`nav.${item.key}`) }}</span>
+      <span
+        class="text-[12px] leading-tight truncate max-w-full px-0.5"
+        :class="isActive(item.to) ? 'font-semibold' : 'font-medium'"
+      >{{ t(item.label) }}</span>
+    </RouterLink>
+
+    <!-- Ajustes: avatar del usuario en lugar del engranaje -->
+    <RouterLink
+      to="/settings"
+      class="flex-1 min-w-0 min-h-[56px] py-2 flex flex-col items-center justify-center gap-1 no-underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-acid"
+      :class="settingsActive ? 'text-ink' : 'text-ink-2 hover:text-ink'"
+      data-test="mobile-nav-link"
+    >
+      <span class="flex items-center justify-center h-7">
+        <span
+          class="w-[26px] h-[26px] rounded-full overflow-hidden bg-acid flex items-center justify-center flex-shrink-0"
+          :class="settingsActive ? 'ring-2 ring-acid ring-offset-2 ring-offset-night' : ''"
+          data-test="mobile-nav-avatar"
+        >
+          <img
+            v-if="auth.user?.avatar"
+            :src="auth.user.avatar"
+            alt=""
+            class="w-full h-full object-cover"
+          >
+          <span
+            v-else
+            class="text-[11px] font-bold text-night"
+          >{{ initials }}</span>
+        </span>
+      </span>
+      <span
+        class="text-[12px] leading-tight truncate max-w-full px-0.5"
+        :class="settingsActive ? 'font-semibold' : 'font-medium'"
+      >{{ t('header.settings') }}</span>
     </RouterLink>
   </nav>
-
-  <!-- Tour selector panel (mobile bottom sheet) -->
-  <TourMenuPanel
-    :show="showTours"
-    :mobile="true"
-    @close="showTours = false"
-  />
 </template>

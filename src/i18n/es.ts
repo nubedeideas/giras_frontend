@@ -23,6 +23,13 @@ export default {
     settings: 'Configuración',
   },
 
+  header: {
+    openSettings: 'Abrir ajustes',
+    tourSelect: 'Gira: {tour}, {status}. Cambiar gira',
+    tourSelectNone: 'Todas las Giras. Elegir gira',
+    settings: 'Ajustes',
+  },
+
   home: {
     eyebrow: 'Giras',
     heading: 'Antes de empezar',
@@ -49,6 +56,10 @@ export default {
     statusCompleted: 'Completada',
     statusCancelled: 'Cancelada',
     viewTour: 'Ver gira',
+    activeTourLabel: 'Gira activa',
+    noTourSelected: 'Sin gira seleccionada',
+    membersCount: '{n} miembro | {n} miembros',
+    retry: 'Reintentar',
   },
 
   tourHub: {

@@ -15,7 +15,7 @@ const { status, accept, reject } = useConsent()
       class="fixed inset-x-0 z-[200] flex justify-center px-3 bottom-[76px] lg:bottom-4"
     >
       <div
-        class="w-full max-w-xl bg-bg-3 border border-line rounded-2xl shadow-[0_8px_30px_var(--shadow-md)] p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+        class="sidebar-dark w-full max-w-xl bg-bg-3 border border-line rounded-2xl shadow-[0_8px_30px_var(--shadow-md)] p-4 flex flex-col sm:flex-row sm:items-center gap-3"
       >
         <p class="flex-1 text-[12px] text-ink-2 leading-relaxed">
           {{ t('consent.message') }}

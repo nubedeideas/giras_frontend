@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useUIStore } from '@/stores/ui'
 import { ApiError } from '@/utils/apiClient'
+import { userInitials } from '@/utils/userInitials'
 import { useAuthProfile } from '@/composables/useAuthProfile'
 import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
@@ -35,7 +35,6 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const auth = useAuthStore()
-const uiStore = useUIStore()
 
 // computed: la etiqueta de "Reglas" va por i18n y sigue al cambio de idioma.
 const TABS = computed<{ key: SettingsTab; label: string; iconPath: string }[]>(() => [
@@ -181,9 +180,7 @@ async function signOut() {
               class="w-full h-full object-cover"
               :alt="auth.user.full_name"
             >
-            <span v-else>
-              {{ auth.user?.first_name?.charAt(0) }}{{ auth.user?.last_name?.charAt(0) }}
-            </span>
+            <span v-else>{{ userInitials(auth.user) }}</span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-[12px] font-bold text-ink truncate leading-tight">
@@ -381,133 +378,6 @@ async function signOut() {
               <p class="text-[10px] text-ink-4 mt-2">
                 {{ t('settings.phoneHelp') }}
               </p>
-            </section>
-
-            <!-- Appearance -->
-            <section class="mb-8">
-              <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">
-                Apariencia
-              </label>
-
-              <!-- Theme picker -->
-              <div class="bg-glass border border-line rounded-xl p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div>
-                    <p class="text-[13px] font-semibold text-ink">
-                      Tema de color
-                    </p>
-                    <p class="text-[10px] text-ink-4 mt-0.5">
-                      Afecta a toda la aplicación, incluida la barra de navegación.
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Theme option cards -->
-                <div class="grid grid-cols-2 gap-2.5">
-                  <!-- Dark option -->
-                  <button
-                    class="relative rounded-xl border-2 p-3 cursor-pointer transition-all text-left overflow-hidden"
-                    :class="uiStore.theme === 'dark'
-                      ? 'border-acid bg-acid/8'
-                      : 'border-line bg-glass hover:border-line-2'"
-                    @click="uiStore.setTheme('dark')"
-                  >
-                    <!-- Mini preview -->
-                    <div
-                      class="rounded-lg overflow-hidden mb-2.5 border border-white/10"
-                      style="background: #111115; height: 52px; display: flex;"
-                    >
-                      <!-- Sidebar strip -->
-                      <div style="width: 12px; background: #0c0c0f; border-right: 1px solid rgba(255,255,255,0.07); flex-shrink: 0;" />
-                      <!-- Content area -->
-                      <div class="flex-1 p-1.5 flex flex-col gap-1">
-                        <div style="height: 5px; width: 55%; background: rgba(255,255,255,0.12); border-radius: 3px;" />
-                        <div style="height: 4px; width: 40%; background: rgba(255,255,255,0.07); border-radius: 3px;" />
-                        <div class="flex gap-1 mt-0.5">
-                          <div style="height: 14px; flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px;" />
-                          <div style="height: 14px; flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px;" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-[12px] font-semibold text-ink">Oscuro</span>
-                      <!-- Checkmark -->
-                      <span
-                        v-if="uiStore.theme === 'dark'"
-                        class="w-4 h-4 rounded-full bg-acid flex items-center justify-center flex-shrink-0"
-                      >
-                        <svg
-                          width="8"
-                          height="8"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="black"
-                          stroke-width="3.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </span>
-                      <span
-                        v-else
-                        class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0"
-                      />
-                    </div>
-                  </button>
-
-                  <!-- Light option -->
-                  <button
-                    class="relative rounded-xl border-2 p-3 cursor-pointer transition-all text-left overflow-hidden"
-                    :class="uiStore.theme === 'light'
-                      ? 'border-acid bg-acid/8'
-                      : 'border-line bg-glass hover:border-line-2'"
-                    @click="uiStore.setTheme('light')"
-                  >
-                    <!-- Mini preview -->
-                    <div
-                      class="rounded-lg overflow-hidden mb-2.5 border border-black/8"
-                      style="background: #eaeaef; height: 52px; display: flex;"
-                    >
-                      <!-- Sidebar strip -->
-                      <div style="width: 12px; background: #ffffff; border-right: 1px solid rgba(0,0,0,0.09); flex-shrink: 0;" />
-                      <!-- Content area -->
-                      <div class="flex-1 p-1.5 flex flex-col gap-1">
-                        <div style="height: 5px; width: 55%; background: rgba(0,0,0,0.15); border-radius: 3px;" />
-                        <div style="height: 4px; width: 40%; background: rgba(0,0,0,0.09); border-radius: 3px;" />
-                        <div class="flex gap-1 mt-0.5">
-                          <div style="height: 14px; flex: 1; background: #ffffff; border-radius: 4px;" />
-                          <div style="height: 14px; flex: 1; background: #ffffff; border-radius: 4px;" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-[12px] font-semibold text-ink">Claro</span>
-                      <span
-                        v-if="uiStore.theme === 'light'"
-                        class="w-4 h-4 rounded-full bg-acid flex items-center justify-center flex-shrink-0"
-                      >
-                        <svg
-                          width="8"
-                          height="8"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="black"
-                          stroke-width="3.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </span>
-                      <span
-                        v-else
-                        class="w-4 h-4 rounded-full border border-line-2 flex-shrink-0"
-                      />
-                    </div>
-                  </button>
-                </div>
-              </div>
             </section>
 
             <!-- Integrations -->

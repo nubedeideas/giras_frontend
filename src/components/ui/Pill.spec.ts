@@ -6,11 +6,11 @@ describe('Pill', () => {
   it('renderiza el slot con la variante neutra por defecto', () => {
     const wrapper = mount(Pill, { slots: { default: 'Confirmada' } })
     expect(wrapper.text()).toBe('Confirmada')
-    expect(wrapper.classes()).toContain('bg-glass-2')
+    expect(wrapper.classes()).toContain('bg-off-bg')
   })
 
   it('aplica la clase de la variante', () => {
     const wrapper = mount(Pill, { props: { variant: 'g' }, slots: { default: 'OK' } })
-    expect(wrapper.classes()).toContain('text-acid-muted')
+    expect(wrapper.classes()).toContain('text-sent-fg')
   })
 })
