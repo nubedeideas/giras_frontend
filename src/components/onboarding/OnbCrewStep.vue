@@ -21,6 +21,19 @@ import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
+import ImportDropZone from '@/components/import/ImportDropZone.vue'
+import ImportProgress from '@/components/import/ImportProgress.vue'
+import ImportCompactReview from '@/components/import/ImportCompactReview.vue'
+import {
+  confirmImportJob,
+  getImportJob,
+  patchImportDraft,
+  type ImportJob,
+  type ImportRowPatch,
+} from '@/composables/useImportJobs'
+import { canConfirm, errorKey, importErrorKey } from '@/utils/importReview'
+import { hasApiErrorCode } from '@/utils/notificationErrors'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 
 const props = defineProps<{ tourId?: number | null }>()
 const emit = defineEmits<{ next: []; skip: [] }>()
@@ -64,7 +77,7 @@ const needsConnect = computed(
 
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
-const source = ref<'google' | 'manual'>('google')
+const source = ref<'google' | 'manual' | 'file'>('google')
 
 // ─── Shared roles ─────────────────────────────────────────────────────────────
 
@@ -304,21 +317,130 @@ async function submitManual() {
 watch(source, (val) => {
   if (val === 'manual' && !authStore.isDemoMode) loadRoles()
 })
+
+// ─── Hoja o foto (importador F1) ──────────────────────────────────────────────
+// Subir → progreso → revisión compacta en el propio paso → "Añadir al equipo" (confirm).
+
+type FileStep = 'drop' | 'progress' | 'review' | 'confirming' | 'done' | 'failed'
+const fileStep = ref<FileStep>('drop')
+const importJobUuid = ref<string | null>(null)
+const importJob = ref<ImportJob | null>(null)
+const importError = ref('')
+const savingRows = ref(new Set<string>())
+const rowErrors = ref<Record<string, string>>({})
+const reminderCatalog = useReminderCatalogStore()
+
+const importCanConfirm = computed(() => canConfirm(importJob.value))
+const importAllSkipped = computed(
+  () =>
+    !!importJob.value &&
+    (importJob.value.draft?.team ?? []).every((r) => r.action === 'skip')
+)
+const importAdded = computed(() => {
+  const r = importJob.value?.result
+  return r && 'added_to_group' in r ? r.added_to_group : 0
+})
+
+function resetFileImport() {
+  fileStep.value = 'drop'
+  importJobUuid.value = null
+  importJob.value = null
+  importError.value = ''
+  savingRows.value = new Set()
+  rowErrors.value = {}
+}
+
+function onImportCreated(job: ImportJob) {
+  importError.value = ''
+  importJobUuid.value = job.uuid
+  fileStep.value = 'progress'
+}
+
+function onImportReady(job: ImportJob) {
+  importJob.value = job
+  fileStep.value = job.status === 'done' ? 'done' : 'review'
+}
+
+function onImportFailed(job: ImportJob) {
+  importJob.value = job
+  importError.value = t(
+    job.status === 'discarded' && job.error_code !== 'expired'
+      ? 'importer.errors.generic'
+      : errorKey(job.error_code)
+  )
+  fileStep.value = 'failed'
+}
+
+// PATCH uno a uno (cola secuencial): cada respuesta sustituye al job entero.
+let patchQueue: Promise<void> = Promise.resolve()
+
+function patchRow(patch: ImportRowPatch) {
+  const uuid = importJobUuid.value
+  if (!uuid) return
+  const id = patch.client_id
+  savingRows.value.add(id)
+  patchQueue = patchQueue.then(async () => {
+    try {
+      const job = await patchImportDraft(uuid, { rows: [patch] })
+      if (importJobUuid.value !== uuid) return
+      importJob.value = job
+      if (id in rowErrors.value) {
+        const rest = { ...rowErrors.value }
+        delete rest[id]
+        rowErrors.value = rest
+      }
+    } catch {
+      if (importJobUuid.value === uuid) {
+        rowErrors.value = { ...rowErrors.value, [id]: t('importer.errors.saveRow') }
+      }
+    } finally {
+      savingRows.value.delete(id)
+    }
+  })
+}
+
+async function confirmFileImport() {
+  const uuid = importJobUuid.value
+  if (!uuid || !importCanConfirm.value) return
+  await patchQueue
+  fileStep.value = 'confirming'
+  importError.value = ''
+  try {
+    importJob.value = await confirmImportJob(uuid)
+    fileStep.value = 'done'
+    await contactsStore.fetchContacts()
+    if (tourUuid.value) void reminderCatalog.invalidate(tourUuid.value)
+  } catch (e) {
+    importError.value = t(importErrorKey(e))
+    fileStep.value = 'review'
+    if (hasApiErrorCode(e, 'unresolved_rows') || hasApiErrorCode(e, 'already_confirmed')) {
+      try {
+        const job = await getImportJob(uuid)
+        importJob.value = job
+        if (job.status === 'done') fileStep.value = 'done'
+      } catch {
+        // Se queda el error visible.
+      }
+    }
+  }
+}
 </script>
 
 <template>
   <div>
     <!-- Source toggle -->
-    <div class="grid grid-cols-2 gap-2 mb-5">
+    <div class="grid grid-cols-3 gap-2 mb-5">
       <div
         v-for="opt in [
           { key: 'google', label: 'Google Contacts', sub: t('onboarding.crew.googleSub') },
           { key: 'manual', label: t('onboarding.crew.manual'), sub: t('onboarding.crew.manualSub') },
+          { key: 'file', label: t('onboarding.crew.fileSource'), sub: t('onboarding.crew.fileSourceSub') },
         ]"
         :key="opt.key"
         class="bg-glass border rounded-xl p-3 text-center cursor-pointer transition-all duration-200"
         :class="source === opt.key ? 'border-line-acid bg-glass-active' : 'border-line hover:bg-glass-2'"
-        @click="source = opt.key as 'google' | 'manual'"
+        :data-test="`crew-source-${opt.key}`"
+        @click="source = opt.key as 'google' | 'manual' | 'file'"
       >
         <svg
           width="18"
@@ -763,6 +885,136 @@ watch(source, (val) => {
       </template>
     </template>
 
+    <!-- ── Hoja o foto (importador F1) ───────────────────────────────────────────── -->
+    <template v-else-if="source === 'file'">
+      <div
+        v-if="authStore.isDemoMode"
+        class="bg-glass border border-line rounded-lg px-3.5 py-4 text-center mb-4"
+      >
+        <p class="text-[14px] font-semibold text-ink-2 mb-0.5">
+          {{ t('onboarding.calendar.demoTitle') }}
+        </p>
+        <p class="text-[13px] text-ink-3">
+          {{ t('onboarding.crew.importDemo') }}
+        </p>
+      </div>
+      <p
+        v-else-if="!tourUuid"
+        class="text-[14px] text-ink-2 rounded-sm bg-bg-2 border border-line px-3.5 py-3"
+      >
+        {{ t('importer.contactsTab.noTour') }}
+      </p>
+      <template v-else>
+        <ImportDropZone
+          v-if="fileStep === 'drop'"
+          :tour-uuid="tourUuid"
+          entry-point="onboarding"
+          compact
+          @created="onImportCreated"
+        />
+
+        <ImportProgress
+          v-else-if="fileStep === 'progress'"
+          :job-uuid="importJobUuid"
+          @ready="onImportReady"
+          @failed="onImportFailed"
+        />
+
+        <div
+          v-else-if="fileStep === 'failed'"
+          class="flex flex-col items-start gap-3"
+        >
+          <p
+            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2 w-full"
+            role="alert"
+            data-test="crew-import-failed"
+          >
+            {{ importError }}
+          </p>
+          <BtnSecondary
+            type="button"
+            @click="resetFileImport"
+          >
+            {{ t('importer.retry') }}
+          </BtnSecondary>
+        </div>
+
+        <div
+          v-else-if="(fileStep === 'review' || fileStep === 'confirming') && importJob"
+          class="flex flex-col gap-3"
+          data-test="crew-import-review"
+        >
+          <p class="text-[13px] text-ink-2">
+            {{ t('onboarding.crew.importReviewHint') }}
+          </p>
+          <ImportCompactReview
+            :job="importJob"
+            :saving="savingRows"
+            :row-errors="rowErrors"
+            @patch="patchRow"
+          />
+          <p
+            v-if="importAllSkipped"
+            class="text-[13px] text-ink-2"
+          >
+            {{ t('onboarding.crew.importEmpty') }}
+          </p>
+          <p
+            v-if="importError"
+            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2"
+            role="alert"
+          >
+            {{ importError }}
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <BtnPrimary
+              type="button"
+              full
+              data-test="crew-import-confirm"
+              :disabled="!importCanConfirm || fileStep === 'confirming'"
+              :class="importCanConfirm && fileStep !== 'confirming' ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
+              @click="confirmFileImport"
+            >
+              {{ t('onboarding.crew.importConfirm') }}
+            </BtnPrimary>
+            <BtnSecondary
+              type="button"
+              :disabled="fileStep === 'confirming'"
+              @click="resetFileImport"
+            >
+              {{ t('onboarding.crew.importAnother') }}
+            </BtnSecondary>
+          </div>
+          <p
+            v-if="!importCanConfirm && !importAllSkipped && (importJob.summary?.needs_action ?? 0) > 0"
+            class="text-[13px] text-ink-2"
+          >
+            {{ t('importer.errors.unresolved_rows') }}
+          </p>
+        </div>
+
+        <div
+          v-else-if="fileStep === 'done'"
+          class="text-center"
+          data-test="crew-import-done"
+        >
+          <div class="bg-glass border border-line rounded-xl p-5 mb-4">
+            <p class="text-[15px] font-semibold text-ink">
+              {{ t('onboarding.crew.importDone', { n: importAdded }, importAdded) }}
+            </p>
+          </div>
+          <BtnPrimary
+            full
+            type="button"
+            data-test="crew-import-next"
+            @click="emit('next')"
+          >
+            {{ t('onboarding.continue') }}
+          </BtnPrimary>
+        </div>
+      </template>
+    </template>
+
     <!-- ── Manual tab ──────────────────────────────────────────────────────────── -->
     <template v-else>
       <!-- SAVING -->
@@ -1079,7 +1331,7 @@ watch(source, (val) => {
 
     <!-- Skip -->
     <button
-      v-if="(source === 'google' && (gStep === 'idle' || gStep === 'selecting')) || (source === 'manual' && manualStep === 'form')"
+      v-if="(source === 'google' && (gStep === 'idle' || gStep === 'selecting')) || (source === 'manual' && manualStep === 'form') || (source === 'file' && (fileStep === 'drop' || fileStep === 'failed'))"
       class="w-full mt-3 text-[13px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
       @click="emit('skip')"
     >

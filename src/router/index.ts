@@ -93,6 +93,12 @@ export const routes: RouteRecordRaw[] = [
       { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },
       { path: 'tour', name: 'tour', component: () => import('@/views/TourView.vue') },
+      {
+        // Revisión de una importación (F1). La vista la completa el lote 2.
+        path: 'tour/import/:jobUuid',
+        name: 'tour-import',
+        component: () => import('@/views/ImportReviewView.vue'),
+      },
       { path: 'reports', name: 'reports', component: () => import('@/views/ReportsView.vue') },
       { path: 'settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
     ],

@@ -24,6 +24,7 @@ const TITLE_KEYS: Record<string, string> = {
   calendar: 'calendar.title',
   contacts: 'contacts.title',
   tour: 'nav.tourHub',
+  'tour-import': 'importer.title',
   reports: 'reports.title',
   settings: 'settings.title',
 }

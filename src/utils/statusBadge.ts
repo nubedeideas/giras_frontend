@@ -46,3 +46,27 @@ export function notificationBadge(status: string): BadgeStatus {
 export function tourBadge(status: TourStatus): BadgeStatus {
   return TOUR[status] ?? 'off'
 }
+
+/** Confianza de una fila del importador: verde ≥ 0,90, ámbar ≥ 0,70, rojo por debajo. */
+export function importConfidenceBadge(confidence: number): BadgeStatus {
+  if (confidence >= 0.9) return 'sent'
+  if (confidence >= 0.7) return 'pending'
+  return 'failed'
+}
+
+const IMPORT_JOB: Record<string, BadgeStatus> = {
+  uploaded: 'scheduled',
+  detecting: 'scheduled',
+  extracting: 'scheduled',
+  normalizing: 'scheduled',
+  confirming: 'scheduled',
+  ready: 'pending',
+  done: 'sent',
+  failed: 'failed',
+  discarded: 'off',
+}
+
+/** Estado de un job de importación; uno desconocido cae en `off`. */
+export function importJobBadge(status: string): BadgeStatus {
+  return Object.prototype.hasOwnProperty.call(IMPORT_JOB, status) ? IMPORT_JOB[status] : 'off'
+}

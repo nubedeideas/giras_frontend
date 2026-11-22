@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { Translation as I18nT, useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
 import { useTours, type TourFull } from '@/composables/useTours'
@@ -13,8 +13,13 @@ import CrewPortalPanel from '@/components/tour/CrewPortalPanel.vue'
 import TourRemindersPanel from '@/components/tour/TourRemindersPanel.vue'
 import NoticesPanel from '@/components/tour/notices/NoticesPanel.vue'
 import { useNoticesStore } from '@/stores/notices'
+import { DateTime } from 'luxon'
+import BtnSecondary from '@/components/ui/BtnSecondary.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import ImportDropModal from '@/components/import/ImportDropModal.vue'
+import { listImportJobs, type ImportJobListItem } from '@/composables/useImportJobs'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -127,6 +132,48 @@ watch(
   { immediate: true }
 )
 
+// ─── Importar (F1) ────────────────────────────────────────────────────────────
+// Botón "Importar" y aviso de borradores sin revisar (`status=ready`), solo para admins y fuera
+// de la demo. Protección frente a respuestas atrasadas al cambiar de gira.
+const canImport = computed(() => isAdmin.value && !auth.isDemoMode)
+const showImport = ref(false)
+const pendingImports = ref<ImportJobListItem[]>([])
+let importsRequest = 0
+
+async function loadPendingImports() {
+  const req = ++importsRequest
+  pendingImports.value = []
+  const uuid = toursStore.activeTour?.uuid
+  if (!uuid || !canImport.value) return
+  try {
+    const jobs = await listImportJobs(uuid, 'ready')
+    if (req !== importsRequest) return
+    pendingImports.value = [...jobs].sort((a, b) => b.created_at.localeCompare(a.created_at))
+  } catch {
+    // Sin aviso: no bloquea la gira.
+  }
+}
+
+watch([() => toursStore.activeTour?.uuid, canImport], loadPendingImports, { immediate: true })
+
+const latestImport = computed(() => pendingImports.value[0] ?? null)
+
+function importFileLabel(job: ImportJobListItem): string {
+  return job.filenames[0] ?? t('importer.pastedText')
+}
+
+function importDate(iso: string): string {
+  return DateTime.fromISO(iso)
+    .setLocale(locale.value)
+    .toLocaleString({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+function closeImport() {
+  showImport.value = false
+  // Un job cerrado a medias puede haber terminado ya: se refresca el aviso.
+  void loadPendingImports()
+}
+
 // Deep links `/tour?tab=<pestaña>` (inbox → Conflictos) y `?tab=notices&notice=<uuid>` (inbox →
 // aviso): solo pestañas visibles; luego se limpian `tab` y `notice` en un único `replace`.
 // `crew`, `reminders` y `notices` dependen del permiso real: esperan al detalle de la gira.
@@ -186,6 +233,75 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       v-else
       class="max-w-6xl mx-auto px-4 sm:px-6 py-6"
     >
+      <!-- Importar (F1) -->
+      <div
+        v-if="canImport"
+        class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 mb-4"
+      >
+        <div
+          v-if="latestImport"
+          class="flex-1 min-w-0 flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded border border-line bg-bg-3 px-3.5 py-2"
+          data-test="import-pending-banner"
+        >
+          <StatusBadge
+            status="pending"
+            size="sm"
+            :label="t('importer.pendingBadge')"
+          />
+          <I18nT
+            keypath="importer.pendingBanner"
+            tag="span"
+            class="min-w-0 text-[14px] text-ink break-words"
+          >
+            <template #file>
+              <span class="font-semibold">{{ importFileLabel(latestImport) }}</span>
+            </template>
+            <template #date>
+              <span class="font-time tnum text-ink-2">{{ importDate(latestImport.created_at) }}</span>
+            </template>
+          </I18nT>
+          <span
+            v-if="pendingImports.length > 1"
+            class="text-[13px] text-ink-2"
+          >{{ t('importer.pendingMore', { n: pendingImports.length - 1 }) }}</span>
+          <RouterLink
+            :to="{ name: 'tour-import', params: { jobUuid: latestImport.uuid } }"
+            class="ml-auto inline-flex items-center min-h-[44px] lg:min-h-0 text-[14px] font-semibold text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+            data-test="import-pending-link"
+          >
+            {{ t('importer.review') }}
+          </RouterLink>
+        </div>
+        <BtnSecondary
+          type="button"
+          class="sm:ml-auto self-start sm:self-auto"
+          data-test="import-open"
+          @click="showImport = true"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line
+              x1="12"
+              y1="3"
+              x2="12"
+              y2="15"
+            />
+          </svg>
+          {{ t('importer.open') }}
+        </BtnSecondary>
+      </div>
+
       <!-- Tabs -->
       <div
         class="flex items-center gap-1 p-1 mb-6 rounded-[10px] bg-glass-hover overflow-x-auto max-w-full w-fit"
@@ -236,5 +352,13 @@ watch([TABS, detailSettledFor], applyRequestedTab)
         @initial-consumed="onInitialNoticeConsumed"
       />
     </div>
+
+    <ImportDropModal
+      v-if="canImport && toursStore.activeTour?.uuid"
+      :show="showImport"
+      :tour-uuid="toursStore.activeTour.uuid"
+      entry-point="tour"
+      @close="closeImport"
+    />
   </div>
 </template>

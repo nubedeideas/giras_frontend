@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { activityBadge, notificationBadge, tourBadge } from './statusBadge'
+import {
+  activityBadge,
+  importConfidenceBadge,
+  importJobBadge,
+  notificationBadge,
+  tourBadge,
+} from './statusBadge'
 
 describe('activityBadge', () => {
   it.each([
@@ -39,5 +45,34 @@ describe('tourBadge', () => {
     ['cancelled', 'failed'],
   ] as const)('%s → %s', (status, badge) => {
     expect(tourBadge(status)).toBe(badge)
+  })
+})
+
+describe('importConfidenceBadge', () => {
+  it.each([
+    [0.95, 'sent'],
+    [0.9, 'sent'],
+    [0.89, 'pending'],
+    [0.7, 'pending'],
+    [0.69, 'failed'],
+  ] as const)('%s → %s', (c, badge) => {
+    expect(importConfidenceBadge(c)).toBe(badge)
+  })
+})
+
+describe('importJobBadge', () => {
+  it.each([
+    ['uploaded', 'scheduled'],
+    ['detecting', 'scheduled'],
+    ['extracting', 'scheduled'],
+    ['normalizing', 'scheduled'],
+    ['confirming', 'scheduled'],
+    ['ready', 'pending'],
+    ['done', 'sent'],
+    ['failed', 'failed'],
+    ['discarded', 'off'],
+    ['constructor', 'off'],
+  ])('%s → %s', (status, badge) => {
+    expect(importJobBadge(status)).toBe(badge)
   })
 })

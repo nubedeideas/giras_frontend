@@ -20,6 +20,11 @@ import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
+import ImportDropZone from '@/components/import/ImportDropZone.vue'
+import ImportProgress from '@/components/import/ImportProgress.vue'
+import type { ImportJob } from '@/composables/useImportJobs'
+import { errorKey } from '@/utils/importReview'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   show: boolean
@@ -47,6 +52,40 @@ const needsConnect = computed(
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
 const source = ref<'google' | 'excel' | 'manual'>('google')
+
+// ─── Hoja o foto (importador F1) ──────────────────────────────────────────────
+// Importa a la gira activa: sin gira o sin ser admin de ella, solo se explica por qué no.
+const router = useRouter()
+const importTourUuid = computed(() => toursStore.activeTour?.uuid ?? '')
+const importIsAdmin = computed(() => toursStore.activeTour?.current_user_is_admin === true)
+const importJobUuid = ref<string | null>(null)
+const importFailed = ref('')
+
+function resetImport() {
+  importJobUuid.value = null
+  importFailed.value = ''
+}
+
+function onImportReady(job: ImportJob) {
+  resetImport()
+  emit('close')
+  void router.push({ name: 'tour-import', params: { jobUuid: job.uuid } })
+}
+
+function onImportFailed(job: ImportJob) {
+  importFailed.value = t(
+    job.status === 'discarded' && job.error_code !== 'expired'
+      ? 'importer.errors.generic'
+      : errorKey(job.error_code)
+  )
+}
+
+watch(
+  () => props.show,
+  (open) => {
+    if (!open) resetImport()
+  }
+)
 
 // ─── Shared roles (used by Google + manual tabs) ──────────────────────────────
 
@@ -383,7 +422,7 @@ watch(
         v-for="opt in [
           { key: 'google', label: 'Google', sub: 'OAuth sync', color: 'var(--brand-blue)' },
           { key: 'manual', label: 'Manual', sub: 'Formulario', color: 'var(--acid-muted)' },
-          { key: 'excel', label: 'Excel / CSV', sub: '.xlsx, .csv', color: 'var(--ink-3)' },
+          { key: 'excel', label: t('importer.contactsTab.label'), sub: t('importer.contactsTab.sub'), color: 'var(--ink-3)' },
         ]"
         :key="opt.key"
         class="bg-glass border rounded-xl p-3 text-center cursor-pointer transition-all duration-200"
@@ -1155,31 +1194,65 @@ watch(
       </div>
     </template>
 
-    <!-- ── Excel tab ─────────────────────────────────────────────────────────── -->
+    <!-- ── Hoja o foto (importador F1) ──────────────────────────────────────── -->
     <template v-else>
-      <div class="border-2 border-dashed border-line-2 rounded-[10px] p-6 text-center text-ink-3 text-[14px] mb-4">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="mx-auto mb-2"
+      <p
+        v-if="!importTourUuid"
+        class="text-[14px] text-ink-2 rounded-sm bg-bg-2 border border-line px-3.5 py-3 mb-4"
+        data-test="import-tab-no-tour"
+      >
+        {{ t('importer.contactsTab.noTour') }}
+      </p>
+      <p
+        v-else-if="!importIsAdmin"
+        class="text-[14px] text-ink-2 rounded-sm bg-bg-2 border border-line px-3.5 py-3 mb-4"
+        data-test="import-tab-not-admin"
+      >
+        {{ t('importer.contactsTab.notAdmin') }}
+      </p>
+      <template v-else>
+        <ImportDropZone
+          v-if="!importJobUuid"
+          :tour-uuid="importTourUuid"
+          entry-point="contacts"
+          compact
+          @created="importJobUuid = $event.uuid"
+        />
+        <div
+          v-else-if="importFailed"
+          class="flex flex-col items-start gap-3 mb-4"
         >
-          <polyline points="16 16 12 12 8 16" /><line
-            x1="12"
-            y1="12"
-            x2="12"
-            y2="21"
+          <p
+            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2 w-full"
+            role="alert"
+          >
+            {{ importFailed }}
+          </p>
+          <BtnSecondary
+            type="button"
+            @click="resetImport"
+          >
+            {{ t('importer.retry') }}
+          </BtnSecondary>
+        </div>
+        <div
+          v-else
+          class="flex flex-col gap-3 mb-4"
+        >
+          <ImportProgress
+            :job-uuid="importJobUuid"
+            @ready="onImportReady"
+            @failed="onImportFailed"
           />
-          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
-        </svg>
-        {{ t('modal.dropFile') }}
-      </div>
-      <div class="flex gap-2">
+          <p class="text-[13px] text-ink-2">
+            {{ t('importer.progress.background') }}
+          </p>
+        </div>
+      </template>
+      <div
+        v-if="!importTourUuid || !importIsAdmin"
+        class="flex gap-2"
+      >
         <BtnSecondary
           full
           @click="emit('close')"

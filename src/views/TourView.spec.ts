@@ -189,3 +189,105 @@ describe('TourView: pestaña Recordatorios', () => {
     expect(w2.find('[data-testid="insights"]').exists()).toBe(true)
   })
 })
+
+describe('TourView: importar (F1)', () => {
+  function stubByUrl(opts: {
+    admin: boolean
+    jobs?: (tour: string) => unknown[] | Promise<Response>
+  }) {
+    const fn = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input))
+      if (url.pathname.endsWith('/integrations/import-jobs/')) {
+        const tour = url.searchParams.get('tour') ?? ''
+        const jobs = opts.jobs?.(tour) ?? []
+        if (jobs instanceof Promise) return jobs
+        return jsonResponse({ count: jobs.length, next: null, previous: null, results: jobs })
+      }
+      const m = url.pathname.match(/\/tours\/([^/]+)\/$/)
+      if (m) return jsonResponse({ uuid: m[1], current_user_is_admin: opts.admin })
+      return jsonResponse({})
+    })
+    vi.stubGlobal('fetch', fn)
+    return fn
+  }
+
+  async function mountWithImportRoute() {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/tour', name: 'tour', component: { template: '<div />' } },
+        { path: '/tour/import/:jobUuid', name: 'tour-import', component: { template: '<div />' } },
+      ],
+    })
+    await router.push('/tour')
+    await router.isReady()
+    return mount(TourView, { global: { plugins: [i18n, router], stubs } })
+  }
+
+  it('el botón Importar solo lo ven los admins y nunca en la demo', async () => {
+    setup({})
+    stubByUrl({ admin: true })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    expect(w.find('[data-test="import-open"]').exists()).toBe(true)
+
+    setup({})
+    stubByUrl({ admin: false })
+    const w2 = await mountWithImportRoute()
+    await flushPromises()
+    expect(w2.find('[data-test="import-open"]').exists()).toBe(false)
+
+    setup({})
+    stubByUrl({ admin: true })
+    useAuthStore().isDemoMode = true
+    const w3 = await mountWithImportRoute()
+    await flushPromises()
+    expect(w3.find('[data-test="import-open"]').exists()).toBe(false)
+  })
+
+  it('aviso de importación pendiente con enlace a tour-import y "+n"', async () => {
+    setup({})
+    const fn = stubByUrl({
+      admin: true,
+      jobs: () => [
+        { uuid: 'J-old', tour: 'T1', status: 'ready', filenames: ['Viejo.xlsx'], created_at: '2026-11-20T10:00:00Z' },
+        { uuid: 'J-new', tour: 'T1', status: 'ready', filenames: ['Crew_2027.xlsx'], created_at: '2026-11-22T09:30:00Z' },
+      ],
+    })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    const listCall = fn.mock.calls.find(([u]) => String(u).includes('/integrations/import-jobs/'))
+    expect(new URL(String(listCall![0])).searchParams.get('status')).toBe('ready')
+    const banner = w.get('[data-test="import-pending-banner"]')
+    expect(banner.text()).toContain('Tienes una importación sin revisar: Crew_2027.xlsx')
+    expect(banner.text()).toContain('+1')
+    expect(banner.find('[data-status="pending"]').exists()).toBe(true)
+    expect(w.get('[data-test="import-pending-link"]').attributes('href')).toBe('/tour/import/J-new')
+  })
+
+  it('ignora la lista atrasada de la gira anterior al cambiar de gira', async () => {
+    setup({})
+    let resolveT1: (r: Response) => void = () => {}
+    const slowT1 = new Promise<Response>((r) => (resolveT1 = r))
+    stubByUrl({ admin: true, jobs: (tour) => (tour === 'T1' ? slowT1 : []) })
+    const tours = useToursStore()
+    tours.tours = [
+      ...tours.tours,
+      { ...tours.tours[0], id: 2, uuid: 'T2', name: 'Otra' },
+    ]
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    tours.setActiveTour(2)
+    await flushPromises()
+    resolveT1(
+      jsonResponse({
+        count: 1,
+        next: null,
+        previous: null,
+        results: [{ uuid: 'J1', tour: 'T1', status: 'ready', filenames: ['T1.xlsx'], created_at: '2026-11-22T09:30:00Z' }],
+      })
+    )
+    await flushPromises()
+    expect(w.find('[data-test="import-pending-banner"]').exists()).toBe(false)
+  })
+})

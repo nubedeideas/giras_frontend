@@ -117,3 +117,13 @@ describe('router guards', () => {
     }
   })
 })
+
+describe('ruta tour-import (F1)', () => {
+  it('existe bajo AppLayout, requiere sesión y resuelve el uuid del job', () => {
+    const router = makeRouter()
+    const r = router.resolve('/tour/import/J1')
+    expect(r.name).toBe('tour-import')
+    expect(r.params.jobUuid).toBe('J1')
+    expect(r.matched.some((m) => m.meta.requiresAuth)).toBe(true)
+  })
+})

@@ -4,6 +4,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
+import { useToursStore } from '@/stores/tours'
+import { stubMatchMedia } from '@/test/reminders'
+import type { Tour } from '@/types'
 import ImportContactsModal from './ImportContactsModal.vue'
 
 const redirectTo = vi.hoisted(() => vi.fn())
@@ -120,5 +123,53 @@ describe('ImportContactsModal (pestaña Google)', () => {
     const fn = setupFetch({ contacts: false })
     await mountModal({ show: true, autoSync: true })
     expect(fn.mock.calls.some(([u]) => String(u).includes('sync_now'))).toBe(false)
+  })
+})
+
+describe('ImportContactsModal (pestaña Hoja o foto)', () => {
+  async function openFileTab() {
+    const w = await mountModal()
+    const label = `${i18n.global.t('importer.contactsTab.label')}${i18n.global.t('importer.contactsTab.sub')}`
+    await w.findAll('div').find((d) => d.text() === label)!.trigger('click')
+    return w
+  }
+
+  function setTour(isAdmin: boolean | null) {
+    const tours = useToursStore()
+    if (isAdmin === null) {
+      tours.tours = []
+      return
+    }
+    tours.tours = [{ id: 1, uuid: 'T1', name: 'Gira', current_user_is_admin: isAdmin } as Tour]
+    tours.setActiveTour(1)
+  }
+
+  it('sin gira activa → noTour', async () => {
+    setupFetch({ contacts: true })
+    setTour(null)
+    const w = await openFileTab()
+    expect(w.get('[data-test="import-tab-no-tour"]').text()).toBe(
+      i18n.global.t('importer.contactsTab.noTour')
+    )
+    expect(w.find('[data-test="import-dropzone"]').exists()).toBe(false)
+  })
+
+  it('no admin de la gira → notAdmin', async () => {
+    setupFetch({ contacts: true })
+    setTour(false)
+    const w = await openFileTab()
+    expect(w.get('[data-test="import-tab-not-admin"]').text()).toBe(
+      i18n.global.t('importer.contactsTab.notAdmin')
+    )
+    expect(w.find('[data-test="import-dropzone"]').exists()).toBe(false)
+  })
+
+  it('admin → zona de arrastre (y ya no la zona vacía antigua)', async () => {
+    stubMatchMedia(false)
+    setupFetch({ contacts: true })
+    setTour(true)
+    const w = await openFileTab()
+    expect(w.find('[data-test="import-dropzone"]').exists()).toBe(true)
+    expect(w.text()).not.toContain('Arrastra tu archivo .xlsx o .csv aquí')
   })
 })

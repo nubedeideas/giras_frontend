@@ -36,7 +36,7 @@ const stubs = {
   },
 }
 
-async function mountHeader({ demo = false } = {}) {
+async function mountHeader({ demo = false, path = '/home' } = {}) {
   const auth = useAuthStore()
   auth.user = { ...USER }
   auth.isDemoMode = demo
@@ -45,9 +45,10 @@ async function mountHeader({ demo = false } = {}) {
     routes: [
       { path: '/home', name: 'home', component: { template: '<div />' } },
       { path: '/settings', name: 'settings', component: { template: '<div />' } },
+      { path: '/tour/import/:jobUuid', name: 'tour-import', component: { template: '<div />' } },
     ],
   })
-  await router.push('/home')
+  await router.push(path)
   await router.isReady()
   const w = mount(DashboardHeader, { global: { plugins: [i18n, router], stubs } })
   return { w, router }
@@ -106,6 +107,11 @@ describe('DashboardHeader', () => {
     await w.find('[data-test="tour-select"]').trigger('click')
     expect(panel().props('show')).toBe(true)
     expect(panel().props('anchor')).toMatchObject({ width: expect.any(Number) })
+  })
+
+  it('en la revisión de una importación el título es importer.title', async () => {
+    const { w } = await mountHeader({ path: '/tour/import/J1' })
+    expect(w.text()).toContain('Revisar importación')
   })
 
   it('en móvil pasa mobile al panel', async () => {
