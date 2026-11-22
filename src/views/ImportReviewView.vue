@@ -1,15 +1,22 @@
 <script setup lang="ts">
 // Revisión de una importación (F1 §4.3), ruta `tour-import` (`/tour/import/:jobUuid`).
 // Estados: carga, 404/403, procesando (ImportProgress), `failed`, `discarded`/caducado, `done`
-// (ImportResultSummary) y `ready` (región, avisos, diferidos, bloque Equipo y barra Confirmar).
+// (ImportResultSummary) y `ready` (avisos, diferidos, "N cosas por resolver", bloques Equipo y
+// Actividades en el orden de `expected` y barra Confirmar). F2 §4.3: supuestos en bloque, bloque
+// Actividades por día con resolutores en línea, editor y "ver origen"; con actividades (o equipo
+// que entra al grupo) la barra lleva al paso `?step=notices` (lote 3).
 // Los PATCH van en cola secuencial; cada respuesta sustituye al job entero.
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { DateTime } from 'luxon'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
+import ImportActivityEditor from '@/components/import/ImportActivityEditor.vue'
+import ImportActivityList from '@/components/import/ImportActivityList.vue'
+import ImportAssumptionsBar from '@/components/import/ImportAssumptionsBar.vue'
 import ImportConfirmBar from '@/components/import/ImportConfirmBar.vue'
 import ImportDeferredNotice from '@/components/import/ImportDeferredNotice.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
@@ -18,36 +25,50 @@ import ImportProgress from '@/components/import/ImportProgress.vue'
 import ImportResultSummary from '@/components/import/ImportResultSummary.vue'
 import ImportTeamRowEditor from '@/components/import/ImportTeamRowEditor.vue'
 import ImportTeamTable from '@/components/import/ImportTeamTable.vue'
+import { useActivityTypes, type ActivityType } from '@/composables/useActivityTypes'
 import { useContactRoles, type ContactRole } from '@/composables/useContactRoles'
 import {
   confirmImportJob,
   discardImportJob,
   getImportJob,
   patchImportDraft,
+  type ImportActivityRow,
+  type ImportAssumptionsPatch,
+  type ImportConfirmOptions,
   type ImportDraftPatch,
   type ImportJob,
+  type ImportResult,
   type ImportRowPatch,
   type ImportTeamRow,
 } from '@/composables/useImportJobs'
 import { isImportProcessing } from '@/composables/useImportJobPolling'
 import { useIsMobile } from '@/composables/useIsMobile'
+import { useActivitiesStore } from '@/stores/activities'
 import { useContactsStore } from '@/stores/contacts'
 import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import { useToursStore } from '@/stores/tours'
 import { apiErrorCodes } from '@/utils/notificationErrors'
 import {
+  activityTypeOptions,
   apiErrorRows,
   canConfirm,
+  detectedActivities,
   detectedTeam,
   errorKey,
+  hasDayNumbers,
   importErrorKey,
+  isHotelRow,
   needsResolver,
+  pendingCounts,
 } from '@/utils/importReview'
+import { FALLBACK_TOUR_ZONE } from '@/utils/timezones'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const toursStore = useToursStore()
 const contactsStore = useContactsStore()
+const activitiesStore = useActivitiesStore()
 const reminderCatalog = useReminderCatalogStore()
 const { isMobile } = useIsMobile()
 
@@ -72,6 +93,7 @@ async function load() {
   // Los errores de otro job no se arrastran al nuevo.
   confirmError.value = ''
   regionError.value = ''
+  assumptionsError.value = ''
   discardError.value = ''
   discardOpen.value = false
   try {
@@ -131,6 +153,31 @@ onMounted(async () => {
   }
 })
 
+// ─── Tipos de actividad de la gira (una vez por gira) ──────────────────────────
+
+const activityTypes = ref<ActivityType[]>([])
+const typesError = ref(false)
+let typesRequest = 0
+
+watch(
+  () => job.value?.tour,
+  async (tourUuid, prev) => {
+    if (!tourUuid || tourUuid === prev) return
+    const id = ++typesRequest
+    typesError.value = false
+    try {
+      const list = await useActivityTypes().listActivityTypes(tourUuid)
+      if (id === typesRequest) activityTypes.value = list
+    } catch {
+      if (id === typesRequest) {
+        activityTypes.value = []
+        typesError.value = true
+      }
+    }
+  },
+  { immediate: true }
+)
+
 // ─── Estado derivado ──────────────────────────────────────────────────────────
 
 type ViewState = 'processing' | 'failed' | 'discarded' | 'expired' | 'done' | 'ready'
@@ -148,10 +195,25 @@ const state = computed<ViewState | null>(() => {
 
 const summary = computed(() => job.value?.summary ?? null)
 const whatsappEstimate = computed(() => job.value?.whatsapp_estimate ?? null)
+
+// ─── Paso "Qué se va a enviar y a quién" (`?step=notices`, lote 3) ─────────────
+
+const noticesStep = computed(() => route.query.step === 'notices')
+
+function openNotices() {
+  if (!confirmable.value) return
+  void router.replace({ query: { ...route.query, step: 'notices' } })
+}
+
+function closeNotices() {
+  if (!noticesStep.value) return
+  void router.replace({ query: { ...route.query, step: undefined } })
+}
+
 // En móvil la barra de confirmar es fija: el contenido deja sitio para ella (más alta con la
 // estimación de WhatsApp y su aviso).
 const readyPadding = computed(() => {
-  if (state.value !== 'ready') return 'pb-28 lg:pb-6'
+  if (state.value !== 'ready' || noticesStep.value) return 'pb-28 lg:pb-6'
   const e = whatsappEstimate.value
   if (e && e.people > 0) {
     return e.exceeds
@@ -160,17 +222,73 @@ const readyPadding = computed(() => {
   }
   return 'pb-[calc(160px+env(safe-area-inset-bottom))] lg:pb-0'
 })
-const needsAction = computed(() => summary.value?.needs_action ?? 0)
+const pending = computed(() => pendingCounts(job.value))
+const needsAction = computed(() => pending.value.total)
 const confirmable = computed(() => canConfirm(job.value))
+
+const teamRows = computed(() => job.value?.draft?.team ?? [])
+const activityRows = computed(() => job.value?.draft?.activities ?? [])
+const hasTeam = computed(() => teamRows.value.length > 0)
+const hasActivities = computed(() => activityRows.value.length > 0)
+
+/**
+ * Orden de los bloques (F2 §4.3): `itinerary` → Actividades primero; `team` → Equipo primero;
+ * `any` (o jobs de F1) → el que tenga más filas por resolver (a igualdad, Equipo).
+ */
+const blocks = computed<('team' | 'activities')[]>(() => {
+  const d = job.value?.detected
+  const expected = d && 'expected' in d ? d.expected : undefined
+  let activitiesFirst = false
+  if (expected === 'itinerary') activitiesFirst = true
+  else if (expected !== 'team') activitiesFirst = pending.value.activities > pending.value.team
+  const list: ('team' | 'activities')[] = activitiesFirst ? ['activities', 'team'] : ['team', 'activities']
+  return list.filter((b) => (b === 'team' ? hasTeam.value : hasActivities.value))
+})
+
+/** Con actividades que entran o equipo que entra al grupo, la barra lleva al paso de avisos. */
+const confirmMode = computed<'confirm' | 'notices'>(() => {
+  const a = summary.value?.activities
+  const activitiesIn = a
+    ? a.to_create + a.to_replace
+    : activityRows.value.filter((r) => r.action !== 'skip').length
+  return activitiesIn > 0 || (summary.value?.in_group ?? 0) > 0 ? 'notices' : 'confirm'
+})
+
+const jobTour = computed(() => toursStore.tours.find((tr) => tr.uuid === job.value?.tour) ?? null)
+const assumptions = computed(() => job.value?.draft?.assumptions ?? null)
+const tourTimezone = computed(
+  () => jobTour.value?.timezone || assumptions.value?.default_timezone || FALLBACK_TOUR_ZONE
+)
+const baseYear = computed(() => {
+  const start = jobTour.value?.start_date
+  const dt = start ? DateTime.fromISO(start) : null
+  return dt?.isValid ? dt.year : null
+})
+const typeOptions = computed(() => activityTypeOptions(activityTypes.value, activityRows.value))
+const documentUrls = computed(() =>
+  Object.fromEntries((job.value?.documents ?? []).map((d) => [d.uuid, d.download_url]))
+)
+const showDayOne = computed(() =>
+  hasDayNumbers(activityRows.value, assumptions.value?.day_one_date ?? null)
+)
+const showHotels = computed(() => activityRows.value.some(isHotelRow))
 
 const failedText = computed(() => t(errorKey(job.value?.error_code)))
 
-const detectedItems = computed(() =>
-  detectedTeam(job.value).map((d) => ({
-    key: d.key,
+const detectedItems = computed(() => [
+  ...detectedTeam(job.value).map((d) => ({
+    key: `t-${d.key}`,
     text: t('importer.detectedTeam', { file: d.filename || t('importer.pastedText'), n: d.people }),
-  }))
-)
+  })),
+  ...detectedActivities(job.value).map((d) => ({
+    key: `a-${d.key}`,
+    text: t(
+      'importer.detectedActivities',
+      { file: d.filename || t('importer.pastedText'), n: d.activities },
+      d.activities
+    ),
+  })),
+])
 
 const warnings = computed(() =>
   (job.value?.draft?.warnings ?? []).map((w, i) => ({
@@ -264,6 +382,25 @@ function onRegionChange() {
     .finally(() => (regionSaving.value = false))
 }
 
+// ─── Supuestos de las actividades (F2) ───────────────────────────────────────
+
+const assumptionsSaving = ref(false)
+const assumptionsError = ref('')
+
+/** PATCH de supuestos: recalcula todas las filas; la lista queda bloqueada hasta la respuesta. */
+function patchAssumptions(patch: ImportAssumptionsPatch) {
+  assumptionsSaving.value = true
+  assumptionsError.value = ''
+  void enqueue(jobUuid.value, { assumptions: patch }, (e) => {
+    assumptionsError.value = rowErrorText(e)
+  }).finally(() => (assumptionsSaving.value = false))
+}
+
+/** "Aplicar a todas las de {ciudad}" del resolutor: la zona de la ciudad en los supuestos. */
+function onCityZone(payload: { key: string; timezone: string }) {
+  patchAssumptions({ cities: { [payload.key]: payload.timezone } })
+}
+
 // ─── Guardado por fila (cola secuencial) ──────────────────────────────────────
 
 const saving = ref(new Set<string>())
@@ -321,8 +458,11 @@ const selectedId = ref<string | null>(null)
 const selectedRow = computed<ImportTeamRow | null>(
   () => job.value?.draft?.team?.find((r) => r.client_id === selectedId.value) ?? null
 )
+const selectedActivity = computed<ImportActivityRow | null>(
+  () => job.value?.draft?.activities?.find((r) => r.client_id === selectedId.value) ?? null
+)
 
-function onEdit(row: ImportTeamRow) {
+function onEdit(row: ImportTeamRow | ImportActivityRow) {
   selectedId.value = selectedId.value === row.client_id ? null : row.client_id
 }
 
@@ -334,22 +474,37 @@ function onEditorPatch(patch: ImportRowPatch) {
 
 const confirming = ref(false)
 const confirmError = ref('')
-const busy = computed(() => confirming.value || regionSaving.value || saving.value.size > 0)
+const busy = computed(
+  () =>
+    confirming.value || regionSaving.value || assumptionsSaving.value || saving.value.size > 0
+)
 
-async function confirm() {
+/** Confirma el borrador (F2: `{pause_notifications, activate_tour}` desde el paso de avisos). */
+async function confirm(opts: ImportConfirmOptions = {}) {
   const uuid = jobUuid.value
   if (!confirmable.value || confirming.value) return
   confirming.value = true
   confirmError.value = ''
   try {
     await queue
-    const j = await confirmImportJob(uuid)
+    const j = await confirmImportJob(uuid, opts)
     if (uuid !== jobUuid.value) return
     job.value = j
     selectedId.value = null
+    closeNotices()
+    const r = j.result as Partial<ImportResult>
     // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
-    void contactsStore.fetchContacts()
+    if (hasTeam.value) void contactsStore.fetchContacts()
     void reminderCatalog.invalidate(j.tour)
+    // Actividades nuevas o sustituidas, y la gira puede haber pasado a activa o a pausa.
+    if (
+      (r.activities_created ?? 0) + (r.activities_replaced ?? 0) > 0 ||
+      r.tour_activated ||
+      r.notifications_paused
+    ) {
+      if (toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
+      void toursStore.loadTours()
+    }
   } catch (e) {
     if (uuid !== jobUuid.value) return
     confirmError.value = t(importErrorKey(e))
@@ -360,9 +515,12 @@ async function confirm() {
       const text = t('importer.errors.unresolvedRow')
       rowErrors.value = { ...rowErrors.value, ...Object.fromEntries(rows.map((r) => [r, text])) }
     }
-    if (['unresolved_rows', 'already_confirmed', 'job_not_ready'].some((c) => codes.includes(c))) {
-      await refresh()
-    }
+    const backToReview = codes.includes('unresolved_rows') || codes.includes('activity_gone')
+    // Vuelve a la revisión (con el filtro "por resolver" si, tras recargar, queda algo).
+    if (backToReview) closeNotices()
+    const reload = ['unresolved_rows', 'already_confirmed', 'job_not_ready', 'activity_gone']
+    if (reload.some((c) => codes.includes(c))) await refresh()
+    if (backToReview && uuid === jobUuid.value && needsAction.value > 0) onlyPending.value = true
   } finally {
     confirming.value = false
   }
@@ -523,6 +681,46 @@ function onProcessed(j: ImportJob) {
           @import-more="dropOpen = true"
         />
 
+        <!-- Paso "Qué se va a enviar y a quién" (?step=notices).
+             STUB del lote 2: el lote 3 lo sustituye por ImportNotificationsPreview
+             (vista previa, "Pausar avisos por ahora" y confirmar con esas opciones). -->
+        <div
+          v-else-if="state === 'ready' && noticesStep"
+          class="flex flex-col gap-4"
+          data-test="import-notices-step"
+        >
+          <h1 class="text-[20px] font-bold text-ink">
+            {{ t('importer.title') }}
+          </h1>
+          <p
+            v-if="confirmError"
+            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2"
+            role="alert"
+            data-test="import-confirm-error"
+          >
+            {{ confirmError }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <BtnSecondary
+              type="button"
+              :disabled="confirming"
+              data-test="import-notices-back"
+              @click="closeNotices"
+            >
+              {{ t('common.back') }}
+            </BtnSecondary>
+            <BtnPrimary
+              type="button"
+              class="disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="!confirmable || confirming"
+              data-test="import-notices-confirm"
+              @click="confirm()"
+            >
+              {{ t('importer.confirm.button') }}
+            </BtnPrimary>
+          </div>
+        </div>
+
         <!-- Borrador listo para revisar -->
         <div
           v-else-if="state === 'ready'"
@@ -558,115 +756,191 @@ function onProcessed(j: ImportJob) {
 
           <ImportDeferredNotice :job="job" />
 
-          <div class="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
-            <label class="flex flex-col gap-1 text-[13px] font-medium text-ink-2">
-              {{ t('importer.region.label') }}
-              <select
-                v-model="regionValue"
-                class="min-h-[44px] lg:min-h-[36px] w-full sm:w-64 rounded-sm border border-line-2 bg-bg-3 px-3 text-[15px] lg:text-[14px] text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive disabled:opacity-50"
-                :disabled="regionSaving || confirming"
-                data-test="import-region"
-                @change="onRegionChange"
-              >
-                <option
-                  v-for="o in regionOptions"
-                  :key="o.code"
-                  :value="o.code"
-                >
-                  {{ o.label }}
-                </option>
-              </select>
-              <span class="text-[12px] font-normal text-ink-2">
-                {{ regionSaving ? t('importer.region.saving') : t('importer.region.help') }}
-              </span>
-              <span
-                v-if="regionError"
-                class="text-[13px] font-normal text-failed-fg"
-                role="alert"
-                data-test="import-region-error"
-              >{{ regionError }}</span>
-            </label>
+          <!-- N cosas por resolver (equipo + actividades) -->
+          <div
+            v-if="needsAction > 0"
+            class="flex flex-wrap items-center gap-2"
+          >
+            <span
+              class="text-[14px] font-semibold text-failed-fg"
+              data-test="import-to-resolve"
+            >
+              {{ t('importer.toResolve', { n: needsAction }, needsAction) }}
+            </span>
+            <button
+              type="button"
+              class="min-h-[44px] lg:min-h-0 px-2 text-[13px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+              :aria-pressed="onlyPending"
+              data-test="import-filter"
+              @click="onlyPending = !onlyPending"
+            >
+              {{ onlyPending ? t('importer.filterAll') : t('importer.filterPending') }}
+            </button>
           </div>
 
-          <div class="flex flex-col gap-1">
-            <p
-              class="text-[14px] text-ink"
-              data-test="import-group-line"
+          <template
+            v-for="block in blocks"
+            :key="block"
+          >
+            <!-- Equipo (F1) -->
+            <section
+              v-if="block === 'team'"
+              class="flex flex-col gap-4"
+              data-block="team"
+              data-test="import-block-team"
             >
-              {{ groupLine }}
-            </p>
-            <p
-              v-if="groupNotDefault"
-              class="text-[14px] text-pending-fg rounded-sm bg-pending-bg px-3 py-2"
-              data-test="import-group-not-default"
-            >
-              {{ t('importer.group.notDefault', { group: groupNotDefault }) }}
-            </p>
-          </div>
-
-          <section class="flex flex-col gap-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
-                {{ t('importer.team.title') }}
-              </h2>
-              <div
-                v-if="needsAction > 0"
-                class="flex items-center gap-2"
-              >
-                <span
-                  class="text-[14px] font-semibold text-failed-fg"
-                  data-test="import-to-resolve"
-                >
-                  {{ t('importer.toResolve', { n: needsAction }, needsAction) }}
-                </span>
-                <button
-                  type="button"
-                  class="min-h-[44px] lg:min-h-0 px-2 text-[13px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
-                  :aria-pressed="onlyPending"
-                  data-test="import-filter"
-                  @click="onlyPending = !onlyPending"
-                >
-                  {{ onlyPending ? t('importer.filterAll') : t('importer.filterPending') }}
-                </button>
+              <div class="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
+                <label class="flex flex-col gap-1 text-[13px] font-medium text-ink-2">
+                  {{ t('importer.region.label') }}
+                  <select
+                    v-model="regionValue"
+                    class="min-h-[44px] lg:min-h-[36px] w-full sm:w-64 rounded-sm border border-line-2 bg-bg-3 px-3 text-[15px] lg:text-[14px] text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive disabled:opacity-50"
+                    :disabled="regionSaving || confirming"
+                    data-test="import-region"
+                    @change="onRegionChange"
+                  >
+                    <option
+                      v-for="o in regionOptions"
+                      :key="o.code"
+                      :value="o.code"
+                    >
+                      {{ o.label }}
+                    </option>
+                  </select>
+                  <span class="text-[12px] font-normal text-ink-2">
+                    {{ regionSaving ? t('importer.region.saving') : t('importer.region.help') }}
+                  </span>
+                  <span
+                    v-if="regionError"
+                    class="text-[13px] font-normal text-failed-fg"
+                    role="alert"
+                    data-test="import-region-error"
+                  >{{ regionError }}</span>
+                </label>
               </div>
-            </div>
-            <p
-              v-if="rolesError"
-              class="text-[13px] text-ink-2"
-            >
-              {{ t('importer.errors.loadRoles') }}
-            </p>
 
-            <ImportTeamTable
-              :job="job"
-              :roles="roles"
-              :saving="saving"
-              :row-errors="rowErrors"
-              :only-pending="onlyPending"
-              :selected-id="isMobile ? null : selectedId"
-              @patch="patchRow"
-              @edit="onEdit"
+              <div class="flex flex-col gap-1">
+                <p
+                  class="text-[14px] text-ink"
+                  data-test="import-group-line"
+                >
+                  {{ groupLine }}
+                </p>
+                <p
+                  v-if="groupNotDefault"
+                  class="text-[14px] text-pending-fg rounded-sm bg-pending-bg px-3 py-2"
+                  data-test="import-group-not-default"
+                >
+                  {{ t('importer.group.notDefault', { group: groupNotDefault }) }}
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
+                  {{ t('importer.team.title') }}
+                </h2>
+                <p
+                  v-if="rolesError"
+                  class="text-[13px] text-ink-2"
+                >
+                  {{ t('importer.errors.loadRoles') }}
+                </p>
+
+                <ImportTeamTable
+                  :job="job"
+                  :roles="roles"
+                  :saving="saving"
+                  :row-errors="rowErrors"
+                  :only-pending="onlyPending"
+                  :selected-id="isMobile ? null : selectedId"
+                  @patch="patchRow"
+                  @edit="onEdit"
+                >
+                  <template #expanded="{ row }">
+                    <div class="flex flex-col gap-3">
+                      <ImportMatchResolver
+                        v-if="needsResolver(row)"
+                        :row="row"
+                        :saving="saving.has(row.client_id)"
+                        @patch="patchRow"
+                      />
+                      <ImportTeamRowEditor
+                        :row="row"
+                        :roles="roles"
+                        :saving="saving.has(row.client_id)"
+                        :error="rowErrors[row.client_id]"
+                        @patch="onEditorPatch"
+                        @close="selectedId = null"
+                      />
+                    </div>
+                  </template>
+                </ImportTeamTable>
+              </div>
+            </section>
+
+            <!-- Actividades (F2) -->
+            <section
+              v-else
+              class="flex flex-col gap-3"
+              data-block="activities"
+              data-test="import-block-activities"
             >
-              <template #expanded="{ row }">
-                <div class="flex flex-col gap-3">
-                  <ImportMatchResolver
-                    v-if="needsResolver(row)"
+              <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
+                {{ t('importer.activities.title') }}
+              </h2>
+              <ImportAssumptionsBar
+                v-if="assumptions"
+                :assumptions="assumptions"
+                :saving="assumptionsSaving"
+                :base-year="baseYear"
+                :show-day-one="showDayOne"
+                :show-hotels="showHotels"
+                :error="assumptionsError"
+                @patch="patchAssumptions"
+              />
+              <p
+                v-if="typesError"
+                class="text-[13px] text-ink-2"
+                data-test="import-types-error"
+              >
+                {{ t('importer.activities.typesError') }}
+              </p>
+              <ImportActivityList
+                :rows="activityRows"
+                :tour-timezone="tourTimezone"
+                :types="typeOptions"
+                :cities="assumptions?.cities ?? {}"
+                :saving="saving"
+                :row-errors="rowErrors"
+                :only-pending="onlyPending"
+                :selected-id="isMobile ? null : selectedId"
+                :document-urls="documentUrls"
+                :recalculating="assumptionsSaving"
+                @patch="patchRow"
+                @city="onCityZone"
+                @edit="onEdit"
+              >
+                <template #expanded="{ row }">
+                  <ImportActivityEditor
                     :row="row"
-                    :saving="saving.has(row.client_id)"
-                    @patch="patchRow"
-                  />
-                  <ImportTeamRowEditor
-                    :row="row"
-                    :roles="roles"
+                    :types="typeOptions"
                     :saving="saving.has(row.client_id)"
                     :error="rowErrors[row.client_id]"
                     @patch="onEditorPatch"
                     @close="selectedId = null"
                   />
-                </div>
-              </template>
-            </ImportTeamTable>
-          </section>
+                </template>
+              </ImportActivityList>
+            </section>
+          </template>
+
+          <p
+            v-if="!blocks.length"
+            class="text-[14px] text-ink-2 py-4"
+            data-test="import-empty"
+          >
+            {{ t('importer.team.empty') }}
+          </p>
 
           <p
             v-if="confirmError"
@@ -683,7 +957,10 @@ function onProcessed(j: ImportJob) {
             :can-confirm="confirmable"
             :busy="busy"
             :estimate="whatsappEstimate"
-            @confirm="confirm"
+            :pending="needsAction"
+            :mode="confirmMode"
+            @confirm="confirm()"
+            @notices="openNotices"
             @discard="openDiscard"
           />
         </div>
@@ -692,11 +969,24 @@ function onProcessed(j: ImportJob) {
 
     <!-- Editor en móvil -->
     <MobileDetailOverlay
-      :show="isMobile && !!selectedRow"
+      :show="isMobile && (!!selectedRow || !!selectedActivity)"
       @close="selectedId = null"
     >
       <div
-        v-if="selectedRow"
+        v-if="selectedActivity"
+        class="flex-1 overflow-y-auto p-4 flex flex-col gap-4"
+      >
+        <ImportActivityEditor
+          :row="selectedActivity"
+          :types="typeOptions"
+          :saving="saving.has(selectedActivity.client_id)"
+          :error="rowErrors[selectedActivity.client_id]"
+          @patch="onEditorPatch"
+          @close="selectedId = null"
+        />
+      </div>
+      <div
+        v-else-if="selectedRow"
         class="flex-1 overflow-y-auto p-4 flex flex-col gap-4"
       >
         <ImportMatchResolver

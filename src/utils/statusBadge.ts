@@ -84,3 +84,19 @@ const IMPORT_ROW: Record<string, BadgeStatus> = {
 export function importRowBadge(status: string): BadgeStatus {
   return Object.prototype.hasOwnProperty.call(IMPORT_ROW, status) ? IMPORT_ROW[status] : 'off'
 }
+
+const IMPORT_ACTIVITY: Record<string, BadgeStatus> = {
+  new: 'scheduled',
+  duplicate: 'off',
+  possible_duplicate: 'pending',
+  duplicate_in_draft: 'off',
+  replace: 'pending',
+  skipped: 'off',
+}
+
+/** Estado de una fila de actividad del importador (`activityStatus` de `utils/importReview.ts`). */
+export function importActivityBadge(status: string): BadgeStatus {
+  return Object.prototype.hasOwnProperty.call(IMPORT_ACTIVITY, status)
+    ? IMPORT_ACTIVITY[status]
+    : 'off'
+}

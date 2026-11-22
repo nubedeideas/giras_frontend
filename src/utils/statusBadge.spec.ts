@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   activityBadge,
+  importActivityBadge,
   importConfidenceBadge,
   importJobBadge,
   importRowBadge,
@@ -89,5 +90,19 @@ describe('importRowBadge', () => {
     ['otro', 'off'],
   ])('%s → %s', (status, badge) => {
     expect(importRowBadge(status)).toBe(badge)
+  })
+})
+
+describe('importActivityBadge', () => {
+  it.each([
+    ['new', 'scheduled'],
+    ['duplicate', 'off'],
+    ['possible_duplicate', 'pending'],
+    ['duplicate_in_draft', 'off'],
+    ['replace', 'pending'],
+    ['skipped', 'off'],
+    ['otro', 'off'],
+  ])('%s → %s', (status, badge) => {
+    expect(importActivityBadge(status)).toBe(badge)
   })
 })

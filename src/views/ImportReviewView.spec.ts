@@ -60,6 +60,20 @@ const wrapped = (status: number, code: string, extra: Record<string, unknown> = 
     status
   )
 
+/**
+ * Confirmar desde la barra: con equipo que entra al grupo (o actividades) pasa por el paso
+ * `?step=notices` (lote 3; en el lote 2, un paso mínimo con "Confirmar").
+ */
+async function confirmFromBar(w: Awaited<ReturnType<typeof mountView>>) {
+  await w.get('[data-test="import-confirm"]').trigger('click')
+  await flushPromises()
+  const step = w.find('[data-test="import-notices-confirm"]')
+  if (step.exists()) {
+    await step.trigger('click')
+    await flushPromises()
+  }
+}
+
 const pending = teamRow({ client_id: 't2', display_name: 'Marta', needs_action: true, confidence: 0.5 })
 
 beforeEach(() => {
@@ -183,8 +197,7 @@ describe('ImportReviewView', () => {
       c.method === 'POST' && c.path === `${JOB_PATH}confirm/` ? jsonResponse(done) : undefined
     )
     const w = await mountView()
-    await w.get('[data-test="import-confirm"]').trigger('click')
-    await flushPromises()
+    await confirmFromBar(w)
     expect(log.some((c) => c.method === 'POST' && c.path === `${JOB_PATH}confirm/`)).toBe(true)
     expect(w.get('[data-test="import-result-summary"]').text()).toBe(
       'Contactos nuevos: 1 · Vinculados: 0 · En el Equipo de la gira: 1'
@@ -198,8 +211,7 @@ describe('ImportReviewView', () => {
       c.path === `${JOB_PATH}confirm/` ? wrapped(400, 'unresolved_rows', { rows: ['t1'] }) : undefined
     )
     const w = await mountView()
-    await w.get('[data-test="import-confirm"]').trigger('click')
-    await flushPromises()
+    await confirmFromBar(w)
     expect(w.get('[data-test="import-confirm-error"]').text()).toBe('Quedan filas por resolver.')
     expect(w.get('tr[data-row="t1"] [data-test="import-row-error"]').text()).toBe(
       'Resuelve u omite esta fila para poder confirmar.'
@@ -297,8 +309,7 @@ describe('ImportReviewView', () => {
     await router.isReady()
     const w = mount(ImportReviewView, { global: { plugins: [i18n, router] } })
     await flushPromises()
-    await w.get('[data-test="import-confirm"]').trigger('click')
-    await flushPromises()
+    await confirmFromBar(w)
     expect(w.find('[data-test="import-confirm-error"]').exists()).toBe(true)
     await router.push('/tour/import/J2')
     await flushPromises()

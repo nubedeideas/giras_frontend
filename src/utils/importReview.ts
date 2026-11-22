@@ -1,17 +1,22 @@
 /**
  * Helpers puros del importador (F1, spec 2026-11-22-importacion-f1-equipo.md §4.1): confianza,
  * fases, orden y estado de las filas, si se puede confirmar, fuentes diferidas, claves i18n de
- * error y la validación previa de la subida.
+ * error y la validación previa de la subida. F2 (2026-11-22-importacion-f2-actividades.md §4.2):
+ * filas de actividad (por día, orden, estado, issues, zona) y formato de horas y fechas locales.
  */
+import { DateTime } from 'luxon'
 import { ApiError } from '@/utils/apiClient'
 import { apiErrorCodes } from '@/utils/notificationErrors'
+import type { ActivityType } from '@/composables/useActivityTypes'
 import type {
+  ImportActivityRow,
   ImportDeferredReason,
   ImportJob,
   ImportJobStatus,
   ImportMatchCandidate,
   ImportRowAction,
   ImportTeamRow,
+  ImportTimezoneSource,
 } from '@/composables/useImportJobs'
 
 // ─── Confianza ────────────────────────────────────────────────────────────────
@@ -162,12 +167,302 @@ export function detectedTeam(job: Pick<ImportJob, 'detected'> | null | undefined
   return [...byKey.values()]
 }
 
+// ─── Actividades (F2) ─────────────────────────────────────────────────────────
+
+/** Los 24 códigos que admite `PATCH draft/` (`importer/activity_types.py` del backend). */
+export const ACTIVITY_TYPE_CODES: readonly string[] = [
+  'show',
+  'soundcheck',
+  'rehearsal',
+  'load_in',
+  'load_out',
+  'flight',
+  'transport',
+  'hotel_checkin',
+  'hotel_checkout',
+  'radio_interview',
+  'tv_interview',
+  'press_conference',
+  'photo_session',
+  'marketing',
+  'team_meeting',
+  'production_meeting',
+  'security_meeting',
+  'urgent_meeting',
+  'meet_greet',
+  'fan_activity',
+  'signing',
+  'day_off',
+  'personal',
+  'other',
+]
+
+export interface ActivityTypeOption {
+  code: string
+  name: string
+  /** Color del tipo de la gira (solo para el punto) o `null` si la gira aún no lo tiene. */
+  color: string | null
+}
+
+/**
+ * Tipos que se pueden elegir en la revisión: los de la gira con uno de los 24 códigos (activos) y
+ * los que traen las filas aunque la gira no los tenga (`type_available=false`: `confirm` los crea).
+ * Ordenados por `display_order` de la gira y después por nombre.
+ */
+export function activityTypeOptions(
+  types: Pick<ActivityType, 'code' | 'name' | 'color' | 'is_active' | 'display_order'>[],
+  rows: Pick<ImportActivityRow, 'activity_type_code' | 'type_name'>[] = []
+): ActivityTypeOption[] {
+  const valid = new Set(ACTIVITY_TYPE_CODES)
+  const out = new Map<string, ActivityTypeOption & { order: number }>()
+  for (const ty of types) {
+    if (!valid.has(ty.code) || ty.is_active === false || out.has(ty.code)) continue
+    out.set(ty.code, { code: ty.code, name: ty.name, color: ty.color || null, order: ty.display_order ?? 0 })
+  }
+  for (const r of rows) {
+    if (!r.activity_type_code || out.has(r.activity_type_code)) continue
+    out.set(r.activity_type_code, {
+      code: r.activity_type_code,
+      name: r.type_name || r.activity_type_code,
+      color: null,
+      order: Number.MAX_SAFE_INTEGER,
+    })
+  }
+  return [...out.values()]
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+    .map(({ code, name, color }) => ({ code, name, color }))
+}
+
+/**
+ * La fila de actividad pide decisión: la marca del servidor (`needs_action`) o, sin omitir, que no
+ * tenga instante (sin fecha o sin hora y sin "Todo el día"): `confirm` la rechazaría con
+ * `unresolved_rows` aunque su confianza no baje de 0,70.
+ */
+export function activityNeedsAction(r: ImportActivityRow): boolean {
+  if (r.action === 'skip') return false
+  return r.needs_action || !r.scheduled_at
+}
+
+/** Primero las que piden acción, luego las rojas y después por `scheduled_at` (sin hora al final). */
+export function sortActivityRows(rows: ImportActivityRow[]): ImportActivityRow[] {
+  const rank = (r: ImportActivityRow) =>
+    activityNeedsAction(r) ? 0 : r.action !== 'skip' && confidenceTone(r.confidence) === 'low' ? 1 : 2
+  const time = (r: ImportActivityRow) => (r.scheduled_at ? Date.parse(r.scheduled_at) : Infinity)
+  return rows
+    .map((row, i) => ({ row, i }))
+    .sort((a, b) => rank(a.row) - rank(b.row) || time(a.row) - time(b.row) || a.i - b.i)
+    .map((x) => x.row)
+}
+
+export interface ActivityDayGroup {
+  /** `YYYY-MM-DD` local o `null` ("Sin fecha", siempre al final). */
+  date: string | null
+  rows: ImportActivityRow[]
+}
+
+/**
+ * Agrupa por la fecha local de la fila (`date`); si no la trae pero sí `scheduled_at`, por su día en
+ * `tz` (la zona de la gira). Días en orden y, dentro de cada uno, el orden de `sortActivityRows`.
+ */
+export function groupActivitiesByDay(rows: ImportActivityRow[], tz: string): ActivityDayGroup[] {
+  const byDate = new Map<string | null, ImportActivityRow[]>()
+  for (const r of rows) {
+    let date = r.date
+    if (!date && r.scheduled_at) {
+      const dt = DateTime.fromISO(r.scheduled_at, { zone: 'utc' }).setZone(tz)
+      date = dt.isValid ? dt.toISODate() : null
+    }
+    const list = byDate.get(date ?? null)
+    if (list) list.push(r)
+    else byDate.set(date ?? null, [r])
+  }
+  return [...byDate.entries()]
+    .sort(([a], [b]) => (a === null ? 1 : b === null ? -1 : a.localeCompare(b)))
+    .map(([date, list]) => ({ date, rows: sortActivityRows(list) }))
+}
+
+export type ActivityStatus =
+  | 'new'
+  | 'duplicate'
+  | 'possible_duplicate'
+  | 'duplicate_in_draft'
+  | 'replace'
+  | 'skipped'
+
+export function activityStatus(r: ImportActivityRow): ActivityStatus {
+  if (r.action === 'replace') return 'replace'
+  const status = r.match?.status
+  if (r.action === 'skip') {
+    if (status === 'duplicate') return 'duplicate'
+    if (status === 'duplicate_in_draft' || r.duplicate_of) return 'duplicate_in_draft'
+    return 'skipped'
+  }
+  // "Crear igualmente" ya decidido (`reviewed`): se crea como nueva.
+  if (status === 'possible_duplicate' && !r.reviewed) return 'possible_duplicate'
+  return 'new'
+}
+
+/** Clave i18n del estado de la fila (`importer.activityStatus.*`). */
+export function activityStatusKey(r: ImportActivityRow): string {
+  return `importer.activityStatus.${activityStatus(r)}`
+}
+
+const ACTIVITY_ISSUES = new Set([
+  'time_missing',
+  'time_unverified',
+  'time_assumed',
+  'date_missing',
+  'date_unverified',
+  'year_assumed',
+  'date_ambiguous_dmy',
+  'weekday_mismatch',
+  'outside_tour',
+  'timezone_inherited',
+  'type_uncertain',
+  'flight_number_invalid',
+  'ocr_uncertain',
+  'partial_row',
+  'in_past',
+])
+
+/**
+ * Clave i18n de un issue de actividad, o `null` si no tiene texto propio (`possible_duplicate` lo
+ * cuenta el estado; uno desconocido no se pinta nunca en crudo).
+ */
+export function activityIssueKey(code: string): string | null {
+  return ACTIVITY_ISSUES.has(code) ? `importer.activityIssues.${code}` : null
+}
+
+const TZ_SOURCES = new Set<ImportTimezoneSource>([
+  'iata',
+  'city',
+  'airports',
+  'country',
+  'geocoding',
+  'ai_hint',
+  'tour',
+  'user',
+])
+
+/** Clave i18n de por qué la fila tiene esa zona (`importer.tzSource.*`). */
+export function timezoneSourceKey(source: string | null | undefined): string | null {
+  return source && TZ_SOURCES.has(source as ImportTimezoneSource)
+    ? `importer.tzSource.${source}`
+    : null
+}
+
+/** `HH:mm` local de un instante UTC en `tz` (`""` si no hay instante o no es válido). */
+export function formatLocalTime(iso: string | null | undefined, tz: string): string {
+  if (!iso) return ''
+  const dt = DateTime.fromISO(iso, { zone: 'utc' }).setZone(tz)
+  return dt.isValid ? dt.toFormat('HH:mm') : ''
+}
+
+/** Fecha local corta ("mié 3 dic") de un instante UTC en `tz`. */
+export function formatLocalDate(iso: string | null | undefined, tz: string, locale = 'es'): string {
+  if (!iso) return ''
+  const dt = DateTime.fromISO(iso, { zone: 'utc' }).setZone(tz).setLocale(locale)
+  return dt.isValid ? dt.toFormat('ccc d LLL') : ''
+}
+
+/** Fecha de calendario `YYYY-MM-DD` como "mié 3 dic" (sin zona: ya es local). */
+export function formatDayLabel(date: string, locale = 'es'): string {
+  const dt = DateTime.fromISO(date).setLocale(locale)
+  return dt.isValid ? dt.toFormat('ccc d LLL') : date
+}
+
+/** Abreviatura de la zona en ese instante ("CET", "GMT-6"); la IANA si no hay instante. */
+export function zoneShortName(tz: string, iso: string | null | undefined, locale = 'es'): string {
+  const base = iso ? DateTime.fromISO(iso, { zone: 'utc' }) : DateTime.now()
+  const dt = base.setZone(tz).setLocale(locale)
+  if (!dt.isValid) return tz
+  return dt.offsetNameShort ?? tz
+}
+
+const DAY_NUMBER_RE = /\b(day|d[ií]a|jour|tag|giorno|dia)\s*\d{1,3}\b/i
+
+/**
+ * Algún indicio de días numerados ("DAY 3", "Día 3"): el supuesto "Día 1 = …" solo tiene sentido
+ * entonces. El contrato de la fila no trae `day_number`: se mira `date_source`, el "Día 1" ya fijado
+ * y el texto de fecha o la cabecera de contexto.
+ */
+export function hasDayNumbers(
+  rows: ImportActivityRow[],
+  dayOneDate?: string | null
+): boolean {
+  if (dayOneDate) return true
+  return rows.some(
+    (r) =>
+      r.date_source === 'day_number' ||
+      DAY_NUMBER_RE.test(r.date_text ?? '') ||
+      DAY_NUMBER_RE.test(r.source_ref?.context ?? '')
+  )
+}
+
+const HOTEL_CODES = new Set(['hotel_checkin', 'hotel_checkout'])
+
+export function isHotelRow(r: Pick<ImportActivityRow, 'activity_type_code'>): boolean {
+  return HOTEL_CODES.has(r.activity_type_code)
+}
+
+/** Check-out emparejado de una estancia (la marca "Salida de {hotel}"). */
+export function isPairedCheckout(r: ImportActivityRow): boolean {
+  return r.activity_type_code === 'hotel_checkout' && !!r.pair_id
+}
+
+/** Hora local que se pinta: `start_time` (`HH:MM`) o, si no, la de `scheduled_at`. */
+export function activityTime(r: ImportActivityRow): string {
+  if (r.all_day) return ''
+  return r.start_time || formatLocalTime(r.scheduled_at, r.timezone)
+}
+
+export interface DetectedActivitiesItem {
+  key: string
+  filename: string
+  activities: number
+}
+
+/** Fuentes con actividades, agrupadas por documento (como `detectedTeam`). */
+export function detectedActivities(
+  job: Pick<ImportJob, 'detected'> | null | undefined
+): DetectedActivitiesItem[] {
+  const sources = (job?.detected && 'sources' in job.detected ? job.detected.sources : []) ?? []
+  const byKey = new Map<string, DetectedActivitiesItem>()
+  for (const s of sources) {
+    if (!s.processed || s.deferred || !s.activities_found) continue
+    const key = s.document_uuid ?? s.ref
+    const item = byKey.get(key)
+    if (item) item.activities += s.activities_found
+    else byKey.set(key, { key, filename: s.filename, activities: s.activities_found })
+  }
+  return [...byKey.values()]
+}
+
+/** Filas por resolver del job: equipo (`needs_action`) y actividades (`activityNeedsAction`). */
+export function pendingCounts(job: ImportJob | null | undefined): {
+  team: number
+  activities: number
+  total: number
+} {
+  const team = (job?.draft?.team ?? []).filter((r) => r.needs_action).length
+  const activities = (job?.draft?.activities ?? []).filter(activityNeedsAction).length
+  return { team, activities, total: team + activities }
+}
+
 // ─── Confirmar ────────────────────────────────────────────────────────────────
 
+/**
+ * `ready`, sin nada por resolver (equipo ni actividades) y con al menos una fila no omitida en
+ * total. Se cuenta sobre las filas (no `summary.needs_action`) para incluir las actividades sin
+ * instante, que el servidor rechazaría aunque no lleven `needs_action`.
+ */
 export function canConfirm(job: ImportJob | null | undefined): boolean {
   if (!job || job.status !== 'ready' || !job.summary) return false
-  if (job.summary.needs_action !== 0) return false
-  return (job.draft?.team ?? []).some((r) => r.action !== 'skip')
+  if (pendingCounts(job).total > 0) return false
+  return (
+    (job.draft?.team ?? []).some((r) => r.action !== 'skip') ||
+    (job.draft?.activities ?? []).some((r) => r.action !== 'skip')
+  )
 }
 
 // ─── Fuentes diferidas ────────────────────────────────────────────────────────
@@ -247,6 +542,13 @@ const ERROR_CODES = new Set([
   'too_many_rows',
   'invalid_value',
   'tour_required',
+  // PATCH draft/ y confirm de actividades (F2 §3.6, §3.7)
+  'invalid_action',
+  'invalid_type',
+  'invalid_timezone',
+  'unknown_city',
+  'date_required',
+  'activity_gone',
 ])
 
 /** Errores de validación del archivo (`apps/core/validators.py`, `validate_tour_document_file`). */

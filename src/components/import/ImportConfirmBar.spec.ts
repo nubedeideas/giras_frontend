@@ -46,4 +46,49 @@ describe('ImportConfirmBar', () => {
       'Resuelve las filas en rojo u omítelas para confirmar'
     )
   })
+
+  it('F2: con actividades, resumen conjunto, "Revisar avisos (N)" y emite notices', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({
+          activities: {
+            total: 12,
+            to_create: 9,
+            to_replace: 1,
+            to_skip: 2,
+            needs_action: 0,
+            duplicates: 2,
+            possible_duplicates: 0,
+            outside_tour: 0,
+            in_past: 0,
+            by_type: {},
+            days: 4,
+          },
+        }),
+        canConfirm: true,
+        mode: 'notices',
+      },
+      global: { plugins: [i18n] },
+    })
+    // El texto (`importer.confirm.summaryAll`) lo declara el lote 3; aquí solo su presencia.
+    expect(w.find('[data-test="import-confirm-summary-all"]').exists()).toBe(true)
+    expect(w.find('[data-test="import-confirm-summary"]').exists()).toBe(false)
+    const btn = w.get('[data-test="import-confirm"]')
+    expect(btn.attributes('data-mode')).toBe('notices')
+    // 3 nuevos + 2 vinculados + 9 actividades + 1 sustituida.
+    expect(btn.text()).toContain('Revisar avisos (15)')
+    await btn.trigger('click')
+    expect(w.emitted('notices')).toHaveLength(1)
+    expect(w.emitted('confirm')).toBeUndefined()
+  })
+
+  it('F2: bloqueado por actividades pendientes aunque el equipo esté listo', () => {
+    const w = mount(ImportConfirmBar, {
+      props: { summary: summary(), canConfirm: false, pending: 2 },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-reason"]').text()).toBe(
+      'Resuelve las filas en rojo u omítelas para confirmar'
+    )
+  })
 })
