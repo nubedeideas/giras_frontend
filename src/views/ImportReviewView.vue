@@ -3,8 +3,11 @@
 // Estados: carga, 404/403, procesando (ImportProgress), `failed`, `discarded`/caducado, `done`
 // (ImportResultSummary) y `ready` (región, avisos, diferidos, bloque Equipo y barra Confirmar).
 // Los PATCH van en cola secuencial; cada respuesta sustituye al job entero.
+// F2 (lote 3): si entran actividades o personas al grupo, "Confirmar" pasa por el paso
+// `?step=notices` ("Qué se va a enviar y a quién", ImportNotificationsPreview), que confirma con
+// `{pause_notifications, activate_tour: true}`.
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -14,6 +17,7 @@ import ImportConfirmBar from '@/components/import/ImportConfirmBar.vue'
 import ImportDeferredNotice from '@/components/import/ImportDeferredNotice.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
 import ImportMatchResolver from '@/components/import/ImportMatchResolver.vue'
+import ImportNotificationsPreview from '@/components/import/ImportNotificationsPreview.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
 import ImportResultSummary from '@/components/import/ImportResultSummary.vue'
 import ImportTeamRowEditor from '@/components/import/ImportTeamRowEditor.vue'
@@ -26,11 +30,13 @@ import {
   patchImportDraft,
   type ImportDraftPatch,
   type ImportJob,
+  type ImportResult,
   type ImportRowPatch,
   type ImportTeamRow,
 } from '@/composables/useImportJobs'
 import { isImportProcessing } from '@/composables/useImportJobPolling'
 import { useIsMobile } from '@/composables/useIsMobile'
+import { useActivitiesStore } from '@/stores/activities'
 import { useContactsStore } from '@/stores/contacts'
 import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import { useToursStore } from '@/stores/tours'
@@ -46,9 +52,11 @@ import {
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const toursStore = useToursStore()
 const contactsStore = useContactsStore()
 const reminderCatalog = useReminderCatalogStore()
+const activitiesStore = useActivitiesStore()
 const { isMobile } = useIsMobile()
 
 const jobUuid = computed(() => String(route.params.jobUuid ?? ''))
@@ -151,7 +159,7 @@ const whatsappEstimate = computed(() => job.value?.whatsapp_estimate ?? null)
 // En móvil la barra de confirmar es fija: el contenido deja sitio para ella (más alta con la
 // estimación de WhatsApp y su aviso).
 const readyPadding = computed(() => {
-  if (state.value !== 'ready') return 'pb-28 lg:pb-6'
+  if (state.value !== 'ready' || showNotices.value) return 'pb-28 lg:pb-6'
   const e = whatsappEstimate.value
   if (e && e.people > 0) {
     return e.exceeds
@@ -162,6 +170,43 @@ const readyPadding = computed(() => {
 })
 const needsAction = computed(() => summary.value?.needs_action ?? 0)
 const confirmable = computed(() => canConfirm(job.value))
+
+// ─── Paso "Qué se va a enviar y a quién" (F2 §4.4) ────────────────────────────
+
+/** Hay paso de avisos si entran actividades o personas al grupo (si no, "Confirmar" directo). */
+const noticesStep = computed(() => {
+  const s = summary.value
+  if (!s) return false
+  const a = s.activities
+  return (a ? a.to_create + a.to_replace : 0) > 0 || s.in_group > 0
+})
+const showNotices = computed(
+  () =>
+    state.value === 'ready' &&
+    noticesStep.value &&
+    confirmable.value &&
+    route.query.step === 'notices'
+)
+const tourTimezone = computed(
+  () => toursStore.tours.find((x) => x.uuid === job.value?.tour)?.timezone ?? null
+)
+
+function openNotices() {
+  if (!confirmable.value) return
+  void router.push({ query: { ...route.query, step: 'notices' } })
+}
+
+function leaveNotices() {
+  if (route.query.step === undefined) return
+  const query = { ...route.query }
+  delete query.step
+  void router.replace({ query })
+}
+
+function onConfirmRequest() {
+  if (noticesStep.value) openNotices()
+  else void confirm(false)
+}
 
 const failedText = computed(() => t(errorKey(job.value?.error_code)))
 
@@ -336,24 +381,29 @@ const confirming = ref(false)
 const confirmError = ref('')
 const busy = computed(() => confirming.value || regionSaving.value || saving.value.size > 0)
 
-async function confirm() {
+async function confirm(pause: boolean) {
   const uuid = jobUuid.value
   if (!confirmable.value || confirming.value) return
   confirming.value = true
   confirmError.value = ''
   try {
     await queue
-    const j = await confirmImportJob(uuid)
+    const j = await confirmImportJob(uuid, { pause_notifications: pause, activate_tour: true })
     if (uuid !== jobUuid.value) return
+    const hadTeam = (job.value?.draft?.team?.length ?? 0) > 0
     job.value = j
     selectedId.value = null
-    // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
-    void contactsStore.fetchContacts()
-    void reminderCatalog.invalidate(j.tour)
+    leaveNotices()
+    refreshAfterConfirm(j, hadTeam)
   } catch (e) {
     if (uuid !== jobUuid.value) return
     confirmError.value = t(importErrorKey(e))
     const codes = apiErrorCodes(e)
+    // Desde el paso de avisos, estos errores devuelven a la revisión (el estado final lo pinta el job
+    // recargado si ya estaba confirmado).
+    if (['unresolved_rows', 'already_confirmed', 'job_not_ready'].some((c) => codes.includes(c))) {
+      leaveNotices()
+    }
     // `unresolved_rows` trae en `details.rows` las filas que faltan: se marcan en la tabla.
     const rows = apiErrorRows(e)
     if (rows.length) {
@@ -363,9 +413,38 @@ async function confirm() {
     if (['unresolved_rows', 'already_confirmed', 'job_not_ready'].some((c) => codes.includes(c))) {
       await refresh()
     }
+    // Filas por resolver: la revisión se abre con el filtro "Por resolver" si el job recargado las tiene.
+    if (codes.includes('unresolved_rows') && uuid === jobUuid.value && needsAction.value > 0) {
+      onlyPending.value = true
+    }
   } finally {
     confirming.value = false
   }
+}
+
+/** Tras `confirm`: contactos, catálogo de recordatorios, gira (estado y pausa) y actividades. */
+function refreshAfterConfirm(j: ImportJob, hadTeam: boolean) {
+  const r = j.result as Partial<ImportResult>
+  const activities = (r.activities_created ?? 0) + (r.activities_replaced ?? 0)
+  // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
+  if (hadTeam || activities === 0) void contactsStore.fetchContacts()
+  void reminderCatalog.invalidate(j.tour)
+  if (activities > 0 || r.tour_activated || r.notifications_paused) void toursStore.loadTours()
+  if (activities > 0 && toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
+}
+
+function onNoticesBack() {
+  confirmError.value = ''
+  leaveNotices()
+}
+
+function onNoticesNotReady() {
+  leaveNotices()
+  void refresh()
+}
+
+function onResultUpdated(j: ImportJob) {
+  if (j.uuid === jobUuid.value) job.value = j
 }
 
 // ─── Descartar ────────────────────────────────────────────────────────────────
@@ -521,6 +600,19 @@ function onProcessed(j: ImportJob) {
           v-else-if="state === 'done'"
           :job="job"
           @import-more="dropOpen = true"
+          @updated="onResultUpdated"
+        />
+
+        <!-- Qué se va a enviar y a quién (F2 §4.4) -->
+        <ImportNotificationsPreview
+          v-else-if="showNotices"
+          :job-uuid="job.uuid"
+          :timezone="tourTimezone"
+          :busy="confirming"
+          :confirm-error="confirmError"
+          @back="onNoticesBack"
+          @confirm="confirm"
+          @not-ready="onNoticesNotReady"
         />
 
         <!-- Borrador listo para revisar -->
@@ -683,7 +775,8 @@ function onProcessed(j: ImportJob) {
             :can-confirm="confirmable"
             :busy="busy"
             :estimate="whatsappEstimate"
-            @confirm="confirm"
+            :notices-step="noticesStep"
+            @confirm="onConfirmRequest"
             @discard="openDiscard"
           />
         </div>

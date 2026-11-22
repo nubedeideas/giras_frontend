@@ -46,4 +46,35 @@ describe('ImportConfirmBar', () => {
       'Resuelve las filas en rojo u omítelas para confirmar'
     )
   })
+
+  it('F2: con noticesStep el botón es "Ver avisos" y con actividades el resumen las cuenta', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({
+          activities: {
+            total: 47,
+            to_create: 44,
+            to_replace: 1,
+            to_skip: 2,
+            needs_action: 0,
+            duplicates: 2,
+            possible_duplicates: 0,
+            outside_tour: 0,
+            in_past: 0,
+            by_type: {},
+            days: 10,
+          },
+        }),
+        canConfirm: true,
+        noticesStep: true,
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-summary"]').text()).toBe(
+      'Se crearán 3 contactos y 44 actividades (2 omitidas, 1 sustituidas)'
+    )
+    expect(w.get('[data-test="import-confirm"]').text()).toBe('Ver avisos')
+    await w.get('[data-test="import-confirm"]').trigger('click')
+    expect(w.emitted('confirm')).toHaveLength(1)
+  })
 })

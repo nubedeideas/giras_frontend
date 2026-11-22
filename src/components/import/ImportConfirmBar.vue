@@ -2,6 +2,8 @@
 // Pie de la revisión (F1 §4.2): resumen de lo que hará `confirm`, "Descartar" y "Confirmar"
 // (desactivado con el motivo si quedan filas por resolver). Fijo sobre la `MobileNav` en móvil y
 // pegado al fondo del scroll en escritorio. Con `estimate` (D11), la estimación de WhatsApp.
+// F2 (lote 3): con `noticesStep` el botón principal es "Ver avisos" (abre `?step=notices`) y, si
+// el job trae actividades, el resumen cuenta contactos y actividades (`summaryAll`).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -15,14 +17,34 @@ const props = withDefaults(
     canConfirm: boolean
     busy?: boolean
     estimate?: Estimate | null
+    noticesStep?: boolean
   }>(),
-  { busy: false, estimate: null }
+  { busy: false, estimate: null, noticesStep: false }
 )
 const emit = defineEmits<{ confirm: []; discard: [] }>()
 
 const { t } = useI18n()
 
 const toImport = computed(() => props.summary.to_create + props.summary.to_link)
+const summaryText = computed(() => {
+  const s = props.summary
+  const a = s.activities
+  if (a && a.total > 0) {
+    return t('importer.confirm.summaryAll', {
+      contacts: s.to_create,
+      activities: a.to_create,
+      skipped: a.to_skip,
+      replaced: a.to_replace,
+    })
+  }
+  return t('importer.confirm.summary', {
+    created: s.to_create,
+    linked: s.to_link,
+    group: s.in_group,
+    skipped: s.to_skip,
+  })
+})
+
 const reason = computed(() => {
   if (props.canConfirm) return ''
   if (props.summary.needs_action > 0) return t('importer.confirm.blocked')
@@ -42,14 +64,7 @@ const reason = computed(() => {
           class="hidden lg:block text-[14px] text-ink"
           data-test="import-confirm-summary"
         >
-          {{
-            t('importer.confirm.summary', {
-              created: summary.to_create,
-              linked: summary.to_link,
-              group: summary.in_group,
-              skipped: summary.to_skip,
-            })
-          }}
+          {{ summaryText }}
         </p>
         <ImportWhatsappEstimate :estimate="estimate" />
         <p
@@ -84,8 +99,13 @@ const reason = computed(() => {
             class="w-3.5 h-3.5 rounded-full border-2 border-night border-t-transparent animate-spin"
             aria-hidden="true"
           />
-          <span class="lg:hidden">{{ t('importer.confirm.buttonCount', { n: toImport }) }}</span>
-          <span class="hidden lg:inline">{{ t('importer.confirm.button') }}</span>
+          <template v-if="noticesStep">
+            {{ t('importer.confirm.viewNotices') }}
+          </template>
+          <template v-else>
+            <span class="lg:hidden">{{ t('importer.confirm.buttonCount', { n: toImport }) }}</span>
+            <span class="hidden lg:inline">{{ t('importer.confirm.button') }}</span>
+          </template>
         </BtnPrimary>
       </div>
     </div>
