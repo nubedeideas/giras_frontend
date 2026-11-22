@@ -254,4 +254,60 @@ describe('TourRemindersPanel', () => {
     await flushPromises()
     expect(w.find('[data-test="reminder-estimate"]').exists()).toBe(true)
   })
+
+  it('grupos por rol: abre la propuesta y, al aplicar, recarga catálogo y revisión', async () => {
+    let applied = false
+    const proposal = {
+      ai_used: true,
+      buckets: [
+        {
+          key: 'band',
+          name: 'Banda',
+          existing_group: null,
+          contacts: [
+            { uuid: 'c1', name: 'Marta', role_text: 'Banda', selected: true, source: 'role', confidence: null },
+          ],
+        },
+      ],
+      unassigned: [],
+      type_destinations: [],
+    }
+    const band = group({ uuid: 'g-band', name: 'Banda', system_key: 'band', is_default: false })
+    const fn = stubFetch((url, init) => {
+      const method = init?.method ?? 'GET'
+      if (url.pathname.endsWith('/role-groups/propose/')) return jsonResponse(proposal)
+      if (url.pathname.endsWith('/role-groups/apply/')) {
+        applied = true
+        return jsonResponse({ groups: [band], reminder_settings_updated: 0, warnings: ['tour_team_recreated', 'otro_codigo'] })
+      }
+      if (url.pathname.endsWith('/reminder-settings/') && method === 'GET') {
+        return jsonResponse(
+          applied
+            ? catalog({ types: [typeSetting({ groups: [band], base_source: 'type_groups' })] })
+            : catalog()
+        )
+      }
+      if (method === 'GET') return jsonResponse({ count: 0, next: null, previous: null, results: [] })
+      return jsonResponse({}, 404)
+    })
+    const w = await mountPanel()
+    expect(w.find('[data-test="ai-review"]').exists()).toBe(false)
+    await w.get('[data-test="role-groups-open"]').trigger('click')
+    await flushPromises()
+    await w.get('[data-test="role-groups-create"]').trigger('click')
+    await flushPromises()
+
+    expect(w.find('[data-test="role-groups-modal"]').exists()).toBe(false)
+    expect(w.get('[data-test="role-groups-applied"]').text()).toBe('Grupo guardado.')
+    const warnings = w.findAll('[data-test="role-groups-warning"]').map((x) => x.text())
+    expect(warnings).toEqual([
+      'Se ha vuelto a crear el «Equipo de la gira», que se había borrado. Revisa quién está dentro.',
+    ])
+    const gets = fn.mock.calls
+      .filter(([, i]) => (i?.method ?? 'GET') === 'GET')
+      .map(([u]) => new URL(String(u)).pathname)
+    expect(gets.filter((p) => p.endsWith('/reminder-settings/'))).toHaveLength(2)
+    expect(gets.filter((p) => p.endsWith('/recipient-overrides/'))).toHaveLength(2)
+    expect(w.text()).toContain('Banda')
+  })
 })

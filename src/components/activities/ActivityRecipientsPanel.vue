@@ -17,11 +17,13 @@ import { useToursStore } from '@/stores/tours'
 import { ApiError } from '@/utils/apiClient'
 import GlassBlock from '@/components/ui/GlassBlock.vue'
 import {
+  apiErrorCode,
   isForbidden,
   recipientWarningLabel,
   reminderErrorMessage,
   stepsSummary,
 } from '@/utils/reminders'
+import { aiErrorMessage } from '@/utils/aiReview'
 
 /**
  * Bloque "Destinatarios" del detalle de actividad (C1.4), solo para admins de la gira: a quién
@@ -43,6 +45,10 @@ const loadError = ref('')
 const forbidden = ref(false)
 const busy = ref(false)
 const actionError = ref('')
+const actionInfo = ref('')
+const suggesting = ref(false)
+/** `no_role_groups`: la gira no tiene grupos por rol; se enseña el camino para crearlos. */
+const noRoleGroups = ref(false)
 
 let request = 0
 
@@ -80,6 +86,11 @@ const baseText = computed(() => {
   return t(`recipients.base.${a.base_source}`)
 })
 
+/** Sugerencias de la IA pendientes: no cambian destinatarios hasta aceptarlas (R3). */
+const suggestions = computed(
+  () => audience.value?.suggestions.filter((o) => o.status === 'suggested') ?? []
+)
+
 const groupNames = computed(() => {
   const names = new Map<string, string>()
   for (const g of audience.value?.base_groups ?? []) names.set(g.uuid, g.name)
@@ -114,15 +125,49 @@ function goToTourReminders() {
 async function run(fn: () => Promise<unknown>) {
   busy.value = true
   actionError.value = ''
+  actionInfo.value = ''
+  noRoleGroups.value = false
   try {
     await fn()
     closePickers()
     await load()
   } catch (e) {
-    actionError.value = reminderErrorMessage(e, t, 'recipients.actionError')
-    // 404 en una acción: el ajuste o el grupo ya no existe. Se recarga para ver el estado real.
-    if (e instanceof ApiError && e.status === 404) await load()
+    actionError.value = aiErrorMessage(e, t, 'recipients.actionError')
+    // 404 (el ajuste o el grupo ya no existe) o 409 `not_suggested` (sugerencia ya revisada):
+    // se recarga para ver el estado real.
+    if (e instanceof ApiError && (e.status === 404 || e.status === 409)) await load()
   } finally {
+    busy.value = false
+  }
+}
+
+function acceptSuggestion(o: RecipientOverride) {
+  void run(() => api.accept(o.uuid))
+}
+
+function rejectSuggestion(o: RecipientOverride) {
+  void run(() => api.reject(o.uuid))
+}
+
+/** "Sugerir con IA": crea sugerencias `suggested` (no cambian destinatarios) y recarga. */
+async function suggestWithAi() {
+  if (busy.value) return
+  suggesting.value = true
+  busy.value = true
+  actionError.value = ''
+  actionInfo.value = ''
+  noRoleGroups.value = false
+  // `suggest` devuelve todas las sugerencias pendientes de la IA, no solo las nuevas.
+  const before = new Set(suggestions.value.map((o) => o.uuid))
+  try {
+    const all = await api.suggest(props.activityUuid)
+    if (!all.some((o) => !before.has(o.uuid))) actionInfo.value = t('aiReview.noSuggestions')
+    await load()
+  } catch (e) {
+    noRoleGroups.value = apiErrorCode(e) === 'no_role_groups'
+    actionError.value = aiErrorMessage(e, t, 'aiReview.suggestError')
+  } finally {
+    suggesting.value = false
     busy.value = false
   }
 }
@@ -236,6 +281,8 @@ watch(
   () => {
     closePickers()
     actionError.value = ''
+    actionInfo.value = ''
+    noRoleGroups.value = false
     void load()
   },
   { immediate: true }
@@ -451,6 +498,54 @@ onUnmounted(() => {
           </li>
         </ul>
 
+        <!-- Sugerencias de la IA -->
+        <div
+          v-if="suggestions.length"
+          class="mt-3"
+          data-test="recipients-suggestions"
+        >
+          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+            {{ t('aiReview.suggestedGroups') }}
+          </p>
+          <p class="text-[10px] text-ink-4 mb-1.5">
+            {{ t('aiReview.pendingHint') }}
+          </p>
+          <ul class="space-y-1">
+            <li
+              v-for="o in suggestions"
+              :key="o.uuid"
+              class="flex flex-wrap items-center gap-2 bg-glass border border-dashed border-line-acid rounded-sm px-2.5 py-1.5"
+              data-test="recipients-suggestion"
+            >
+              <span class="flex-1 min-w-[120px]">
+                <span class="block text-[12px] text-acid">{{ overrideLabel(o) }}</span>
+                <span
+                  v-if="o.reason"
+                  class="block text-[10px] text-ink-4"
+                >{{ o.reason }}</span>
+              </span>
+              <button
+                type="button"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-acid-dim text-acid border-none cursor-pointer disabled:opacity-50"
+                :disabled="busy"
+                data-test="suggestion-accept"
+                @click="acceptSuggestion(o)"
+              >
+                {{ t('aiReview.accept') }}
+              </button>
+              <button
+                type="button"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] bg-glass border border-line text-ink-3 hover:text-ink cursor-pointer disabled:opacity-50"
+                :disabled="busy"
+                data-test="suggestion-reject"
+                @click="rejectSuggestion(o)"
+              >
+                {{ t('aiReview.reject') }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
         <!-- Ajustes de esta actividad -->
         <div
           v-if="added.length"
@@ -512,6 +607,29 @@ onUnmounted(() => {
         >
           {{ actionError }}
         </p>
+        <p
+          v-if="noRoleGroups"
+          class="text-[11px] text-ink-3 mt-1"
+          data-test="recipients-no-role-groups"
+        >
+          {{ t('aiReview.noRoleGroupsHint') }}
+          <button
+            type="button"
+            class="min-h-[44px] sm:min-h-0 text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer p-0"
+            data-test="recipients-go-role-groups"
+            @click="goToTourReminders"
+          >
+            {{ t('aiReview.goToRoleGroups') }}
+          </button>
+        </p>
+        <p
+          v-if="actionInfo"
+          class="text-[11px] text-ink-3 mt-2"
+          role="status"
+          data-test="recipients-action-info"
+        >
+          {{ actionInfo }}
+        </p>
 
         <!-- Añadir -->
         <div class="flex flex-wrap gap-1.5 mt-3">
@@ -534,6 +652,15 @@ onUnmounted(() => {
             @click="openContactPicker"
           >
             + {{ t('recipients.addContact') }}
+          </button>
+          <button
+            type="button"
+            class="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-line-acid text-[11px] font-semibold text-acid bg-transparent hover:bg-glass-hover cursor-pointer disabled:opacity-50"
+            :disabled="busy"
+            data-test="recipients-suggest-ai"
+            @click="suggestWithAi"
+          >
+            {{ suggesting ? t('aiReview.suggesting') : t('aiReview.suggest') }}
           </button>
         </div>
 

@@ -7,6 +7,7 @@ import { useActivitiesStore } from '@/stores/activities'
 import { useToursStore } from '@/stores/tours'
 import { useI18n } from 'vue-i18n'
 import UrgentNoticeModal from '@/components/activities/UrgentNoticeModal.vue'
+import { activitySaveErrorMessage } from '@/utils/aiReview'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -45,13 +46,29 @@ function closeUrgent() {
 const activityTypes = ref<ActivityType[]>([])
 const loadingTypes = ref(false)
 
+/** Gira de la que son los tipos cargados: cada gira ofrece los de su owner (`?tour=`). */
+let typesTour: string | null = null
+let typesError = false
+
 watch(() => props.show, async (v) => {
-  if (v && activityTypes.value.length === 0) {
+  const tour = toursStore.activeTour?.uuid ?? ''
+  if (v && (activityTypes.value.length === 0 || typesTour !== tour)) {
     loadingTypes.value = true
-    try { activityTypes.value = await actTypesApi.listActivityTypes() }
-    finally { loadingTypes.value = false }
+    try {
+      activityTypes.value = await actTypesApi.listActivityTypes(tour || undefined)
+      typesTour = tour
+    } catch {
+      // Gira activa obsoleta (404) o red caída: lista vacía y aviso, sin romper el formulario.
+      activityTypes.value = []
+      typesTour = null
+      typesError = true
+    } finally { loadingTypes.value = false }
   }
-  if (v) resetForm()
+  if (v) {
+    resetForm()
+    if (typesError) error.value = tr('reminders.errors.activity_types_load')
+    typesError = false
+  }
 })
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -203,6 +220,7 @@ async function submit() {
       activity_type_icon: created.activity_type?.icon ?? '',
       activity_type_color: created.activity_type?.color ?? '#64748b',
       category: created.activity_type?.category ?? 'other',
+      ai_review: created.ai_review ?? null,
     })
 
     // Solo admins de la gira (el backend da 403 al resto) y solo si la reunión queda activa.
@@ -223,7 +241,7 @@ async function submit() {
 
     emit('close')
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Error al crear actividad'
+    error.value = activitySaveErrorMessage(e, tr, 'Error al crear actividad')
   } finally {
     saving.value = false
   }

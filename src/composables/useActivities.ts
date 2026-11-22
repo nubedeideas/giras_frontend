@@ -1,9 +1,19 @@
-import { apiClient } from '@/utils/apiClient'
-import { toArray } from '@/utils/pagination'
-import type { Paginated } from '@/types'
+import { apiClient, buildQuery } from '@/utils/apiClient'
 import type { ReminderStep } from '@/utils/reminders'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+/**
+ * Revisión pendiente del tipo que asignó la IA de Calendar (`metadata.ai_review`, spec de
+ * recordatorios por tipo, R3). Lo devuelven el listado y el detalle de actividades.
+ */
+export interface ActivityAiReview {
+  status: 'pending' | 'confirmed'
+  /** Código del tipo que propuso la IA. */
+  type_code: string
+  source: string
+  at: string
+}
 
 export type ActivityStatus =
   | 'draft'
@@ -62,6 +72,8 @@ export interface ActivityListItem {
   activity_type_icon: string
   activity_type_color: string
   category: string
+  /** R3: `null`/ausente si la IA no asignó el tipo. */
+  ai_review?: ActivityAiReview | null
 }
 
 /** Shape returned by ActivitySerializer (detail) */
@@ -92,6 +104,8 @@ export interface Activity {
   local_start_time?: string
   local_end_time?: string
   duration?: number
+  /** R3: revisión del tipo asignado por la IA. */
+  ai_review?: ActivityAiReview | null
   created_at: string
   updated_at: string
 }
@@ -116,6 +130,11 @@ export interface CreateActivityPayload {
 
 export interface UpdateActivityPayload {
   activity_type?: string
+  /**
+   * Campo de escritura real del tipo en `ActivitySerializer` (`activity_type` es de solo lectura
+   * en el PATCH). Cambiar el tipo confirma la revisión de la IA (R3).
+   */
+  activity_type_id?: string
   title?: string
   scheduled_at?: string
   end_at?: string | null
@@ -215,12 +234,30 @@ export function useActivities() {
     )
   }
 
-  async function listActivityTypes(): Promise<ActivityTypeListItem[]> {
-    const data = await apiClient.get<Paginated<ActivityTypeListItem> | ActivityTypeListItem[]>(
-      '/events/activity-types/',
-      { fallback: 'Error al cargar tipos de actividad' }
+  /** Actividades de la gira con el tipo de la IA pendiente de revisar (R3). */
+  function listPendingAiReview(tourUuid: string): Promise<ActivityListItem[]> {
+    return listActivities({ tour: tourUuid, ai_review: 'pending' })
+  }
+
+  /** Confirma el tipo propuesto por la IA. 409 `no_pending_review` si ya no está pendiente. */
+  function confirmAiReview(uuid: string): Promise<Activity> {
+    return apiClient.post<Activity>(
+      `/events/activities/${uuid}/confirm-ai-review/`,
+      {},
+      { fallback: 'No se ha podido confirmar la actividad' }
     )
-    return toArray(data)
+  }
+
+  /**
+   * Tipos de actividad (todas las páginas). Con `tourUuid`, los del owner de la gira más los de
+   * sistema (`?tour=`): es lo que hay que ofrecer al editar una actividad de esa gira, porque un
+   * coadmin tiene su propia lista. 404 si no eres miembro de la gira.
+   */
+  function listActivityTypes(tourUuid?: string): Promise<ActivityTypeListItem[]> {
+    const qs = buildQuery({ tour: tourUuid, page_size: 100 })
+    return apiClient.getAll<ActivityTypeListItem>(`/events/activity-types/?${qs}`, {
+      fallback: 'Error al cargar tipos de actividad',
+    })
   }
 
   return {
@@ -233,5 +270,7 @@ export function useActivities() {
     completeActivity,
     cancelActivity,
     listActivityTypes,
+    listPendingAiReview,
+    confirmAiReview,
   }
 }

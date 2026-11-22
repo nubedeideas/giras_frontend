@@ -21,12 +21,19 @@ export interface AudiencePerson {
   sources: string[]
 }
 
+export interface RecipientOverrideActivity {
+  uuid: string
+  title: string
+  scheduled_at: string
+  activity_type_code: string
+  /** Zona IANA de la actividad; pedida a gnotif en `activity_summary`, aún puede faltar. */
+  timezone?: string
+}
+
 export interface RecipientOverride {
   uuid: string
   /** uuid de la actividad, o la actividad resumida en el listado de sugeridas (R3). */
-  activity:
-    | string
-    | { uuid: string; title: string; scheduled_at: string; activity_type_code: string }
+  activity: string | RecipientOverrideActivity
   action: 'add' | 'exclude'
   group: GroupSummary | null
   contact: { uuid: string; name: string } | null
@@ -82,5 +89,55 @@ export function useRecipientOverrides() {
     })
   }
 
-  return { resolve, add, remove }
+  // ─── Sugerencias de la IA (R3) ──────────────────────────────────────────────
+
+  /**
+   * Pide a la IA grupos para la actividad. Devuelve **todas** las `suggested` de la IA pendientes
+   * en la actividad (las previas se sustituyen), no solo las nuevas: para saber si hay alguna
+   * nueva, compara con las que había antes.
+   * 400 `no_role_groups`, 502 `ai_unavailable`, 429 por el throttle `ai_suggest`.
+   */
+  function suggest(activityUuid: string): Promise<RecipientOverride[]> {
+    return apiClient.post<RecipientOverride[]>(
+      '/notifications/recipient-overrides/suggest/',
+      { activity: activityUuid },
+      { fallback: 'No se han podido pedir sugerencias a la IA' }
+    )
+  }
+
+  /** 409 `not_suggested` si ya se revisó. */
+  function accept(uuid: string): Promise<RecipientOverride> {
+    return apiClient.post<RecipientOverride>(
+      `/notifications/recipient-overrides/${uuid}/accept/`,
+      {},
+      { fallback: 'No se ha podido aceptar la sugerencia' }
+    )
+  }
+
+  /** 409 `not_suggested` si ya se revisó. */
+  function reject(uuid: string): Promise<RecipientOverride> {
+    return apiClient.post<RecipientOverride>(
+      `/notifications/recipient-overrides/${uuid}/reject/`,
+      {},
+      { fallback: 'No se ha podido rechazar la sugerencia' }
+    )
+  }
+
+  function acceptAll(tourUuid: string): Promise<{ accepted: number }> {
+    return apiClient.post<{ accepted: number }>(
+      '/notifications/recipient-overrides/accept-all/',
+      { tour: tourUuid },
+      { fallback: 'No se han podido aceptar las sugerencias' }
+    )
+  }
+
+  /** Sugerencias pendientes de la gira, con `activity` resumida (todas las páginas). */
+  function listSuggested(tourUuid: string): Promise<RecipientOverride[]> {
+    const qs = buildQuery({ tour: tourUuid, status: 'suggested', page_size: 100 })
+    return apiClient.getAll<RecipientOverride>(`/notifications/recipient-overrides/?${qs}`, {
+      fallback: 'No se han podido cargar las sugerencias',
+    })
+  }
+
+  return { resolve, add, remove, suggest, accept, reject, acceptAll, listSuggested }
 }

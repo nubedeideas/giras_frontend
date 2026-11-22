@@ -11,17 +11,22 @@ import {
   PRIORITY_LABELS,
 } from '@/composables/useActivities'
 import { useActivitiesStore } from '@/stores/activities'
+import { useI18n } from 'vue-i18n'
+import { activitySaveErrorMessage } from '@/utils/aiReview'
 
 const props = defineProps<{ show: boolean; activity: Activity | null }>()
 const emit = defineEmits<{ close: []; saved: [activity: Activity] }>()
 
 const api = useActivities()
 const store = useActivitiesStore()
+// `t` ya se usa como variable de `v-for` en la plantilla.
+const { t: tr } = useI18n()
 
 // ─── Form state ──────────────────────────────────────────────────────────────
 
 const title = ref('')
 const activityTypeUuid = ref('')
+const originalActivityTypeUuid = ref('')
 const status = ref<ActivityStatus>('scheduled')
 const priority = ref<ActivityPriority>('normal')
 const scheduledAt = ref('')   // "YYYY-MM-DDTHH:MM" local input value
@@ -70,11 +75,16 @@ const typesByCategory = computed(() => {
 
 // ─── Init / sync ──────────────────────────────────────────────────────────────
 
+/** Gira de la que son los tipos cargados: cada gira ofrece los de su owner (`?tour=`). */
+let typesTour: string | null = null
+
 async function loadTypes() {
-  if (activityTypes.value.length > 0) return
+  const tour = props.activity?.tour ?? ''
+  if (activityTypes.value.length > 0 && typesTour === tour) return
   loadingTypes.value = true
   try {
-    activityTypes.value = await api.listActivityTypes()
+    activityTypes.value = await api.listActivityTypes(tour || undefined)
+    typesTour = tour
   } catch {
     // ignore, types will be empty
   } finally {
@@ -85,6 +95,7 @@ async function loadTypes() {
 function populateForm(act: Activity) {
   title.value = act.title
   activityTypeUuid.value = act.activity_type?.uuid ?? ''
+  originalActivityTypeUuid.value = activityTypeUuid.value
   status.value = act.status
   priority.value = act.priority
   scheduledAt.value = toInputValue(act.scheduled_at)
@@ -117,7 +128,12 @@ async function save() {
   try {
     const updated = await api.updateActivity(props.activity.uuid, {
       title: title.value.trim(),
-      activity_type: activityTypeUuid.value || undefined,
+      // `activity_type` es de solo lectura en ActivitySerializer: el tipo se escribe con
+      // `activity_type_id`, y solo si cambió (un cambio confirma la revisión de la IA).
+      activity_type_id:
+        activityTypeUuid.value && activityTypeUuid.value !== originalActivityTypeUuid.value
+          ? activityTypeUuid.value
+          : undefined,
       status: status.value,
       priority: priority.value,
       scheduled_at: allDay.value
@@ -149,12 +165,16 @@ async function save() {
       activity_type_icon: updated.activity_type?.icon ?? '',
       activity_type_color: updated.activity_type?.color ?? '#64748b',
       category: updated.activity_type?.category ?? 'other',
+      ai_review: updated.ai_review ?? null,
     })
 
+    // El backend puede traducir el tipo al del owner de la gira: manda el de la respuesta.
+    activityTypeUuid.value = updated.activity_type?.uuid ?? ''
+    originalActivityTypeUuid.value = activityTypeUuid.value
     emit('saved', updated)
     emit('close')
   } catch (e) {
-    saveError.value = e instanceof Error ? e.message : 'Error al guardar'
+    saveError.value = activitySaveErrorMessage(e, tr, 'Error al guardar')
   } finally {
     saving.value = false
   }

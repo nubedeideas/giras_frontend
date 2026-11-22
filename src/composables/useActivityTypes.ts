@@ -67,8 +67,15 @@ export interface UpdateActivityTypePayload {
 // ─── Composable ───────────────────────────────────────────────────────────────
 
 export function useActivityTypes() {
-  function listActivityTypes(): Promise<ActivityType[]> {
-    return apiClient.getAll<ActivityType>('/events/activity-types/?page_size=100', {
+  /**
+   * Sin `tourUuid`, los tipos del usuario. Con él (`?tour=`), los del owner de la gira más los de
+   * sistema: los que admite una actividad de esa gira aunque seas coadmin.
+   */
+  function listActivityTypes(tourUuid?: string): Promise<ActivityType[]> {
+    const qs = tourUuid
+      ? `tour=${encodeURIComponent(tourUuid)}&page_size=100`
+      : 'page_size=100'
+    return apiClient.getAll<ActivityType>(`/events/activity-types/?${qs}`, {
       fallback: 'Error al cargar tipos de actividad',
     })
   }

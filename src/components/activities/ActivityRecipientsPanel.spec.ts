@@ -265,4 +265,116 @@ describe('ActivityRecipientsPanel', () => {
     )
     expect(w2.find('[data-test="recipients-retry"]').exists()).toBe(false)
   })
+
+  describe('sugerencias de la IA (R3)', () => {
+    const sugg = {
+      uuid: 'S1',
+      activity: 'A1',
+      action: 'add' as const,
+      group: group({ uuid: 'g-band', name: 'Banda', system_key: 'band', is_default: false }),
+      contact: null,
+      status: 'suggested' as const,
+      source: 'ai' as const,
+      reason: 'Ensayo de la banda',
+      created_at: '2026-11-21T10:00:00Z',
+    }
+
+    it('pinta las sugerencias pendientes y aceptar recarga los destinatarios', async () => {
+      let accepted = false
+      const fn = stubFetch((url, init) => {
+        if (url.pathname.endsWith('/S1/accept/') && init?.method === 'POST') {
+          accepted = true
+          return jsonResponse({ ...sugg, status: 'active' })
+        }
+        return jsonResponse(audience({ suggestions: accepted ? [] : [sugg] }))
+      })
+      const w = await mountPanel()
+      const row = w.get('[data-test="recipients-suggestion"]')
+      expect(row.text()).toContain('Banda')
+      expect(row.text()).toContain('Ensayo de la banda')
+      expect(w.get('[data-test="recipients-suggestions"]').text()).toContain(
+        'No cambian a quién se avisa hasta que los aceptes.'
+      )
+      await w.get('[data-test="suggestion-accept"]').trigger('click')
+      await flushPromises()
+      expect(calls(fn, 'POST')).toHaveLength(1)
+      expect(calls(fn, 'GET')).toHaveLength(2)
+      expect(w.find('[data-test="recipients-suggestion"]').exists()).toBe(false)
+    })
+
+    it('rechazar envía reject', async () => {
+      const fn = stubFetch((_url, init) =>
+        init?.method === 'POST'
+          ? jsonResponse({ ...sugg, status: 'rejected' })
+          : jsonResponse(audience({ suggestions: [sugg] }))
+      )
+      const w = await mountPanel()
+      await w.get('[data-test="suggestion-reject"]').trigger('click')
+      await flushPromises()
+      expect(String(calls(fn, 'POST')[0][0])).toMatch(/\/recipient-overrides\/S1\/reject\/$/)
+    })
+
+    it('"Sugerir con IA" pide sugerencias para la actividad y recarga', async () => {
+      const fn = stubFetch((url, init) =>
+        url.pathname.endsWith('/suggest/') && init?.method === 'POST'
+          ? jsonResponse([sugg])
+          : jsonResponse(audience())
+      )
+      const w = await mountPanel()
+      await w.get('[data-test="recipients-suggest-ai"]').trigger('click')
+      await flushPromises()
+      const post = calls(fn, 'POST')[0]
+      expect(JSON.parse(String(post[1]!.body))).toEqual({ activity: 'A1' })
+      expect(calls(fn, 'GET')).toHaveLength(2)
+      expect(w.find('[data-test="recipients-action-info"]').exists()).toBe(false)
+    })
+
+    it('no_role_groups lleva a crear los grupos por rol', async () => {
+      stubFetch((_url, init) =>
+        init?.method === 'POST'
+          ? wrappedError(400, 'no_role_groups', 'activity', 'no_role_groups')
+          : jsonResponse(audience())
+      )
+      const w = await mountPanel()
+      await w.get('[data-test="recipients-suggest-ai"]').trigger('click')
+      await flushPromises()
+      expect(w.get('[data-test="recipients-no-role-groups"]').text()).toContain(
+        'Crea primero los grupos por rol'
+      )
+      await w.get('[data-test="recipients-go-role-groups"]').trigger('click')
+      await flushPromises()
+      expect(w.router.currentRoute.value.fullPath).toBe('/tour?tab=reminders')
+    })
+
+    it('sin sugerencias nuevas lo dice (suggest devuelve también las que ya había)', async () => {
+      stubFetch((url, init) =>
+        url.pathname.endsWith('/suggest/') && init?.method === 'POST'
+          ? jsonResponse([sugg])
+          : jsonResponse(audience({ suggestions: [sugg] }))
+      )
+      const w = await mountPanel()
+      await w.get('[data-test="recipients-suggest-ai"]').trigger('click')
+      await flushPromises()
+      expect(w.get('[data-test="recipients-action-info"]').text()).toBe(
+        'La IA no ha sugerido ningún grupo más para esta actividad.'
+      )
+    })
+
+    it.each([
+      [() => wrappedError(400, 'no_role_groups', 'activity', 'no_role_groups'), 'La gira aún no tiene grupos por rol.'],
+      [() => wrappedError(502, 'ai_unavailable', 'activity', 'ai_unavailable'), 'La IA no está disponible ahora mismo. Inténtalo más tarde.'],
+      [() => jsonResponse('<html>Bad Gateway</html>', 502), 'No se han podido pedir sugerencias a la IA.'],
+      [() => jsonResponse({}, 429), 'Has hecho demasiadas solicitudes. Inténtalo de nuevo en unos minutos.'],
+      [() => wrappedError(409, 'not_suggested', 'status', 'not_suggested'), 'Esta sugerencia ya se ha revisado.'],
+    ])('errores de la IA con texto propio (%#)', async (res, text) => {
+      stubFetch((_url, init) => (init?.method === 'POST' ? res() : jsonResponse(audience({ suggestions: [sugg] }))))
+      const w = await mountPanel()
+      const isSuggestError = text !== 'Esta sugerencia ya se ha revisado.'
+      await w
+        .get(isSuggestError ? '[data-test="recipients-suggest-ai"]' : '[data-test="suggestion-accept"]')
+        .trigger('click')
+      await flushPromises()
+      expect(w.get('[data-test="recipients-action-error"]').text()).toBe(text)
+    })
+  })
 })
