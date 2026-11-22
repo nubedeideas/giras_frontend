@@ -203,6 +203,8 @@ export default {
 
   notif: {
     title: 'Notifications',
+    planLimitReached: "This tour's plan has run out of WhatsApp quota.",
+    scheduledAfterActivity: 'The reminder time must be before the activity starts.',
     templateSystemReadOnly: 'System template, not editable',
     eventsTitle: 'Events',
     import: 'Import',
@@ -2155,7 +2157,7 @@ export default {
     keepEditing: 'Keep editing',
     cost: '≈ {count} WhatsApp · {cost} USD · {remaining} left',
     costNoLimit: '≈ {count} WhatsApp · {cost} USD',
-    overQuota: 'This notice will go out via WhatsApp even though you have used up your quota.',
+    overQuota: 'No WhatsApp quota left: send it by email or in the app, or change your plan.',
     templateNotApproved: 'Pending approval',
     whatsappHint:
       'On WhatsApp only these details can be changed: the rest of the message is the approved template.',
@@ -2260,6 +2262,8 @@ export default {
       no_recipients: 'There is nobody to send this notice to on this channel. Add recipients or change the channel.',
       notice_not_pending: 'This notice is no longer pending: another admin may have sent or discarded it.',
       notice_expired: 'This notice has expired and can no longer be sent.',
+      plan_limit_reached:
+        "This tour's plan has run out of WhatsApp quota. Send it by email or in the app, or change your plan.",
       activity_unavailable: 'The activity is no longer available (deleted, cancelled or finished).',
       activity_past: 'The activity is already over.',
       tour_notifications_blocked: 'Notices for this tour are blocked because the subscription is cancelled.',

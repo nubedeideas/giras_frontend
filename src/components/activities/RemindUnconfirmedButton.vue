@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isPlanLimitError } from '@/utils/notificationErrors'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
@@ -61,11 +62,9 @@ function markNobody(result: RemindUnconfirmedResult) {
 
 /** Muestra el error y, si es definitivo (400 con código bloqueante), desactiva el botón. */
 function handleError(e: unknown) {
-  const message = remindErrorMessage(
-    e,
-    t('confirmations.throttled'),
-    t('confirmations.remindError')
-  )
+  const message = isPlanLimitError(e)
+    ? t('notif.planLimitReached')
+    : remindErrorMessage(e, t('confirmations.throttled'), t('confirmations.remindError'))
   if (isBlockingRemindError(e)) {
     blockedReason.value = message
     error.value = ''

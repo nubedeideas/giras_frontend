@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
+import { hasApiErrorCode, SCHEDULED_AFTER_ACTIVITY } from '@/utils/notificationErrors'
 import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
 import { sortRecipientsForConfirmation } from '@/utils/confirmations'
 import {
@@ -153,7 +154,11 @@ async function save() {
     emit('saved')
     emit('close')
   } catch (e) {
-    saveError.value = e instanceof Error ? e.message : 'Error al guardar notificación'
+    saveError.value = hasApiErrorCode(e, SCHEDULED_AFTER_ACTIVITY)
+      ? t('notif.scheduledAfterActivity')
+      : e instanceof Error
+        ? e.message
+        : 'Error al guardar notificación'
   } finally {
     saving.value = false
   }

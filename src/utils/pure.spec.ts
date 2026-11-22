@@ -31,6 +31,7 @@ describe('AUTO_CANCEL_REASON_LABELS', () => {
     'plan_limit_degraded',
     'plan_limit_reached',
     'flight_cancelled',
+    'activity_already_started',
   ]
 
   it('tiene etiqueta para cada motivo del backend', () => {
@@ -53,6 +54,9 @@ describe('motivos de cancelación de los recordatorios por tipo', () => {
     )
     expect(AUTO_CANCEL_REASON_LABELS.flight_cancelled).toBe(
       'Cancelada automáticamente: la aerolínea canceló el vuelo.'
+    )
+    expect(AUTO_CANCEL_REASON_LABELS.activity_already_started).toBe(
+      'Cancelada automáticamente: la actividad ya había empezado.'
     )
   })
 })

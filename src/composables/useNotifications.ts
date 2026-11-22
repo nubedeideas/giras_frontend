@@ -248,6 +248,8 @@ export const AUTO_CANCEL_REASON_LABELS: Record<string, string> = {
     'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan y se envió por email o en la app.',
   plan_limit_reached: 'Cancelada automáticamente: se acabó el cupo de WhatsApp del plan.',
   flight_cancelled: 'Cancelada automáticamente: la aerolínea canceló el vuelo.',
+  // Recordatorio que habría salido después del inicio (fix de gnotif, 2026-11-22)
+  activity_already_started: 'Cancelada automáticamente: la actividad ya había empezado.',
 }
 
 // ─── WhatsApp variable resolver ───────────────────────────────────────────────

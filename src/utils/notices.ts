@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { ApiError } from '@/utils/apiClient'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import { apiErrorCode, type Translate } from '@/utils/reminders'
+import { isPlanLimitError } from '@/utils/notificationErrors'
 import type {
   Notice,
   NoticeEdit,
@@ -336,5 +337,6 @@ export function noticeErrorMessage(
  * (`notice_not_pending`, `notice_expired`, `activity_unavailable`, `tour_notifications_blocked`).
  */
 export function isStaleNotice(e: unknown): boolean {
-  return e instanceof ApiError && e.status === 409
+  // Sin cupo (409 plan_limit_reached) el aviso sigue pendiente: no hace falta recargarlo.
+  return e instanceof ApiError && e.status === 409 && !isPlanLimitError(e)
 }

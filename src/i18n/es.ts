@@ -203,6 +203,8 @@ export default {
 
   notif: {
     title: 'Notificaciones',
+    planLimitReached: 'Se ha agotado el cupo de WhatsApp del plan de esta gira.',
+    scheduledAfterActivity: 'La hora del recordatorio debe ser anterior al inicio de la actividad.',
     templateSystemReadOnly: 'Plantilla del sistema, no editable',
     eventsTitle: 'Eventos',
     import: 'Importar',
@@ -2165,7 +2167,7 @@ export default {
     keepEditing: 'Seguir editando',
     cost: '≈ {count} WhatsApp · {cost} USD · te quedan {remaining}',
     costNoLimit: '≈ {count} WhatsApp · {cost} USD',
-    overQuota: 'Este aviso se enviará por WhatsApp aunque hayas agotado el cupo.',
+    overQuota: 'Sin cupo de WhatsApp: envíalo por email o en la app, o cambia de plan.',
     templateNotApproved: 'Pendiente de aprobación',
     whatsappHint:
       'En WhatsApp solo se pueden cambiar estos datos: el resto del mensaje es la plantilla aprobada.',
@@ -2270,6 +2272,8 @@ export default {
       no_recipients: 'No hay nadie a quien enviar este aviso por este canal. Añade destinatarios o cambia de canal.',
       notice_not_pending: 'Este aviso ya no está pendiente: puede que otro administrador lo haya enviado o descartado.',
       notice_expired: 'Este aviso ha caducado y ya no se puede enviar.',
+      plan_limit_reached:
+        'Se ha agotado el cupo de WhatsApp del plan de esta gira. Envíalo por email o en la app, o cambia de plan.',
       activity_unavailable: 'La actividad ya no está disponible (borrada, cancelada o terminada).',
       activity_past: 'La actividad ya ha pasado.',
       tour_notifications_blocked: 'Los avisos de esta gira están bloqueados porque la suscripción está cancelada.',

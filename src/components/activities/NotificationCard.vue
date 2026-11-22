@@ -10,6 +10,7 @@ import {
   type NotificationRecipient,
 } from '@/composables/useNotifications'
 import { formatInZone, browserZone } from '@/utils/datetime'
+import { isPlanLimitError } from '@/utils/notificationErrors'
 import AddContactsToNotificationModal from '@/components/modals/AddContactsToNotificationModal.vue'
 import EditRecipientModal from '@/components/modals/EditRecipientModal.vue'
 import EditNotificationModal from '@/components/modals/EditNotificationModal.vue'
@@ -114,7 +115,11 @@ async function send() {
     await api.sendNotification(n.value.uuid)
     emit('refresh')
   } catch (e) {
-    actionError.value = e instanceof Error ? e.message : 'Error al enviar'
+    actionError.value = isPlanLimitError(e)
+      ? t('notif.planLimitReached')
+      : e instanceof Error
+        ? e.message
+        : 'Error al enviar'
   } finally {
     actionLoading.value = false
   }
