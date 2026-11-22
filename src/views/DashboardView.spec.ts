@@ -259,9 +259,12 @@ describe('DashboardView', () => {
     const pending = w.find('[data-testid="dashboard-pending"]')
     const items = pending.findAll('li')
     expect(items[0].attributes('data-testid')).toBe('pending-item-notifications-paused')
+    expect(calls('/notifications/reports/summary/')).toHaveLength(1)
     await items[0].find('[data-testid="pending-action"]').trigger('click')
     await flushPromises()
     expect(calls('/tours/T1/resume-notifications/')).toHaveLength(1)
+    // Lo cancelado al reanudar cambia los envíos de 7 días: se recarga el resumen.
+    expect(calls('/notifications/reports/summary/')).toHaveLength(2)
     expect(w.find('[data-testid="pending-item-notifications-paused"]').exists()).toBe(false)
     expect(w.find('header [data-testid="notif-pause-badge"]').exists()).toBe(false)
   })

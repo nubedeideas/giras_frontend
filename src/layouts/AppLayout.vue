@@ -62,7 +62,14 @@ onMounted(async () => {
   toursLoaded.value = true
   // Vuelta de Google tras conectar Calendar o Contactos desde el asistente: mismo paso y gira.
   const resume = authStore.isDemoMode ? null : takeOnboardingResume()
-  if (resume) openWizard({ step: resume.step, tourId: resume.tourId })
+  // La gira se resuelve por uuid: el id sintético del store depende del orden de `GET /tours/`
+  // y tras la recarga del OAuth el número guardado podría ser otra gira.
+  if (resume) {
+    const tour = resume.tourUuid
+      ? toursStore.tours.find((tr) => tr.uuid === resume.tourUuid)
+      : undefined
+    openWizard({ step: resume.step, tourId: tour?.id ?? null })
+  }
 })
 </script>
 

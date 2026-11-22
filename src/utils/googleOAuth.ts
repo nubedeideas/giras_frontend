@@ -19,9 +19,13 @@ export interface GoogleOAuthPending {
 
 export type OnboardingResumeStep = 'crew' | 'calendar'
 
+/**
+ * Se guarda el **uuid** de la gira, nunca el id sintético de `stores/tours.ts`: ese número se
+ * asigna por orden de llegada de `GET /tours/` y tras la recarga del OAuth puede ser otra gira.
+ */
 export interface OnboardingResume {
   step: OnboardingResumeStep
-  tourId: number | null
+  tourUuid: string | null
   createdAt: number
 }
 
@@ -75,8 +79,11 @@ export function takePending(now = Date.now()): GoogleOAuthPending | null {
   }
 }
 
-export function saveOnboardingResume(step: OnboardingResumeStep, tourId: number | null): void {
-  const resume: OnboardingResume = { step, tourId, createdAt: Date.now() }
+export function saveOnboardingResume(
+  step: OnboardingResumeStep,
+  tourUuid: string | null
+): void {
+  const resume: OnboardingResume = { step, tourUuid, createdAt: Date.now() }
   storage()?.setItem(RESUME_KEY, JSON.stringify(resume))
 }
 
@@ -92,7 +99,8 @@ export function takeOnboardingResume(now = Date.now()): OnboardingResume | null 
   if (typeof data.createdAt !== 'number' || now - data.createdAt > RESUME_MAX_AGE_MS) return null
   return {
     step: data.step,
-    tourId: typeof data.tourId === 'number' ? data.tourId : null,
+    // Un punto de retorno antiguo (con `tourId` numérico) no trae uuid: sin gira, nunca otra.
+    tourUuid: typeof data.tourUuid === 'string' && data.tourUuid ? data.tourUuid : null,
     createdAt: data.createdAt,
   }
 }

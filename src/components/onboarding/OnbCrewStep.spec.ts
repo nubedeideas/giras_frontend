@@ -167,6 +167,8 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     expect(w.get('[data-testid="crew-link-error"]').text()).toBe(
       '1 contacto no se ha podido añadir a la gira.'
     )
+    // El recuento de importados no incluye el fallido.
+    expect(w.text()).toContain('5 contactos añadidos')
   })
 
   it('sin gira no llama a add-to-tour', async () => {

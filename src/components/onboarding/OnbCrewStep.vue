@@ -39,6 +39,9 @@ const tourUuid = computed(
   () => toursStore.tours.find((tr) => tr.id === props.tourId)?.uuid ?? null
 )
 
+// Al volver del OAuth se reabre por uuid (el id sintético cambia con la recarga).
+const onboardingResume = computed(() => ({ step: 'crew' as const, tourUuid: tourUuid.value }))
+
 /** Máximo de peticiones simultáneas al vincular contactos importados. */
 const LINK_CONCURRENCY = 4
 
@@ -58,7 +61,6 @@ const scopeMissing = ref(false)
 const needsConnect = computed(
   () => !authStore.isDemoMode && (scopeMissing.value || googleStore.knownMissing('contacts'))
 )
-const onboardingResume = computed(() => ({ step: 'crew' as const, tourId: props.tourId ?? null }))
 
 // ─── Source tab ───────────────────────────────────────────────────────────────
 
@@ -165,6 +167,8 @@ onMounted(async () => {
 
 /** Contactos que no se han podido añadir a la gira en la última importación o alta. */
 const linkFailed = ref(0)
+/** Contactos importados de verdad (los fallidos no cuentan). */
+const importedOk = computed(() => Math.max(0, selectedUuids.value.length - linkFailed.value))
 
 /**
  * Confirma (PATCH, con su rol) y después vincula a la gira cada contacto elegido: `add-to-tour`
@@ -739,7 +743,7 @@ watch(source, (val) => {
             {{ t('onboarding.crew.importedTitle') }}
           </p>
           <p class="text-[13px] text-ink-3 mb-5">
-            {{ t('onboarding.crew.importedCount', selectedUuids.length) }}
+            {{ t('onboarding.crew.importedCount', importedOk) }}
           </p>
           <p
             v-if="linkFailed > 0"

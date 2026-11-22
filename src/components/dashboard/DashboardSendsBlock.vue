@@ -59,6 +59,16 @@ watch(
   { immediate: true }
 )
 
+// Reanudar los avisos cancela lo vencido durante la pausa (`tour_paused`): cambia el resumen.
+watch(
+  () => [tours.activeTour?.uuid ?? null, tours.activeTour?.enable_notifications] as const,
+  ([uuid, enabled], [prevUuid, prevEnabled]) => {
+    if (uuid && uuid === prevUuid && prevEnabled === false && enabled === true) {
+      void load(uuid, props.zone)
+    }
+  }
+)
+
 const figures = computed(() => (summary.value ? sendsFigures(summary.value) : null))
 const bars = computed(() => (summary.value ? sendsBars(summary.value.series ?? []) : []))
 const empty = computed(() => !summary.value || summary.value.notifications.total === 0)

@@ -122,7 +122,7 @@ describe('AuthCallbackView: state', () => {
   })
 
   it('stateMismatch borra el punto de retorno del asistente', async () => {
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourId: 1, createdAt: Date.now() }))
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourUuid: 'T1', createdAt: Date.now() }))
     setPending({ kind: 'connect', state: 'S1', purpose: 'calendar', returnTo: '/home' })
     await mountAt({ code: 'C1', state: 'OTRO' })
     expect(sessionStorage.getItem(RESUME_KEY)).toBeNull()

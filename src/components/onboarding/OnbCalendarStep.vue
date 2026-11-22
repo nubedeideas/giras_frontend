@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { useCalendarImport, type CalendarSubscription, type GoogleCalendarItem } from '@/composables/useCalendarImport'
@@ -20,6 +20,12 @@ const calImport = useCalendarImport()
 const authStore = useAuthStore()
 const toursStore = useToursStore()
 const googleStore = useGoogleStore()
+
+/** Gira del asistente (id sintético de esta sesión → uuid). El retorno del OAuth guarda el uuid. */
+const tour = computed(() =>
+  props.tourId !== null ? (toursStore.tours.find((tr) => tr.id === props.tourId) ?? null) : null
+)
+const tourUuid = computed(() => tour.value?.uuid ?? null)
 
 // ─── State machine ────────────────────────────────────────────────────────────
 
@@ -96,11 +102,7 @@ async function connectCalendar() {
     subscription.value = sub
 
     // Assign to the tour created in step 1
-    const tourId = props.tourId
-    if (tourId !== null) {
-      const tour = toursStore.tours.find((tr) => tr.id === tourId)
-      if (tour) await toursStore.assignCalendar(tour.uuid, sub.id)
-    }
+    if (tourUuid.value) await toursStore.assignCalendar(tourUuid.value, sub.id)
 
     step.value = 'connected'
   } catch (e) {
@@ -217,7 +219,7 @@ onMounted(() => {
           purpose="calendar"
           return-to="/home"
           :intro="t('onboarding.calendar.connectIntro')"
-          :onboarding="{ step: 'calendar', tourId }"
+          :onboarding="{ step: 'calendar', tourUuid }"
         />
         <BtnSecondary
           full
@@ -518,8 +520,7 @@ onMounted(() => {
             {{ t('onboarding.calendar.assignedTo') }}
             <span class="font-semibold text-ink">
               {{
-                toursStore.tours.find((tr) => tr.id === tourId)?.name ??
-                  t('onboarding.calendar.yourTour')
+                tour?.name ?? t('onboarding.calendar.yourTour')
               }}
             </span>
           </p>

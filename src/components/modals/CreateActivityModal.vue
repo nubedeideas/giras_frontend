@@ -181,13 +181,18 @@ async function submit() {
 
   const allDay = form.value.all_day
   const hasEnd = selectedType.value?.has_duration !== false
-  const start = allDay ? `${form.value.date}T00:00:00` : toISO(form.value.date, form.value.time_start)
+  // Todo el día: el backend normaliza con `astimezone(zona).date()`, así que la fecha va como
+  // instante dentro de ese día en la zona (mediodía y 23:59), nunca como medianoche UTC: al oeste
+  // de UTC caería el día anterior. El backend fija después 00:00-23:59:59 locales.
+  const start = allDay
+    ? toISO(form.value.date, '12:00')
+    : toISO(form.value.date, form.value.time_start)
   const end = allDay
-    ? `${form.value.date}T23:59:59`
+    ? toISO(form.value.date, '23:59')
     : hasEnd
       ? toISO(form.value.date, form.value.time_end)
       : null
-  if (!start || (!allDay && hasEnd && !end)) {
+  if (!start || ((allDay || hasEnd) && !end)) {
     error.value = tr('activityForm.invalidTime')
     return
   }

@@ -149,11 +149,17 @@ async function save() {
           : undefined,
       status: status.value,
       priority: priority.value,
+      // Todo el día: mediodía de esa fecha en la zona (no medianoche UTC, que al oeste de UTC el
+      // backend normalizaría al día anterior). El backend fija 00:00-23:59:59 locales.
       scheduled_at: allDay.value
-        ? (scheduledAt.value ? scheduledAt.value.slice(0, 10) + 'T00:00:00Z' : undefined)
-        : fromInputValue(scheduledAt.value) ?? undefined,
+        ? (scheduledAt.value
+            ? (fromInputValue(`${scheduledAt.value.slice(0, 10)}T12:00`) ?? undefined)
+            : undefined)
+        : (fromInputValue(scheduledAt.value) ?? undefined),
       end_at: allDay.value ? null : fromInputValue(endAt.value),
       all_day: allDay.value,
+      // Sin `timezone` el PATCH normaliza "todo el día" con UTC (`_normalize_all_day_dates`).
+      timezone: zone.value,
       location_name: locationName.value,
       destination_name: destinationName.value,
       notes: notes.value,

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { DateTime } from 'luxon'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import { stubFetch } from '@/test/reminders'
@@ -115,5 +116,29 @@ describe('EditActivityModal: zona horaria (F0 §4.3)', () => {
     // 20:00Z en Bogotá (UTC-5) son las 15:00.
     expect(inputs(w)[0].element.value).toBe('2026-12-01T15:00')
     expect(w.get('[data-testid="edit-activity-zone"]').text()).toBe('Hora local (America/Bogota)')
+  })
+
+  it('todo el día en Bogotá: manda la fecha en la zona y la zona en el PATCH', async () => {
+    const bodies = setup()
+    // 1-dic todo el día en Bogotá: 05:00Z a 04:59:59Z del día siguiente.
+    const w = await mountOpen(
+      activity({
+        timezone: 'America/Bogota',
+        all_day: true,
+        scheduled_at: '2026-12-01T05:00:00Z',
+        end_at: '2026-12-02T04:59:59Z',
+      })
+    )
+    await save(w)
+    expect(bodies[0]).toMatchObject({ all_day: true, timezone: 'America/Bogota', end_at: null })
+    const sent = DateTime.fromISO(String(bodies[0].scheduled_at)).setZone('America/Bogota')
+    expect(sent.toISODate()).toBe('2026-12-01')
+  })
+
+  it('el PATCH incluye la zona de la actividad también con hora', async () => {
+    const bodies = setup()
+    const w = await mountOpen(activity())
+    await save(w)
+    expect(bodies[0].timezone).toBe('Europe/Madrid')
   })
 })

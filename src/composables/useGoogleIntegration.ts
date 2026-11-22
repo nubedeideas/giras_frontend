@@ -71,7 +71,8 @@ export const EMPTY_GOOGLE_STATUS: GoogleStatus = {
 }
 
 export interface StartConnectOptions {
-  onboarding?: { step: OnboardingResumeStep; tourId: number | null }
+  /** Paso del asistente y uuid de su gira (no el id sintético) para volver tras el OAuth. */
+  onboarding?: { step: OnboardingResumeStep; tourUuid: string | null }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -180,7 +181,7 @@ export function useGoogleIntegration() {
         createdAt: Date.now(),
       })
       if (options.onboarding) {
-        saveOnboardingResume(options.onboarding.step, options.onboarding.tourId)
+        saveOnboardingResume(options.onboarding.step, options.onboarding.tourUuid)
       }
       redirectTo(res.authorization_url)
       return true

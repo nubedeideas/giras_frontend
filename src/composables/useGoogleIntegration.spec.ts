@@ -88,11 +88,11 @@ describe('startConnect', () => {
       })
       expect(JSON.parse(sessionStorage.getItem(RESUME_KEY) ?? 'null')).toMatchObject({
         step: 'crew',
-        tourId: 7,
+        tourUuid: 'T7',
       })
     })
     const ok = await useGoogleIntegration().startConnect('contacts', '/home', {
-      onboarding: { step: 'crew', tourId: 7 },
+      onboarding: { step: 'crew', tourUuid: 'T7' },
     })
     expect(ok).toBe(true)
     expect(redirectTo).toHaveBeenCalledWith(AUTH_URL)
@@ -188,10 +188,13 @@ describe('helpers', () => {
   })
 
   it('takeOnboardingResume borra la clave y descarta los de más de 30 min', () => {
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourId: 3, createdAt: 1000 }))
-    expect(takeOnboardingResume(1000 + 29 * 60 * 1000)).toEqual({ step: 'calendar', tourId: 3, createdAt: 1000 })
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourUuid: 'T3', createdAt: 1000 }))
+    expect(takeOnboardingResume(1000 + 29 * 60 * 1000)).toEqual({ step: 'calendar', tourUuid: 'T3', createdAt: 1000 })
     expect(sessionStorage.getItem(RESUME_KEY)).toBeNull()
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourId: 3, createdAt: 1000 }))
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'calendar', tourUuid: 'T3', createdAt: 1000 }))
     expect(takeOnboardingResume(1000 + 31 * 60 * 1000)).toBeNull()
+    // Formato antiguo con id sintético: se descarta la gira (podría ser otra tras recargar).
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ step: 'crew', tourId: 3, createdAt: 1000 }))
+    expect(takeOnboardingResume(1000)).toEqual({ step: 'crew', tourUuid: null, createdAt: 1000 })
   })
 })

@@ -7,6 +7,8 @@ import { jsonResponse } from '@/test/http'
 import { RESUME_KEY } from '@/utils/googleOAuth'
 import OnboardingWizard from './OnboardingWizard.vue'
 import OnbCalendarStep from './OnbCalendarStep.vue'
+import { useToursStore } from '@/stores/tours'
+import type { Tour } from '@/types'
 
 const redirectTo = vi.hoisted(() => vi.fn())
 vi.mock('@/utils/navigation', () => ({ redirectTo }))
@@ -100,8 +102,9 @@ describe('OnbCalendarStep', () => {
     expect(w.emitted('skip')).toHaveLength(1)
   })
 
-  it('Conectar guarda el punto de retorno del asistente y vuelve a /home', async () => {
+  it('Conectar guarda el punto de retorno del asistente (uuid de la gira) y vuelve a /home', async () => {
     const fn = setupFetch()
+    useToursStore().tours = [{ id: 42, uuid: 'T42', name: 'Gira' } as Tour]
     const router = await makeRouter()
     const w = mount(OnbCalendarStep, {
       props: { tourId: 42 },
@@ -114,7 +117,7 @@ describe('OnbCalendarStep', () => {
     expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({ purpose: 'calendar', return_to: '/home' })
     expect(JSON.parse(sessionStorage.getItem(RESUME_KEY) ?? 'null')).toMatchObject({
       step: 'calendar',
-      tourId: 42,
+      tourUuid: 'T42',
     })
     expect(redirectTo).toHaveBeenCalledWith('https://accounts.google.com/cal')
   })

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { DateTime } from 'luxon'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import i18n from '@/i18n'
@@ -178,8 +179,8 @@ describe('CreateActivityModal: zona horaria (F0 §4.3)', () => {
     expect(bodies[0].timezone).toBe('Europe/Madrid')
   })
 
-  it('todo el día no cambia: fecha a medianoche y la zona para que el backend normalice', async () => {
-    setZonedTour('Europe/Madrid')
+  it('todo el día en Bogotá: la fecha enviada cae en el mismo día en esa zona', async () => {
+    setZonedTour('America/Bogota')
     const bodies = captureCreate()
     const w = await mountOpen()
     await w.get('select').setValue('type-urgent')
@@ -187,11 +188,12 @@ describe('CreateActivityModal: zona horaria (F0 §4.3)', () => {
     await w.get('label.cursor-pointer div').trigger('click')
     await w.findAll('button').find((b) => b.text() === 'Crear Actividad')!.trigger('click')
     await flushPromises()
-    expect(bodies[0]).toMatchObject({
-      all_day: true,
-      scheduled_at: '2026-12-01T00:00:00',
-      end_at: '2026-12-01T23:59:59',
-      timezone: 'Europe/Madrid',
-    })
+    expect(bodies[0]).toMatchObject({ all_day: true, timezone: 'America/Bogota' })
+    // Lo que hace el backend: `astimezone(zona).date()` → 1-dic, no 30-nov.
+    const day = (iso: unknown) =>
+      DateTime.fromISO(String(iso)).setZone('America/Bogota').toISODate()
+    expect(day(bodies[0].scheduled_at)).toBe('2026-12-01')
+    expect(day(bodies[0].end_at)).toBe('2026-12-01')
+    expect(bodies[0].scheduled_at).toBe('2026-12-01T17:00:00.000Z')
   })
 })
