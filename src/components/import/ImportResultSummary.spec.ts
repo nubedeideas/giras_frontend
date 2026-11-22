@@ -31,7 +31,7 @@ describe('ImportResultSummary', () => {
       global: { plugins: [i18n], stubs: { RouterLink: RouterLinkStub } },
     })
     expect(w.get('[data-test="import-result-summary"]').text()).toBe(
-      '3 contactos creados, 2 vinculados, 4 en el Equipo de la gira'
+      'Contactos nuevos: 3 · Vinculados: 2 · En el Equipo de la gira: 4'
     )
     expect(w.text()).toContain('1 ya estaba en la gira')
     expect(w.text()).toContain('2 omitidos')

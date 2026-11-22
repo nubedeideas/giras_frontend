@@ -187,7 +187,7 @@ describe('ImportReviewView', () => {
     await flushPromises()
     expect(log.some((c) => c.method === 'POST' && c.path === `${JOB_PATH}confirm/`)).toBe(true)
     expect(w.get('[data-test="import-result-summary"]').text()).toBe(
-      '1 contactos creados, 0 vinculados, 1 en el Equipo de la gira'
+      'Contactos nuevos: 1 · Vinculados: 0 · En el Equipo de la gira: 1'
     )
     expect(fetchContacts).toHaveBeenCalled()
     expect(invalidate).toHaveBeenCalledWith('T1')

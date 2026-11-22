@@ -75,6 +75,7 @@ export type ImportRowIssue =
   | 'name_mismatch'
   | 'multiple_matches'
   | 'duplicate_in_draft'
+  | 'multiple_people'
   | 'email_invalid'
 
 export type ImportMatchStatus =
@@ -100,15 +101,13 @@ export interface ImportSourceRef {
   kind: ImportSourceType
 }
 
-/**
- * Candidato de `match.candidates`. La spec (§3.4.5) no fija su forma; se asume la misma que el
- * contacto elegido del `match` (`contact_uuid`, `contact_name`, `contact_phone`). Revisar contra
- * el serializer real del lote B.
- */
+/** Candidato de `match.candidates` (contrato real del backend tras la integración de F1). */
 export interface ImportMatchCandidate {
   contact_uuid: string
   contact_name: string
   contact_phone: string | null
+  contact_email?: string | null
+  is_confirmed?: boolean
 }
 
 export interface ImportRowMatch {

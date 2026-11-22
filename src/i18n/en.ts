@@ -2480,7 +2480,7 @@ export default {
       close: 'Close',
     },
     confirm: {
-      summary: '{created} contacts will be created, {linked} linked, {group} in the Tour team, {skipped} skipped',
+      summary: 'New: {created} · Linked: {linked} · In the Tour team: {group} · Skipped: {skipped}',
       button: 'Confirm',
       buttonCount: 'Confirm ({n})',
       blocked: 'Resolve or skip the red rows to confirm',
@@ -2497,7 +2497,7 @@ export default {
     },
     result: {
       title: 'Team imported',
-      summary: '{created} contacts created, {linked} linked, {group} in the Tour team',
+      summary: 'New contacts: {created} · Linked: {linked} · In the Tour team: {group}',
       alreadyInTour: '{n} was already in the tour | {n} were already in the tour',
       skipped: '{n} skipped | {n} skipped',
       viewContacts: 'See tour contacts',
@@ -2589,6 +2589,7 @@ export default {
       name_mismatch: 'The phone belongs to {name}',
       multiple_matches: 'Several contacts match',
       duplicate_in_draft: 'Repeated in the list',
+      multiple_people: 'This row may contain more than one person',
       email_invalid: "The email doesn't look valid",
     },
     match: {

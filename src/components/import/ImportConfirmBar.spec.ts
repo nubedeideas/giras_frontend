@@ -27,7 +27,7 @@ describe('ImportConfirmBar', () => {
       global: { plugins: [i18n] },
     })
     expect(w.get('[data-test="import-confirm-summary"]').text()).toBe(
-      'Se crearán 3 contactos, se vincularán 2, 4 en el Equipo de la gira, 1 omitidos'
+      'Nuevos: 3 · Vinculados: 2 · En el Equipo de la gira: 4 · Omitidos: 1'
     )
     expect(w.get('[data-test="import-confirm"]').text()).toContain('Confirmar (5)')
     await w.get('[data-test="import-confirm"]').trigger('click')

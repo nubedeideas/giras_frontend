@@ -2494,7 +2494,7 @@ export default {
       close: 'Cerrar',
     },
     confirm: {
-      summary: 'Se crearán {created} contactos, se vincularán {linked}, {group} en el Equipo de la gira, {skipped} omitidos',
+      summary: 'Nuevos: {created} · Vinculados: {linked} · En el Equipo de la gira: {group} · Omitidos: {skipped}',
       button: 'Confirmar',
       buttonCount: 'Confirmar ({n})',
       blocked: 'Resuelve las filas en rojo u omítelas para confirmar',
@@ -2511,7 +2511,7 @@ export default {
     },
     result: {
       title: 'Equipo importado',
-      summary: '{created} contactos creados, {linked} vinculados, {group} en el Equipo de la gira',
+      summary: 'Contactos nuevos: {created} · Vinculados: {linked} · En el Equipo de la gira: {group}',
       alreadyInTour: '{n} ya estaba en la gira | {n} ya estaban en la gira',
       skipped: '{n} omitido | {n} omitidos',
       viewContacts: 'Ver contactos de la gira',
@@ -2603,6 +2603,7 @@ export default {
       name_mismatch: 'El teléfono es de {name}',
       multiple_matches: 'Hay varios contactos con estos datos',
       duplicate_in_draft: 'Repetido en la lista',
+      multiple_people: 'Puede que haya más de una persona en esta fila',
       email_invalid: 'El email no parece válido',
     },
     match: {
