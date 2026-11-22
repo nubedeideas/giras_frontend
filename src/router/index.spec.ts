@@ -90,4 +90,30 @@ describe('router guards', () => {
     await router.push('/tours/abc/activities/def')
     expect(router.currentRoute.value.path).toBe('/login')
   })
+
+  it('/home carga DashboardView', async () => {
+    const home = routes.flatMap((r) => r.children ?? []).find((c) => c.name === 'home')
+    expect(home?.path).toBe('home')
+    const loaded = await (home!.component as () => Promise<{ default: unknown }>)()
+    const view = await import('@/views/DashboardView.vue')
+    expect(loaded.default).toBe(view.default)
+  })
+
+  it('con sesión, /login redirige a /home', async () => {
+    const original = useAuthStore.getMockImplementation()!
+    useAuthStore.mockImplementation(() => ({
+      accessToken: 'access',
+      user: { email: 'me@x.es' } as never,
+      isDemoMode: false,
+      isLoggedIn: true,
+      fetchMe,
+    }))
+    try {
+      const router = makeRouter()
+      await router.push('/login')
+      expect(router.currentRoute.value.path).toBe('/home')
+    } finally {
+      useAuthStore.mockImplementation(original)
+    }
+  })
 })

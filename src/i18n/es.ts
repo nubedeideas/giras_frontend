@@ -30,6 +30,68 @@ export default {
     settings: 'Ajustes',
   },
 
+  dashboard: {
+    title: 'Hoy',
+    greeting: 'Hola, {name}',
+    retry: 'Reintentar',
+    loadError: 'No se ha podido cargar este bloque.',
+    pending: {
+      title: 'Por resolver',
+      allClear: 'Todo en orden. No tienes nada pendiente.',
+      notices:
+        '{n} borrador de aviso espera tu revisión | {n} borradores de aviso esperan tu revisión',
+      aiTypes:
+        '{n} actividad con el tipo asignado por la IA sin revisar | {n} actividades con el tipo asignado por la IA sin revisar',
+      aiSuggestions:
+        '{n} sugerencia de destinatarios de la IA | {n} sugerencias de destinatarios de la IA',
+      audienceUnknown: 'Hay un problema con los destinatarios de los recordatorios.',
+      partialError: 'Parte de esta lista no se ha podido cargar.',
+      review: 'Revisar',
+      reviewAndSend: 'Revisar y enviar',
+      addTeam: 'Añadir equipo',
+      complete: 'Completar',
+      viewPlan: 'Ver plan',
+    },
+    upcoming: {
+      title: 'Próximas 24 h',
+      empty: 'Nada en las próximas 24 horas.',
+      today: 'Hoy',
+      tomorrow: 'Mañana',
+      allDay: 'Todo el día',
+      ongoing: 'En curso',
+      viewAll: 'Ver todas',
+    },
+    sends: {
+      title: 'Envíos · 7 días',
+      empty: 'No se ha enviado nada en los últimos 7 días.',
+      viewReports: 'Ver informes',
+      sent: 'Enviados',
+      delivered: 'Entregados',
+      failed: 'Fallidos',
+      barTitle: '{date}: {n} enviado | {date}: {n} enviados',
+    },
+    inbox: {
+      title: 'Bandeja',
+      empty: 'No tienes avisos en la bandeja.',
+      open: 'Abrir bandeja',
+    },
+    plan: {
+      title: 'Cupo del plan',
+      unlimited: 'Ilimitado · {plan}',
+      of: 'de',
+      whatsapp: 'WhatsApp',
+      shows: '{used} de {limit} shows',
+      manage: 'Gestionar plan',
+      none: 'Esta gira no tiene datos de consumo.',
+    },
+    empty: {
+      title: 'Esta gira todavía no tiene actividades',
+      body: 'Añade la primera a mano o tráelas de Google Calendar.',
+      add: 'Añadir actividad',
+      connectCalendar: 'Conectar Google Calendar',
+    },
+  },
+
   home: {
     eyebrow: 'Giras',
     heading: 'Antes de empezar',

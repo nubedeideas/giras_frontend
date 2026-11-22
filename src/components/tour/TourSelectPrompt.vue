@@ -7,7 +7,7 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 // `compact`: just the select, no icon/heading/background/button — activates
 // immediately on change. Used where screen space is tight (mobile Events'
 // main list panel). Full mode (default) is the same design as the post-login
-// splash (HomeView.vue) — icon chip, heading, select + confirm button.
+// splash (DashboardView sin gira) — icon chip, heading, select + confirm button.
 defineProps<{ compact?: boolean }>()
 const emit = defineEmits<{ confirmed: [id: number] }>()
 

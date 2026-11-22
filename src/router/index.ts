@@ -88,7 +88,7 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: 'home', name: 'home', component: () => import('@/views/HomeView.vue') },
+      { path: 'home', name: 'home', component: () => import('@/views/DashboardView.vue') },
       { path: 'events', name: 'events', component: () => import('@/views/EventsView.vue') },
       { path: 'calendar', name: 'calendar', component: () => import('@/views/CalendarView.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('@/views/ContactsView.vue') },

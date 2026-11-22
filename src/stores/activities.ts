@@ -54,22 +54,32 @@ export const useActivitiesStore = defineStore('activities', () => {
 
   const loading = ref(false)
   const error = ref<string | null>(null)
+  /** Gira de la última carga correcta (`null` = todas las giras; `undefined` = nunca cargado). */
+  const loadedTourUuid = ref<string | null | undefined>(undefined)
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
+  // Guard de petición: al cambiar de gira rápido, solo cuenta la última respuesta.
+  let request = 0
+
   async function loadActivities() {
     const tourUuid = toursStore.activeTour?.uuid
+    const req = ++request
     loading.value = true
     error.value = null
     try {
       // Omitting `tour` is intentional and backend-supported — it returns
       // activities across every tour the user owns or is an active member
       // of (server-scoped), which is how "Todas las Giras" aggregates.
-      activities.value = await api.listActivities(tourUuid ? { tour: tourUuid } : {})
+      const list = await api.listActivities(tourUuid ? { tour: tourUuid } : {})
+      if (req !== request) return
+      activities.value = list
+      loadedTourUuid.value = tourUuid ?? null
     } catch (e) {
+      if (req !== request) return
       error.value = e instanceof Error ? e.message : 'Error al cargar actividades'
     } finally {
-      loading.value = false
+      if (req === request) loading.value = false
     }
   }
 
@@ -216,6 +226,7 @@ export const useActivitiesStore = defineStore('activities', () => {
     searchQuery,
     loading,
     error,
+    loadedTourUuid,
     filtered,
     groupedActivities,
     groupedByDay,

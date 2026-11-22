@@ -49,7 +49,7 @@ const meta = computed(() => {
     >
       <span
         class="mt-[5px] w-2 h-2 flex-shrink-0 rounded-full"
-        :class="item.is_read ? 'bg-transparent' : 'bg-acid'"
+        :class="item.is_read ? 'bg-transparent' : 'bg-olive'"
         aria-hidden="true"
       />
       <span class="min-w-0 flex-1 flex flex-col gap-0.5">
