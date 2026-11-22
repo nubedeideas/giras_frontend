@@ -76,17 +76,17 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
         <div class="flex items-center gap-2">
           <!-- Channel pill -->
           <span
-            class="text-[10px] font-bold px-2.5 py-1 rounded-full"
+            class="text-[12px] font-bold px-2.5 py-1 rounded-full"
             :style="{ background: channelColor.bg, color: channelColor.text }"
           >
             {{ TEMPLATE_CHANNEL_LABELS[template.channel] }}
           </span>
           <!-- Active badge -->
           <span
-            class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            class="text-[12px] font-semibold px-2 py-0.5 rounded-full"
             :class="
               template.is_active
-                ? 'bg-[rgba(52,211,153,0.12)] text-[#34d399]'
+                ? 'bg-sent-bg text-sent-fg'
                 : 'bg-glass text-ink-4'
             "
           >
@@ -95,7 +95,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           <!-- Default badge -->
           <span
             v-if="template.is_default"
-            class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-acid/15 text-acid"
+            class="text-[12px] font-bold px-2 py-0.5 rounded-full bg-acid-dim text-olive"
           >
             ★ Predeterminado
           </span>
@@ -104,7 +104,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
         <!-- Action buttons -->
         <div class="flex items-center gap-2">
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[11px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
             @click="showPreview = true"
           >
             <svg
@@ -129,7 +129,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           <button
             v-if="!isSystem"
             data-testid="template-edit"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[11px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
             @click="emit('edit')"
           >
             <svg
@@ -153,7 +153,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       <p
         v-if="isSystem"
         data-testid="template-system-notice"
-        class="mb-4 text-[11px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
+        class="mb-4 text-[13px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
       >
         {{ t('notif.templateSystemReadOnly') }}
       </p>
@@ -162,16 +162,16 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       <h1 class="text-xl font-bold text-ink tracking-[-0.3px] mb-1">
         {{ template.name }}
       </h1>
-      <p class="text-[11px] text-ink-4 font-mono mb-4">
+      <p class="text-[13px] text-ink-4 font-mono mb-4">
         {{ template.slug }}
       </p>
 
       <!-- Type -->
       <div class="mb-5">
-        <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1">
+        <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1">
           Tipo
         </p>
-        <p class="text-[13px] text-ink">
+        <p class="text-[15px] text-ink">
           {{ TEMPLATE_TYPE_LABELS[template.notification_type] }}
         </p>
       </div>
@@ -182,10 +182,10 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       <!-- WhatsApp fields -->
       <template v-if="template.channel === 'whatsapp'">
         <div class="mb-5">
-          <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1">
+          <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1">
             Twilio Template SID
           </p>
-          <p class="text-[12px] text-ink font-mono break-all">
+          <p class="text-[14px] text-ink font-mono break-all">
             {{ template.twilio_template_sid || '—' }}
           </p>
         </div>
@@ -193,7 +193,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           v-if="template.variables && Object.keys(template.variables).length"
           class="mb-5"
         >
-          <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-2">
+          <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-2">
             Variables
           </p>
           <div class="bg-glass border border-line rounded-lg overflow-hidden">
@@ -203,15 +203,15 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
               class="flex items-center gap-3 px-3 py-2 border-b border-line last:border-b-0"
             >
               <span
-                class="w-6 h-6 rounded-full bg-acid/15 text-acid text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                class="w-6 h-6 rounded-full bg-acid-dim text-olive text-[12px] font-bold flex items-center justify-center flex-shrink-0"
               >
                 {{ pos }}
               </span>
               <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-mono text-ink-2">
+                <p class="text-[13px] font-mono text-ink-2">
                   {{ varKey }}
                 </p>
-                <p class="text-[10px] text-ink-4">
+                <p class="text-[12px] text-ink-4">
                   {{ varLabel(varKey) }}
                 </p>
               </div>
@@ -226,10 +226,10 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           v-if="template.subject"
           class="mb-5"
         >
-          <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1">
+          <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1">
             Asunto
           </p>
-          <p class="text-[13px] text-ink">
+          <p class="text-[15px] text-ink">
             {{ template.subject }}
           </p>
         </div>
@@ -237,11 +237,11 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           v-if="template.body"
           class="mb-5"
         >
-          <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-2">
+          <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-2">
             Cuerpo
           </p>
           <div class="bg-glass border border-line rounded-lg px-3 py-3">
-            <pre class="text-[12px] text-ink whitespace-pre-wrap font-sans leading-relaxed">{{
+            <pre class="text-[14px] text-ink whitespace-pre-wrap font-sans leading-relaxed">{{
               template.body
             }}</pre>
           </div>
@@ -250,17 +250,17 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           v-if="Array.isArray(template.variables) && (template.variables as string[]).length"
           class="mb-5"
         >
-          <p class="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-2">
+          <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-2">
             Variables
           </p>
           <div class="flex flex-wrap gap-1.5">
             <span
               v-for="varKey in (template.variables as string[])"
               :key="varKey"
-              class="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full bg-glass border border-line text-ink-2 font-mono"
+              class="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full bg-glass border border-line text-ink-2 font-mono"
             >
-              <span class="text-acid">&#123;&#123;</span>{{ varKey
-              }}<span class="text-acid">&#125;&#125;</span>
+              <span class="text-olive">&#123;&#123;</span>{{ varKey
+              }}<span class="text-olive">&#125;&#125;</span>
             </span>
           </div>
         </div>
@@ -273,11 +273,11 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       <div class="mb-5">
         <template v-if="!template.is_default">
           <button
-            class="flex items-center gap-2 px-4 py-2 rounded-lg border text-[12px] font-semibold cursor-pointer transition-all"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border text-[14px] font-semibold cursor-pointer transition-all"
             :class="
               settingDefault
                 ? 'bg-glass border-line text-ink-4 cursor-not-allowed'
-                : 'bg-glass border-line-acid text-acid hover:bg-acid/10'
+                : 'bg-glass border-line-acid text-olive hover:bg-acid-dim'
             "
             :disabled="settingDefault"
             @click="setDefault"
@@ -319,14 +319,14 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           </button>
           <p
             v-if="defaultFeedback"
-            class="text-[11px] text-[#34d399] mt-2"
+            class="text-[13px] text-sent-fg mt-2"
           >
             {{ defaultFeedback }}
           </p>
         </template>
         <div
           v-else
-          class="flex items-center gap-2 text-[12px] text-acid font-semibold"
+          class="flex items-center gap-2 text-[14px] text-olive font-semibold"
         >
           <svg
             width="14"
@@ -350,26 +350,26 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
       >
         <template v-if="!deleteConfirm">
           <button
-            class="text-[11px] text-ink-4 hover:text-red-400 transition-colors border-none bg-transparent cursor-pointer p-0"
+            class="text-[13px] text-ink-4 hover:text-failed-fg transition-colors border-none bg-transparent cursor-pointer p-0"
             @click="deleteConfirm = true"
           >
             Eliminar template
           </button>
         </template>
         <template v-else>
-          <p class="text-[12px] text-ink-2 mb-2">
+          <p class="text-[14px] text-ink-2 mb-2">
             ¿Eliminar este template? Esta acción no se puede deshacer.
           </p>
           <div class="flex gap-2">
             <button
-              class="px-4 py-2 rounded-lg bg-red-500/15 text-red-400 text-[12px] font-semibold border-none cursor-pointer hover:bg-red-500/25 transition-colors"
+              class="px-4 py-2 rounded-lg bg-failed-bg text-failed-fg text-[14px] font-semibold border-none cursor-pointer hover:bg-failed-bg transition-colors"
               :disabled="deleting"
               @click="confirmDelete"
             >
               {{ deleting ? 'Eliminando…' : 'Sí, eliminar' }}
             </button>
             <button
-              class="px-4 py-2 rounded-lg bg-glass border border-line text-ink-2 text-[12px] font-semibold cursor-pointer hover:bg-glass-hover transition-colors"
+              class="px-4 py-2 rounded-lg bg-glass border border-line text-ink-2 text-[14px] font-semibold cursor-pointer hover:bg-glass-hover transition-colors"
               @click="deleteConfirm = false; deleteError = ''"
             >
               Cancelar
@@ -377,7 +377,7 @@ const channelColor = TEMPLATE_CHANNEL_COLORS[props.template.channel]
           </div>
           <p
             v-if="deleteError"
-            class="text-[11px] text-red-400 mt-1.5"
+            class="text-[13px] text-failed-fg mt-1.5"
           >
             {{ deleteError }}
           </p>

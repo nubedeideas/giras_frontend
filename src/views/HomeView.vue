@@ -12,7 +12,7 @@ function goToActivities() {
 </script>
 
 <template>
-  <div class="h-full overflow-hidden bg-bg-3">
+  <div class="h-full overflow-hidden bg-bg">
     <TourSelectPrompt @confirmed="goToActivities" />
   </div>
 </template>

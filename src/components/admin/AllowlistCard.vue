@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import type { BadgeStatus } from '@/utils/statusBadge'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { ref } from 'vue'
@@ -14,10 +16,10 @@ const loading = ref(false)
 const error = ref('')
 const showRevokeConfirm = ref(false)
 
-const STATUS_COLORS: Record<AllowlistStatus, { bg: string; text: string }> = {
-  pending: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
-  approved: { bg: 'rgba(31,173,90,0.15)', text: '#34d399' },
-  revoked: { bg: 'rgba(239,68,68,0.12)', text: '#f87171' },
+const STATUS_BADGE: Record<AllowlistStatus, BadgeStatus> = {
+  pending: 'pending',
+  approved: 'sent',
+  revoked: 'failed',
 }
 
 
@@ -63,10 +65,10 @@ async function approve() {
       @click="expanded = !expanded"
     >
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-medium text-ink truncate">
+        <p class="text-[14px] font-medium text-ink truncate">
           {{ item.email }}
         </p>
-        <p class="text-[10px] text-ink-4">
+        <p class="text-[12px] text-ink-4">
           {{
             t('admin.allowlist.invitedBy', {
               email: item.invited_by_email ?? '—',
@@ -75,12 +77,12 @@ async function approve() {
           }}
         </p>
       </div>
-      <span
-        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
-        :style="{ background: STATUS_COLORS[item.status].bg, color: STATUS_COLORS[item.status].text }"
-      >
-        {{ t(`admin.allowlistStatus.${item.status}`) }}
-      </span>
+      <StatusBadge
+        class="flex-shrink-0"
+        :status="STATUS_BADGE[item.status]"
+        :label="t(`admin.allowlistStatus.${item.status}`)"
+        size="sm"
+      />
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
         :class="expanded ? 'rotate-180' : ''"
@@ -103,19 +105,19 @@ async function approve() {
     >
       <p
         v-if="item.notes"
-        class="text-[11px] text-ink-3"
+        class="text-[13px] text-ink-3"
       >
         {{ item.notes }}
       </p>
       <p
         v-if="item.approved_at"
-        class="text-[10px] text-ink-4"
+        class="text-[12px] text-ink-4"
       >
         {{ t('admin.allowlist.approvedOn', { date: formatDate(item.approved_at) }) }}
       </p>
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>
@@ -123,7 +125,7 @@ async function approve() {
       <div class="flex flex-wrap gap-1.5">
         <button
           v-if="item.status !== 'approved'"
-          class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors disabled:opacity-50"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors disabled:opacity-50"
           :disabled="loading"
           @click="approve"
         >
@@ -133,7 +135,7 @@ async function approve() {
         <template v-if="item.status === 'approved'">
           <button
             v-if="!showRevokeConfirm"
-            class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
+            class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5] cursor-pointer transition-colors"
             @click="showRevokeConfirm = true"
           >
             {{ t('admin.allowlist.revoke') }}
@@ -143,15 +145,15 @@ async function approve() {
             class="flex gap-1"
           >
             <button
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-              style="background: rgba(239,68,68,0.15); color: #f87171"
+              class="px-2.5 py-1 rounded-lg text-[13px] font-semibold cursor-pointer border-none disabled:opacity-50"
+              style="background: var(--failed-bg); color: var(--failed-fg)"
               :disabled="loading"
               @click="revoke"
             >
               {{ loading ? '…' : t('admin.common.confirm') }}
             </button>
             <button
-              class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+              class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
               @click="showRevokeConfirm = false"
             >
               {{ t('admin.common.cancel') }}

@@ -12,7 +12,7 @@ const api = useActivityTypes()
 
 const CATEGORIES: { value: ActivityCategory; label: string; color: string }[] = [
   { value: 'logistics', label: 'Logística', color: '#1a8fff' },
-  { value: 'production', label: 'Producción', color: '#f59e0b' },
+  { value: 'production', label: 'Producción', color: 'var(--pending-fg)' },
   { value: 'media', label: 'Medios', color: '#9b5de5' },
   { value: 'meetings', label: 'Reuniones', color: '#06b6d4' },
   { value: 'fan', label: 'Fan', color: '#e91e8c' },
@@ -216,7 +216,7 @@ async function confirmDelete() {
   <div v-else>
     <p
       v-if="error"
-      class="text-[11px] text-red-400 mb-3"
+      class="text-[13px] text-failed-fg mb-3"
     >
       {{ error }}
     </p>
@@ -224,8 +224,8 @@ async function confirmDelete() {
     <!-- Category filter -->
     <div class="flex flex-wrap gap-1 mb-3">
       <button
-        class="px-2 py-[3px] rounded-full text-[10px] font-semibold transition-all cursor-pointer border"
-        :class="filterCategory === '' ? 'bg-acid text-black border-transparent' : 'bg-transparent text-ink-3 border-line hover:text-ink'"
+        class="px-2 py-[3px] rounded-full text-[12px] font-semibold transition-all cursor-pointer border"
+        :class="filterCategory === '' ? 'bg-acid text-ink border-transparent' : 'bg-transparent text-ink-3 border-line hover:text-ink'"
         @click="filterCategory = ''"
       >
         Todos
@@ -233,8 +233,8 @@ async function confirmDelete() {
       <button
         v-for="cat in CATEGORIES"
         :key="cat.value"
-        class="px-2 py-[3px] rounded-full text-[10px] font-semibold transition-all cursor-pointer border"
-        :class="filterCategory === cat.value ? 'text-black border-transparent' : 'bg-transparent text-ink-3 border-line hover:text-ink'"
+        class="px-2 py-[3px] rounded-full text-[12px] font-semibold transition-all cursor-pointer border"
+        :class="filterCategory === cat.value ? 'text-ink border-transparent' : 'bg-transparent text-ink-3 border-line hover:text-ink'"
         :style="filterCategory === cat.value ? { background: cat.color } : {}"
         @click="filterCategory = cat.value"
       >
@@ -262,24 +262,24 @@ async function confirmDelete() {
 
           <!-- Name + badges -->
           <div class="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
-            <span class="text-[12px] text-ink truncate">{{ item.name }}</span>
+            <span class="text-[14px] text-ink truncate">{{ item.name }}</span>
             <!-- Category badge -->
             <span
-              class="text-[9px] font-semibold px-1.5 py-px rounded-full leading-none"
+              class="text-[12px] font-semibold px-1.5 py-px rounded-full leading-none"
               :style="{ background: categoryMeta(item.category).color + '22', color: categoryMeta(item.category).color }"
             >
               {{ categoryMeta(item.category).label }}
             </span>
             <span
               v-if="item.is_system"
-              class="text-[9px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none"
+              class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none"
             >
               sistema
             </span>
             <span
               v-if="!item.is_active"
-              class="text-[9px] font-semibold px-1.5 py-px rounded-full leading-none"
-              style="background: rgba(239,68,68,0.12); color: #f87171"
+              class="text-[12px] font-semibold px-1.5 py-px rounded-full leading-none"
+              style="background: var(--failed-bg); color: var(--failed-fg)"
             >
               inactivo
             </span>
@@ -308,7 +308,7 @@ async function confirmDelete() {
             </button>
             <button
               v-if="!item.is_system"
-              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
               title="Eliminar"
               @click="startDelete(item.uuid)"
             >
@@ -338,7 +338,7 @@ async function confirmDelete() {
           <!-- Name -->
           <input
             v-model="editForm.name"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             placeholder="Nombre *"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
@@ -347,7 +347,7 @@ async function confirmDelete() {
           <!-- Category select -->
           <select
             v-model="editForm.category"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors cursor-pointer"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
           >
             <option
               v-for="cat in CATEGORIES"
@@ -361,7 +361,7 @@ async function confirmDelete() {
           <!-- Icon input -->
           <input
             v-model="editForm.icon"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             placeholder="Ícono (ej: calendar, music, plane…)"
             @keydown.esc="cancelEdit"
           >
@@ -369,7 +369,7 @@ async function confirmDelete() {
           <!-- Description -->
           <input
             v-model="editForm.description"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             placeholder="Descripción (opcional)"
             @keydown.esc="cancelEdit"
           >
@@ -397,19 +397,19 @@ async function confirmDelete() {
                 :style="{ left: editForm.is_active ? '18px' : '2px' }"
               />
             </div>
-            <span class="text-[11px] text-ink-2">Activo</span>
+            <span class="text-[13px] text-ink-2">Activo</span>
           </label>
 
           <p
             v-if="editError"
-            class="text-[10px] text-red-400"
+            class="text-[12px] text-failed-fg"
           >
             {{ editError }}
           </p>
 
           <div class="flex gap-1.5">
             <button
-              class="flex-1 py-1.5 rounded text-[11px] font-semibold bg-acid text-black cursor-pointer border-none transition-opacity"
+              class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
               :class="editSaving ? 'opacity-50' : ''"
               :disabled="editSaving || !editForm.name.trim()"
               @click="saveEdit"
@@ -417,7 +417,7 @@ async function confirmDelete() {
               {{ editSaving ? 'Guardando…' : 'Guardar' }}
             </button>
             <button
-              class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+              class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="cancelEdit"
             >
               Cancelar
@@ -430,19 +430,19 @@ async function confirmDelete() {
           v-else-if="deletingUuid === item.uuid"
           class="py-2.5"
         >
-          <p class="text-[11px] text-ink-2 mb-1">
+          <p class="text-[13px] text-ink-2 mb-1">
             ¿Eliminar <strong class="text-ink">{{ item.name }}</strong>?
           </p>
           <p
             v-if="deleteError"
-            class="text-[10px] text-red-400 mb-1"
+            class="text-[12px] text-failed-fg mb-1"
           >
             {{ deleteError }}
           </p>
           <div class="flex gap-1.5">
             <button
-              class="flex-1 py-1.5 rounded text-[11px] font-semibold cursor-pointer border-none transition-opacity"
-              style="background: rgba(239,68,68,0.15); color: #f87171"
+              class="flex-1 py-1.5 rounded text-[13px] font-semibold cursor-pointer border-none transition-opacity"
+              style="background: var(--failed-bg); color: var(--failed-fg)"
               :class="deleteSaving ? 'opacity-50' : ''"
               :disabled="deleteSaving"
               @click="confirmDelete"
@@ -450,7 +450,7 @@ async function confirmDelete() {
               {{ deleteSaving ? 'Eliminando…' : 'Eliminar' }}
             </button>
             <button
-              class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+              class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="deletingUuid = null"
             >
               Cancelar
@@ -462,7 +462,7 @@ async function confirmDelete() {
       <!-- Empty state -->
       <div
         v-if="filteredItems().length === 0"
-        class="py-4 text-center text-[11px] text-ink-4"
+        class="py-4 text-center text-[13px] text-ink-4"
       >
         No hay tipos de actividad{{ filterCategory ? ' en esta categoría' : '' }}
       </div>
@@ -473,13 +473,13 @@ async function confirmDelete() {
       v-if="showCreate"
       class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
     >
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
         Nuevo tipo de actividad
       </p>
 
       <input
         v-model="createForm.name"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         placeholder="Nombre *"
         autofocus
         @keydown.enter="submitCreate"
@@ -488,7 +488,7 @@ async function confirmDelete() {
 
       <select
         v-model="createForm.category"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors cursor-pointer"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
       >
         <option
           v-for="cat in CATEGORIES"
@@ -501,14 +501,14 @@ async function confirmDelete() {
 
       <input
         v-model="createForm.icon"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         placeholder="Ícono (ej: calendar, music, plane…)"
         @keydown.esc="cancelCreate"
       >
 
       <input
         v-model="createForm.description"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         placeholder="Descripción (opcional)"
         @keydown.esc="cancelCreate"
       >
@@ -536,19 +536,19 @@ async function confirmDelete() {
             :style="{ left: createForm.is_active ? '18px' : '2px' }"
           />
         </div>
-        <span class="text-[11px] text-ink-2">Activo</span>
+        <span class="text-[13px] text-ink-2">Activo</span>
       </label>
 
       <p
         v-if="createError"
-        class="text-[10px] text-red-400"
+        class="text-[12px] text-failed-fg"
       >
         {{ createError }}
       </p>
 
       <div class="flex gap-1.5">
         <button
-          class="flex-1 py-1.5 rounded text-[11px] font-semibold bg-acid text-black cursor-pointer border-none transition-opacity"
+          class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
           :class="createSaving || !createForm.name.trim() ? 'opacity-50' : ''"
           :disabled="createSaving || !createForm.name.trim()"
           @click="submitCreate"
@@ -556,7 +556,7 @@ async function confirmDelete() {
           {{ createSaving ? 'Creando…' : 'Crear tipo' }}
         </button>
         <button
-          class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+          class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="cancelCreate"
         >
           Cancelar
@@ -567,7 +567,7 @@ async function confirmDelete() {
     <!-- Add button -->
     <button
       v-if="!showCreate"
-      class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[11px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
+      class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[13px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
       @click="openCreate"
     >
       <svg

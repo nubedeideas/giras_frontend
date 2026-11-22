@@ -165,13 +165,13 @@ function formatDate(iso: string): string {
       v-if="isAdmin"
       class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-5 mb-4"
     >
-      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-3">
+      <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-3">
         {{ t('tourHub.documents.upload') }}
       </p>
       <div class="flex flex-col sm:flex-row gap-2.5">
         <select
           v-model="documentType"
-          class="bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
+          class="bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors"
         >
           <option
             v-for="dt in DOCUMENT_TYPES"
@@ -184,7 +184,7 @@ function formatDate(iso: string): string {
         <input
           v-model="description"
           :placeholder="t('tourHub.documents.descriptionPh')"
-          class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+          class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         >
         <input
           ref="fileInputRef"
@@ -194,7 +194,7 @@ function formatDate(iso: string): string {
           @change="onFileChange"
         >
         <button
-          class="flex items-center gap-1.5 px-3 py-2 rounded text-[12px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer whitespace-nowrap"
+          class="flex items-center gap-1.5 px-3 py-2 rounded text-[14px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer whitespace-nowrap"
           @click="pickFile"
         >
           <svg
@@ -210,7 +210,7 @@ function formatDate(iso: string): string {
           {{ selectedFile ? selectedFile.name : t('tourHub.documents.chooseFile') }}
         </button>
         <button
-          class="px-3.5 py-2 rounded text-[12px] font-bold bg-acid text-black hover:opacity-90 transition-opacity cursor-pointer border-none disabled:opacity-40 whitespace-nowrap"
+          class="px-3.5 py-2 rounded text-[14px] font-bold bg-acid text-ink hover:opacity-90 transition-opacity cursor-pointer border-none disabled:opacity-40 whitespace-nowrap"
           :disabled="!selectedFile || uploading || !!uploadError"
           @click="submitUpload"
         >
@@ -222,21 +222,21 @@ function formatDate(iso: string): string {
           v-model="visibleToCrew"
           type="checkbox"
           data-testid="upload-visible-to-crew"
-          class="accent-acid cursor-pointer"
+          class="accent-olive cursor-pointer"
         >
-        <span class="text-[11px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
-        <span class="text-[10px] text-ink-4 hidden sm:inline">· {{ t('tourHub.documents.visibleToCrewHint') }}</span>
+        <span class="text-[13px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
+        <span class="text-[12px] text-ink-4 hidden sm:inline">· {{ t('tourHub.documents.visibleToCrewHint') }}</span>
       </label>
       <p
         v-if="uploadError"
-        class="text-[10px] text-red-400 mt-2"
+        class="text-[12px] text-failed-fg mt-2"
       >
         {{ uploadError }}
       </p>
     </div>
     <p
       v-else
-      class="text-[11px] text-ink-4 mb-4"
+      class="text-[13px] text-ink-4 mb-4"
     >
       {{ t('tourHub.documents.adminOnly') }}
     </p>
@@ -269,11 +269,11 @@ function formatDate(iso: string): string {
       v-else-if="error"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ error }}
       </p>
       <button
-        class="text-[11px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
+        class="text-[13px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
         @click="load"
       >
         Reintentar
@@ -284,7 +284,7 @@ function formatDate(iso: string): string {
       v-else-if="!documents.length"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-ink-3">
+      <p class="text-[14px] text-ink-3">
         {{ t('tourHub.documents.empty') }}
       </p>
     </div>
@@ -325,13 +325,13 @@ function formatDate(iso: string): string {
             </Pill>
             <p
               v-if="doc.description"
-              class="text-[12px] text-ink truncate"
+              class="text-[14px] text-ink truncate"
             >
               {{ doc.description }}
             </p>
           </div>
-          <p class="text-[10px] text-ink-4">
-            {{ t('tourHub.documents.uploadedBy') }} {{ doc.uploaded_by_name }} · {{ formatSize(doc.file_size) }} · {{ formatDate(doc.created_at) }}
+          <p class="text-[12px] text-ink-4">
+            {{ t('tourHub.documents.uploadedBy') }} {{ doc.uploaded_by_name }} · {{ formatSize(doc.file_size) }} · <span class="font-time tnum">{{ formatDate(doc.created_at) }}</span>
           </p>
           <button
             v-if="canManageCrew"
@@ -353,12 +353,12 @@ function formatDate(iso: string): string {
                 :class="doc.visible_to_crew ? 'left-[13px] bg-bg' : 'left-[1px] bg-ink-3'"
               />
             </span>
-            <span class="text-[10px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
+            <span class="text-[12px] text-ink-2">{{ t('tourHub.documents.visibleToCrew') }}</span>
           </button>
           <p
             v-if="toggleError[doc.uuid]"
             data-testid="doc-crew-error"
-            class="text-[10px] text-red-400 mt-1"
+            class="text-[12px] text-failed-fg mt-1"
           >
             {{ toggleError[doc.uuid] }}
           </p>
@@ -370,15 +370,15 @@ function formatDate(iso: string): string {
           class="flex items-center gap-1.5 flex-shrink-0"
         >
           <button
-            class="px-2 py-1 rounded text-[10px] font-medium cursor-pointer border-none"
-            style="background: rgba(239,68,68,0.2); color: #f87171"
+            class="px-2 py-1 rounded text-[12px] font-medium cursor-pointer border-none"
+            style="background: var(--failed-bg); color: var(--failed-fg)"
             :disabled="deleting"
             @click="confirmDelete(doc)"
           >
             {{ deleting ? '…' : t('tourHub.documents.deleteYes') }}
           </button>
           <button
-            class="px-2 py-1 rounded text-[10px] font-medium bg-glass text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer border border-line"
+            class="px-2 py-1 rounded text-[12px] font-medium bg-glass text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer border border-line"
             @click="deletingUuid = null"
           >
             {{ t('common.cancel') }}
@@ -411,7 +411,7 @@ function formatDate(iso: string): string {
           </button>
           <button
             v-if="isAdmin"
-            class="flex items-center justify-center w-7 h-7 rounded-md text-ink-3 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+            class="flex items-center justify-center w-7 h-7 rounded-md text-ink-3 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
             :title="t('tourHub.documents.delete')"
             @click="deletingUuid = doc.uuid"
           >

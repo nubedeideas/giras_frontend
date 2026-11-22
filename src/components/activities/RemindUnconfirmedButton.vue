@@ -120,11 +120,11 @@ async function confirmSend() {
       :title="blockedReason || undefined"
     >
       <button
-        class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors"
+        class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium border transition-colors"
         :class="
           blockedReason || checking
             ? 'bg-glass border-line text-ink-4 cursor-not-allowed'
-            : 'bg-acid-dim border-line-acid text-acid hover:bg-glass-hover cursor-pointer'
+            : 'bg-acid-dim border-line-acid text-olive hover:bg-glass-hover cursor-pointer'
         "
         :disabled="!!blockedReason || checking"
         @click="startDryRun"
@@ -148,19 +148,19 @@ async function confirmSend() {
 
     <p
       v-if="blockedReason && !notice"
-      class="text-[10px] text-ink-4 whitespace-pre-line"
+      class="text-[12px] text-ink-4 whitespace-pre-line"
     >
       {{ blockedReason }}
     </p>
     <p
       v-if="notice"
-      class="text-[11px] text-acid"
+      class="text-[13px] text-olive"
     >
       {{ notice }}
     </p>
     <p
       v-if="error"
-      class="text-[11px] text-red-400 whitespace-pre-line"
+      class="text-[13px] text-failed-fg whitespace-pre-line"
     >
       {{ error }}
     </p>
@@ -174,7 +174,7 @@ async function confirmSend() {
       </p>
       <p
         v-if="preview"
-        class="text-[12px] text-ink-2 leading-relaxed"
+        class="text-[14px] text-ink-2 leading-relaxed"
       >
         {{ t('confirmations.remindConfirmBody', preview.eligible) }}
       </p>
@@ -182,14 +182,14 @@ async function confirmSend() {
         v-if="previewExclusions.length"
         class="mt-3 rounded-lg border border-line bg-glass px-3 py-2"
       >
-        <p class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] mb-1">
+        <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1">
           {{ t('confirmations.remindExcludedTitle') }}
         </p>
         <ul class="space-y-0.5">
           <li
             v-for="line in previewExclusions"
             :key="line"
-            class="text-[11px] text-ink-3"
+            class="text-[13px] text-ink-3"
           >
             {{ line }}
           </li>

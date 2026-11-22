@@ -52,7 +52,7 @@ onMounted(() => load())
           {{ t('admin.pools.title') }}
         </p>
         <button
-          class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-black text-[11px] font-bold cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-ink text-[13px] font-bold cursor-pointer"
           @click="showCreate = true"
         >
           {{ t('admin.pools.new') }}
@@ -84,7 +84,7 @@ onMounted(() => load())
         <input
           v-model="search"
           :placeholder="t('admin.pools.searchPlaceholder')"
-          class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+          class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
         >
       </div>
     </div>
@@ -114,13 +114,13 @@ onMounted(() => load())
       </div>
       <p
         v-else-if="loadError"
-        class="text-center py-8 text-red-400 text-xs"
+        class="text-center py-8 text-failed-fg text-[14px]"
       >
         {{ t('admin.common.loadError', { error: loadError }) }}
       </p>
       <p
         v-else-if="items.length === 0"
-        class="text-center py-8 text-ink-4 text-xs"
+        class="text-center py-8 text-ink-4 text-[14px]"
       >
         {{ t('admin.common.noResults') }}
       </p>

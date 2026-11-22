@@ -67,7 +67,7 @@ const showMobileDetail = computed(
           key="empty"
           class="h-full my-3 ml-1.5 mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex items-center justify-center text-center px-4"
         >
-          <p class="text-[12px] text-ink-3">
+          <p class="text-[14px] text-ink-3">
             {{ t('calendar.selectActivity') }}
           </p>
         </div>

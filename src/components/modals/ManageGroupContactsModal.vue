@@ -148,7 +148,7 @@ async function save() {
         <p class="text-base font-bold text-ink tracking-[-0.2px]">
           Gestionar Contactos
         </p>
-        <p class="text-[10px] text-ink-3 mt-0.5">
+        <p class="text-[12px] text-ink-3 mt-0.5">
           {{ groupName }} · {{ selected.size }} seleccionado{{ selected.size !== 1 ? 's' : '' }}
         </p>
       </div>
@@ -186,18 +186,18 @@ async function save() {
       v-if="!loading && availableRoles.length > 0"
       class="mb-3"
     >
-      <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
+      <p class="text-[11px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1.5">
         Seleccionar por rol
       </p>
       <div class="flex flex-wrap gap-1.5">
         <button
           v-for="role in availableRoles"
           :key="role.uuid"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer select-none"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-semibold border transition-all cursor-pointer select-none"
           :style="roleSelectionState(role.uuid) === 'all'
             ? { background: role.color + '22', borderColor: role.color, color: role.color }
             : roleSelectionState(role.uuid) === 'partial'
-              ? { background: 'rgba(245,158,11,0.10)', borderColor: 'rgba(245,158,11,0.4)', color: '#f59e0b' }
+              ? { background: 'var(--pending-bg)', borderColor: 'var(--pending-fg)', color: 'var(--pending-fg)' }
               : { background: 'transparent', borderColor: 'var(--line)', color: 'var(--ink-3)' }"
           @click="toggleRoleSelection(role.uuid)"
         >
@@ -207,11 +207,11 @@ async function save() {
           />
           <span>{{ role.name }}</span>
           <span
-            class="text-[9px] font-bold px-1 py-0.5 rounded min-w-[18px] text-center leading-none transition-colors"
+            class="text-[12px] font-bold px-1 py-0.5 rounded min-w-[18px] text-center leading-none transition-colors"
             :style="roleSelectionState(role.uuid) === 'all'
               ? { background: role.color + '33', color: role.color }
               : roleSelectionState(role.uuid) === 'partial'
-                ? { background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }
+                ? { background: 'var(--pending-bg)', color: 'var(--pending-fg)' }
                 : { background: 'var(--glass-2)', color: 'var(--ink-4)' }"
           >
             {{ roleStats(role.uuid).selectedCount }}/{{ roleStats(role.uuid).total }}
@@ -259,7 +259,7 @@ async function save() {
       </svg>
       <input
         v-model="search"
-        class="w-full bg-glass border border-line rounded-lg pl-8 pr-3 py-[7px] text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors"
+        class="w-full bg-glass border border-line rounded-lg pl-8 pr-3 py-[7px] text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors"
         placeholder="Buscar contactos…"
       >
     </div>
@@ -291,14 +291,14 @@ async function save() {
 
       <p
         v-else-if="loadError"
-        class="text-[11px] text-red-400 py-4 text-center"
+        class="text-[13px] text-failed-fg py-4 text-center"
       >
         {{ loadError }}
       </p>
 
       <p
         v-else-if="filtered.length === 0"
-        class="text-[11px] text-ink-4 py-4 text-center"
+        class="text-[13px] text-ink-4 py-4 text-center"
       >
         Sin resultados
       </p>
@@ -308,7 +308,7 @@ async function save() {
           v-for="c in filtered"
           :key="c.uuid"
           class="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg border-none text-left transition-colors cursor-pointer"
-          :class="selected.has(c.uuid) ? 'bg-acid/10' : 'bg-transparent hover:bg-glass'"
+          :class="selected.has(c.uuid) ? 'bg-acid-dim' : 'bg-transparent hover:bg-glass'"
           @click="toggle(c.uuid)"
         >
           <span
@@ -332,16 +332,16 @@ async function save() {
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-medium text-ink truncate">
+              <p class="text-[14px] font-medium text-ink truncate">
                 {{ c.full_name || c.company_name || '—' }}
               </p>
               <span
                 v-if="c.role"
-                class="text-[9px] font-semibold px-1 py-0.5 rounded flex-shrink-0"
+                class="text-[12px] font-semibold px-1 py-0.5 rounded flex-shrink-0"
                 :style="{ background: c.role.color + '22', color: c.role.color }"
               >{{ c.role.name }}</span>
             </div>
-            <p class="text-[10px] text-ink-3 truncate">
+            <p class="text-[12px] text-ink-3 truncate">
               <span v-if="c.primary_email">{{ c.primary_email }}</span>
               <span v-if="c.primary_email && c.primary_phone"> · </span>
               <span v-if="c.primary_phone">{{ c.primary_phone }}</span>
@@ -358,7 +358,7 @@ async function save() {
     <!-- Error -->
     <p
       v-if="saveError"
-      class="text-[11px] text-red-400 mt-2"
+      class="text-[13px] text-failed-fg mt-2"
     >
       {{ saveError }}
     </p>
@@ -366,15 +366,15 @@ async function save() {
     <!-- Actions -->
     <div class="flex gap-2 mt-4">
       <button
-        class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-        :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+        class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+        :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
         :disabled="saving"
         @click="save"
       >
         {{ saving ? 'Guardando…' : 'Guardar' }}
       </button>
       <button
-        class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+        class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
         @click="emit('close')"
       >
         Cancelar

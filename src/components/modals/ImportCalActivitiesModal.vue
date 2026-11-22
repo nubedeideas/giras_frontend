@@ -118,10 +118,10 @@ function formatEventDate(iso: string, allDay: boolean): string {
 }
 
 const STATUS_BADGE: Record<string, { label: string; class: string }> = {
-  assigned:  { label: 'Listo', class: 'bg-[rgba(168,216,0,0.12)] text-acid border-[rgba(168,216,0,0.25)]' },
-  pending:   { label: 'Pendiente', class: 'bg-[rgba(100,116,139,0.12)] text-ink-3 border-[rgba(100,116,139,0.2)]' },
-  ambiguous: { label: 'Ambiguo', class: 'bg-[rgba(245,158,11,0.12)] text-[#f59e0b] border-[rgba(245,158,11,0.25)]' },
-  no_match:  { label: 'Sin gira', class: 'bg-[rgba(248,113,113,0.1)] text-[#f87171] border-[rgba(248,113,113,0.2)]' },
+  assigned:  { label: 'Listo', class: 'bg-acid-dim text-olive border-line-acid' },
+  pending:   { label: 'Pendiente', class: 'bg-off-bg text-off-fg border-line' },
+  ambiguous: { label: 'Ambiguo', class: 'bg-pending-bg text-pending-fg border-[#FCD34D]' },
+  no_match:  { label: 'Sin gira', class: 'bg-failed-bg text-failed-fg border-[#FCA5A5]' },
 }
 
 async function goToSelectEvents(cal: CalendarSubscription) {
@@ -203,7 +203,7 @@ watch(
           <p class="text-base font-bold text-ink tracking-[-0.2px]">
             Importar de Google Calendar
           </p>
-          <p class="text-[11px] text-ink-3 mt-0.5">
+          <p class="text-[13px] text-ink-3 mt-0.5">
             Selecciona el calendario a usar
           </p>
         </div>
@@ -263,7 +263,7 @@ watch(
       <!-- Error -->
       <p
         v-else-if="calError"
-        class="text-[11px] text-red-400 text-center py-4"
+        class="text-[13px] text-failed-fg text-center py-4"
       >
         {{ calError }}
       </p>
@@ -311,15 +311,15 @@ watch(
           </svg>
         </div>
         <div class="space-y-1">
-          <p class="text-[12px] font-semibold text-ink-3">
+          <p class="text-[14px] font-semibold text-ink-3">
             No hay calendarios conectados
           </p>
-          <p class="text-[11px] text-ink-4">
+          <p class="text-[13px] text-ink-4">
             Conecta tu Google Calendar para importar eventos
           </p>
         </div>
         <button
-          class="flex items-center gap-1.5 mx-auto text-[11px] font-semibold text-acid bg-[rgba(168,216,0,0.1)] border border-[rgba(168,216,0,0.2)] rounded-lg px-3.5 py-2 cursor-pointer hover:bg-[rgba(168,216,0,0.18)] transition-colors"
+          class="flex items-center gap-1.5 mx-auto text-[13px] font-semibold text-olive bg-acid-dim border border-line-acid rounded-lg px-3.5 py-2 cursor-pointer hover:bg-[rgba(168,216,0,0.18)] transition-colors"
           @click="() => { close(); uiState.openSettings('calendars') }"
         >
           <svg
@@ -350,13 +350,13 @@ watch(
         <!-- Sync notice -->
         <div
           v-if="syncStats"
-          class="text-[10px] text-acid bg-[rgba(168,216,0,0.08)] border border-[rgba(168,216,0,0.2)] rounded-lg px-3 py-1.5"
+          class="text-[12px] text-olive bg-acid-dim border border-line-acid rounded-lg px-3 py-1.5"
         >
           Sincronización completada — {{ syncStats.created }} nuevos, {{ syncStats.routed }} asignados
         </div>
         <p
           v-if="syncError"
-          class="text-[10px] text-red-400"
+          class="text-[12px] text-failed-fg"
         >
           {{ syncError }}
         </p>
@@ -401,13 +401,13 @@ watch(
           </div>
 
           <div class="flex-1 min-w-0">
-            <p class="text-[13px] font-semibold text-ink truncate">
+            <p class="text-[15px] font-semibold text-ink truncate">
               {{ cal.calendar_name }}
             </p>
-            <p class="text-[10px] text-ink-4 truncate">
+            <p class="text-[12px] text-ink-4 truncate">
               {{ cal.calendar_id }}
             </p>
-            <p class="text-[10px] text-ink-4 mt-0.5">
+            <p class="text-[12px] text-ink-4 mt-0.5">
               Últ. sync: {{ cal.last_synced_at ? formatDate(cal.last_synced_at) : 'Nunca' }}
             </p>
           </div>
@@ -415,15 +415,15 @@ watch(
           <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
             <!-- Webhook badge -->
             <span
-              class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
+              class="text-[12px] font-semibold px-1.5 py-0.5 rounded-full border"
               :class="cal.webhook_status === 'active'
-                ? 'bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border-[rgba(31,173,90,0.2)]'
+                ? 'bg-wa-bg text-wa-fg border-wa-bg'
                 : 'bg-glass border-line text-ink-4'"
             >{{ cal.webhook_status === 'active' ? '● Activo' : cal.webhook_status === 'expired' ? '○ Expirado' : '○ Sin webhook' }}</span>
 
             <!-- Sync button -->
             <button
-              class="text-[10px] text-ink-3 hover:text-acid border border-line hover:border-line-acid rounded-md px-2 py-0.5 transition-colors bg-transparent cursor-pointer"
+              class="text-[12px] text-ink-3 hover:text-olive border border-line hover:border-line-acid rounded-md px-2 py-0.5 transition-colors bg-transparent cursor-pointer"
               :class="syncing ? 'opacity-50 cursor-not-allowed' : ''"
               :disabled="syncing"
               @click.stop="syncCalendar(cal)"
@@ -495,7 +495,7 @@ watch(
             <p class="text-base font-bold text-ink tracking-[-0.2px] truncate">
               {{ selectedCal?.calendar_name }}
             </p>
-            <p class="text-[11px] text-ink-3">
+            <p class="text-[13px] text-ink-3">
               Eventos futuros · selecciona los que quieres importar
             </p>
           </div>
@@ -556,7 +556,7 @@ watch(
       <!-- Error -->
       <p
         v-else-if="eventsError"
-        class="text-[11px] text-red-400 text-center py-4"
+        class="text-[13px] text-failed-fg text-center py-4"
       >
         {{ eventsError }}
       </p>
@@ -564,7 +564,7 @@ watch(
       <!-- Empty -->
       <div
         v-else-if="events.length === 0"
-        class="text-center py-8 text-ink-4 text-[12px]"
+        class="text-center py-8 text-ink-4 text-[14px]"
       >
         No hay eventos futuros pendientes de importar en este calendario
       </div>
@@ -574,7 +574,7 @@ watch(
         <!-- Select all bar -->
         <div class="flex items-center justify-between mb-2 px-1">
           <button
-            class="flex items-center gap-1.5 text-[11px] text-ink-3 hover:text-ink cursor-pointer bg-transparent border-none"
+            class="flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-ink cursor-pointer bg-transparent border-none"
             @click="toggleAll"
           >
             <div
@@ -597,7 +597,7 @@ watch(
             </div>
             Seleccionar todos
           </button>
-          <span class="text-[11px] text-ink-4">{{ events.length }} evento{{ events.length !== 1 ? 's' : '' }}</span>
+          <span class="text-[13px] text-ink-4">{{ events.length }} evento{{ events.length !== 1 ? 's' : '' }}</span>
         </div>
 
         <!-- Events -->
@@ -630,10 +630,10 @@ watch(
             </div>
 
             <div class="flex-1 min-w-0">
-              <p class="text-[12px] font-medium text-ink truncate leading-snug">
+              <p class="text-[14px] font-medium text-ink truncate leading-snug">
                 {{ evt.summary }}
               </p>
-              <p class="text-[10px] text-ink-3 mt-0.5">
+              <p class="text-[12px] text-ink-3 mt-0.5">
                 {{ formatEventDate(evt.start_datetime, evt.all_day) }}
                 <span
                   v-if="evt.location"
@@ -642,7 +642,7 @@ watch(
               </p>
               <p
                 v-if="evt.tour_name"
-                class="text-[10px] text-ink-4 mt-0.5"
+                class="text-[12px] text-ink-4 mt-0.5"
               >
                 <span class="text-ink-3">Gira:</span> {{ evt.tour_name }}
               </p>
@@ -650,7 +650,7 @@ watch(
 
             <!-- Status badge -->
             <span
-              class="flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full border mt-0.5"
+              class="flex-shrink-0 text-[12px] font-semibold px-1.5 py-0.5 rounded-full border mt-0.5"
               :class="STATUS_BADGE[evt.import_status]?.class ?? 'bg-glass border-line text-ink-4'"
             >
               {{ STATUS_BADGE[evt.import_status]?.label ?? evt.import_status }}
@@ -661,21 +661,21 @@ watch(
         <!-- Warning for non-assigned -->
         <p
           v-if="nonAssignedSelected > 0"
-          class="text-[10px] text-[#f59e0b] mb-2 px-1"
+          class="text-[12px] text-pending-fg mb-2 px-1"
         >
           ⚠ {{ nonAssignedSelected }} evento{{ nonAssignedSelected !== 1 ? 's' : '' }} seleccionado{{ nonAssignedSelected !== 1 ? 's' : '' }} sin gira asignada no se importará{{ nonAssignedSelected !== 1 ? 'n' : '' }}
         </p>
 
         <p
           v-if="importError"
-          class="text-[11px] text-red-400 mb-2"
+          class="text-[13px] text-failed-fg mb-2"
         >
           {{ importError }}
         </p>
 
         <button
-          class="w-full py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-          :class="canImportIds.length > 0 ? 'bg-acid text-black' : 'bg-glass border border-line text-ink-4 cursor-not-allowed'"
+          class="w-full py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+          :class="canImportIds.length > 0 ? 'bg-acid text-ink' : 'bg-glass border border-line text-ink-4 cursor-not-allowed'"
           :disabled="canImportIds.length === 0"
           @click="runImport"
         >
@@ -688,7 +688,7 @@ watch(
     <template v-else-if="step === 'importing'">
       <div class="flex flex-col items-center justify-center py-12 gap-3">
         <svg
-          class="animate-spin text-acid"
+          class="animate-spin text-olive"
           width="30"
           height="30"
           viewBox="0 0 24 24"
@@ -704,10 +704,10 @@ watch(
             stroke-linecap="round"
           />
         </svg>
-        <p class="text-[13px] font-semibold text-ink">
+        <p class="text-[15px] font-semibold text-ink">
           Procesando con Gemini…
         </p>
-        <p class="text-[11px] text-ink-3 text-center">
+        <p class="text-[13px] text-ink-3 text-center">
           La IA está estructurando y creando las actividades
         </p>
       </div>
@@ -721,10 +721,10 @@ watch(
         </p>
         <div class="flex gap-4">
           <div class="text-center">
-            <p class="text-[22px] font-bold text-acid leading-none">
+            <p class="text-[22px] font-bold text-olive leading-none">
               {{ importSummary.success }}
             </p>
-            <p class="text-[10px] text-ink-3 mt-1">
+            <p class="text-[12px] text-ink-3 mt-1">
               importadas
             </p>
           </div>
@@ -735,7 +735,7 @@ watch(
             <p class="text-[22px] font-bold text-ink-3 leading-none">
               {{ importSummary.skipped }}
             </p>
-            <p class="text-[10px] text-ink-4 mt-1">
+            <p class="text-[12px] text-ink-4 mt-1">
               omitidas
             </p>
           </div>
@@ -743,10 +743,10 @@ watch(
             v-if="importSummary.error > 0"
             class="text-center"
           >
-            <p class="text-[22px] font-bold text-red-400 leading-none">
+            <p class="text-[22px] font-bold text-failed-fg leading-none">
               {{ importSummary.error }}
             </p>
-            <p class="text-[10px] text-ink-4 mt-1">
+            <p class="text-[12px] text-ink-4 mt-1">
               errores
             </p>
           </div>
@@ -766,7 +766,7 @@ watch(
             height="12"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#1fad5a"
+            stroke="var(--wa-fg)"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -794,7 +794,7 @@ watch(
             height="12"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#f87171"
+            stroke="var(--failed-fg)"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -814,18 +814,18 @@ watch(
           </svg>
 
           <div class="flex-1 min-w-0">
-            <p class="text-[11px] font-medium text-ink truncate">
+            <p class="text-[13px] font-medium text-ink truncate">
               {{ r.activity_title ?? r.summary }}
             </p>
             <p
               v-if="r.activity_type_code"
-              class="text-[10px] text-ink-4"
+              class="text-[12px] text-ink-4"
             >
               {{ r.activity_type_code }}
             </p>
             <p
               v-if="r.error"
-              class="text-[10px] text-red-400"
+              class="text-[12px] text-failed-fg"
             >
               {{ r.error }}
             </p>
@@ -834,7 +834,7 @@ watch(
       </div>
 
       <button
-        class="w-full py-2.5 rounded-lg font-semibold text-[12px] bg-acid text-black cursor-pointer border-none"
+        class="w-full py-2.5 rounded-lg font-semibold text-[14px] bg-acid text-ink cursor-pointer border-none"
         @click="close"
       >
         Cerrar

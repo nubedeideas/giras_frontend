@@ -74,6 +74,11 @@ export interface ActivityListItem {
   category: string
   /** R3: `null`/ausente si la IA no asignó el tipo. */
   ai_review?: ActivityAiReview | null
+  /**
+   * Hoy NO viene en el listado (solo en detalle). Opcional para el contorno "importado" del
+   * calendario cuando el backend lo añada (spec Paleta B §11.1).
+   */
+  external_source?: string
 }
 
 /** Shape returned by ActivitySerializer (detail) */
@@ -103,7 +108,8 @@ export interface Activity {
   metadata?: Record<string, unknown>
   local_start_time?: string
   local_end_time?: string
-  duration?: number
+  /** String del backend ("2h 0m", ignora días): no se pinta; ver utils/duration.ts. */
+  duration?: string | null
   /** R3: revisión del tipo asignado por la IA. */
   ai_review?: ActivityAiReview | null
   created_at: string
@@ -160,22 +166,12 @@ export const STATUS_LABELS: Record<ActivityStatus, string> = {
   delayed: 'Retrasada',
 }
 
-export const STATUS_COLORS: Record<ActivityStatus, { bg: string; text: string }> = {
-  draft:       { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
-  scheduled:   { bg: 'rgba(26,143,255,0.12)',  text: '#1a8fff' },
-  confirmed:   { bg: 'rgba(31,173,90,0.12)',   text: '#1fad5a' },
-  in_progress: { bg: 'rgba(168,216,0,0.12)',   text: '#a8d800' },
-  completed:   { bg: 'rgba(31,173,90,0.15)',   text: '#34d399' },
-  cancelled:   { bg: 'rgba(239,68,68,0.12)',   text: '#f87171' },
-  delayed:     { bg: 'rgba(232,93,0,0.12)',    text: '#e85d00' },
-}
-
 export const PRIORITY_LABELS: Record<ActivityPriority, string> = {
   low: 'Baja', normal: 'Normal', high: 'Alta', urgent: 'Urgente',
 }
 
 export const PRIORITY_COLORS: Record<ActivityPriority, string> = {
-  low: '#94a3b8', normal: '#1a8fff', high: '#e85d00', urgent: '#ef4444',
+  low: 'var(--ink-3)', normal: 'var(--scheduled-fg)', high: 'var(--priority-high)', urgent: 'var(--priority-high)',
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────

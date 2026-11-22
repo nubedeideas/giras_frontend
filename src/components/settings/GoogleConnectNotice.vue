@@ -68,9 +68,9 @@ const message = computed(() => {
 
 const tone = computed(() =>
   outcome.value === 'ok'
-    ? 'bg-acid-dim border-line-acid text-acid'
+    ? 'bg-acid-dim border-line-acid text-olive'
     : outcome.value === 'error'
-      ? 'bg-glass border-line text-red-400'
+      ? 'bg-glass border-line text-failed-fg'
       : 'bg-glass border-line text-ink-2'
 )
 
@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
     data-testid="google-connect-notice"
     :data-outcome="outcome"
   >
-    <p class="flex-1 text-[11px] leading-relaxed">
+    <p class="flex-1 text-[13px] leading-relaxed">
       {{ message }}
     </p>
     <button

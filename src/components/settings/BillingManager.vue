@@ -33,7 +33,7 @@ function formatDate(iso: string | null) {
       <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px] mb-6">
         Facturación
       </h2>
-      <p class="text-[11px] text-ink-4 mb-5">
+      <p class="text-[13px] text-ink-4 mb-5">
         Pagos de todas tus giras.
       </p>
 
@@ -62,13 +62,13 @@ function formatDate(iso: string | null) {
 
       <p
         v-else-if="error"
-        class="text-[12px] text-red-400"
+        class="text-[14px] text-failed-fg"
       >
         {{ error }}
       </p>
       <p
         v-else-if="payments.length === 0"
-        class="text-[11px] text-ink-4"
+        class="text-[13px] text-ink-4"
       >
         Todavía no tienes pagos registrados.
       </p>
@@ -83,18 +83,18 @@ function formatDate(iso: string | null) {
           class="flex items-center justify-between bg-glass border border-line rounded-lg px-3 py-2.5"
         >
           <div class="min-w-0">
-            <p class="text-[12px] text-ink truncate">
+            <p class="text-[14px] text-ink truncate">
               {{ p.tour_name }}
             </p>
-            <p class="text-[10px] text-ink-4">
-              {{ formatDate(p.payment_date ?? p.created_at) }}
+            <p class="text-[12px] text-ink-4">
+              <span class="font-time tnum">{{ formatDate(p.payment_date ?? p.created_at) }}</span>
             </p>
           </div>
           <div class="text-right flex-shrink-0 ml-3">
-            <p class="text-[12px] font-semibold text-ink">
+            <p class="text-[14px] font-semibold text-ink">
               {{ p.amount }} {{ p.currency }}
             </p>
-            <span class="text-[10px] font-semibold text-ink-3 capitalize">{{ p.status }}</span>
+            <span class="text-[12px] font-semibold text-ink-3 capitalize">{{ p.status }}</span>
           </div>
         </div>
       </div>

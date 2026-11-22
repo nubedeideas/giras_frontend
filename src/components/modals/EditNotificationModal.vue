@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { notificationBadge } from '@/utils/statusBadge'
 import { hasApiErrorCode, SCHEDULED_AFTER_ACTIVITY } from '@/utils/notificationErrors'
 import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
 import { sortRecipientsForConfirmation } from '@/utils/confirmations'
@@ -177,20 +179,6 @@ const sortedRecipients = computed(() =>
 
 const channel = computed<NotificationChannel>(() => original.value?.channel ?? 'email')
 
-const statusColor = computed(() => {
-  const s = original.value?.status
-  if (!s) return { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' }
-  const map: Record<string, { bg: string; text: string }> = {
-    draft:     { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
-    scheduled: { bg: 'rgba(26,143,255,0.12)',  text: '#1a8fff' },
-    sending:   { bg: 'rgba(168,216,0,0.12)',   text: '#a8d800' },
-    sent:      { bg: 'rgba(31,173,90,0.15)',   text: '#34d399' },
-    failed:    { bg: 'rgba(239,68,68,0.12)',   text: '#f87171' },
-    cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
-  }
-  return map[s] ?? map.draft
-})
-
 function formatScheduled(iso: string | null | undefined) {
   if (!iso) return 'Sin programar'
   return formatInZone(iso, scheduleTimezone.value)
@@ -204,10 +192,10 @@ const autoCancelledMessage = computed(() => {
 })
 
 const inputClass =
-  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 const selectClass =
-  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
+  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
 </script>
 
 <template>
@@ -226,21 +214,20 @@ const selectClass =
           class="flex items-center gap-2 mt-1"
         >
           <!-- Channel badge -->
-          <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-glass border border-line text-ink-3">
+          <span class="text-[12px] font-semibold px-1.5 py-0.5 rounded-md bg-glass border border-line text-ink-3">
             {{ CHANNEL_LABELS[channel] }}
           </span>
           <!-- Status badge -->
-          <span
-            class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-            :style="{ background: statusColor.bg, color: statusColor.text }"
+          <StatusBadge
+            :status="notificationBadge(original.status)"
+            :label="notifStatusLabel(original.status)"
+            size="sm"
             :title="autoCancelledMessage ?? undefined"
-          >
-            {{ notifStatusLabel(original.status) }}
-          </span>
+          />
         </div>
         <p
           v-if="autoCancelledMessage"
-          class="text-[10px] text-ink-4 mt-1 max-w-xs"
+          class="text-[12px] text-ink-4 mt-1 max-w-xs"
         >
           {{ autoCancelledMessage }}
         </p>
@@ -300,7 +287,7 @@ const selectClass =
 
     <p
       v-else-if="loadError"
-      class="text-[11px] text-red-400 py-4 text-center"
+      class="text-[13px] text-failed-fg py-4 text-center"
     >
       {{ loadError }}
     </p>
@@ -370,10 +357,10 @@ const selectClass =
         <!-- Scheduling -->
         <div class="bg-glass border border-line rounded-lg px-3 py-2.5">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Programación</span>
+            <span class="text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Programación</span>
             <button
-              class="text-[10px] font-medium cursor-pointer border-none bg-transparent transition-colors"
-              :class="changeSchedule ? 'text-acid' : 'text-ink-4 hover:text-ink'"
+              class="text-[12px] font-medium cursor-pointer border-none bg-transparent transition-colors"
+              :class="changeSchedule ? 'text-olive' : 'text-ink-4 hover:text-ink'"
               @click="changeSchedule = !changeSchedule"
             >
               {{ changeSchedule ? 'Cancelar cambio' : 'Cambiar' }}
@@ -383,7 +370,7 @@ const selectClass =
           <!-- Current scheduled time (read-only display) -->
           <p
             v-if="!changeSchedule"
-            class="text-[12px] text-ink"
+            class="text-[14px] text-ink font-time tnum"
           >
             {{ formatScheduled(original.scheduled_for) }}
           </p>
@@ -395,7 +382,7 @@ const selectClass =
           >
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[9px] text-ink-4 uppercase tracking-[0.4px] block mb-1">Fecha y hora</label>
+                <label class="text-[11px] text-ink-2 uppercase tracking-[0.4px] block mb-1">Fecha y hora</label>
                 <input
                   v-model="scheduledAt"
                   type="datetime-local"
@@ -403,7 +390,7 @@ const selectClass =
                 >
               </div>
               <div>
-                <label class="text-[9px] text-ink-4 uppercase tracking-[0.4px] block mb-1">Zona horaria</label>
+                <label class="text-[11px] text-ink-2 uppercase tracking-[0.4px] block mb-1">Zona horaria</label>
                 <select
                   v-model="scheduleTimezone"
                   :class="selectClass"
@@ -418,7 +405,7 @@ const selectClass =
                 </select>
               </div>
             </div>
-            <p class="text-[10px] text-ink-4">
+            <p class="text-[12px] text-ink-4">
               Deja la fecha en blanco para guardar como borrador sin programar.
             </p>
           </div>
@@ -430,7 +417,7 @@ const selectClass =
         v-if="recipients.length"
         class="mt-3 bg-glass border border-line rounded-lg px-3 py-2.5"
       >
-        <p class="text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+        <p class="text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
           {{ t('confirmations.recipients') }}
         </p>
         <div class="space-y-1 max-h-40 overflow-y-auto">
@@ -440,10 +427,10 @@ const selectClass =
             class="flex items-center gap-2"
           >
             <div class="flex-1 min-w-0">
-              <p class="text-[11px] text-ink truncate">
+              <p class="text-[13px] text-ink truncate">
                 {{ r.contact_name || r.recipient_display || '—' }}
               </p>
-              <p class="text-[10px] text-ink-4 truncate">
+              <p class="text-[12px] text-ink-4 truncate">
                 {{ r.contact_phone || r.phone || r.contact_email || r.email || '' }}
               </p>
             </div>
@@ -458,9 +445,9 @@ const selectClass =
       <!-- Error -->
       <div
         v-if="saveError"
-        class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+        class="mt-3 rounded-lg border border-[#FCA5A5] bg-failed-bg px-3 py-2"
       >
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+        <p class="text-[13px] text-failed-fg whitespace-pre-line font-mono">
           {{ saveError }}
         </p>
       </div>
@@ -468,15 +455,15 @@ const selectClass =
       <!-- Actions -->
       <div class="flex gap-2 mt-4">
         <button
-          class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-          :class="saving || !title.trim() ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+          class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+          :class="saving || !title.trim() ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
           :disabled="saving || !title.trim()"
           @click="save"
         >
           {{ saving ? 'Guardando…' : 'Guardar cambios' }}
         </button>
         <button
-          class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+          class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
           @click="emit('close')"
         >
           Cancelar

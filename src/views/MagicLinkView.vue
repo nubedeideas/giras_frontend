@@ -37,7 +37,7 @@ onMounted(async () => {
         class="w-12 h-12 rounded-[16px] flex items-center justify-center mx-auto mb-5"
         :class="{
           'bg-acid': status === 'loading' || status === 'success',
-          'bg-red-500/20': status === 'error',
+          'bg-failed-bg': status === 'error',
         }"
       >
         <!-- Loading spinner -->
@@ -80,7 +80,7 @@ onMounted(async () => {
           height="22"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#f87171"
+          stroke="var(--failed-fg)"
           stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -101,34 +101,34 @@ onMounted(async () => {
 
       <!-- Loading -->
       <template v-if="status === 'loading'">
-        <p class="text-[14px] font-semibold text-ink mb-1">
+        <p class="text-[15px] font-semibold text-ink mb-1">
           Verificando link de acceso
         </p>
-        <p class="text-[12px] text-ink-3">
+        <p class="text-[14px] text-ink-3">
           Un momento...
         </p>
       </template>
 
       <!-- Success -->
       <template v-else-if="status === 'success'">
-        <p class="text-[14px] font-semibold text-ink mb-1">
+        <p class="text-[15px] font-semibold text-ink mb-1">
           ¡Acceso confirmado!
         </p>
-        <p class="text-[12px] text-ink-3">
+        <p class="text-[14px] text-ink-3">
           Entrando a Giras...
         </p>
       </template>
 
       <!-- Error -->
       <template v-else>
-        <p class="text-[14px] font-semibold text-red-400 mb-1">
+        <p class="text-[15px] font-semibold text-failed-fg mb-1">
           Link inválido
         </p>
-        <p class="text-[12px] text-ink-3 max-w-[280px]">
+        <p class="text-[14px] text-ink-3 max-w-[280px]">
           {{ errorMsg }}
         </p>
         <button
-          class="mt-4 text-[12px] text-acid-muted hover:text-acid transition-colors cursor-pointer border-none bg-transparent"
+          class="mt-4 text-[14px] text-acid-muted hover:text-olive transition-colors cursor-pointer border-none bg-transparent"
           @click="$router.replace('/login')"
         >
           Volver al login →

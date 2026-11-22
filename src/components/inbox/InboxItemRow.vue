@@ -55,19 +55,19 @@ const meta = computed(() => {
       <span class="min-w-0 flex-1 flex flex-col gap-0.5">
         <span
           data-testid="inbox-item-title"
-          class="text-ink text-[13px] font-semibold leading-snug break-words"
+          class="text-ink text-[15px] font-semibold leading-snug break-words"
         >{{ text.title }}</span>
         <span
           v-if="text.body"
           data-testid="inbox-item-body"
-          class="text-ink-2 text-[12px] leading-snug break-words whitespace-pre-line"
+          class="text-ink-2 text-[14px] leading-snug break-words whitespace-pre-line"
         >{{ text.body }}</span>
         <span
           v-if="reviewAndSend"
           data-testid="inbox-item-review"
-          class="self-start mt-1 inline-flex items-center min-h-[28px] px-2.5 rounded-full bg-acid-dim text-acid text-[11px] font-bold"
+          class="self-start mt-1 inline-flex items-center min-h-[28px] px-2.5 rounded-full bg-acid-dim text-olive text-[13px] font-bold"
         >{{ t('inbox.reviewAndSend') }} →</span>
-        <span class="text-ink-3 text-[11px] mt-0.5 truncate">{{ meta }}</span>
+        <span class="text-ink-3 text-[13px] mt-0.5 truncate">{{ meta }}</span>
       </span>
     </button>
     <button

@@ -170,7 +170,7 @@ describe('RuleBuilder', () => {
     await w.find('[data-test="offset-value"]').setValue(10)
     await flushPromises()
     expect(save()).toBeDefined()
-    expect(w.find('[data-test="offset-range"]').classes()).toContain('text-red-400')
+    expect(w.find('[data-test="offset-range"]').classes()).toContain('text-failed-fg')
     expect(w.find('[data-test="offset-range"]').text()).toBe(
       'Elige entre 15 minutos y 14 días.'
     )

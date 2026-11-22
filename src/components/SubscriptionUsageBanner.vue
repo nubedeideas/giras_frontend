@@ -57,8 +57,8 @@ const message = computed(() => {
 
 const tone = computed(() =>
   level.value === 'reached'
-    ? { box: 'bg-red-500/10 border-red-500/20', text: 'text-red-400', btn: 'bg-red-500/15' }
-    : { box: 'bg-amber-500/10 border-amber-500/25', text: 'text-amber-400', btn: 'bg-amber-500/15' }
+    ? { box: 'bg-failed-bg border-[#FCA5A5]', text: 'text-failed-fg', btn: 'bg-failed-bg' }
+    : { box: 'bg-pending-bg border-[#FCD34D]', text: 'text-pending-fg', btn: 'bg-pending-bg' }
 )
 
 function dismiss() {
@@ -104,14 +104,14 @@ function goToSubscription() {
       />
     </svg>
     <p
-      class="text-[11px] flex-1 min-w-0"
+      class="text-[13px] flex-1 min-w-0"
       :class="tone.text"
       data-test="usage-banner-text"
     >
       {{ message }}
     </p>
     <button
-      class="text-[10px] font-bold px-2 py-1 rounded-md cursor-pointer border-none flex-shrink-0"
+      class="text-[12px] font-bold px-2 py-1 rounded-md cursor-pointer border-none flex-shrink-0"
       :class="[tone.btn, tone.text]"
       @click="goToSubscription"
     >

@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useActivityTypes, type ActivityType } from '@/composables/useActivityTypes'
 import ReminderStepsEditor from './ReminderStepsEditor.vue'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import { ApiError } from '@/utils/apiClient'
 import {
   DEFAULT_REMINDER_LIMITS,
@@ -108,6 +109,9 @@ function canSave(type: ActivityType): boolean {
   return isDirty(type) && !s.saving && validateSteps(s.draft, DEFAULT_REMINDER_LIMITS).valid
 }
 
+// Las plantillas del usuario cambian los pasos efectivos de todas sus giras.
+const sharedCatalog = useReminderCatalogStore()
+
 function replaceType(updated: ActivityType) {
   const idx = types.value.findIndex((x) => x.uuid === updated.uuid)
   if (idx >= 0) types.value[idx] = { ...types.value[idx], ...updated }
@@ -124,6 +128,7 @@ async function save(type: ActivityType) {
     replaceType(updated)
     s.draft = stepsOfType(updated)
     s.saved = true
+    void sharedCatalog.invalidate()
   } catch (e) {
     s.error = reminderErrorMessage(e, t, 'reminders.errors.save')
     // El tipo ya no existe (borrado en otra pestaña): se recarga la lista.
@@ -141,6 +146,7 @@ async function resetOne(type: ActivityType) {
   s.saved = false
   try {
     await api.resetReminders([type.code])
+    void sharedCatalog.invalidate()
     // La respuesta solo trae `{updated}`: se recarga la lista para ver los pasos restaurados.
     setTypes(await api.listActivityTypes())
     const fresh = types.value.find((x) => x.uuid === type.uuid)
@@ -158,6 +164,7 @@ async function resetAll() {
   resetAllError.value = ''
   try {
     await api.resetReminders()
+    void sharedCatalog.invalidate()
     setTypes(await api.listActivityTypes())
     for (const type of types.value) {
       const s = rowState[type.uuid]
@@ -196,11 +203,11 @@ async function resetAll() {
       class="bg-glass border border-line rounded-sm px-4 py-3 text-center"
       data-test="templates-error"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ loadError }}
       </p>
       <button
-        class="text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+        class="text-[13px] font-semibold text-olive bg-transparent border-none cursor-pointer"
         @click="load"
       >
         {{ t('reminders.tour.retry') }}
@@ -210,7 +217,7 @@ async function resetAll() {
     <!-- Vacío -->
     <p
       v-else-if="types.length === 0"
-      class="text-[12px] text-ink-4 text-center py-6"
+      class="text-[14px] text-ink-4 text-center py-6"
       data-test="templates-empty"
     >
       {{ t('reminders.templates.empty') }}
@@ -221,7 +228,7 @@ async function resetAll() {
       <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
         <template v-if="!confirmingResetAll">
           <button
-            class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer disabled:opacity-50"
+            class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer disabled:opacity-50"
             :disabled="resettingAll"
             data-test="reset-all"
             @click="confirmingResetAll = true"
@@ -233,19 +240,19 @@ async function resetAll() {
           v-else
           class="w-full bg-glass border border-line rounded-sm px-3 py-2"
         >
-          <p class="text-[11px] text-ink-2 mb-2">
+          <p class="text-[13px] text-ink-2 mb-2">
             {{ t('reminders.templates.resetConfirm') }}
           </p>
           <div class="flex gap-1.5">
             <button
-              class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-semibold bg-acid text-black border-none cursor-pointer"
+              class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-acid text-ink border-none cursor-pointer"
               data-test="reset-all-confirm"
               @click="resetAll"
             >
               {{ t('reminders.templates.confirm') }}
             </button>
             <button
-              class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
+              class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
               @click="confirmingResetAll = false"
             >
               {{ t('reminders.templates.cancel') }}
@@ -255,7 +262,7 @@ async function resetAll() {
       </div>
       <p
         v-if="resetAllError"
-        class="text-[11px] text-red-400 mb-3"
+        class="text-[13px] text-failed-fg mb-3"
         data-test="reset-all-error"
       >
         {{ resetAllError }}
@@ -266,7 +273,7 @@ async function resetAll() {
         :key="group.category"
         class="mb-5"
       >
-        <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-2">
+        <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-2">
           {{ t(`reminders.categories.${group.category}`) }}
         </p>
         <div class="space-y-1.5">
@@ -289,21 +296,21 @@ async function resetAll() {
                 :style="{ background: type.color }"
               />
               <span class="flex-1 min-w-0">
-                <span class="block text-[12px] font-semibold text-ink truncate">
+                <span class="block text-[14px] font-semibold text-ink truncate">
                   {{ type.name }}
                   <span
                     v-if="!type.is_active"
-                    class="text-[10px] font-normal text-ink-4"
+                    class="text-[12px] font-normal text-ink-4"
                   >· {{ t('reminders.templates.inactive') }}</span>
                 </span>
                 <span
-                  class="block text-[11px] text-ink-3"
+                  class="block text-[13px] text-ink-3"
                   data-test="template-summary"
                 >
                   {{ stepsSummary(stepsOfType(type), t) }}
                 </span>
               </span>
-              <span class="text-[11px] text-ink-3 flex-shrink-0">
+              <span class="text-[13px] text-ink-3 flex-shrink-0">
                 {{ state(type.uuid).open ? t('reminders.templates.close') : t('reminders.templates.edit') }}
               </span>
             </button>
@@ -319,14 +326,14 @@ async function resetAll() {
 
               <p
                 v-if="state(type.uuid).error"
-                class="text-[11px] text-red-400 mt-2"
+                class="text-[13px] text-failed-fg mt-2"
                 data-test="template-error"
               >
                 {{ state(type.uuid).error }}
               </p>
               <p
                 v-else-if="state(type.uuid).saved && !isDirty(type)"
-                class="text-[11px] text-acid mt-2"
+                class="text-[13px] text-olive mt-2"
                 data-test="template-saved"
               >
                 {{ t('reminders.templates.saved') }}
@@ -337,7 +344,7 @@ async function resetAll() {
                 class="flex flex-wrap items-center gap-2 mt-3"
               >
                 <button
-                  class="min-h-[44px] sm:min-h-0 px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="min-h-[44px] sm:min-h-0 px-3.5 py-[7px] rounded-sm text-[13px] font-bold bg-acid text-ink border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   :disabled="!canSave(type)"
                   data-test="template-save"
                   @click="save(type)"
@@ -345,7 +352,7 @@ async function resetAll() {
                   {{ state(type.uuid).saving ? t('reminders.templates.saving') : t('reminders.templates.save') }}
                 </button>
                 <button
-                  class="min-h-[44px] sm:min-h-0 px-3 py-[7px] rounded-sm text-[11px] font-medium bg-transparent border-none text-ink-3 hover:text-ink cursor-pointer"
+                  class="min-h-[44px] sm:min-h-0 px-3 py-[7px] rounded-sm text-[13px] font-medium bg-transparent border-none text-ink-3 hover:text-ink cursor-pointer"
                   :disabled="state(type.uuid).saving"
                   data-test="template-reset"
                   @click="state(type.uuid).confirmingReset = true"
@@ -357,19 +364,19 @@ async function resetAll() {
                 v-else
                 class="mt-3"
               >
-                <p class="text-[11px] text-ink-2 mb-1.5">
+                <p class="text-[13px] text-ink-2 mb-1.5">
                   {{ t('reminders.templates.resetConfirm') }}
                 </p>
                 <div class="flex gap-1.5">
                   <button
-                    class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-semibold bg-acid text-black border-none cursor-pointer"
+                    class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-acid text-ink border-none cursor-pointer"
                     data-test="template-reset-confirm"
                     @click="resetOne(type)"
                   >
                     {{ t('reminders.templates.confirm') }}
                   </button>
                   <button
-                    class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
+                    class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
                     @click="state(type.uuid).confirmingReset = false"
                   >
                     {{ t('reminders.templates.cancel') }}

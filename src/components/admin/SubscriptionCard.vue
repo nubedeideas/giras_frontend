@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import type { BadgeStatus } from '@/utils/statusBadge'
 import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useAdminSubscriptions, type Subscription, type SubscriptionStatus } from '@/composables/useAdminSubscriptions'
@@ -14,10 +16,10 @@ const error = ref('')
 const showCancelConfirm = ref(false)
 const cancelReason = ref('')
 
-const STATUS_COLORS: Record<SubscriptionStatus, { bg: string; text: string }> = {
-  pending: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
-  active: { bg: 'rgba(31,173,90,0.15)', text: '#34d399' },
-  cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
+const STATUS_BADGE: Record<SubscriptionStatus, BadgeStatus> = {
+  pending: 'pending',
+  active: 'sent',
+  cancelled: 'off',
 }
 
 async function activate() {
@@ -54,19 +56,19 @@ async function cancel() {
       class="w-full flex items-center gap-3 px-3 py-2.5 text-left border-none bg-transparent cursor-pointer hover:bg-glass-hover transition-colors"
       @click="expanded = !expanded"
     >
-      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 bg-glass-2 text-ink-3 uppercase tracking-[0.4px]">
+      <span class="text-[12px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 bg-glass-2 text-ink-2 uppercase tracking-[0.4px]">
         {{ subscription.plan.code }}
       </span>
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-medium text-ink truncate">
+        <p class="text-[14px] font-medium text-ink truncate">
           {{ subscription.tour_name }}
         </p>
-        <p class="text-[10px] text-ink-4 truncate">
+        <p class="text-[12px] text-ink-4 truncate">
           {{ subscription.user_email }}
         </p>
       </div>
       <div class="flex-shrink-0 text-right">
-        <p class="text-[11px] text-ink-2">
+        <p class="text-[13px] text-ink-2">
           {{
             t('admin.subscriptions.remaining', {
               n:
@@ -76,16 +78,16 @@ async function cancel() {
             })
           }}
         </p>
-        <p class="text-[9px] text-ink-4">
+        <p class="text-[12px] text-ink-4">
           {{ t('admin.subscriptions.used', { pct: subscription.usage_percentage }) }}
         </p>
       </div>
-      <span
-        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
-        :style="{ background: STATUS_COLORS[subscription.status].bg, color: STATUS_COLORS[subscription.status].text }"
-      >
-        {{ t(`admin.subscriptionStatus.${subscription.status}`) }}
-      </span>
+      <StatusBadge
+        class="flex-shrink-0"
+        :status="STATUS_BADGE[subscription.status]"
+        :label="t(`admin.subscriptionStatus.${subscription.status}`)"
+        size="sm"
+      />
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
         :class="expanded ? 'rotate-180' : ''"
@@ -106,7 +108,7 @@ async function cancel() {
       v-if="expanded"
       class="border-t border-line px-3 py-2.5 space-y-2"
     >
-      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-ink-3">
+      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[13px] text-ink-3">
         <p>{{ t('admin.subscriptions.notificationsUsed', { n: subscription.notifications_used }) }}</p>
         <p>
           {{
@@ -122,21 +124,21 @@ async function cancel() {
 
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>
 
       <div class="flex flex-wrap gap-1.5">
         <button
-          class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="emit('changePlan')"
         >
           {{ t('admin.subscriptions.changePlan') }}
         </button>
         <button
           v-if="subscription.status === 'pending'"
-          class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors disabled:opacity-50"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors disabled:opacity-50"
           :disabled="loading"
           @click="activate"
         >
@@ -144,7 +146,7 @@ async function cancel() {
         </button>
         <button
           v-if="subscription.status === 'active' && !showCancelConfirm"
-          class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5] cursor-pointer transition-colors"
           @click="showCancelConfirm = true"
         >
           {{ t('admin.subscriptions.cancel') }}
@@ -158,19 +160,19 @@ async function cancel() {
         <input
           v-model="cancelReason"
           :placeholder="t('admin.subscriptions.reasonPlaceholder')"
-          class="w-full bg-bg-3 border border-line rounded-lg px-2.5 py-1.5 text-[11px] text-ink outline-none focus:border-line-2"
+          class="w-full bg-bg-3 border border-line rounded-lg px-2.5 py-1.5 text-[13px] text-ink outline-none focus:border-line-2"
         >
         <div class="flex gap-1">
           <button
-            class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-            style="background: rgba(239,68,68,0.15); color: #f87171"
+            class="px-2.5 py-1 rounded-lg text-[13px] font-semibold cursor-pointer border-none disabled:opacity-50"
+            style="background: var(--failed-bg); color: var(--failed-fg)"
             :disabled="loading"
             @click="cancel"
           >
             {{ loading ? '…' : t('admin.subscriptions.confirmCancel') }}
           </button>
           <button
-            class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+            class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
             @click="showCancelConfirm = false"
           >
             {{ t('admin.common.cancel') }}

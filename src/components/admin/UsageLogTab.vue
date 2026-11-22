@@ -76,12 +76,12 @@ onMounted(() => load())
           <input
             v-model="search"
             :placeholder="t('admin.usage.searchPlaceholder')"
-            class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+            class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
           >
         </div>
         <select
           v-model="planCode"
-          class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none cursor-pointer"
+          class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[13px] text-ink-2 outline-none cursor-pointer"
         >
           <option value="">
             {{ t('admin.common.allPlans') }}
@@ -127,13 +127,13 @@ onMounted(() => load())
       </div>
       <p
         v-else-if="loadError"
-        class="text-center py-8 text-red-400 text-xs"
+        class="text-center py-8 text-failed-fg text-[14px]"
       >
         {{ t('admin.common.loadError', { error: loadError }) }}
       </p>
       <p
         v-else-if="items.length === 0"
-        class="text-center py-8 text-ink-4 text-xs"
+        class="text-center py-8 text-ink-4 text-[14px]"
       >
         {{ t('admin.common.noResults') }}
       </p>

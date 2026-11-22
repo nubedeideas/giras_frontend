@@ -163,14 +163,14 @@ onMounted(() => {
           y2="6"
         />
       </svg>
-      <p class="text-[12px] font-semibold text-ink-2">
+      <p class="text-[14px] font-semibold text-ink-2">
         {{ t('onboarding.calendar.demoTitle') }}
       </p>
-      <p class="text-[11px] text-ink-3">
+      <p class="text-[13px] text-ink-3">
         {{ t('onboarding.calendar.demoBody') }}
       </p>
       <button
-        class="w-full mt-2 text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
+        class="w-full mt-2 text-[13px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
         @click="emit('skip')"
       >
         {{ t('onboarding.skip') }}
@@ -186,7 +186,7 @@ onMounted(() => {
         class="text-center py-8"
       >
         <svg
-          class="animate-spin text-acid mx-auto mb-3"
+          class="animate-spin text-olive mx-auto mb-3"
           width="22"
           height="22"
           viewBox="0 0 24 24"
@@ -202,7 +202,7 @@ onMounted(() => {
             stroke-linecap="round"
           />
         </svg>
-        <p class="text-[12px] text-ink-3">
+        <p class="text-[14px] text-ink-3">
           {{ t('onboarding.calendar.loading') }}
         </p>
       </div>
@@ -233,14 +233,14 @@ onMounted(() => {
         v-else-if="step === 'error'"
         class="text-center py-6 space-y-3"
       >
-        <p class="text-[12px] text-red-400">
+        <p class="text-[14px] text-failed-fg">
           {{ error }}
         </p>
         <BtnSecondary @click="load">
           {{ t('onboarding.retry') }}
         </BtnSecondary>
         <button
-          class="block w-full text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
+          class="block w-full text-[13px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
           @click="emit('skip')"
         >
           {{ t('onboarding.skip') }}
@@ -255,9 +255,9 @@ onMounted(() => {
         <!-- Already connected calendars (optional info) -->
         <div
           v-if="existingCals.length > 0"
-          class="bg-[rgba(168,216,0,0.06)] border border-[rgba(168,216,0,0.15)] rounded-xl px-3.5 py-2.5"
+          class="bg-acid-dim border border-line-acid rounded-xl px-3.5 py-2.5"
         >
-          <p class="text-[10px] font-semibold text-acid mb-1.5">
+          <p class="text-[12px] font-semibold text-olive mb-1.5">
             {{ t('onboarding.calendar.existingTitle') }}
           </p>
           <div class="space-y-1">
@@ -267,13 +267,13 @@ onMounted(() => {
               class="flex items-center gap-2"
             >
               <div class="w-1.5 h-1.5 rounded-full bg-acid flex-shrink-0" />
-              <p class="text-[11px] text-ink-2 truncate">
+              <p class="text-[13px] text-ink-2 truncate">
                 {{ cal.calendar_name }}
               </p>
               <span
-                class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border flex-shrink-0"
+                class="text-[12px] font-semibold px-1.5 py-0.5 rounded-full border flex-shrink-0"
                 :class="cal.webhook_status === 'active'
-                  ? 'bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border-[rgba(31,173,90,0.2)]'
+                  ? 'bg-wa-bg text-wa-fg border-wa-bg'
                   : 'bg-glass border-line text-ink-4'"
               >
                 {{
@@ -284,14 +284,14 @@ onMounted(() => {
               </span>
             </div>
           </div>
-          <p class="text-[10px] text-ink-4 mt-2">
+          <p class="text-[12px] text-ink-4 mt-2">
             {{ t('onboarding.calendar.existingHint') }}
           </p>
         </div>
 
         <!-- Google calendar picker -->
         <div>
-          <label class="text-[9px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-2">
+          <label class="text-[11px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-2">
             {{ t('onboarding.calendar.pickLabel') }}
           </label>
 
@@ -299,7 +299,7 @@ onMounted(() => {
             v-if="googleCals.length === 0"
             class="text-center py-4"
           >
-            <p class="text-[11px] text-ink-3">
+            <p class="text-[13px] text-ink-3">
               {{ t('onboarding.calendar.noCalendars') }}
             </p>
           </div>
@@ -345,17 +345,17 @@ onMounted(() => {
 
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1.5">
-                  <p class="text-[12px] font-medium text-ink truncate">
+                  <p class="text-[14px] font-medium text-ink truncate">
                     {{ cal.summary }}
                   </p>
                   <span
                     v-if="cal.primary"
-                    class="flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(26,143,255,0.1)] text-[#1a8fff] border border-[rgba(26,143,255,0.2)]"
+                    class="flex-shrink-0 text-[12px] font-semibold px-1.5 py-0.5 rounded-full bg-scheduled-bg text-scheduled-fg border border-[rgba(26,143,255,0.2)]"
                   >
                     {{ t('onboarding.calendar.primary') }}
                   </span>
                 </div>
-                <p class="text-[9px] text-ink-4 font-mono truncate mt-0.5">
+                <p class="text-[12px] text-ink-4 font-mono truncate mt-0.5">
                   {{ cal.id }}
                 </p>
               </div>
@@ -376,19 +376,19 @@ onMounted(() => {
 
         <!-- Name override -->
         <div v-if="selectedCalId">
-          <label class="text-[9px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1.5">
+          <label class="text-[11px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1.5">
             {{ t('onboarding.calendar.nameLabel') }}
           </label>
           <input
             v-model="selectedCalName"
-            class="w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder-ink-4 outline-none focus:border-line-acid transition-colors"
+            class="w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder-ink-4 outline-none focus:border-line-acid transition-colors"
             :placeholder="t('onboarding.calendar.namePlaceholder')"
           >
         </div>
 
         <p
           v-if="error"
-          class="text-[11px] text-red-400"
+          class="text-[13px] text-failed-fg"
         >
           {{ error }}
         </p>
@@ -414,13 +414,13 @@ onMounted(() => {
           </BtnPrimary>
           <button
             v-if="existingCals.length > 0"
-            class="text-[11px] text-ink-3 hover:text-ink transition-colors bg-transparent border-none cursor-pointer py-1"
+            class="text-[13px] text-ink-3 hover:text-ink transition-colors bg-transparent border-none cursor-pointer py-1"
             @click="emit('next')"
           >
             {{ t('onboarding.calendar.useExisting') }}
           </button>
           <button
-            class="text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
+            class="text-[13px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
             @click="emit('skip')"
           >
             {{ t('onboarding.skip') }}
@@ -434,7 +434,7 @@ onMounted(() => {
         class="text-center py-8"
       >
         <svg
-          class="animate-spin text-acid mx-auto mb-3"
+          class="animate-spin text-olive mx-auto mb-3"
           width="22"
           height="22"
           viewBox="0 0 24 24"
@@ -450,10 +450,10 @@ onMounted(() => {
             stroke-linecap="round"
           />
         </svg>
-        <p class="text-[13px] font-semibold text-ink mb-1">
+        <p class="text-[15px] font-semibold text-ink mb-1">
           {{ t('onboarding.calendar.connecting') }}
         </p>
-        <p class="text-[11px] text-ink-3">
+        <p class="text-[13px] text-ink-3">
           {{ t('onboarding.calendar.connectingHint') }}
         </p>
       </div>
@@ -465,13 +465,13 @@ onMounted(() => {
       >
         <!-- Success card -->
         <div class="bg-glass border border-line rounded-xl px-4 py-4 flex items-start gap-3">
-          <div class="w-9 h-9 rounded-xl bg-[rgba(31,173,90,0.12)] flex items-center justify-center flex-shrink-0">
+          <div class="w-9 h-9 rounded-xl bg-wa-bg flex items-center justify-center flex-shrink-0">
             <svg
               width="16"
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#1fad5a"
+              stroke="var(--wa-fg)"
               stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -480,17 +480,17 @@ onMounted(() => {
             </svg>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-[13px] font-semibold text-ink leading-tight">
+            <p class="text-[15px] font-semibold text-ink leading-tight">
               {{ subscription.calendar_name }}
             </p>
-            <p class="text-[10px] text-ink-4 font-mono mt-0.5 truncate">
+            <p class="text-[12px] text-ink-4 font-mono mt-0.5 truncate">
               {{ subscription.calendar_id }}
             </p>
             <div class="flex items-center gap-2 mt-1.5">
-              <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(31,173,90,0.1)] text-[#1fad5a] border border-[rgba(31,173,90,0.2)]">
+              <span class="text-[12px] font-semibold px-1.5 py-0.5 rounded-full bg-wa-bg text-wa-fg border border-wa-bg">
                 {{ t('onboarding.calendar.connected') }}
               </span>
-              <span class="text-[10px] text-ink-4">
+              <span class="text-[12px] text-ink-4">
                 {{ t('onboarding.calendar.lastSync', { date: formatDate(subscription.last_synced_at) }) }}
               </span>
             </div>
@@ -500,7 +500,7 @@ onMounted(() => {
         <!-- Tour assignment confirmation -->
         <div
           v-if="tourId !== null"
-          class="flex items-center gap-2 bg-[rgba(168,216,0,0.06)] border border-[rgba(168,216,0,0.15)] rounded-xl px-3.5 py-2.5"
+          class="flex items-center gap-2 bg-acid-dim border border-line-acid rounded-xl px-3.5 py-2.5"
         >
           <svg
             width="12"
@@ -514,7 +514,7 @@ onMounted(() => {
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          <p class="text-[11px] text-ink-2">
+          <p class="text-[13px] text-ink-2">
             {{ t('onboarding.calendar.assignedTo') }}
             <span class="font-semibold text-ink">
               {{

@@ -68,11 +68,11 @@ watch(() => props.tourUuid, load)
       v-else-if="error"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ error }}
       </p>
       <button
-        class="text-[11px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
+        class="text-[13px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
         @click="load"
       >
         Reintentar
@@ -89,7 +89,7 @@ watch(() => props.tourUuid, load)
           <p class="text-[22px] font-bold text-ink leading-none mb-1.5">
             {{ s.value }}
           </p>
-          <p class="text-[10px] text-ink-3 uppercase tracking-[0.5px]">
+          <p class="text-[12px] text-ink-2 uppercase tracking-[0.5px]">
             {{ s.label }}
           </p>
         </div>
@@ -97,7 +97,7 @@ watch(() => props.tourUuid, load)
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-5">
-          <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-3">
+          <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-3">
             {{ t('tourHub.insights.activities') }} · {{ t('tourHub.insights.byStatus') }}
           </p>
           <div
@@ -107,7 +107,7 @@ watch(() => props.tourUuid, load)
             <div
               v-for="[status, count] in Object.entries(insights.activities_by_status)"
               :key="status"
-              class="flex items-center justify-between text-[12px]"
+              class="flex items-center justify-between text-[14px]"
             >
               <span class="text-ink-2 capitalize">{{ status }}</span>
               <span class="font-semibold text-ink">{{ count }}</span>
@@ -115,14 +115,14 @@ watch(() => props.tourUuid, load)
           </div>
           <p
             v-else
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             —
           </p>
         </div>
 
         <div class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-5">
-          <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-3">
+          <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-3">
             {{ t('tourHub.insights.walletPasses') }} · {{ t('tourHub.insights.byStatus') }}
           </p>
           <div
@@ -132,7 +132,7 @@ watch(() => props.tourUuid, load)
             <div
               v-for="[status, count] in Object.entries(insights.wallet_passes_by_status)"
               :key="status"
-              class="flex items-center justify-between text-[12px]"
+              class="flex items-center justify-between text-[14px]"
             >
               <span class="text-ink-2 capitalize">{{ status }}</span>
               <span class="font-semibold text-ink">{{ count }}</span>
@@ -140,7 +140,7 @@ watch(() => props.tourUuid, load)
           </div>
           <p
             v-else
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             —
           </p>

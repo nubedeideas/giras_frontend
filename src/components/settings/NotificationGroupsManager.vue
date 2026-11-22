@@ -202,7 +202,7 @@ function onContactsSaved(newCount: number) {
   <div v-else>
     <p
       v-if="error"
-      class="text-[11px] text-red-400 mb-3"
+      class="text-[13px] text-failed-fg mb-3"
     >
       {{ error }}
     </p>
@@ -242,13 +242,13 @@ function onContactsSaved(newCount: number) {
 
           <!-- Name + badges -->
           <div class="flex-1 min-w-0 flex items-center gap-1.5">
-            <span class="text-[12px] text-ink truncate">{{ group.name }}</span>
+            <span class="text-[14px] text-ink truncate">{{ group.name }}</span>
             <span
-              class="text-[9px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none flex-shrink-0"
+              class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none flex-shrink-0"
             >
               {{ group.tour_name ?? 'Global' }}
             </span>
-            <span class="text-[10px] text-ink-4 flex-shrink-0">
+            <span class="text-[12px] text-ink-4 flex-shrink-0">
               {{ group.contact_count }} contacto{{ group.contact_count !== 1 ? 's' : '' }}
             </span>
           </div>
@@ -308,7 +308,7 @@ function onContactsSaved(newCount: number) {
               </svg>
             </button>
             <button
-              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
               title="Eliminar"
               @click="startDelete(group.uuid)"
             >
@@ -337,21 +337,21 @@ function onContactsSaved(newCount: number) {
         >
           <input
             v-model="editForm.name"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             placeholder="Nombre del grupo"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
           <input
             v-model="editForm.description"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             placeholder="Descripción (opcional)"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
           <select
             v-model="editForm.tour"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors"
           >
             <option value="">
               Global (todas las giras)
@@ -367,14 +367,14 @@ function onContactsSaved(newCount: number) {
 
           <p
             v-if="editError"
-            class="text-[10px] text-red-400"
+            class="text-[12px] text-failed-fg"
           >
             {{ editError }}
           </p>
 
           <div class="flex gap-1.5">
             <button
-              class="flex-1 py-1.5 rounded text-[11px] font-semibold bg-acid text-black cursor-pointer border-none transition-opacity"
+              class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
               :class="editSaving ? 'opacity-50' : ''"
               :disabled="editSaving || !editForm.name.trim()"
               @click="saveEdit"
@@ -382,7 +382,7 @@ function onContactsSaved(newCount: number) {
               {{ editSaving ? 'Guardando…' : 'Guardar' }}
             </button>
             <button
-              class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+              class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="cancelEdit"
             >
               Cancelar
@@ -395,19 +395,19 @@ function onContactsSaved(newCount: number) {
           v-else-if="deletingUuid === group.uuid"
           class="py-2.5"
         >
-          <p class="text-[11px] text-ink-2 mb-1">
+          <p class="text-[13px] text-ink-2 mb-1">
             ¿Eliminar <strong class="text-ink">{{ group.name }}</strong>?
           </p>
           <p
             v-if="deleteError"
-            class="text-[10px] text-red-400 mb-1"
+            class="text-[12px] text-failed-fg mb-1"
           >
             {{ deleteError }}
           </p>
           <div class="flex gap-1.5">
             <button
-              class="flex-1 py-1.5 rounded text-[11px] font-semibold cursor-pointer border-none transition-opacity"
-              style="background: rgba(239,68,68,0.15); color: #f87171"
+              class="flex-1 py-1.5 rounded text-[13px] font-semibold cursor-pointer border-none transition-opacity"
+              style="background: var(--failed-bg); color: var(--failed-fg)"
               :class="deleteSaving ? 'opacity-50' : ''"
               :disabled="deleteSaving"
               @click="confirmDelete"
@@ -415,7 +415,7 @@ function onContactsSaved(newCount: number) {
               {{ deleteSaving ? 'Eliminando…' : 'Eliminar' }}
             </button>
             <button
-              class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+              class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="deletingUuid = null"
             >
               Cancelar
@@ -427,7 +427,7 @@ function onContactsSaved(newCount: number) {
       <!-- Empty state -->
       <div
         v-if="groups.length === 0 && !loading"
-        class="py-4 text-center text-[11px] text-ink-4"
+        class="py-4 text-center text-[13px] text-ink-4"
       >
         No hay grupos de notificación definidos
       </div>
@@ -438,13 +438,13 @@ function onContactsSaved(newCount: number) {
       v-if="showCreate"
       class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
     >
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
         Nuevo grupo
       </p>
 
       <input
         v-model="createForm.name"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         placeholder="Nombre del grupo *"
         autofocus
         @keydown.enter="submitCreate"
@@ -452,14 +452,14 @@ function onContactsSaved(newCount: number) {
       >
       <input
         v-model="createForm.description"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[11px] outline-none focus:border-acid transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         placeholder="Descripción (opcional)"
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
       >
       <select
         v-model="createForm.tour"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer transition-colors"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors"
       >
         <option value="">
           Global (todas las giras)
@@ -475,14 +475,14 @@ function onContactsSaved(newCount: number) {
 
       <p
         v-if="createError"
-        class="text-[10px] text-red-400"
+        class="text-[12px] text-failed-fg"
       >
         {{ createError }}
       </p>
 
       <div class="flex gap-1.5">
         <button
-          class="flex-1 py-1.5 rounded text-[11px] font-semibold bg-acid text-black cursor-pointer border-none transition-opacity"
+          class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
           :class="createSaving || !createForm.name.trim() ? 'opacity-50' : ''"
           :disabled="createSaving || !createForm.name.trim()"
           @click="submitCreate"
@@ -490,7 +490,7 @@ function onContactsSaved(newCount: number) {
           {{ createSaving ? 'Creando…' : 'Crear grupo' }}
         </button>
         <button
-          class="px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+          class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="cancelCreate"
         >
           Cancelar
@@ -501,7 +501,7 @@ function onContactsSaved(newCount: number) {
     <!-- Add group button -->
     <button
       v-if="!showCreate"
-      class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[11px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
+      class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[13px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
       @click="openCreate"
     >
       <svg

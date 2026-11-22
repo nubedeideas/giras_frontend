@@ -23,13 +23,13 @@ function when(iso: string): string {
   <GlassBlock :title="t('reports.failures.title')">
     <p
       v-if="!contacts.length && !reasons.length"
-      class="text-[12px] text-ink-3 text-center py-2"
+      class="text-[14px] text-ink-3 text-center py-2"
     >
       {{ t('reports.failures.none') }}
     </p>
 
     <template v-else>
-      <p class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] mb-2">
+      <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-2">
         {{ t('reports.failures.topContacts') }}
       </p>
       <div class="flex flex-col gap-1.5 mb-4">
@@ -40,36 +40,36 @@ function when(iso: string): string {
         >
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
-              <p class="text-[12px] font-semibold text-ink truncate">
+              <p class="text-[14px] font-semibold text-ink truncate">
                 {{ c.name }}
               </p>
               <p
                 v-if="c.phone || c.email"
-                class="text-[10px] text-ink-4 truncate"
+                class="text-[12px] text-ink-4 truncate"
               >
                 {{ c.phone || c.email }}
               </p>
             </div>
-            <span class="text-[10px] font-bold text-red-400 flex-shrink-0">
+            <span class="text-[12px] font-bold text-failed-fg flex-shrink-0">
               {{ t('reports.failures.count', c.failed_count) }}
             </span>
           </div>
-          <p class="text-[10px] text-ink-3 mt-1 break-words">
+          <p class="text-[12px] text-ink-3 mt-1 break-words">
             <span class="text-ink-4">{{ t('reports.failures.lastError') }}:</span>
             {{ c.last_error || t('reports.failures.noMessage') }}
-            <span class="text-ink-4">· {{ when(c.last_failed_at) }}</span>
+            <span class="text-ink-3">· <span class="font-time tnum">{{ when(c.last_failed_at) }}</span></span>
           </p>
         </div>
       </div>
 
-      <p class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] mb-2">
+      <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-2">
         {{ t('reports.failures.reasons') }}
       </p>
       <div class="flex flex-col gap-1">
         <div
           v-for="r in reasons"
           :key="r.error_message"
-          class="flex items-start justify-between gap-3 text-[11px]"
+          class="flex items-start justify-between gap-3 text-[13px]"
         >
           <span class="text-ink-2 break-words min-w-0">
             {{ r.error_message || t('reports.failures.noMessage') }}

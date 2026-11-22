@@ -87,7 +87,7 @@ async function signOut() {
       <div class="px-4 pt-5 pb-4 border-b border-line flex-shrink-0">
         <RouterLink
           to="/home"
-          class="inline-flex items-center gap-1.5 text-[11px] text-ink-4 hover:text-ink no-underline mb-3"
+          class="inline-flex items-center gap-1.5 text-[13px] text-ink-4 hover:text-ink no-underline mb-3"
         >
           <svg
             width="11"
@@ -106,7 +106,7 @@ async function signOut() {
         <p class="text-[15px] font-bold text-ink tracking-[-0.2px]">
           {{ t('admin.title') }}
         </p>
-        <p class="text-[10px] text-ink-4 truncate mt-0.5">
+        <p class="text-[12px] text-ink-4 truncate mt-0.5">
           {{ auth.user?.email }}
         </p>
       </div>
@@ -116,17 +116,17 @@ async function signOut() {
         <button
           v-for="tab in TABS"
           :key="tab.key"
-          class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150"
+          class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 min-h-[44px] lg:min-h-0 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           :class="
             activeTab === tab.key
-              ? 'bg-glass-active text-acid'
-              : 'bg-transparent text-ink-3 hover:bg-glass-hover hover:text-ink-2'
+              ? 'bg-bg-3 text-ink shadow-sm font-semibold'
+              : 'bg-transparent text-ink-2 hover:bg-glass-hover hover:text-ink'
           "
           @click="activeTab = tab.key"
         >
           <div
             v-if="activeTab === tab.key"
-            class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-acid rounded-r"
+            class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-olive rounded-r"
           />
           <svg
             width="14"
@@ -139,14 +139,14 @@ async function signOut() {
             stroke-linejoin="round"
             v-html="tab.iconPath"
           />
-          <span class="text-[12px] font-medium">{{ t(`admin.tabs.${tab.key}`) }}</span>
+          <span class="text-[14px] font-medium">{{ t(`admin.tabs.${tab.key}`) }}</span>
         </button>
       </nav>
 
       <!-- Sign out (desktop only) -->
       <div class="hidden lg:block px-2 py-3 border-t border-line flex-shrink-0">
         <button
-          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
           @click="signOut"
         >
           <svg
@@ -168,7 +168,7 @@ async function signOut() {
               y2="12"
             />
           </svg>
-          <span class="text-[12px] font-medium">{{ t('admin.signOut') }}</span>
+          <span class="text-[14px] font-medium">{{ t('admin.signOut') }}</span>
         </button>
       </div>
     </div>

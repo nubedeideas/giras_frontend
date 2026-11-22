@@ -170,7 +170,7 @@ onMounted(loadTemplates)
               <polyline points="10 9 9 9 8 9" />
             </svg>
           </div>
-          <p class="text-[12px]">
+          <p class="text-[14px]">
             Selecciona un template o crea uno nuevo
           </p>
         </div>

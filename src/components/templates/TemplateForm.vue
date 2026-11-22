@@ -248,13 +248,13 @@ async function submit() {
 }
 
 const inputClass =
-  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
+  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
 const inputErrorClass =
-  'w-full bg-glass border border-red-500/50 rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-red-400 transition-colors'
+  'w-full bg-glass border border-[#FCA5A5] rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-[#FCA5A5] transition-colors'
 const selectClass =
-  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
+  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
 const labelClass =
-  'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 </script>
 
 <template>
@@ -266,7 +266,7 @@ const labelClass =
           {{ isEdit ? 'Editar template' : 'Nuevo template' }}
         </h1>
         <button
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[11px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer hover:bg-glass-hover transition-colors"
           @click="emit('cancel')"
         >
           Cancelar
@@ -276,7 +276,7 @@ const labelClass =
       <p
         v-if="isSystem"
         data-testid="template-system-notice"
-        class="mb-4 text-[11px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
+        class="mb-4 text-[13px] text-ink-3 bg-glass border border-line rounded-lg px-3 py-2"
       >
         {{ tr('notif.templateSystemReadOnly') }}
       </p>
@@ -292,7 +292,7 @@ const labelClass =
           >
           <p
             v-if="fe('name')"
-            class="text-[10px] text-red-400 mt-0.5"
+            class="text-[12px] text-failed-fg mt-0.5"
           >
             {{ fe('name') }}
           </p>
@@ -316,7 +316,7 @@ const labelClass =
             </select>
             <p
               v-if="fe('notification_type')"
-              class="text-[10px] text-red-400 mt-0.5"
+              class="text-[12px] text-failed-fg mt-0.5"
             >
               {{ fe('notification_type') }}
             </p>
@@ -337,7 +337,7 @@ const labelClass =
             </select>
             <p
               v-if="fe('channel')"
-              class="text-[10px] text-red-400 mt-0.5"
+              class="text-[12px] text-failed-fg mt-0.5"
             >
               {{ fe('channel') }}
             </p>
@@ -357,7 +357,7 @@ const labelClass =
               :class="isActive ? 'translate-x-4' : 'translate-x-0'"
             />
           </button>
-          <span class="text-[12px] text-ink-2">Activo</span>
+          <span class="text-[14px] text-ink-2">Activo</span>
         </div>
 
         <!-- Divider -->
@@ -373,12 +373,12 @@ const labelClass =
               placeholder="HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
               spellcheck="false"
             >
-            <p class="text-[10px] text-ink-4 mt-0.5">
+            <p class="text-[12px] text-ink-4 mt-0.5">
               Formato: HX seguido de 32 caracteres hex
             </p>
             <p
               v-if="fe('twilio_template_sid')"
-              class="text-[10px] text-red-400 mt-0.5"
+              class="text-[12px] text-failed-fg mt-0.5"
             >
               {{ fe('twilio_template_sid') }}
             </p>
@@ -429,7 +429,7 @@ const labelClass =
                 </select>
                 <!-- Remove row -->
                 <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg bg-glass border border-line text-ink-3 cursor-pointer hover:text-red-400 hover:border-red-400/30 transition-colors flex-shrink-0"
+                  class="w-7 h-7 flex items-center justify-center rounded-lg bg-glass border border-line text-ink-3 cursor-pointer hover:text-failed-fg hover:border-[#FCA5A5] transition-colors flex-shrink-0"
                   @click="removeWAVar(idx)"
                 >
                   <svg
@@ -459,7 +459,7 @@ const labelClass =
               </div>
             </div>
             <button
-              class="flex items-center gap-1.5 text-[11px] text-ink-3 hover:text-acid transition-colors border-none bg-transparent cursor-pointer p-0"
+              class="flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-olive transition-colors border-none bg-transparent cursor-pointer p-0"
               @click="addWAVar"
             >
               <svg
@@ -489,7 +489,7 @@ const labelClass =
             </button>
             <p
               v-if="fe('variables')"
-              class="text-[10px] text-red-400 mt-1"
+              class="text-[12px] text-failed-fg mt-1"
             >
               {{ fe('variables') }}
             </p>
@@ -508,7 +508,7 @@ const labelClass =
             >
             <p
               v-if="fe('subject')"
-              class="text-[10px] text-red-400 mt-0.5"
+              class="text-[12px] text-failed-fg mt-0.5"
             >
               {{ fe('subject') }}
             </p>
@@ -517,7 +517,7 @@ const labelClass =
           <!-- Body -->
           <div>
             <label :class="labelClass">Cuerpo *</label>
-            <p class="text-[10px] text-ink-4 mb-1">
+            <p class="text-[12px] text-ink-4 mb-1">
               Usa <code class="bg-glass px-1 rounded">&#123;&#123;variable&#125;&#125;</code> para insertar variables
             </p>
             <textarea
@@ -529,7 +529,7 @@ const labelClass =
             />
             <p
               v-if="fe('body')"
-              class="text-[10px] text-red-400 mt-0.5"
+              class="text-[12px] text-failed-fg mt-0.5"
             >
               {{ fe('body') }}
             </p>
@@ -548,7 +548,7 @@ const labelClass =
                 v-for="group in CANONICAL_VAR_GROUPS"
                 :key="group.label"
               >
-                <p class="text-[9px] font-bold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
+                <p class="text-[11px] font-bold text-ink-2 uppercase tracking-[0.5px] mb-1.5">
                   {{ group.label }}
                 </p>
                 <div class="flex flex-wrap gap-1.5">
@@ -556,10 +556,10 @@ const labelClass =
                     v-for="cv in group.vars"
                     :key="cv.key"
                     type="button"
-                    class="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border transition-all duration-150 cursor-pointer font-mono"
+                    class="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full border transition-all duration-150 cursor-pointer font-mono"
                     :class="
                       selectedVars.includes(cv.key)
-                        ? 'bg-acid/15 border-acid/40 text-acid'
+                        ? 'bg-acid-dim border-olive text-olive'
                         : 'bg-glass border-line text-ink-3 hover:border-line-2 hover:text-ink-2'
                     "
                     @click="toggleVar(cv.key)"
@@ -571,7 +571,7 @@ const labelClass =
             </div>
             <p
               v-if="fe('variables')"
-              class="text-[10px] text-red-400 mt-1"
+              class="text-[12px] text-failed-fg mt-1"
             >
               {{ fe('variables') }}
             </p>
@@ -581,12 +581,12 @@ const labelClass =
         <!-- Backend error summary -->
         <div
           v-if="backendErrorEntries.length > 0 || globalError"
-          class="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5 space-y-1.5"
+          class="bg-failed-bg border border-[#FCA5A5] rounded-lg px-3 py-2.5 space-y-1.5"
         >
           <div
             v-for="(entry, i) in backendErrorEntries"
             :key="i"
-            class="text-[11px] text-red-400 leading-snug"
+            class="text-[13px] text-failed-fg leading-snug"
           >
             <span
               v-if="entry.field"
@@ -597,7 +597,7 @@ const labelClass =
           <!-- Fallback when no structured field info was extracted -->
           <p
             v-if="backendErrorEntries.length === 0 && globalError"
-            class="text-[11px] text-red-400"
+            class="text-[13px] text-failed-fg"
           >
             {{ globalError }}
           </p>
@@ -606,8 +606,8 @@ const labelClass =
         <!-- Submit -->
         <div class="flex gap-2 pt-2">
           <button
-            class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all flex items-center justify-center gap-2"
-            :class="saving || isSystem ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+            class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all flex items-center justify-center gap-2"
+            :class="saving || isSystem ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
             :disabled="saving || isSystem"
             @click="submit"
           >
@@ -632,7 +632,7 @@ const labelClass =
             {{ saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear template' }}
           </button>
           <button
-            class="px-5 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+            class="px-5 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
             @click="emit('cancel')"
           >
             Cancelar

@@ -5,7 +5,7 @@ import { activityHasEnded } from '@/utils/notices'
 import { useActivitiesStore } from '@/stores/activities'
 import { useActivities } from '@/composables/useActivities'
 import {
-  STATUS_LABELS, STATUS_COLORS,
+  STATUS_LABELS,
   PRIORITY_LABELS, PRIORITY_COLORS,
   type ActivityStatus,
 } from '@/composables/useActivities'
@@ -24,6 +24,9 @@ import { useToursStore } from '@/stores/tours'
 import { SHOW_ACTIVITY_CODE } from '@/utils/showDayAlert'
 import { useTours } from '@/composables/useTours'
 import { activityConfirmationSummary } from '@/utils/confirmations'
+import { formatDurationBetween } from '@/utils/duration'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { activityBadge, type BadgeStatus } from '@/utils/statusBadge'
 
 const store = useActivitiesStore()
 const api = useActivities()
@@ -145,11 +148,19 @@ function formatDateTime(iso: string | null | undefined, allDay = false): string 
   return `${date} · ${time}`
 }
 
-function formatDuration(minutes?: number): string {
-  if (!minutes) return '—'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h > 0 ? `${h}h ${m > 0 ? m + 'min' : ''}`.trim() : `${m}min`
+const durationText = computed(() =>
+  activity.value && !activity.value.all_day
+    ? formatDurationBetween(activity.value.scheduled_at, activity.value.end_at)
+    : null
+)
+
+// Punto de color del menú de estado (clases completas para Tailwind).
+const BADGE_DOT: Record<BadgeStatus, string> = {
+  sent: 'bg-sent-fg',
+  pending: 'bg-pending-fg',
+  scheduled: 'bg-scheduled-fg',
+  failed: 'bg-failed-fg',
+  off: 'bg-off-fg',
 }
 
 async function changeStatus(status: ActivityStatus) {
@@ -239,17 +250,14 @@ async function confirmDelete() {
               class="w-2 h-2 rounded-full flex-shrink-0"
               :style="{ background: activity.activity_type?.color ?? 'var(--ink-3)' }"
             />
-            <p
-              class="text-[9px] font-bold tracking-[1px] uppercase"
-              :style="{ color: activity.activity_type?.color ?? 'var(--ink-3)' }"
-            >
+            <p class="text-[11px] font-bold tracking-[1px] uppercase text-ink-2">
               {{ activity.activity_type?.name ?? '—' }} · {{ CATEGORY_LABELS[activity.activity_type?.category ?? ''] ?? '—' }}
             </p>
           </div>
           <p class="text-lg font-bold tracking-[-0.3px] mb-1.5 text-ink">
             {{ activity.title }}
           </p>
-          <div class="flex flex-wrap gap-2.5 text-[11px] text-ink-2">
+          <div class="flex flex-wrap gap-2.5 text-[13px] text-ink-2">
             <!-- Date/time -->
             <span class="flex items-center gap-1">
               <svg
@@ -275,7 +283,7 @@ async function confirmDelete() {
                   y2="10"
                 />
               </svg>
-              {{ formatDateTime(activity.scheduled_at, activity.all_day) }}
+              <span class="font-time tnum">{{ formatDateTime(activity.scheduled_at, activity.all_day) }}</span>
             </span>
             <!-- End time -->
             <span
@@ -298,7 +306,7 @@ async function confirmDelete() {
                   r="10"
                 /><polyline points="12 6 12 12 16 14" />
               </svg>
-              {{ new Date(activity.end_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false }) }}
+              <span class="font-time tnum">{{ new Date(activity.end_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: false }) }}</span>
             </span>
             <!-- Location -->
             <span
@@ -328,7 +336,7 @@ async function confirmDelete() {
           <button
             v-if="canSendUrgent"
             type="button"
-            class="mt-2.5 inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-[30px] px-3 rounded-sm bg-brand-orange-dim text-brand-orange border border-brand-orange text-[12px] font-bold cursor-pointer hover:bg-glass-hover"
+            class="mt-2.5 inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-[30px] px-3 rounded-sm bg-brand-orange-dim text-brand-orange border border-brand-orange text-[14px] font-bold cursor-pointer hover:bg-glass-hover"
             data-test="urgent-notice-button"
             @click="showUrgent = true"
           >
@@ -360,7 +368,7 @@ async function confirmDelete() {
         </div>
 
         <button
-          class="flex items-center justify-center w-7 h-7 rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink ml-3.5 flex-shrink-0"
+          class="flex items-center justify-center w-11 h-11 lg:w-7 lg:h-7 rounded-lg border border-line bg-bg-3 text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink ml-3.5 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           @click="emit('close')"
         >
           <svg
@@ -393,7 +401,7 @@ async function confirmDelete() {
         <!-- Error -->
         <p
           v-if="actionError"
-          class="text-[11px] text-red-400 mb-3"
+          class="text-[13px] text-failed-fg mb-3"
         >
           {{ actionError }}
         </p>
@@ -446,13 +454,13 @@ async function confirmDelete() {
               <button
                 v-for="s in STATUSES"
                 :key="s"
-                class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[11px] hover:bg-glass-hover cursor-pointer border-none bg-transparent transition-colors"
-                :class="activity.status === s ? 'text-acid' : 'text-ink-2'"
+                class="w-full flex items-center gap-2 px-3 py-1.5 min-h-[44px] lg:min-h-0 text-left text-[13px] hover:bg-glass-hover cursor-pointer border-none bg-transparent transition-colors"
+                :class="activity.status === s ? 'text-olive' : 'text-ink-2'"
                 @click="changeStatus(s)"
               >
                 <span
                   class="w-[7px] h-[7px] rounded-full flex-shrink-0"
-                  :style="{ background: STATUS_COLORS[s].text }"
+                  :class="BADGE_DOT[activityBadge(s)]"
                 />
                 {{ STATUS_LABELS[s] }}
               </button>
@@ -489,15 +497,15 @@ async function confirmDelete() {
             class="flex gap-1.5"
           >
             <button
-              class="px-3 py-[6px] rounded-lg text-[11px] font-semibold cursor-pointer border-none transition-opacity"
-              style="background: rgba(239,68,68,0.15); color: #f87171"
+              class="px-3 py-[6px] min-h-[44px] lg:min-h-0 rounded-lg text-[13px] font-semibold cursor-pointer border-none transition-opacity"
+              style="background: var(--failed-bg); color: var(--failed-fg)"
               :class="actionLoading ? 'opacity-50' : ''"
               @click="confirmDelete"
             >
               {{ actionLoading ? '…' : 'Confirmar' }}
             </button>
             <button
-              class="px-3 py-[6px] rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+              class="px-3 py-[6px] min-h-[44px] lg:min-h-0 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="showDeleteConfirm = false"
             >
               Cancelar
@@ -509,18 +517,18 @@ async function confirmDelete() {
         <GlassBlock title="Información">
           <div class="grid grid-cols-2 gap-2">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Estado</span>
-              <span
-                class="text-[11px] font-semibold px-1.5 py-0.5 rounded-full w-fit"
-                :style="{ background: STATUS_COLORS[activity.status].bg, color: STATUS_COLORS[activity.status].text }"
-              >
-                {{ STATUS_LABELS[activity.status] }}
-              </span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Estado</span>
+              <StatusBadge
+                class="w-fit"
+                :status="activityBadge(activity.status)"
+                :label="STATUS_LABELS[activity.status]"
+                size="md"
+              />
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Prioridad</span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Prioridad</span>
               <span
-                class="text-[12px] text-ink font-medium"
+                class="text-[14px] text-ink font-medium"
                 :style="{ color: PRIORITY_COLORS[activity.priority] }"
               >
                 {{ PRIORITY_LABELS[activity.priority] }}
@@ -530,33 +538,36 @@ async function confirmDelete() {
               v-if="activity.location_name"
               class="flex flex-col gap-0.5"
             >
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Ubicación</span>
-              <span class="text-[12px] text-ink">{{ activity.location_name }}</span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Ubicación</span>
+              <span class="text-[14px] text-ink">{{ activity.location_name }}</span>
             </div>
             <div
               v-if="activity.destination_name"
               class="flex flex-col gap-0.5"
             >
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Destino</span>
-              <span class="text-[12px] text-ink">{{ activity.destination_name }}</span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Destino</span>
+              <span class="text-[14px] text-ink">{{ activity.destination_name }}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Zona Horaria</span>
-              <span class="text-[12px] text-ink">{{ activity.timezone || 'UTC' }}</span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Zona Horaria</span>
+              <span class="text-[14px] text-ink">{{ activity.timezone || 'UTC' }}</span>
             </div>
             <div
-              v-if="activity.duration"
+              v-if="durationText"
               class="flex flex-col gap-0.5"
             >
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Duración</span>
-              <span class="text-[12px] text-ink">{{ formatDuration(activity.duration) }}</span>
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Duración</span>
+              <span
+                class="text-[14px] text-ink font-time tnum"
+                data-test="activity-duration"
+              >{{ durationText }}</span>
             </div>
             <div
               v-if="activity.external_source"
               class="flex flex-col gap-0.5 col-span-2"
             >
-              <span class="text-[9px] font-semibold text-ink-3 tracking-[0.5px] uppercase">Fuente</span>
-              <span class="text-[11px] text-ink-3 flex items-center gap-1">
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Fuente</span>
+              <span class="text-[13px] text-ink-3 flex items-center gap-1">
                 <svg
                   v-if="activity.external_source === 'google_calendar'"
                   width="10"
@@ -592,7 +603,7 @@ async function confirmDelete() {
           v-if="activity.notes"
           title="Notas"
         >
-          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">
+          <p class="text-[14px] leading-[1.7] text-ink whitespace-pre-line">
             {{ activity.notes }}
           </p>
         </GlassBlock>
@@ -602,7 +613,7 @@ async function confirmDelete() {
           v-if="activity.description"
           title="Descripción"
         >
-          <p class="text-[12px] leading-[1.7] text-ink whitespace-pre-line">
+          <p class="text-[14px] leading-[1.7] text-ink whitespace-pre-line">
             {{ activity.description }}
           </p>
         </GlassBlock>
@@ -644,7 +655,7 @@ async function confirmDelete() {
             <!-- Error -->
             <p
               v-if="notifsError"
-              class="text-[11px] text-red-400 text-center py-2"
+              class="text-[13px] text-failed-fg text-center py-2"
             >
               {{ notifsError }}
             </p>
@@ -660,10 +671,10 @@ async function confirmDelete() {
             <!-- Confirmaciones de la actividad -->
             <p
               v-if="!loadingNotifs && confirmationSummary"
-              class="text-[11px] font-semibold"
+              class="text-[13px] font-semibold"
               :class="
                 confirmationSummary.confirmed >= confirmationSummary.total
-                  ? 'text-acid'
+                  ? 'text-olive'
                   : 'text-ink-2'
               "
             >
@@ -683,14 +694,14 @@ async function confirmDelete() {
             <!-- Empty state -->
             <p
               v-if="!loadingNotifs && !notifsError && notifications.length === 0"
-              class="text-[11px] text-ink-4 text-center py-2"
+              class="text-[13px] text-ink-4 text-center py-2"
             >
               Sin notificaciones creadas
             </p>
 
             <!-- Create button -->
             <button
-              class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 cursor-pointer bg-transparent transition-colors"
+              class="w-full flex items-center justify-center gap-1.5 py-2 min-h-[44px] lg:min-h-0 rounded-lg border border-dashed border-line text-[13px] font-medium text-ink-3 hover:text-ink hover:border-line-2 cursor-pointer bg-transparent transition-colors"
               @click="showCreateNotif = true"
             >
               <svg

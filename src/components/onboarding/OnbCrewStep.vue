@@ -2,6 +2,7 @@
 import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { DateTime } from 'luxon'
 import { useContactsStore } from '@/stores/contacts'
 import { useAuthStore } from '@/stores/auth'
@@ -284,10 +285,10 @@ watch(source, (val) => {
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
-        <p class="text-[11px] font-semibold text-ink">
+        <p class="text-[13px] font-semibold text-ink">
           {{ opt.label }}
         </p>
-        <p class="text-[9px] text-ink-3 mt-0.5">
+        <p class="text-[12px] text-ink-3 mt-0.5">
           {{ opt.sub }}
         </p>
       </div>
@@ -299,10 +300,10 @@ watch(source, (val) => {
         v-if="authStore.isDemoMode"
         class="bg-glass border border-line rounded-lg px-3.5 py-4 text-center mb-4"
       >
-        <p class="text-[12px] font-semibold text-ink-2 mb-0.5">
+        <p class="text-[14px] font-semibold text-ink-2 mb-0.5">
           {{ t('onboarding.calendar.demoTitle') }}
         </p>
-        <p class="text-[11px] text-ink-3">
+        <p class="text-[13px] text-ink-3">
           {{ t('onboarding.crew.demoBody') }}
         </p>
       </div>
@@ -325,7 +326,7 @@ watch(source, (val) => {
           class="text-center"
         >
           <div class="bg-glass border border-line rounded-xl p-5 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-[rgba(26,143,255,0.1)] flex items-center justify-center mx-auto mb-3">
+            <div class="w-10 h-10 rounded-xl bg-scheduled-bg flex items-center justify-center mx-auto mb-3">
               <svg
                 viewBox="0 0 24 24"
                 width="18"
@@ -349,25 +350,25 @@ watch(source, (val) => {
                 />
               </svg>
             </div>
-            <p class="text-[13px] font-semibold text-ink mb-1">
+            <p class="text-[15px] font-semibold text-ink mb-1">
               Google Contacts
             </p>
             <p
               v-if="subscription"
-              class="text-[11px] text-ink-3"
+              class="text-[13px] text-ink-3"
             >
               {{ t('onboarding.crew.lastSync', { date: formatDate(subscription.last_synced_at) }) }}
             </p>
             <p
               v-else
-              class="text-[11px] text-ink-3"
+              class="text-[13px] text-ink-3"
             >
               {{ t('onboarding.crew.googleIntro') }}
             </p>
           </div>
           <p
             v-if="gError"
-            class="text-[11px] text-red-400 mb-3"
+            class="text-[13px] text-failed-fg mb-3"
           >
             {{ gError }}
           </p>
@@ -398,7 +399,7 @@ watch(source, (val) => {
           class="text-center py-6"
         >
           <svg
-            class="animate-spin text-acid mx-auto mb-3"
+            class="animate-spin text-olive mx-auto mb-3"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -414,10 +415,10 @@ watch(source, (val) => {
               stroke-linecap="round"
             />
           </svg>
-          <p class="text-[13px] font-semibold text-ink mb-1">
+          <p class="text-[15px] font-semibold text-ink mb-1">
             {{ gStep === 'loading' ? t('onboarding.crew.connecting') : t('onboarding.crew.syncing') }}
           </p>
-          <p class="text-[11px] text-ink-3">
+          <p class="text-[13px] text-ink-3">
             {{ t('onboarding.calendar.connectingHint') }}
           </p>
         </div>
@@ -428,9 +429,9 @@ watch(source, (val) => {
             v-if="syncStats"
             class="flex items-center gap-3 mb-3 flex-wrap"
           >
-            <span class="text-[10px] text-ink-3"><strong class="text-acid">+{{ syncStats.created }}</strong> {{ t('onboarding.crew.statNew') }}</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> {{ t('onboarding.crew.statUpdated') }}</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> {{ t('onboarding.crew.statTotal') }}</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-olive">+{{ syncStats.created }}</strong> {{ t('onboarding.crew.statNew') }}</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> {{ t('onboarding.crew.statUpdated') }}</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> {{ t('onboarding.crew.statTotal') }}</span>
           </div>
           <div class="flex items-center gap-[7px] bg-glass border border-line rounded px-2.5 py-2 mb-2.5">
             <svg
@@ -458,7 +459,7 @@ watch(source, (val) => {
             <input
               v-model="searchFilter"
               :placeholder="t('onboarding.crew.filterPlaceholder')"
-              class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+              class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
             >
             <button
               v-if="searchFilter"
@@ -489,7 +490,7 @@ watch(source, (val) => {
           </div>
           <div class="flex items-center gap-2 px-1 mb-1.5">
             <button
-              class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none bg-transparent p-0"
+              class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer p-0"
               :class="allFilteredSelected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
               @click="toggleAll"
             >
@@ -505,16 +506,16 @@ watch(source, (val) => {
                 stroke-linejoin="round"
               ><polyline points="20 6 9 17 4 12" /></svg>
             </button>
-            <span class="text-[10px] text-ink-3">
+            <span class="text-[12px] text-ink-3">
               {{ allFilteredSelected ? t('onboarding.crew.deselectAll') : t('onboarding.crew.selectAll') }}
               ({{ selectableContacts.length }})
             </span>
-            <span class="ml-auto text-[10px] text-acid font-semibold">{{ t('onboarding.crew.selectedCount', { count: selectedUuids.length }) }}</span>
+            <span class="ml-auto text-[12px] text-olive font-semibold">{{ t('onboarding.crew.selectedCount', { count: selectedUuids.length }) }}</span>
           </div>
           <div class="max-h-48 overflow-y-auto mb-4 border border-line rounded-lg overflow-hidden">
             <div
               v-if="filteredContacts.length === 0"
-              class="py-6 text-center text-[12px] text-ink-3"
+              class="py-6 text-center text-[14px] text-ink-3"
             >
               {{ t('onboarding.crew.noMatches') }}
             </div>
@@ -522,12 +523,12 @@ watch(source, (val) => {
               v-for="c in filteredContacts"
               :key="c.uuid"
               class="flex items-center gap-2 px-2.5 py-2 transition-colors border-b border-line last:border-b-0"
-              :class="c.is_confirmed ? 'opacity-50 cursor-default' : contactState[c.uuid]?.selected ? 'bg-glass-active' : 'hover:bg-glass cursor-pointer'"
+              :class="c.is_confirmed ? 'cursor-default' : contactState[c.uuid]?.selected ? 'bg-glass-active' : 'hover:bg-glass cursor-pointer'"
               @click="!c.is_confirmed && contactState[c.uuid] && (contactState[c.uuid].selected = !contactState[c.uuid].selected)"
             >
               <div
                 class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0"
-                :class="c.is_confirmed ? 'bg-[#1fad5a22] border-[#1fad5a66]' : contactState[c.uuid]?.selected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
+                :class="c.is_confirmed ? 'bg-wa-bg border-wa-fg' : contactState[c.uuid]?.selected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
               >
                 <svg
                   v-if="c.is_confirmed"
@@ -535,7 +536,7 @@ watch(source, (val) => {
                   height="8"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#1fad5a"
+                  stroke="var(--wa-fg)"
                   stroke-width="3.5"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -553,16 +554,19 @@ watch(source, (val) => {
                 ><polyline points="20 6 9 17 4 12" /></svg>
               </div>
               <div
-                class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-ink-2 border border-line"
+                class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[12px] font-bold text-ink-2 border border-line"
                 :style="{ background: c.role?.color ?? 'var(--bg4)' }"
               >
                 {{ c.first_name.charAt(0) }}{{ c.last_name.charAt(0) }}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-[12px] font-medium text-ink truncate leading-snug">
+                <p
+                  class="text-[14px] font-medium truncate leading-snug"
+                  :class="c.is_confirmed ? 'text-ink-2' : 'text-ink'"
+                >
                   {{ c.full_name }}
                 </p>
-                <p class="text-[10px] text-ink-3 truncate">
+                <p class="text-[12px] text-ink-3 truncate">
                   {{ c.primary_email || c.job_title || '—' }}
                 </p>
               </div>
@@ -570,11 +574,13 @@ watch(source, (val) => {
                 class="flex-shrink-0"
                 @click.stop
               >
-                <span
+                <StatusBadge
                   v-if="c.is_confirmed"
-                  class="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                  style="background:rgba(31,173,90,0.12);color:#1fad5a"
-                >{{ t('onboarding.crew.alreadyImported') }}</span>
+                  status="off"
+                  :label="t('onboarding.crew.alreadyImported')"
+                  size="sm"
+                  data-test="already-imported"
+                />
                 <div
                   v-else-if="contactState[c.uuid]"
                   class="relative flex items-center gap-1"
@@ -586,7 +592,7 @@ watch(source, (val) => {
                   />
                   <select
                     v-model="contactState[c.uuid].roleUuid"
-                    class="bg-glass border border-line rounded px-1.5 py-1 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer max-w-[90px]"
+                    class="bg-glass border border-line rounded px-1.5 py-1 text-ink-3 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer max-w-[90px]"
                   >
                     <option value="">
                       {{ t('onboarding.crew.noRole') }}
@@ -637,7 +643,7 @@ watch(source, (val) => {
           class="text-center py-6"
         >
           <svg
-            class="animate-spin text-acid mx-auto mb-3"
+            class="animate-spin text-olive mx-auto mb-3"
             width="22"
             height="22"
             viewBox="0 0 24 24"
@@ -653,7 +659,7 @@ watch(source, (val) => {
               stroke-linecap="round"
             />
           </svg>
-          <p class="text-[13px] text-ink-2">
+          <p class="text-[15px] text-ink-2">
             {{ t('onboarding.crew.importing') }}
           </p>
         </div>
@@ -675,10 +681,10 @@ watch(source, (val) => {
               stroke-linejoin="round"
             ><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <p class="text-[14px] font-bold text-ink mb-1">
+          <p class="text-[15px] font-bold text-ink mb-1">
             {{ t('onboarding.crew.importedTitle') }}
           </p>
-          <p class="text-[11px] text-ink-3 mb-5">
+          <p class="text-[13px] text-ink-3 mb-5">
             {{ t('onboarding.crew.importedCount', selectedUuids.length) }}
           </p>
           <BtnPrimary
@@ -699,7 +705,7 @@ watch(source, (val) => {
         class="text-center py-6"
       >
         <svg
-          class="animate-spin text-acid mx-auto mb-3"
+          class="animate-spin text-olive mx-auto mb-3"
           width="22"
           height="22"
           viewBox="0 0 24 24"
@@ -715,7 +721,7 @@ watch(source, (val) => {
             stroke-linecap="round"
           />
         </svg>
-        <p class="text-[13px] text-ink-2">
+        <p class="text-[15px] text-ink-2">
           {{ t('onboarding.crew.creating') }}
         </p>
       </div>
@@ -737,10 +743,10 @@ watch(source, (val) => {
             stroke-linejoin="round"
           ><polyline points="20 6 9 17 4 12" /></svg>
         </div>
-        <p class="text-[14px] font-bold text-ink mb-1">
+        <p class="text-[15px] font-bold text-ink mb-1">
           {{ t('onboarding.crew.createdTitle') }}
         </p>
-        <p class="text-[11px] text-ink-3 mb-5">
+        <p class="text-[13px] text-ink-3 mb-5">
           {{ t('onboarding.crew.createdBody', { name: createdContact?.full_name ?? '' }) }}
         </p>
         <div class="flex gap-2">
@@ -771,8 +777,8 @@ watch(source, (val) => {
               { key: 'company', label: t('onboarding.crew.company') },
             ]"
             :key="ct.key"
-            class="flex-1 py-[5px] rounded-[5px] border-none text-[11px] font-semibold cursor-pointer transition-all duration-150"
-            :class="form.contact_type === ct.key ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
+            class="flex-1 py-[5px] rounded-[5px] border-none text-[13px] font-semibold cursor-pointer transition-all duration-150"
+            :class="form.contact_type === ct.key ? 'bg-acid text-ink' : 'bg-transparent text-ink-3 hover:text-ink'"
             @click="form.contact_type = ct.key as 'person' | 'company'"
           >
             {{ ct.label }}
@@ -784,34 +790,34 @@ watch(source, (val) => {
           class="grid grid-cols-2 gap-2"
         >
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.firstName') }} *</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.firstName') }} *</label>
             <input
               v-model="form.first_name"
               :placeholder="t('onboarding.crew.firstNamePlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.lastName') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.lastName') }}</label>
             <input
               v-model="form.last_name"
               :placeholder="t('onboarding.crew.lastNamePlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
         <div v-else>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.company') }} *</label>
+          <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.company') }} *</label>
           <input
             v-model="form.company_name"
             :placeholder="t('onboarding.crew.companyPlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.role') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.role') }}</label>
             <div class="relative flex items-center">
               <div
                 v-if="form.role"
@@ -820,7 +826,7 @@ watch(source, (val) => {
               />
               <select
                 v-model="form.role"
-                class="w-full bg-glass border border-line rounded py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
+                class="w-full bg-glass border border-line rounded py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
                 :class="form.role ? 'pl-7 pr-2.5' : 'px-2.5'"
               >
                 <option value="">
@@ -837,69 +843,69 @@ watch(source, (val) => {
             </div>
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.jobTitle') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.jobTitle') }}</label>
             <input
               v-model="form.job_title"
               :placeholder="t('onboarding.crew.jobTitlePlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.email') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.email') }}</label>
             <input
               v-model="form.primary_email"
               type="email"
               :placeholder="t('onboarding.crew.emailPlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.phone') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.phone') }}</label>
             <input
               v-model="form.primary_phone"
               type="tel"
               :placeholder="t('onboarding.crew.phonePlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.city') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.city') }}</label>
             <input
               v-model="form.city"
               :placeholder="t('onboarding.crew.cityPlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.country') }}</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.country') }}</label>
             <input
               v-model="form.country"
               :placeholder="t('onboarding.crew.countryPlaceholder')"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
 
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.notes') }}</label>
+          <label class="text-[12px] font-semibold text-ink-3 block mb-1">{{ t('onboarding.crew.notes') }}</label>
           <textarea
             v-model="form.notes"
             rows="2"
             :placeholder="t('onboarding.crew.notesPlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4 resize-none"
           />
         </div>
 
         <div class="flex gap-2">
           <button
             class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded border transition-all cursor-pointer"
-            :class="form.is_favorite ? 'border-acid bg-glass-active text-acid' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
+            :class="form.is_favorite ? 'border-olive bg-glass-active text-olive' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
             @click="form.is_favorite = !form.is_favorite"
           >
             <svg
@@ -914,11 +920,11 @@ watch(source, (val) => {
             >
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
-            <span class="text-[11px] font-medium">{{ t('onboarding.crew.favorite') }}</span>
+            <span class="text-[13px] font-medium">{{ t('onboarding.crew.favorite') }}</span>
           </button>
           <button
             class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded border transition-all cursor-pointer"
-            :class="form.is_emergency ? 'border-[#e85d00] bg-glass-active text-[#e85d00]' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
+            :class="form.is_emergency ? 'border-brand-orange bg-glass-active text-brand-orange' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
             @click="form.is_emergency = !form.is_emergency"
           >
             <svg
@@ -944,13 +950,13 @@ watch(source, (val) => {
                 y2="16"
               />
             </svg>
-            <span class="text-[11px] font-medium">{{ t('onboarding.crew.emergency') }}</span>
+            <span class="text-[13px] font-medium">{{ t('onboarding.crew.emergency') }}</span>
           </button>
         </div>
 
         <p
           v-if="manualError"
-          class="text-[11px] text-red-400"
+          class="text-[13px] text-failed-fg"
         >
           {{ manualError }}
         </p>
@@ -998,7 +1004,7 @@ watch(source, (val) => {
     <!-- Skip -->
     <button
       v-if="(source === 'google' && (gStep === 'idle' || gStep === 'selecting')) || (source === 'manual' && manualStep === 'form')"
-      class="w-full mt-3 text-[11px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
+      class="w-full mt-3 text-[13px] text-ink-4 hover:text-ink-2 transition-colors bg-transparent border-none cursor-pointer py-1"
       @click="emit('skip')"
     >
       {{ t('onboarding.skip') }}

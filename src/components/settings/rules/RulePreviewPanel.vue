@@ -130,7 +130,7 @@ const whatsappVars = computed(() =>
 )
 
 const STATUS_CLASS: Record<string, string> = {
-  ok: 'text-acid',
+  ok: 'text-olive',
   no_phone: 'text-brand-orange',
   no_email: 'text-brand-orange',
   no_account: 'text-brand-orange',
@@ -159,7 +159,7 @@ function excludedLabel(reason: string) {
     class="bg-glass border border-line rounded-sm px-3 py-3 space-y-3"
     data-test="rule-preview"
   >
-    <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">
+    <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
       {{ t('rules.preview.title') }}
     </p>
 
@@ -168,10 +168,10 @@ function excludedLabel(reason: string) {
       v-if="!isUnconfirmed"
       class="block"
     >
-      <span class="text-[11px] text-ink-3">{{ t('rules.preview.pickActivity') }}</span>
+      <span class="text-[13px] text-ink-3">{{ t('rules.preview.pickActivity') }}</span>
       <select
         v-model="activityUuid"
-        class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+        class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
         data-test="preview-activity"
       >
         <option value="">
@@ -189,19 +189,19 @@ function excludedLabel(reason: string) {
 
     <p
       v-if="loading"
-      class="text-[12px] text-ink-3"
+      class="text-[14px] text-ink-3"
     >
       {{ t('rules.preview.loading') }}
     </p>
 
     <div
       v-else-if="error"
-      class="text-[12px] text-red-400"
+      class="text-[14px] text-failed-fg"
       data-test="preview-error"
     >
       {{ error }}
       <button
-        class="ml-2 text-ink-2 underline bg-transparent border-none cursor-pointer text-[11px]"
+        class="ml-2 text-ink-2 underline bg-transparent border-none cursor-pointer text-[13px]"
         @click="run"
       >
         {{ t('rules.preview.retry') }}
@@ -212,21 +212,21 @@ function excludedLabel(reason: string) {
       <!-- Resultado -->
       <p
         v-if="preview.would_fire && preview.scheduled_for"
-        class="text-[12px] font-semibold text-acid"
+        class="text-[14px] font-semibold text-olive"
         data-test="preview-would-send"
       >
         {{ t('rules.preview.wouldSend', { date: sendDate }) }}
       </p>
       <p
         v-else-if="!isUnconfirmed && !preview.activity && preview.skip_reason === 'no_matching_activity'"
-        class="text-[12px] text-ink-3"
+        class="text-[14px] text-ink-3"
         data-test="preview-no-activity"
       >
         {{ t('rules.preview.noActivity') }}
       </p>
       <p
         v-else-if="!isUnconfirmed && !preview.would_fire"
-        class="text-[12px] font-semibold text-brand-orange"
+        class="text-[14px] font-semibold text-brand-orange"
         data-test="preview-would-not-send"
       >
         {{ t('rules.preview.wouldNotSend', { reason: notSendReason }) }}
@@ -234,7 +234,7 @@ function excludedLabel(reason: string) {
 
       <p
         v-if="preview.activity"
-        class="text-[11px] text-ink-3"
+        class="text-[13px] text-ink-3"
       >
         {{ preview.activity.title }} ·
         {{ fmtDate(preview.activity.scheduled_at, preview.activity.timezone) }}
@@ -242,7 +242,7 @@ function excludedLabel(reason: string) {
 
       <!-- Destinatarios -->
       <div v-if="!isUnconfirmed">
-        <p class="text-[11px] font-semibold text-ink-2 mb-1">
+        <p class="text-[13px] font-semibold text-ink-2 mb-1">
           {{ t('rules.preview.recipients') }}
           <span
             v-if="preview.recipients.length"
@@ -253,7 +253,7 @@ function excludedLabel(reason: string) {
         </p>
         <p
           v-if="!preview.recipients.length"
-          class="text-[11px] text-ink-4"
+          class="text-[13px] text-ink-4"
         >
           {{ t('rules.preview.noRecipients') }}
         </p>
@@ -264,7 +264,7 @@ function excludedLabel(reason: string) {
           <li
             v-for="(r, i) in preview.recipients"
             :key="`${r.contact ?? r.name}-${i}`"
-            class="flex flex-wrap items-baseline justify-between gap-x-2 text-[11px]"
+            class="flex flex-wrap items-baseline justify-between gap-x-2 text-[13px]"
             data-test="preview-recipient"
           >
             <span class="text-ink truncate min-w-0">
@@ -284,13 +284,13 @@ function excludedLabel(reason: string) {
         v-if="preview.rendered"
         class="bg-bg-4 rounded-sm px-2.5 py-2"
       >
-        <p class="text-[10px] text-ink-4 mb-1">
+        <p class="text-[12px] text-ink-4 mb-1">
           {{ t('rules.preview.message') }}
         </p>
-        <p class="text-[12px] font-semibold text-ink">
+        <p class="text-[14px] font-semibold text-ink">
           {{ preview.rendered.title }}
         </p>
-        <p class="text-[11px] text-ink-2 whitespace-pre-line mt-0.5">
+        <p class="text-[13px] text-ink-2 whitespace-pre-line mt-0.5">
           {{ preview.rendered.message }}
         </p>
       </div>
@@ -298,13 +298,13 @@ function excludedLabel(reason: string) {
         v-else-if="whatsappVars.length"
         class="bg-bg-4 rounded-sm px-2.5 py-2"
       >
-        <p class="text-[10px] text-ink-4 mb-1">
+        <p class="text-[12px] text-ink-4 mb-1">
           {{ t('rules.preview.variables') }}
         </p>
         <p
           v-for="[k, v] in whatsappVars"
           :key="k"
-          class="text-[11px] text-ink-2"
+          class="text-[13px] text-ink-2"
         >
           <span class="text-ink-4">{{ varLabel(k) }}</span> {{ v }}
         </p>
@@ -312,13 +312,13 @@ function excludedLabel(reason: string) {
 
       <!-- Solapes -->
       <div v-if="preview.overlaps.length">
-        <p class="text-[11px] font-semibold text-ink-2 mb-1">
+        <p class="text-[13px] font-semibold text-ink-2 mb-1">
           {{ t('rules.preview.overlaps') }}
         </p>
         <p
           v-for="o in preview.overlaps"
           :key="o.rule"
-          class="text-[11px] text-ink-3"
+          class="text-[13px] text-ink-3"
         >
           {{ o.name }} · {{ fmtDate(o.scheduled_for, preview.activity?.timezone) }}
         </p>
@@ -327,7 +327,7 @@ function excludedLabel(reason: string) {
       <!-- Recordatorios por defecto -->
       <p
         v-if="!isUnconfirmed && preview.default_reminders.count > 0"
-        class="text-[11px] text-ink-3"
+        class="text-[13px] text-ink-3"
         data-test="preview-default-reminders"
       >
         {{ t('rules.preview.defaultReminders', { count: preview.default_reminders.count }) }}
@@ -340,12 +340,12 @@ function excludedLabel(reason: string) {
 
       <!-- Sin confirmar: candidatas -->
       <div v-if="isUnconfirmed">
-        <p class="text-[11px] font-semibold text-ink-2 mb-1">
+        <p class="text-[13px] font-semibold text-ink-2 mb-1">
           {{ t('rules.preview.candidates') }}
         </p>
         <p
           v-if="!preview.candidates?.length"
-          class="text-[11px] text-ink-4"
+          class="text-[13px] text-ink-4"
         >
           {{ t('rules.preview.noCandidates') }}
         </p>
@@ -356,14 +356,14 @@ function excludedLabel(reason: string) {
           <li
             v-for="c in preview.candidates"
             :key="c.notification"
-            class="text-[11px]"
+            class="text-[13px]"
             data-test="preview-candidate"
           >
             <p class="text-ink">
               {{ c.title }}
               <span class="text-ink-4">· {{ fmtDate(c.sent_at) }}</span>
             </p>
-            <p class="text-acid">
+            <p class="text-olive">
               {{ t('rules.preview.eligible', { n: c.eligible }) }}
             </p>
             <p
@@ -377,7 +377,7 @@ function excludedLabel(reason: string) {
         </ul>
         <p
           v-if="preview.plan"
-          class="text-[11px] text-ink-3 mt-2"
+          class="text-[13px] text-ink-3 mt-2"
           data-test="preview-plan"
         >
           {{

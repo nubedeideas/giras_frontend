@@ -181,8 +181,8 @@ async function save() {
 }
 
 // input style class
-const inputClass = 'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+const inputClass = 'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 </script>
 
 <template>
@@ -199,7 +199,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         </p>
         <p
           v-if="activity?.status === 'draft'"
-          class="text-[10px] text-[#f59e0b] mt-0.5"
+          class="text-[12px] text-pending-fg mt-0.5"
         >
           ⚠ Borrador — importada sin tipo asignado por IA
         </p>
@@ -249,14 +249,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         <label :class="labelClass">Tipo de Actividad</label>
         <div
           v-if="loadingTypes"
-          class="text-[11px] text-ink-4 py-2"
+          class="text-[13px] text-ink-4 py-2"
         >
           Cargando tipos…
         </div>
         <select
           v-else
           v-model="activityTypeUuid"
-          class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+          class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
         >
           <option value="">
             — Sin asignar —
@@ -284,7 +284,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           <label :class="labelClass">Estado</label>
           <select
             v-model="status"
-            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
           >
             <option
               v-for="s in STATUSES"
@@ -299,7 +299,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           <label :class="labelClass">Prioridad</label>
           <select
             v-model="priority"
-            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
+            class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer"
           >
             <option
               v-for="p in PRIORITIES"
@@ -324,7 +324,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
             :class="allDay ? 'left-4' : 'left-0.5'"
           />
         </button>
-        <span class="text-[11px] text-ink-2">Todo el día</span>
+        <span class="text-[13px] text-ink-2">Todo el día</span>
       </div>
 
       <!-- Dates -->
@@ -395,7 +395,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
     <!-- Error -->
     <p
       v-if="saveError"
-      class="text-[11px] text-red-400 mt-2"
+      class="text-[13px] text-failed-fg mt-2"
     >
       {{ saveError }}
     </p>
@@ -403,15 +403,15 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
     <!-- Actions -->
     <div class="flex gap-2 mt-4">
       <button
-        class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-        :class="saving || !title.trim() ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+        class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+        :class="saving || !title.trim() ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
         :disabled="saving || !title.trim()"
         @click="save"
       >
         {{ saving ? 'Guardando…' : 'Guardar cambios' }}
       </button>
       <button
-        class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+        class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
         @click="emit('close')"
       >
         Cancelar

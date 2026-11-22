@@ -10,12 +10,12 @@ const emit = defineEmits<{ prev: []; next: [] }>()
     v-if="count > (pageSize ?? 20)"
     class="flex items-center justify-between px-3 py-2.5 border-t border-line flex-shrink-0"
   >
-    <p class="text-[11px] text-ink-4">
+    <p class="text-[13px] text-ink-4">
       {{ t('admin.pagination.total', { count }) }}
     </p>
     <div class="flex gap-1.5">
       <button
-        class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         :class="previous ? 'hover:bg-glass-hover' : ''"
         :disabled="!previous"
         @click="emit('prev')"
@@ -23,7 +23,7 @@ const emit = defineEmits<{ prev: []; next: [] }>()
         {{ t('admin.pagination.prev') }}
       </button>
       <button
-        class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         :class="next ? 'hover:bg-glass-hover' : ''"
         :disabled="!next"
         @click="emit('next')"

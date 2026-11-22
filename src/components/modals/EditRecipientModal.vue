@@ -26,8 +26,8 @@ const removing = ref(false)
 const showRemoveConfirm = ref(false)
 
 const inputClass =
-  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 
 watch(
   () => props.show,
@@ -101,7 +101,7 @@ async function remove() {
         </p>
         <p
           v-if="recipient?.contact_name"
-          class="text-[10px] text-ink-3 mt-0.5"
+          class="text-[12px] text-ink-3 mt-0.5"
         >
           {{ recipient.contact_name }}
         </p>
@@ -186,7 +186,7 @@ async function remove() {
     <!-- Error -->
     <p
       v-if="saveError"
-      class="text-[11px] text-red-400 mt-2"
+      class="text-[13px] text-failed-fg mt-2"
     >
       {{ saveError }}
     </p>
@@ -196,8 +196,8 @@ async function remove() {
       <!-- Save (only for linked contacts) -->
       <button
         v-if="hasContact(recipient)"
-        class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-        :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+        class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+        :class="saving ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
         :disabled="saving"
         @click="save"
       >
@@ -207,8 +207,8 @@ async function remove() {
       <!-- Remove from notification -->
       <template v-if="!showRemoveConfirm">
         <button
-          class="px-4 py-2.5 rounded-lg font-semibold text-[12px] border border-line bg-glass cursor-pointer transition-colors"
-          :class="hasContact(recipient) ? 'text-ink-4 hover:text-red-400 hover:border-red-400/30' : 'flex-1 text-red-400 hover:bg-red-400/10'"
+          class="px-4 py-2.5 rounded-lg font-semibold text-[14px] border border-line bg-glass cursor-pointer transition-colors"
+          :class="hasContact(recipient) ? 'text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5]' : 'flex-1 text-failed-fg hover:bg-failed-bg'"
           @click="showRemoveConfirm = true"
         >
           Quitar de notificación
@@ -216,8 +216,8 @@ async function remove() {
       </template>
       <template v-else>
         <button
-          class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer"
-          style="background: rgba(239,68,68,0.15); color: #f87171"
+          class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer"
+          style="background: var(--failed-bg); color: var(--failed-fg)"
           :class="removing ? 'opacity-50' : ''"
           :disabled="removing"
           @click="remove"
@@ -225,7 +225,7 @@ async function remove() {
           {{ removing ? '…' : 'Confirmar quitar' }}
         </button>
         <button
-          class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover"
+          class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover"
           @click="showRemoveConfirm = false"
         >
           Cancelar

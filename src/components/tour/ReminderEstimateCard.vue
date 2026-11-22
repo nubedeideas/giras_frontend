@@ -26,8 +26,8 @@ const percentage = computed(() => {
 })
 
 const barClass = computed(() => {
-  if (percentage.value >= 100) return 'bg-red-400'
-  if (percentage.value >= 80) return 'bg-amber-400'
+  if (percentage.value >= 100) return 'bg-failed-fg'
+  if (percentage.value >= 80) return 'bg-pending-fg'
   return 'bg-acid'
 })
 
@@ -47,14 +47,14 @@ const hasActivities = computed(() => !!props.estimate && props.estimate.activiti
     class="bg-glass border border-line rounded-lg px-4 py-3.5"
     data-test="reminder-estimate"
   >
-    <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-2">
+    <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-2">
       {{ t('reminders.estimate.title') }}
     </p>
 
     <template v-if="estimate">
       <p
         v-if="hasActivities"
-        class="text-[13px] text-ink leading-snug"
+        class="text-[15px] text-ink leading-snug"
         data-test="estimate-body"
       >
         {{
@@ -68,14 +68,14 @@ const hasActivities = computed(() => !!props.estimate && props.estimate.activiti
       </p>
       <p
         v-else
-        class="text-[12px] text-ink-3"
+        class="text-[14px] text-ink-3"
         data-test="estimate-none"
       >
         {{ t('reminders.estimate.none') }}
       </p>
       <p
         v-if="hasActivities"
-        class="text-[10px] text-ink-4 mt-1"
+        class="text-[12px] text-ink-4 mt-1"
       >
         {{ t('reminders.estimate.approx') }}
       </p>
@@ -88,13 +88,13 @@ const hasActivities = computed(() => !!props.estimate && props.estimate.activiti
     >
       <p
         v-if="plan.is_unlimited"
-        class="text-[11px] text-ink-3"
+        class="text-[13px] text-ink-3"
         data-test="quota-unlimited"
       >
         {{ t('reminders.estimate.unlimited') }}
       </p>
       <template v-else>
-        <div class="flex items-center justify-between text-[11px] text-ink-2 mb-1">
+        <div class="flex items-center justify-between text-[13px] text-ink-2 mb-1">
           <span data-test="quota-text">{{
             t('reminders.estimate.quota', { used: plan.used, limit: plan.limit })
           }}</span>
@@ -119,7 +119,7 @@ const hasActivities = computed(() => !!props.estimate && props.estimate.activiti
 
     <p
       v-if="overQuota"
-      class="text-[11px] text-brand-orange mt-2.5"
+      class="text-[13px] text-brand-orange mt-2.5"
       data-test="estimate-over-quota"
     >
       {{ t('reminders.estimate.overQuota') }}

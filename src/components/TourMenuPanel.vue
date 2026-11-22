@@ -552,7 +552,7 @@ async function confirmDelete(uuid: string) {
                   : {}
               "
             >
-              <p class="text-[11px] font-bold text-ink-4 tracking-[1px] uppercase mb-1.5">
+              <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-1.5">
                 {{ t('tours.activeTourLabel') }}
               </p>
               <div
@@ -649,7 +649,7 @@ async function confirmDelete(uuid: string) {
                   </p>
                   <p
                     v-if="deleteError"
-                    class="text-[12px] text-red-400 mb-2"
+                    class="text-[12px] text-[#FCA5A5] mb-2"
                   >
                     {{ deleteError }}
                   </p>
@@ -678,9 +678,9 @@ async function confirmDelete(uuid: string) {
                   class="group/row"
                 >
                   <button
-                    class="flex items-center gap-2.5 px-3.5 py-2.5 mx-1.5 rounded-xl transition-colors hover:bg-glass-hover cursor-pointer border-none bg-transparent text-left"
+                    class="flex items-center gap-2.5 px-3.5 py-2.5 mx-1.5 rounded-xl transition-colors hover:bg-glass-hover cursor-pointer border-none text-left"
                     style="width: calc(100% - 12px)"
-                    :class="toursStore.activeTourId === tour.id ? 'bg-glass-active' : ''"
+                    :class="toursStore.activeTourId === tour.id ? 'bg-glass-active' : 'bg-transparent'"
                     @click="selectTour(tour.id)"
                   >
                     <div
@@ -784,7 +784,7 @@ async function confirmDelete(uuid: string) {
                       {{ tour.default_calendar_id ? 'Cal ●' : 'Cal' }}
                     </button>
                     <button
-                      class="flex items-center gap-1 text-[12px] text-ink-3 hover:text-red-400 transition-colors px-1.5 py-1 rounded hover:bg-glass cursor-pointer border-none bg-transparent"
+                      class="flex items-center gap-1 text-[12px] text-ink-3 hover:text-[#FCA5A5] transition-colors px-1.5 py-1 rounded hover:bg-glass cursor-pointer border-none bg-transparent"
                       @click.stop="deletingUuid = tour.uuid; deleteError = ''"
                     >
                       <svg
@@ -822,7 +822,7 @@ async function confirmDelete(uuid: string) {
                 v-if="toursStore.error"
                 class="px-3.5 py-2 text-center"
               >
-                <p class="text-[12px] text-red-400">
+                <p class="text-[12px] text-[#FCA5A5]">
                   {{ toursStore.error }}
                 </p>
                 <button
@@ -897,7 +897,7 @@ async function confirmDelete(uuid: string) {
           >
             <!-- Name -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">
                 {{ t('modal.tourName') }} *
               </label>
               <input
@@ -909,7 +909,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Artist + Spotify search -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">
                 {{ t('modal.artist') }} *
               </label>
               <div class="relative">
@@ -1025,7 +1025,7 @@ async function confirmDelete(uuid: string) {
               </div>
               <p
                 v-if="spotifyError"
-                class="text-[12px] text-red-400 mt-1"
+                class="text-[12px] text-[#FCA5A5] mt-1"
               >
                 {{ spotifyError }}
               </p>
@@ -1052,7 +1052,7 @@ async function confirmDelete(uuid: string) {
                   <span style="color: #1fad5a">{{ formatFollowers(form.spotify_followers!) }}</span> seguidores · Spotify
                 </p>
                 <button
-                  class="ml-auto text-[12px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent"
+                  class="ml-auto text-[12px] text-ink-4 hover:text-[#FCA5A5] cursor-pointer border-none bg-transparent"
                   @click="clearSpotifyLink"
                 >
                   desvincular
@@ -1062,7 +1062,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Genre -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.genre') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.genre') }}</label>
               <input
                 v-model="form.genre"
                 :placeholder="t('modal.genrePh')"
@@ -1072,7 +1072,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Description -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.description') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.description') }}</label>
               <textarea
                 v-model="form.description"
                 :placeholder="t('modal.descriptionPh')"
@@ -1084,7 +1084,7 @@ async function confirmDelete(uuid: string) {
             <!-- Dates -->
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.startDate') }}</label>
+                <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.startDate') }}</label>
                 <input
                   v-model="form.start_date"
                   type="date"
@@ -1092,7 +1092,7 @@ async function confirmDelete(uuid: string) {
                 >
               </div>
               <div>
-                <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.endDate') }}</label>
+                <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.endDate') }}</label>
                 <input
                   v-model="form.end_date"
                   type="date"
@@ -1103,7 +1103,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Status (edit only) -->
             <div v-if="mode === 'edit'">
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.status') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.status') }}</label>
               <select
                 v-model="form.status"
                 class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus:border-acid cursor-pointer transition-colors"
@@ -1121,7 +1121,7 @@ async function confirmDelete(uuid: string) {
             <!-- Budget + Currency -->
             <div class="grid grid-cols-[1fr_80px] gap-2">
               <div>
-                <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.budget') }}</label>
+                <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.budget') }}</label>
                 <input
                   v-model="form.budget"
                   type="number"
@@ -1132,7 +1132,7 @@ async function confirmDelete(uuid: string) {
                 >
               </div>
               <div>
-                <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.currency') }}</label>
+                <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.currency') }}</label>
                 <select
                   v-model="form.currency"
                   class="w-full bg-glass border border-line rounded px-2 py-1.5 text-ink text-[13px] outline-none focus:border-acid cursor-pointer transition-colors"
@@ -1150,7 +1150,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Team size -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.teamSize') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.teamSize') }}</label>
               <input
                 v-model.number="form.team_size"
                 type="number"
@@ -1163,7 +1163,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Notes -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">{{ t('modal.notes') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">{{ t('modal.notes') }}</label>
               <textarea
                 v-model="form.notes"
                 :placeholder="t('modal.notesPh')"
@@ -1174,7 +1174,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Default notification group (edit only) -->
             <div v-if="mode === 'edit'">
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1">
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1">
                 Grupo de notificación por defecto
               </label>
               <select
@@ -1203,7 +1203,7 @@ async function confirmDelete(uuid: string) {
               class="space-y-2"
               data-testid="show-day-alert-config"
             >
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block">
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block">
                 {{ t('showDayAlert.title') }}
               </label>
               <button
@@ -1269,7 +1269,7 @@ async function confirmDelete(uuid: string) {
 
             <!-- Color -->
             <div>
-              <label class="text-[11px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">{{ t('modal.color') }}</label>
+              <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1.5">{{ t('modal.color') }}</label>
               <div class="flex gap-2">
                 <button
                   v-for="c in COLORS"
@@ -1284,7 +1284,7 @@ async function confirmDelete(uuid: string) {
 
             <p
               v-if="formError"
-              class="text-[12px] text-red-400"
+              class="text-[12px] text-[#FCA5A5]"
             >
               {{ formError }}
             </p>
@@ -1293,7 +1293,7 @@ async function confirmDelete(uuid: string) {
           <!-- Form footer -->
           <div class="border-t border-line flex-shrink-0 px-3.5 py-3 flex gap-2">
             <button
-              class="flex-1 py-2 rounded text-[14px] font-bold bg-acid text-black hover:opacity-90 transition-opacity cursor-pointer border-none disabled:opacity-40"
+              class="flex-1 py-2 rounded text-[14px] font-bold bg-acid text-night hover:opacity-90 transition-opacity cursor-pointer border-none disabled:opacity-40"
               :disabled="!isFormValid || saving || loadingEdit"
               @click="mode === 'create' ? submitCreate() : submitEdit()"
             >

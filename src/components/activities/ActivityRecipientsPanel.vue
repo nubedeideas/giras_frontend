@@ -313,12 +313,12 @@ onUnmounted(() => {
         class="text-center py-2"
         data-test="recipients-error"
       >
-        <p class="text-[11px] text-red-400">
+        <p class="text-[13px] text-failed-fg">
           {{ loadError }}
         </p>
         <button
           v-if="!forbidden"
-          class="min-h-[44px] sm:min-h-0 mt-1 text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 mt-1 text-[13px] font-semibold text-olive bg-transparent border-none cursor-pointer"
           data-test="recipients-retry"
           @click="load"
         >
@@ -330,14 +330,14 @@ onUnmounted(() => {
         <!-- Recordatorios efectivos -->
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
           <p
-            class="text-[11px] text-ink-2 flex-1 min-w-0"
+            class="text-[13px] text-ink-2 flex-1 min-w-0"
             data-test="recipients-reminders"
           >
             {{ t('recipients.remindersLine', { summary: stepsSummary(audience.effective_steps, t) }) }}
           </p>
           <button
             type="button"
-            class="min-h-[44px] sm:min-h-0 text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer p-0"
+            class="min-h-[44px] sm:min-h-0 text-[13px] font-semibold text-olive bg-transparent border-none cursor-pointer p-0"
             data-test="recipients-configure"
             @click="goToTourReminders"
           >
@@ -347,7 +347,7 @@ onUnmounted(() => {
 
         <!-- Base -->
         <p
-          class="text-[11px] text-ink-3 mb-2"
+          class="text-[13px] text-ink-3 mb-2"
           data-test="recipients-base"
         >
           {{ baseText }}
@@ -357,19 +357,19 @@ onUnmounted(() => {
         <p
           v-for="w in audience.warnings"
           :key="w"
-          class="text-[11px] text-brand-orange mb-1"
+          class="text-[13px] text-brand-orange mb-1"
           data-test="recipients-warning"
         >
           ⚠ {{ recipientWarningLabel(w, t) }}
         </p>
 
         <!-- Personas -->
-        <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mt-3 mb-1.5">
+        <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mt-3 mb-1.5">
           {{ t('recipients.people', { n: audience.people.length }) }}
         </p>
         <p
           v-if="audience.people.length === 0"
-          class="text-[11px] text-ink-4 py-1"
+          class="text-[13px] text-ink-4 py-1"
           data-test="recipients-empty"
         >
           {{ t('recipients.empty') }}
@@ -385,18 +385,18 @@ onUnmounted(() => {
             data-test="recipients-person"
           >
             <div class="flex-1 min-w-0">
-              <p class="text-[12px] text-ink truncate">
+              <p class="text-[14px] text-ink truncate">
                 {{ p.name }}
               </p>
-              <p class="text-[10px] text-ink-4 truncate">
+              <p class="text-[12px] text-ink-4 truncate">
                 {{ personSources(p) }}
               </p>
             </div>
             <!-- Canales disponibles -->
             <div class="flex items-center gap-1 flex-shrink-0">
               <span
-                class="text-[10px] font-bold"
-                :class="p.has_phone ? 'text-wa-green' : 'text-ink-4 line-through'"
+                class="text-[12px] font-bold"
+                :class="p.has_phone ? 'text-wa-green' : 'text-ink-3'"
                 :title="p.has_phone ? t('recipients.channels.phone') : t('recipients.channels.noPhone')"
                 :aria-label="p.has_phone ? t('recipients.channels.phone') : t('recipients.channels.noPhone')"
                 data-test="person-phone"
@@ -421,10 +421,18 @@ onUnmounted(() => {
                   y1="18"
                   x2="12.01"
                   y2="18"
+                /><line
+                  v-if="!p.has_phone"
+                  x1="3"
+                  y1="3"
+                  x2="21"
+                  y2="21"
+                  stroke-width="2.5"
+                  data-test="channel-off"
                 /></svg>
               </span>
               <span
-                :class="p.has_email ? 'text-brand-blue' : 'text-ink-4 opacity-50'"
+                :class="p.has_email ? 'text-brand-blue' : 'text-ink-3'"
                 :title="p.has_email ? t('recipients.channels.email') : t('recipients.channels.noEmail')"
                 :aria-label="p.has_email ? t('recipients.channels.email') : t('recipients.channels.noEmail')"
                 data-test="person-email"
@@ -438,10 +446,18 @@ onUnmounted(() => {
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                ><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                ><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /><line
+                  v-if="!p.has_email"
+                  x1="3"
+                  y1="3"
+                  x2="21"
+                  y2="21"
+                  stroke-width="2.5"
+                  data-test="channel-off"
+                /></svg>
               </span>
               <span
-                :class="p.has_account ? 'text-acid' : 'text-ink-4 opacity-50'"
+                :class="p.has_account ? 'text-olive' : 'text-ink-3'"
                 :title="p.has_account ? t('recipients.channels.account') : t('recipients.channels.noAccount')"
                 :aria-label="p.has_account ? t('recipients.channels.account') : t('recipients.channels.noAccount')"
                 data-test="person-account"
@@ -459,13 +475,21 @@ onUnmounted(() => {
                   cx="12"
                   cy="7"
                   r="4"
+                /><line
+                  v-if="!p.has_account"
+                  x1="3"
+                  y1="3"
+                  x2="21"
+                  y2="21"
+                  stroke-width="2.5"
+                  data-test="channel-off"
                 /></svg>
               </span>
             </div>
             <button
               v-if="p.contact_uuid"
               type="button"
-              class="flex-shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 px-2 text-[10px] text-ink-3 hover:text-red-400 bg-transparent border-none cursor-pointer"
+              class="flex-shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 px-2 text-[12px] text-ink-3 hover:text-failed-fg bg-transparent border-none cursor-pointer"
               :title="t('recipients.exclude')"
               :aria-label="t('recipients.exclude')"
               :disabled="busy"
@@ -504,10 +528,10 @@ onUnmounted(() => {
           class="mt-3"
           data-test="recipients-suggestions"
         >
-          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+          <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
             {{ t('aiReview.suggestedGroups') }}
           </p>
-          <p class="text-[10px] text-ink-4 mb-1.5">
+          <p class="text-[12px] text-ink-4 mb-1.5">
             {{ t('aiReview.pendingHint') }}
           </p>
           <ul class="space-y-1">
@@ -518,15 +542,15 @@ onUnmounted(() => {
               data-test="recipients-suggestion"
             >
               <span class="flex-1 min-w-[120px]">
-                <span class="block text-[12px] text-acid">{{ overrideLabel(o) }}</span>
+                <span class="block text-[14px] text-olive">{{ overrideLabel(o) }}</span>
                 <span
                   v-if="o.reason"
-                  class="block text-[10px] text-ink-4"
+                  class="block text-[12px] text-ink-4"
                 >{{ o.reason }}</span>
               </span>
               <button
                 type="button"
-                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-acid-dim text-acid border-none cursor-pointer disabled:opacity-50"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[13px] font-semibold bg-acid-dim text-olive border-none cursor-pointer disabled:opacity-50"
                 :disabled="busy"
                 data-test="suggestion-accept"
                 @click="acceptSuggestion(o)"
@@ -535,7 +559,7 @@ onUnmounted(() => {
               </button>
               <button
                 type="button"
-                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] bg-glass border border-line text-ink-3 hover:text-ink cursor-pointer disabled:opacity-50"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[13px] bg-glass border border-line text-ink-3 hover:text-ink cursor-pointer disabled:opacity-50"
                 :disabled="busy"
                 data-test="suggestion-reject"
                 @click="rejectSuggestion(o)"
@@ -551,14 +575,14 @@ onUnmounted(() => {
           v-if="added.length"
           class="mt-3"
         >
-          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+          <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
             {{ t('recipients.added') }}
           </p>
           <div class="flex flex-wrap gap-1.5">
             <span
               v-for="o in added"
               :key="o.uuid"
-              class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-acid-dim text-acid text-[11px]"
+              class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-acid-dim text-olive text-[13px]"
               data-test="override-added"
             >
               {{ overrideLabel(o) }}
@@ -577,14 +601,14 @@ onUnmounted(() => {
           v-if="excluded.length"
           class="mt-3"
         >
-          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+          <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
             {{ t('recipients.excluded') }}
           </p>
           <div class="flex flex-wrap gap-1.5">
             <span
               v-for="o in excluded"
               :key="o.uuid"
-              class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-glass-2 text-ink-3 text-[11px] line-through"
+              class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-glass-2 text-ink-3 text-[13px] line-through"
               data-test="override-excluded"
             >
               {{ overrideLabel(o) }}
@@ -602,20 +626,20 @@ onUnmounted(() => {
 
         <p
           v-if="actionError"
-          class="text-[11px] text-red-400 mt-2"
+          class="text-[13px] text-failed-fg mt-2"
           data-test="recipients-action-error"
         >
           {{ actionError }}
         </p>
         <p
           v-if="noRoleGroups"
-          class="text-[11px] text-ink-3 mt-1"
+          class="text-[13px] text-ink-3 mt-1"
           data-test="recipients-no-role-groups"
         >
           {{ t('aiReview.noRoleGroupsHint') }}
           <button
             type="button"
-            class="min-h-[44px] sm:min-h-0 text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer p-0"
+            class="min-h-[44px] sm:min-h-0 text-[13px] font-semibold text-olive bg-transparent border-none cursor-pointer p-0"
             data-test="recipients-go-role-groups"
             @click="goToTourReminders"
           >
@@ -624,7 +648,7 @@ onUnmounted(() => {
         </p>
         <p
           v-if="actionInfo"
-          class="text-[11px] text-ink-3 mt-2"
+          class="text-[13px] text-ink-3 mt-2"
           role="status"
           data-test="recipients-action-info"
         >
@@ -635,8 +659,8 @@ onUnmounted(() => {
         <div class="flex flex-wrap gap-1.5 mt-3">
           <button
             type="button"
-            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer"
-            :class="picker === 'group' ? 'text-ink border-line-2' : ''"
+            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-dashed text-[13px] font-medium hover:border-line-2 bg-transparent cursor-pointer"
+            :class="picker === 'group' ? 'text-ink border-line-2' : 'text-ink-3 border-line hover:text-ink'"
             :disabled="busy"
             data-test="recipients-add-group"
             @click="openGroupPicker"
@@ -645,8 +669,8 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer"
-            :class="picker === 'contact' ? 'text-ink border-line-2' : ''"
+            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-dashed text-[13px] font-medium hover:border-line-2 bg-transparent cursor-pointer"
+            :class="picker === 'contact' ? 'text-ink border-line-2' : 'text-ink-3 border-line hover:text-ink'"
             :disabled="busy"
             data-test="recipients-add-contact"
             @click="openContactPicker"
@@ -655,7 +679,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-line-acid text-[11px] font-semibold text-acid bg-transparent hover:bg-glass-hover cursor-pointer disabled:opacity-50"
+            class="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm border border-line-acid text-[13px] font-semibold text-olive bg-transparent hover:bg-glass-hover cursor-pointer disabled:opacity-50"
             :disabled="busy"
             data-test="recipients-suggest-ai"
             @click="suggestWithAi"
@@ -672,19 +696,19 @@ onUnmounted(() => {
         >
           <p
             v-if="groupsLoading"
-            class="text-[11px] text-ink-4 py-1"
+            class="text-[13px] text-ink-4 py-1"
           >
             {{ t('common.loading') }}
           </p>
           <p
             v-else-if="groupsError"
-            class="text-[11px] text-red-400 py-1"
+            class="text-[13px] text-failed-fg py-1"
           >
             {{ groupsError }}
           </p>
           <p
             v-else-if="availableGroups.length === 0"
-            class="text-[11px] text-ink-4 py-1"
+            class="text-[13px] text-ink-4 py-1"
           >
             {{ t('recipients.noGroups') }}
           </p>
@@ -693,13 +717,13 @@ onUnmounted(() => {
             v-else
             :key="g.uuid"
             type="button"
-            class="w-full flex items-center justify-between gap-2 min-h-[44px] sm:min-h-0 px-2 py-1.5 rounded-sm text-left text-[12px] text-ink bg-transparent border-none hover:bg-glass-hover cursor-pointer"
+            class="w-full flex items-center justify-between gap-2 min-h-[44px] sm:min-h-0 px-2 py-1.5 rounded-sm text-left text-[14px] text-ink bg-transparent border-none hover:bg-glass-hover cursor-pointer"
             :disabled="busy"
             :data-test="`group-option-${g.uuid}`"
             @click="addGroup(g.uuid)"
           >
             <span class="truncate">{{ g.name }}</span>
-            <span class="text-[10px] text-ink-4 flex-shrink-0">{{
+            <span class="text-[12px] text-ink-4 flex-shrink-0">{{
               t('reminders.tour.contacts', { n: g.contact_count }, g.contact_count)
             }}</span>
           </button>
@@ -715,30 +739,30 @@ onUnmounted(() => {
             v-model="search"
             type="search"
             :placeholder="t('recipients.searchContact')"
-            class="w-full h-11 sm:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none focus:border-line-acid"
+            class="w-full h-11 sm:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none focus:border-line-acid"
             data-test="contact-search"
           >
           <p
             v-if="search.trim().length < 2"
-            class="text-[10px] text-ink-4 mt-1.5"
+            class="text-[12px] text-ink-4 mt-1.5"
           >
             {{ t('recipients.searchHint') }}
           </p>
           <p
             v-else-if="contactsLoading"
-            class="text-[11px] text-ink-4 mt-1.5"
+            class="text-[13px] text-ink-4 mt-1.5"
           >
             {{ t('common.loading') }}
           </p>
           <p
             v-else-if="contactsError"
-            class="text-[11px] text-red-400 mt-1.5"
+            class="text-[13px] text-failed-fg mt-1.5"
           >
             {{ contactsError }}
           </p>
           <p
             v-else-if="availableContacts.length === 0"
-            class="text-[11px] text-ink-4 mt-1.5"
+            class="text-[13px] text-ink-4 mt-1.5"
           >
             {{ t('recipients.noContacts') }}
           </p>
@@ -755,10 +779,10 @@ onUnmounted(() => {
               :data-test="`contact-option-${c.uuid}`"
               @click="addContact(c.uuid)"
             >
-              <span class="text-[12px] text-ink truncate max-w-full">{{ c.full_name }}</span>
+              <span class="text-[14px] text-ink truncate max-w-full">{{ c.full_name }}</span>
               <span
                 v-if="c.role || c.company_name"
-                class="text-[10px] text-ink-4 truncate max-w-full"
+                class="text-[12px] text-ink-4 truncate max-w-full"
               >{{ c.role?.name ?? c.company_name }}</span>
             </button>
           </div>

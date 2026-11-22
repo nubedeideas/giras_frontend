@@ -124,22 +124,22 @@ function formatDate(iso: string | null): string {
         >
         <span
           v-else
-          class="text-[13px] font-bold text-black uppercase"
+          class="text-[15px] font-bold text-ink uppercase"
         >{{ tour?.name?.charAt(0) }}</span>
       </div>
       <div>
-        <p class="text-[14px] font-bold text-ink">
+        <p class="text-[15px] font-bold text-ink">
           Asignar calendario
         </p>
-        <p class="text-[11px] text-ink-3 mt-px truncate max-w-[220px]">
+        <p class="text-[13px] text-ink-3 mt-px truncate max-w-[220px]">
           {{ tour?.artist_name }} — {{ tour?.name }}
         </p>
       </div>
     </div>
 
     <!-- Info blurb -->
-    <div class="bg-[rgba(168,216,0,0.06)] border border-[rgba(168,216,0,0.15)] rounded-xl px-3 py-2.5 mb-4">
-      <p class="text-[10px] text-ink-3 leading-relaxed">
+    <div class="bg-acid-dim border border-line-acid rounded-xl px-3 py-2.5 mb-4">
+      <p class="text-[12px] text-ink-3 leading-relaxed">
         El calendario asignado se usará como fuente principal de eventos para esta gira.
         Los eventos se enrutarán automáticamente sin depender solo de fechas.
       </p>
@@ -210,10 +210,10 @@ function formatDate(iso: string | null): string {
             y2="6"
           />
         </svg>
-        <p class="text-[11px] text-ink-3">
+        <p class="text-[13px] text-ink-3">
           No hay calendarios conectados
         </p>
-        <p class="text-[10px] text-ink-4">
+        <p class="text-[12px] text-ink-4">
           Conecta un Google Calendar desde Configuración → Calendarios
         </p>
       </div>
@@ -256,10 +256,10 @@ function formatDate(iso: string | null): string {
             </svg>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-[12px] font-medium text-ink-3">
+            <p class="text-[14px] font-medium text-ink-3">
               Sin calendario asignado
             </p>
-            <p class="text-[10px] text-ink-4">
+            <p class="text-[12px] text-ink-4">
               El ruteo se basará solo en rangos de fechas
             </p>
           </div>
@@ -313,25 +313,25 @@ function formatDate(iso: string | null): string {
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-semibold text-ink truncate">
+              <p class="text-[14px] font-semibold text-ink truncate">
                 {{ cal.calendar_name }}
               </p>
               <!-- Current badge -->
               <span
                 v-if="cal.id === currentId"
-                class="flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(168,216,0,0.1)] text-acid border border-[rgba(168,216,0,0.2)]"
+                class="flex-shrink-0 text-[12px] font-semibold px-1.5 py-0.5 rounded-full bg-acid-dim text-olive border border-line-acid"
               >
                 Actual
               </span>
             </div>
-            <p class="text-[10px] text-ink-4 font-mono truncate">
+            <p class="text-[12px] text-ink-4 font-mono truncate">
               {{ cal.calendar_id }}
             </p>
-            <p class="text-[10px] text-ink-4 mt-0.5">
-              Sync: {{ formatDate(cal.last_synced_at) }}
+            <p class="text-[12px] text-ink-4 mt-0.5">
+              Sync: <span class="font-time tnum">{{ formatDate(cal.last_synced_at) }}</span>
               <span
                 class="ml-1 font-medium"
-                :class="cal.webhook_status === 'active' ? 'text-[#1fad5a]' : 'text-ink-4'"
+                :class="cal.webhook_status === 'active' ? 'text-wa-fg' : 'text-ink-4'"
               >
                 {{ cal.webhook_status === 'active' ? '● Activo' : '○ Sin webhook' }}
               </span>
@@ -353,7 +353,7 @@ function formatDate(iso: string | null): string {
 
       <p
         v-if="error"
-        class="text-[10px] text-red-400 mt-3"
+        class="text-[12px] text-failed-fg mt-3"
       >
         {{ error }}
       </p>
@@ -361,9 +361,9 @@ function formatDate(iso: string | null): string {
       <!-- Actions -->
       <div class="flex gap-2 mt-4">
         <button
-          class="flex-1 py-2.5 rounded-lg text-[12px] font-semibold border-none cursor-pointer transition-all"
+          class="flex-1 py-2.5 rounded-lg text-[14px] font-semibold border-none cursor-pointer transition-all"
           :class="isDirty && !saving
-            ? 'bg-acid text-black'
+            ? 'bg-acid text-ink'
             : 'bg-glass border border-line text-ink-4 cursor-not-allowed'"
           :disabled="!isDirty || saving"
           @click="save"
@@ -394,7 +394,7 @@ function formatDate(iso: string | null): string {
           <span v-else>Guardar asignación</span>
         </button>
         <button
-          class="px-4 py-2.5 rounded-lg text-[12px] text-ink-3 bg-glass border border-line cursor-pointer hover:text-ink transition-colors"
+          class="px-4 py-2.5 rounded-lg text-[14px] text-ink-3 bg-glass border border-line cursor-pointer hover:text-ink transition-colors"
           @click="close"
         >
           Cancelar

@@ -8,8 +8,8 @@ const props = defineProps<{ channels: ReportsChannelRow[] }>()
 const { t } = useI18n()
 
 const DOT_CLASS: Record<ReportChannel, string> = {
-  whatsapp: 'bg-wa-green',
-  email: 'bg-brand-blue',
+  whatsapp: 'bg-wa-fg',
+  email: 'bg-scheduled-fg',
 }
 
 function barWidth(value: number): string {
@@ -35,9 +35,9 @@ function share(part: number, whole: number): string {
               class="w-2 h-2 rounded-full"
               :class="DOT_CLASS[ch.channel]"
             />
-            <span class="text-[12px] font-semibold text-ink">{{ t(`reports.${ch.channel}`) }}</span>
+            <span class="text-[14px] font-semibold text-ink">{{ t(`reports.${ch.channel}`) }}</span>
           </div>
-          <div class="flex items-center gap-3 text-[10px] flex-wrap">
+          <div class="flex items-center gap-3 text-[12px] flex-wrap">
             <span class="text-ink-3">{{ t('reports.sent') }} <strong class="text-ink">{{ ch.sent }}</strong></span>
             <span
               class="text-ink-3"
@@ -53,8 +53,8 @@ function share(part: number, whole: number): string {
               {{ t('reports.read') }}
               <strong class="text-brand-blue">{{ ch.tracks_delivery ? ch.read : '—' }}</strong>
             </span>
-            <span class="text-ink-3">{{ t('reports.confirmed') }} <strong class="text-acid">{{ ch.confirmed }}</strong></span>
-            <span class="text-ink-3">{{ t('reports.failed') }} <strong class="text-red-400">{{ ch.failed }}</strong></span>
+            <span class="text-ink-3">{{ t('reports.confirmed') }} <strong class="text-olive">{{ ch.confirmed }}</strong></span>
+            <span class="text-ink-3">{{ t('reports.failed') }} <strong class="text-failed-fg">{{ ch.failed }}</strong></span>
           </div>
         </div>
         <!-- Enviados (relativo al canal con más envíos) y, debajo, leídos + entregados sobre enviados -->

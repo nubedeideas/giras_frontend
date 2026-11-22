@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { useContactsStore } from '@/stores/contacts'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
@@ -367,10 +368,10 @@ watch(
         </svg>
       </div>
       <div>
-        <p class="text-[14px] font-bold text-ink">
+        <p class="text-[15px] font-bold text-ink">
           {{ t('modal.importContacts') }}
         </p>
-        <p class="text-[11px] text-ink-2 mt-px">
+        <p class="text-[13px] text-ink-2 mt-px">
           {{ t('modal.importContactsSub') }}
         </p>
       </div>
@@ -407,10 +408,10 @@ watch(
           />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
-        <p class="text-[10px] font-semibold text-ink">
+        <p class="text-[12px] font-semibold text-ink">
           {{ opt.label }}
         </p>
-        <p class="text-[9px] text-ink-3 mt-0.5">
+        <p class="text-[12px] text-ink-3 mt-0.5">
           {{ opt.sub }}
         </p>
       </div>
@@ -449,10 +450,10 @@ watch(
             y2="16"
           />
         </svg>
-        <p class="text-[12px] font-semibold text-ink-2 mb-0.5">
+        <p class="text-[14px] font-semibold text-ink-2 mb-0.5">
           Solo con cuenta real
         </p>
-        <p class="text-[11px] text-ink-3">
+        <p class="text-[13px] text-ink-3">
           La sincronización requiere iniciar sesión con Google.
         </p>
       </div>
@@ -475,7 +476,7 @@ watch(
           data-testid="contacts-sync-idle"
         >
           <div class="bg-glass border border-line rounded-xl p-5 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-[rgba(26,143,255,0.1)] flex items-center justify-center mx-auto mb-3">
+            <div class="w-10 h-10 rounded-xl bg-scheduled-bg flex items-center justify-center mx-auto mb-3">
               <svg
                 viewBox="0 0 24 24"
                 width="18"
@@ -499,25 +500,25 @@ watch(
                 />
               </svg>
             </div>
-            <p class="text-[13px] font-semibold text-ink mb-1">
+            <p class="text-[15px] font-semibold text-ink mb-1">
               Google Contacts
             </p>
             <p
               v-if="subscription"
-              class="text-[11px] text-ink-3"
+              class="text-[13px] text-ink-3"
             >
-              Última sync: {{ formatDate(subscription.last_synced_at) }}
+              Última sync: <span class="font-time tnum">{{ formatDate(subscription.last_synced_at) }}</span>
             </p>
             <p
               v-else
-              class="text-[11px] text-ink-3"
+              class="text-[13px] text-ink-3"
             >
               Importa tus contactos de Google directamente
             </p>
           </div>
           <p
             v-if="error"
-            class="text-[11px] text-red-400 mb-3"
+            class="text-[13px] text-failed-fg mb-3"
           >
             {{ error }}
           </p>
@@ -549,7 +550,7 @@ watch(
           class="text-center py-6"
         >
           <svg
-            class="animate-spin text-acid mx-auto mb-3"
+            class="animate-spin text-olive mx-auto mb-3"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -565,10 +566,10 @@ watch(
               stroke-linecap="round"
             />
           </svg>
-          <p class="text-[13px] font-semibold text-ink mb-1">
+          <p class="text-[15px] font-semibold text-ink mb-1">
             {{ step === 'loading' ? 'Conectando...' : 'Sincronizando contactos' }}
           </p>
-          <p class="text-[11px] text-ink-3">
+          <p class="text-[13px] text-ink-3">
             Esto puede tardar unos segundos
           </p>
         </div>
@@ -579,9 +580,9 @@ watch(
             v-if="syncStats"
             class="flex items-center gap-3 mb-3 flex-wrap"
           >
-            <span class="text-[10px] text-ink-3"><strong class="text-acid">+{{ syncStats.created }}</strong> nuevos</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> actualizados</span>
-            <span class="text-[10px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> total</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-olive">+{{ syncStats.created }}</strong> nuevos</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-ink">{{ syncStats.updated }}</strong> actualizados</span>
+            <span class="text-[12px] text-ink-3"><strong class="text-ink">{{ contacts.length }}</strong> total</span>
           </div>
           <div class="flex items-center gap-[7px] bg-glass border border-line rounded px-2.5 py-2 mb-2.5">
             <svg
@@ -609,7 +610,7 @@ watch(
             <input
               v-model="searchFilter"
               placeholder="Filtrar contactos..."
-              class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+              class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
             >
             <button
               v-if="searchFilter"
@@ -640,7 +641,7 @@ watch(
           </div>
           <div class="flex items-center gap-2 px-1 mb-1.5">
             <button
-              class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none bg-transparent p-0"
+              class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer p-0"
               :class="allFilteredSelected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
               @click="toggleAll"
             >
@@ -656,13 +657,13 @@ watch(
                 stroke-linejoin="round"
               ><polyline points="20 6 9 17 4 12" /></svg>
             </button>
-            <span class="text-[10px] text-ink-3">{{ allFilteredSelected ? 'Deseleccionar todo' : 'Seleccionar todo' }} ({{ selectableContacts.length }})</span>
-            <span class="ml-auto text-[10px] text-acid font-semibold">{{ selectedUuids.length }} seleccionados</span>
+            <span class="text-[12px] text-ink-3">{{ allFilteredSelected ? 'Deseleccionar todo' : 'Seleccionar todo' }} ({{ selectableContacts.length }})</span>
+            <span class="ml-auto text-[12px] text-olive font-semibold">{{ selectedUuids.length }} seleccionados</span>
           </div>
           <div class="max-h-56 overflow-y-auto mb-4 border border-line rounded-lg overflow-hidden">
             <div
               v-if="filteredContacts.length === 0"
-              class="py-6 text-center text-[12px] text-ink-3"
+              class="py-6 text-center text-[14px] text-ink-3"
             >
               No hay contactos que coincidan
             </div>
@@ -670,13 +671,13 @@ watch(
               v-for="c in filteredContacts"
               :key="c.uuid"
               class="flex items-center gap-2 px-2.5 py-2 transition-colors border-b border-line last:border-b-0"
-              :class="c.is_confirmed ? 'opacity-50 cursor-default' : contactState[c.uuid]?.selected ? 'bg-glass-active' : 'hover:bg-glass cursor-pointer'"
+              :class="c.is_confirmed ? 'cursor-default' : contactState[c.uuid]?.selected ? 'bg-glass-active' : 'hover:bg-glass cursor-pointer'"
               @click="!c.is_confirmed && contactState[c.uuid] && (contactState[c.uuid].selected = !contactState[c.uuid].selected)"
             >
               <!-- Checkbox / already-imported indicator -->
               <div
                 class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0"
-                :class="c.is_confirmed ? 'bg-[#1fad5a22] border-[#1fad5a66]' : contactState[c.uuid]?.selected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
+                :class="c.is_confirmed ? 'bg-wa-bg border-wa-fg' : contactState[c.uuid]?.selected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
               >
                 <svg
                   v-if="c.is_confirmed"
@@ -684,7 +685,7 @@ watch(
                   height="8"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#1fad5a"
+                  stroke="var(--wa-fg)"
                   stroke-width="3.5"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -702,16 +703,19 @@ watch(
                 ><polyline points="20 6 9 17 4 12" /></svg>
               </div>
               <div
-                class="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden border border-line flex items-center justify-center text-[10px] font-bold text-ink-2"
+                class="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden border border-line flex items-center justify-center text-[12px] font-bold text-ink-2"
                 :style="{ background: c.role?.color ?? 'var(--avatar-bg)' }"
               >
                 <span>{{ c.first_name.charAt(0) }}{{ c.last_name.charAt(0) }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-[12px] font-medium text-ink truncate leading-snug">
+                <p
+                  class="text-[14px] font-medium truncate leading-snug"
+                  :class="c.is_confirmed ? 'text-ink-2' : 'text-ink'"
+                >
                   {{ c.full_name }}
                 </p>
-                <p class="text-[10px] text-ink-3 truncate">
+                <p class="text-[12px] text-ink-3 truncate">
                   {{ c.primary_email || c.job_title || '—' }}
                 </p>
               </div>
@@ -719,11 +723,13 @@ watch(
                 class="flex-shrink-0"
                 @click.stop
               >
-                <span
+                <StatusBadge
                   v-if="c.is_confirmed"
-                  class="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                  style="background: rgba(31,173,90,0.12); color: #1fad5a"
-                >Ya importado</span>
+                  status="off"
+                  :label="t('onboarding.crew.alreadyImported')"
+                  size="sm"
+                  data-test="already-imported"
+                />
                 <div
                   v-else
                   class="relative flex items-center gap-1"
@@ -736,7 +742,7 @@ watch(
                   <select
                     v-if="contactState[c.uuid]"
                     v-model="contactState[c.uuid].roleUuid"
-                    class="bg-glass border border-line rounded px-1.5 py-1 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer max-w-[90px]"
+                    class="bg-glass border border-line rounded px-1.5 py-1 text-ink-3 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer max-w-[90px]"
                   >
                     <option value="">
                       Sin rol
@@ -783,7 +789,7 @@ watch(
           class="text-center py-6"
         >
           <svg
-            class="animate-spin text-acid mx-auto mb-3"
+            class="animate-spin text-olive mx-auto mb-3"
             width="22"
             height="22"
             viewBox="0 0 24 24"
@@ -799,7 +805,7 @@ watch(
               stroke-linecap="round"
             />
           </svg>
-          <p class="text-[13px] text-ink-2">
+          <p class="text-[15px] text-ink-2">
             Importando contactos...
           </p>
         </div>
@@ -821,10 +827,10 @@ watch(
               stroke-linejoin="round"
             ><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <p class="text-[14px] font-bold text-ink mb-1">
+          <p class="text-[15px] font-bold text-ink mb-1">
             ¡Contactos importados!
           </p>
-          <p class="text-[11px] text-ink-3 mb-4">
+          <p class="text-[13px] text-ink-3 mb-4">
             {{ selectedUuids.length }} contacto{{ selectedUuids.length !== 1 ? 's' : '' }} añadido{{ selectedUuids.length !== 1 ? 's' : '' }}
           </p>
           <BtnPrimary
@@ -845,7 +851,7 @@ watch(
         class="text-center py-6"
       >
         <svg
-          class="animate-spin text-acid mx-auto mb-3"
+          class="animate-spin text-olive mx-auto mb-3"
           width="22"
           height="22"
           viewBox="0 0 24 24"
@@ -861,7 +867,7 @@ watch(
             stroke-linecap="round"
           />
         </svg>
-        <p class="text-[13px] text-ink-2">
+        <p class="text-[15px] text-ink-2">
           Creando contacto...
         </p>
       </div>
@@ -883,10 +889,10 @@ watch(
             stroke-linejoin="round"
           ><polyline points="20 6 9 17 4 12" /></svg>
         </div>
-        <p class="text-[14px] font-bold text-ink mb-1">
+        <p class="text-[15px] font-bold text-ink mb-1">
           ¡Contacto creado!
         </p>
-        <p class="text-[11px] text-ink-3 mb-4">
+        <p class="text-[13px] text-ink-3 mb-4">
           {{ createdContact?.full_name }} fue añadido a tus contactos
         </p>
         <div class="flex gap-2">
@@ -915,8 +921,8 @@ watch(
           <button
             v-for="ct in [{ key: 'person', label: 'Persona' }, { key: 'company', label: 'Empresa' }]"
             :key="ct.key"
-            class="flex-1 py-[5px] rounded-[5px] border-none text-[11px] font-semibold cursor-pointer transition-all duration-150"
-            :class="form.contact_type === ct.key ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
+            class="flex-1 py-[5px] rounded-[5px] border-none text-[13px] font-semibold cursor-pointer transition-all duration-150"
+            :class="form.contact_type === ct.key ? 'bg-acid text-ink' : 'bg-transparent text-ink-3 hover:text-ink'"
             @click="form.contact_type = ct.key as 'person' | 'company'"
           >
             {{ ct.label }}
@@ -929,35 +935,35 @@ watch(
           class="grid grid-cols-2 gap-2"
         >
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Nombre *</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Nombre *</label>
             <input
               v-model="form.first_name"
               placeholder="Juan"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Apellido</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Apellido</label>
             <input
               v-model="form.last_name"
               placeholder="García"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
         <div v-else>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">Empresa *</label>
+          <label class="text-[12px] font-semibold text-ink-3 block mb-1">Empresa *</label>
           <input
             v-model="form.company_name"
             placeholder="Nombre de la empresa"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
 
         <!-- Role + Job title -->
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Rol</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Rol</label>
             <div class="relative flex items-center">
               <div
                 v-if="form.role"
@@ -966,7 +972,7 @@ watch(
               />
               <select
                 v-model="form.role"
-                class="w-full bg-glass border border-line rounded py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
+                class="w-full bg-glass border border-line rounded py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
                 :class="form.role ? 'pl-7 pr-2.5' : 'px-2.5'"
               >
                 <option value="">
@@ -983,11 +989,11 @@ watch(
             </div>
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Cargo</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Cargo</label>
             <input
               v-model="form.job_title"
               placeholder="Director de gira"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
@@ -995,21 +1001,21 @@ watch(
         <!-- Email + Phone -->
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Email</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Email</label>
             <input
               v-model="form.primary_email"
               type="email"
               placeholder="email@ejemplo.com"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Teléfono</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Teléfono</label>
             <input
               v-model="form.primary_phone"
               type="tel"
               placeholder="+52 55 0000 0000"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
@@ -1017,31 +1023,31 @@ watch(
         <!-- City + Country -->
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">Ciudad</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">Ciudad</label>
             <input
               v-model="form.city"
               placeholder="Ciudad de México"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
           <div>
-            <label class="text-[10px] font-semibold text-ink-3 block mb-1">País</label>
+            <label class="text-[12px] font-semibold text-ink-3 block mb-1">País</label>
             <input
               v-model="form.country"
               placeholder="México"
-              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+              class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             >
           </div>
         </div>
 
         <!-- Notes -->
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 block mb-1">Notas</label>
+          <label class="text-[12px] font-semibold text-ink-3 block mb-1">Notas</label>
           <textarea
             v-model="form.notes"
             rows="2"
             placeholder="Notas adicionales..."
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4 resize-none"
           />
         </div>
 
@@ -1049,7 +1055,7 @@ watch(
         <div class="flex gap-2">
           <button
             class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded border transition-all cursor-pointer"
-            :class="form.is_favorite ? 'border-acid bg-glass-active text-acid' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
+            :class="form.is_favorite ? 'border-olive bg-glass-active text-olive' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
             @click="form.is_favorite = !form.is_favorite"
           >
             <svg
@@ -1064,11 +1070,11 @@ watch(
             >
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
-            <span class="text-[11px] font-medium">Favorito</span>
+            <span class="text-[13px] font-medium">Favorito</span>
           </button>
           <button
             class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded border transition-all cursor-pointer"
-            :class="form.is_emergency ? 'border-[#e85d00] bg-glass-active text-[#e85d00]' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
+            :class="form.is_emergency ? 'border-brand-orange bg-glass-active text-brand-orange' : 'border-line bg-glass text-ink-3 hover:border-line-2 hover:text-ink'"
             @click="form.is_emergency = !form.is_emergency"
           >
             <svg
@@ -1094,13 +1100,13 @@ watch(
                 y2="16"
               />
             </svg>
-            <span class="text-[11px] font-medium">Emergencia</span>
+            <span class="text-[13px] font-medium">Emergencia</span>
           </button>
         </div>
 
         <p
           v-if="manualError"
-          class="text-[11px] text-red-400"
+          class="text-[13px] text-failed-fg"
         >
           {{ manualError }}
         </p>
@@ -1151,7 +1157,7 @@ watch(
 
     <!-- ── Excel tab ─────────────────────────────────────────────────────────── -->
     <template v-else>
-      <div class="border-2 border-dashed border-line-2 rounded-[10px] p-6 text-center text-ink-3 text-[12px] mb-4">
+      <div class="border-2 border-dashed border-line-2 rounded-[10px] p-6 text-center text-ink-3 text-[14px] mb-4">
         <svg
           width="24"
           height="24"

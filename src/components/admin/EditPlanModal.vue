@@ -76,8 +76,8 @@ async function submit() {
 }
 
 const inputClass =
-  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 </script>
 
 <template>
@@ -90,13 +90,13 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
     </p>
     <p
       v-if="isEdit && plan"
-      class="text-[11px] text-ink-4 mb-4 uppercase tracking-[0.4px]"
+      class="text-[13px] text-ink-2 mb-4 uppercase tracking-[0.4px]"
     >
       {{ plan.code }}
     </p>
     <p
       v-else
-      class="text-[11px] text-ink-4 mb-4"
+      class="text-[13px] text-ink-4 mb-4"
     >
       {{ t('admin.planForm.codeHint') }}
     </p>
@@ -183,7 +183,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           type="checkbox"
           class="cursor-pointer"
         >
-        <span class="text-[12px] text-ink-2">{{ t('admin.planForm.active') }}</span>
+        <span class="text-[14px] text-ink-2">{{ t('admin.planForm.active') }}</span>
       </label>
       <label class="flex items-center gap-2 cursor-pointer">
         <input
@@ -191,25 +191,25 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
           type="checkbox"
           class="cursor-pointer"
         >
-        <span class="text-[12px] text-ink-2">{{ t('admin.planForm.default') }}</span>
+        <span class="text-[14px] text-ink-2">{{ t('admin.planForm.default') }}</span>
       </label>
 
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>
 
       <div class="flex justify-end gap-2 pt-1">
         <button
-          class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+          class="px-3.5 py-[7px] rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
         >
           {{ t('admin.common.cancel') }}
         </button>
         <button
-          class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
+          class="px-3.5 py-[7px] rounded-sm text-[13px] font-bold bg-acid text-ink cursor-pointer disabled:opacity-50"
           :disabled="saving"
           @click="submit"
         >

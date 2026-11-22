@@ -32,21 +32,21 @@ async function doDelete() {
     <div class="flex items-center gap-3">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
-          <p class="text-[12px] font-semibold text-ink truncate">
+          <p class="text-[14px] font-semibold text-ink truncate">
             {{ plan.name }}
           </p>
-          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 uppercase tracking-[0.4px]">{{ plan.code }}</span>
+          <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-2 uppercase tracking-[0.4px]">{{ plan.code }}</span>
           <span
             v-if="plan.is_default"
-            class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
+            class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
           >{{ t('admin.common.default') }}</span>
           <span
             v-if="!plan.is_active"
-            class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-            style="background: rgba(239,68,68,0.12); color: #f87171"
+            class="text-[12px] font-bold px-1.5 py-0.5 rounded-full"
+            style="background: var(--failed-bg); color: var(--failed-fg)"
           >{{ t('admin.common.inactive') }}</span>
         </div>
-        <p class="text-[10px] text-ink-4 mt-0.5">
+        <p class="text-[12px] text-ink-4 mt-0.5">
           {{
             plan.is_unlimited_notifications
               ? t('admin.plans.unlimitedNotifications')
@@ -63,14 +63,14 @@ async function doDelete() {
         </p>
       </div>
       <button
-        class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors flex-shrink-0"
+        class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors flex-shrink-0"
         @click="emit('edit')"
       >
         {{ t('admin.common.edit') }}
       </button>
       <button
         v-if="!showDeleteConfirm"
-        class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors flex-shrink-0"
+        class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5] cursor-pointer transition-colors flex-shrink-0"
         @click="showDeleteConfirm = true"
       >
         {{ t('admin.common.delete') }}
@@ -81,26 +81,26 @@ async function doDelete() {
       v-if="showDeleteConfirm"
       class="mt-2 pt-2 border-t border-line space-y-1.5"
     >
-      <p class="text-[11px] text-ink-3">
+      <p class="text-[13px] text-ink-3">
         {{ t('admin.plans.deleteWarning') }}
       </p>
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>
       <div class="flex gap-1">
         <button
-          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-          style="background: rgba(239,68,68,0.15); color: #f87171"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-semibold cursor-pointer border-none disabled:opacity-50"
+          style="background: var(--failed-bg); color: var(--failed-fg)"
           :disabled="deleting"
           @click="doDelete"
         >
           {{ deleting ? '…' : t('admin.plans.deleteAnyway') }}
         </button>
         <button
-          class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+          class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="showDeleteConfirm = false"
         >
           {{ t('admin.common.cancel') }}

@@ -37,7 +37,7 @@ const store = useActivitiesStore()
         v-for="group in store.groupedByDay"
         :key="group.iso"
       >
-        <p class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5">
+        <p class="text-[11px] font-bold text-ink-2 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5">
           {{ group.label }}
         </p>
         <ActivityCard
@@ -52,7 +52,7 @@ const store = useActivitiesStore()
 
     <div
       v-else
-      class="text-center py-8 text-ink-4 text-xs"
+      class="text-center py-8 text-ink-4 text-[14px]"
     >
       {{ t('calendar.noEvents') }}
     </div>

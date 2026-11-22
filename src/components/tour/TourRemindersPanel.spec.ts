@@ -80,12 +80,12 @@ describe('TourRemindersPanel', () => {
     stubFetch(handler(catalog({ plan: plan80, estimate: { ...catalog().estimate!, whatsapp: 50 } })))
     const w = await mountPanel()
     expect(w.find('[data-test="estimate-over-quota"]').exists()).toBe(false)
-    expect(w.get('[data-test="quota-bar"]').classes()).toContain('bg-amber-400')
+    expect(w.get('[data-test="quota-bar"]').classes()).toContain('bg-pending-fg')
 
     const plan100 = { limit: 500, used: 500, remaining: 0, percentage: 100, is_unlimited: false }
     stubFetch(handler(catalog({ plan: plan100 })))
     const w2 = await mountPanel()
-    expect(w2.get('[data-test="quota-bar"]').classes()).toContain('bg-red-400')
+    expect(w2.get('[data-test="quota-bar"]').classes()).toContain('bg-failed-fg')
   })
 
   it('traduce los avisos de audiencia del backend', async () => {

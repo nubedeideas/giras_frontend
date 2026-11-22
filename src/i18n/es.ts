@@ -331,6 +331,8 @@ export default {
     selectTour: 'Filtrar por Gira',
     viewGrid: 'Calendario',
     viewList: 'Actividades',
+    moreCount: '+{n} más',
+    notifiable: 'Con recordatorios automáticos',
     selectActivity: 'Selecciona una actividad para ver el detalle',
     days: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
     months: [
@@ -588,6 +590,10 @@ export default {
     phoneSaved: 'Teléfono guardado.',
     phoneInvalid: 'Introduce un teléfono válido con prefijo de país, por ejemplo +34 600 000 000.',
     phoneError: 'No se ha podido guardar el teléfono.',
+  },
+
+  activity: {
+    pastLabel: 'Pasada',
   },
 
   common: {

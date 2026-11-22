@@ -331,6 +331,8 @@ export default {
     selectTour: 'Filter by Tour',
     viewGrid: 'Calendar',
     viewList: 'Activities',
+    moreCount: '+{n} more',
+    notifiable: 'With automatic reminders',
     selectActivity: 'Select an activity to see its detail',
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
     months: [
@@ -587,6 +589,10 @@ export default {
     phoneSaved: 'Phone saved.',
     phoneInvalid: 'Enter a valid phone number with country code, for example +34 600 000 000.',
     phoneError: 'Could not save the phone number.',
+  },
+
+  activity: {
+    pastLabel: 'Past',
   },
 
   common: {

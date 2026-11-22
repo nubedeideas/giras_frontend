@@ -147,27 +147,30 @@ export const useCalendarStore = defineStore('calendar', () => {
     selectedDate.value = selectedDate.value === iso ? null : iso
   }
 
-  // Defaults the displayed month to the active tour's start_date, or to the
-  // real current month when no tour is selected. Parses the plain
-  // YYYY-MM-DD string directly (not via `new Date(startDate)`) so it can't
-  // shift a month boundary depending on the viewer's UTC offset.
-  function resetToDefaultMonth() {
-    const startDate = toursStore.activeTour?.start_date
-    if (startDate) {
-      const [year, month] = startDate.split('-').map(Number)
-      currentYear.value = year
-      currentMonth.value = month - 1
-    } else {
-      const now = new Date()
-      currentYear.value = now.getFullYear()
-      currentMonth.value = now.getMonth()
-    }
+  // Mes inicial (Paleta B §5.4.2): el de la actividad seleccionada si la hay (misma
+  // conversión a fecha local que `dateKeyOf`) y, si no, el mes de hoy. Ya no se usa el
+  // `start_date` de la gira: abrir siempre en su primer mes escondía lo actual.
+  function resetToDefaultMonth({ useSelection = true }: { useSelection?: boolean } = {}) {
+    const selectedIso = useSelection ? selectedActivityStart() : null
+    const parsed = selectedIso ? new Date(selectedIso) : null
+    const target = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date()
+    currentYear.value = target.getFullYear()
+    currentMonth.value = target.getMonth()
   }
 
-  // Re-center on tour switch and drop any day/activity selection that
-  // belonged to the previous tour.
+  function selectedActivityStart(): string | null {
+    const uuid = activitiesStore.selectedUuid
+    if (!uuid) return null
+    const fromList = activitiesStore.activities.find((a) => a.uuid === uuid)
+    if (fromList) return fromList.scheduled_at
+    const detail = activitiesStore.selectedDetail
+    return detail && detail.uuid === uuid ? detail.scheduled_at : null
+  }
+
+  // Al cambiar de gira: mes de hoy (la selección de la gira anterior ya no aplica; el store
+  // de actividades también la limpia) y fuera la selección de día.
   watch(() => toursStore.activeTourId, () => {
-    resetToDefaultMonth()
+    resetToDefaultMonth({ useSelection: false })
     selectedDate.value = null
   })
 

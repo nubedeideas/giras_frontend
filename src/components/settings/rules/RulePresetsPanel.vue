@@ -37,12 +37,12 @@ function isApplied(p: RulePreset) {
     class="mb-5"
     data-test="presets"
   >
-    <p class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-2">
+    <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-2">
       {{ t('rules.presets.title') }}
     </p>
     <p
       v-if="error"
-      class="text-[11px] text-red-400 mb-2"
+      class="text-[13px] text-failed-fg mb-2"
     >
       {{ error }}
     </p>
@@ -55,12 +55,12 @@ function isApplied(p: RulePreset) {
         :data-test="`preset-${p.key}`"
       >
         <div class="min-w-0">
-          <p class="text-[12px] font-semibold text-ink">
+          <p class="text-[14px] font-semibold text-ink">
             {{ title(p) }}
           </p>
           <p
             v-if="desc(p)"
-            class="text-[11px] text-ink-3 mt-0.5"
+            class="text-[13px] text-ink-3 mt-0.5"
           >
             {{ desc(p) }}
           </p>
@@ -68,7 +68,7 @@ function isApplied(p: RulePreset) {
         <div class="mt-auto">
           <button
             v-if="isApplied(p)"
-            class="text-[11px] font-semibold text-acid bg-transparent border-none p-0 cursor-pointer hover:underline"
+            class="text-[13px] font-semibold text-olive bg-transparent border-none p-0 cursor-pointer hover:underline"
             data-test="preset-active"
             @click="emit('open', p.applied_rule as string)"
           >
@@ -80,12 +80,12 @@ function isApplied(p: RulePreset) {
             data-test="preset-unavailable"
           >
             <button
-              class="inline-flex items-center rounded-sm bg-glass-2 text-ink-4 font-bold px-2.5 py-[5px] text-[10px] border-none cursor-not-allowed"
+              class="inline-flex items-center rounded-sm bg-glass-2 text-ink-4 font-bold px-2.5 py-[5px] text-[12px] border-none cursor-not-allowed"
               disabled
             >
               {{ t('rules.presets.activate') }}
             </button>
-            <p class="text-[11px] text-brand-orange">
+            <p class="text-[13px] text-brand-orange">
               {{
                 t('rules.presets.unavailable', {
                   reason: skipReasonLabel(p.unavailable_reason ?? '', t),
@@ -95,7 +95,7 @@ function isApplied(p: RulePreset) {
           </div>
           <button
             v-else
-            class="inline-flex items-center rounded-sm bg-acid text-black font-bold px-2.5 py-[5px] text-[10px] border-none cursor-pointer transition-opacity"
+            class="inline-flex items-center rounded-sm bg-acid text-ink font-bold px-2.5 py-[5px] text-[12px] border-none cursor-pointer transition-opacity"
             :class="busyKey ? 'opacity-50' : ''"
             :disabled="!!busyKey"
             data-test="preset-activate"

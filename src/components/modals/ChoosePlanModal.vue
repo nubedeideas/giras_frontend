@@ -93,7 +93,7 @@ async function choose(code: PlanCode) {
         v-if="result.status === 'no_change'"
         class="bg-glass border border-line rounded-lg px-3 py-2.5"
       >
-        <p class="text-[12px] text-ink-2">
+        <p class="text-[14px] text-ink-2">
           Ya tenías este plan activo.
         </p>
       </div>
@@ -101,7 +101,7 @@ async function choose(code: PlanCode) {
         v-else-if="result.status === 'admin_setup_required'"
         class="bg-glass border border-line-acid rounded-lg px-3 py-2.5"
       >
-        <p class="text-[12px] text-ink-2">
+        <p class="text-[14px] text-ink-2">
           El plan Custom no se cobra directamente — un administrador te va a asignar el cupo correspondiente. Nos pondremos en contacto.
         </p>
       </div>
@@ -109,14 +109,14 @@ async function choose(code: PlanCode) {
         v-else-if="result.status === 'payment_required'"
         class="bg-glass border border-line-acid rounded-lg px-3 py-2.5 space-y-2"
       >
-        <p class="text-[12px] text-ink-2">
+        <p class="text-[14px] text-ink-2">
           Te enviamos el link de pago por email y WhatsApp. También puedes pagarlo ahora directamente:
         </p>
         <a
           :href="result.payment_url"
           target="_blank"
           rel="noopener"
-          class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-black text-[11px] font-bold no-underline"
+          class="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-sm bg-acid text-ink text-[13px] font-bold no-underline"
         >
           Ir a pagar
         </a>
@@ -125,14 +125,14 @@ async function choose(code: PlanCode) {
         v-else
         class="bg-glass border border-line-acid rounded-lg px-3 py-2.5"
       >
-        <p class="text-[12px] text-ink-2">
+        <p class="text-[14px] text-ink-2">
           Listo, tu plan se actualizó.
         </p>
       </div>
 
       <div class="flex justify-end">
         <button
-          class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+          class="px-3.5 py-[7px] rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
         >
           Cerrar
@@ -154,36 +154,36 @@ async function choose(code: PlanCode) {
         @click="choose(plan.code)"
       >
         <div class="flex items-center justify-between">
-          <p class="text-[13px] font-semibold text-ink">
+          <p class="text-[15px] font-semibold text-ink">
             {{ plan.name }}
           </p>
-          <p class="text-[12px] font-bold text-ink">
+          <p class="text-[14px] font-bold text-ink">
             {{ plan.price }} {{ plan.currency }}
           </p>
         </div>
-        <p class="text-[11px] text-ink-3 mt-0.5">
+        <p class="text-[13px] text-ink-3 mt-0.5">
           {{ plan.description }}
         </p>
-        <p class="text-[10px] text-ink-4 mt-1">
+        <p class="text-[12px] text-ink-4 mt-1">
           {{ plan.is_unlimited_notifications ? 'Notifs. ilimitadas' : `${plan.notification_limit} notifs.` }}
           ·
           {{ plan.is_unlimited_shows ? 'shows ilimitados' : `${plan.max_shows} shows` }}
         </p>
         <span
           v-if="plan.code === currentPlanCode"
-          class="inline-block mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
+          class="inline-block mt-1.5 text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid-muted"
         >
           Plan actual
         </span>
         <span
           v-if="submittingCode === plan.code"
-          class="inline-block mt-1.5 text-[10px] text-ink-4"
+          class="inline-block mt-1.5 text-[12px] text-ink-4"
         >Procesando…</span>
       </button>
 
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>

@@ -214,7 +214,7 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
           </button>
           <span
             data-testid="month-label"
-            class="text-[12px] font-medium text-ink px-2 min-w-[120px] text-center"
+            class="text-[14px] font-medium text-ink px-2 min-w-[120px] text-center"
           >{{ monthLabel }}</span>
           <button
             data-testid="month-next"
@@ -246,7 +246,7 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
         data-testid="summary-error"
         class="bg-bg-3 border border-line rounded-lg p-6 flex flex-col items-center gap-3 text-center"
       >
-        <p class="text-[12px] text-red-400 whitespace-pre-line">
+        <p class="text-[14px] text-failed-fg whitespace-pre-line">
           {{ loadError }}
         </p>
         <BtnSecondary @click="load">
@@ -267,7 +267,7 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
               :data-testid="`card-${c.key}`"
               class="bg-glass border border-line rounded-lg p-3 min-w-0"
             >
-              <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase truncate">
+              <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase truncate">
                 {{ t(`admin.costs.${c.key}`) }}
               </p>
               <p class="text-[18px] font-bold text-ink mt-1 truncate">
@@ -275,7 +275,7 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
               </p>
               <p
                 v-if="c.sub"
-                class="text-[10px] text-ink-4 truncate"
+                class="text-[12px] text-ink-4 truncate"
                 :title="c.sub"
               >
                 {{ c.sub }}
@@ -293,24 +293,24 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
             >
               <template v-if="lastSync">
                 <p
-                  class="text-[12px] font-semibold"
-                  :class="lastSync.failed ? 'text-red-400' : 'text-ink'"
+                  class="text-[14px] font-semibold"
+                  :class="lastSync.failed ? 'text-failed-fg' : 'text-ink'"
                 >
                   {{ lastSync.text }}
                 </p>
-                <p class="text-[10px] text-ink-4">
+                <p class="text-[12px] text-ink-4">
                   {{ lastSync.window }}
                 </p>
                 <p
                   v-if="lastSync.error"
-                  class="text-[10px] text-red-400 break-words"
+                  class="text-[12px] text-failed-fg break-words"
                 >
                   {{ lastSync.error }}
                 </p>
               </template>
               <p
                 v-else
-                class="text-[12px] text-ink-3"
+                class="text-[14px] text-ink-3"
               >
                 {{ t('admin.costs.neverSynced') }}
               </p>
@@ -318,8 +318,8 @@ function onAcknowledged(item: TwilioDiscrepancy, previousStatus: TwilioDiscrepan
                 v-if="syncNotice"
                 data-testid="sync-notice"
                 role="status"
-                class="text-[11px] mt-1"
-                :class="syncNotice.kind === 'ok' ? 'text-acid' : 'text-brand-orange'"
+                class="text-[13px] mt-1"
+                :class="syncNotice.kind === 'ok' ? 'text-olive' : 'text-brand-orange'"
               >
                 {{ syncNotice.text }}
               </p>

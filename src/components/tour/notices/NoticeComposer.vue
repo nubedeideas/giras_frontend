@@ -117,7 +117,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
   >
     <!-- Canal -->
     <section>
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1.5">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1.5">
         {{ t('notices.fields.channel') }}
       </p>
       <div class="grid grid-cols-3 gap-1.5">
@@ -125,7 +125,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           v-for="ch in channels"
           :key="ch"
           type="button"
-          class="min-h-[44px] lg:min-h-[34px] flex items-center justify-center gap-1.5 px-2 rounded-sm border text-[11px] font-semibold cursor-pointer transition-colors disabled:opacity-50"
+          class="min-h-[44px] lg:min-h-[34px] flex items-center justify-center gap-1.5 px-2 rounded-sm border text-[13px] font-semibold cursor-pointer transition-colors disabled:opacity-50"
           :class="
             ch === channel
               ? `${channelMeta(ch).bgClass} ${channelMeta(ch).colorClass} border-line-2`
@@ -153,7 +153,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
       </div>
       <p
         v-if="channel === 'in_app'"
-        class="text-[10px] text-ink-4 mt-1.5"
+        class="text-[12px] text-ink-4 mt-1.5"
       >
         {{ t('reminders.channels.inAppHint') }}
       </p>
@@ -161,7 +161,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
 
     <!-- Plantilla (WhatsApp) -->
     <section v-if="templates.length > 1">
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1.5">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1.5">
         {{ t('notices.fields.template') }}
       </p>
       <div class="flex flex-col gap-1.5">
@@ -169,7 +169,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           v-for="tpl in templates"
           :key="tpl.slug"
           type="button"
-          class="min-h-[44px] lg:min-h-[34px] flex items-center justify-between gap-2 px-3 rounded-sm border text-left text-[12px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="min-h-[44px] lg:min-h-[34px] flex items-center justify-between gap-2 px-3 rounded-sm border text-left text-[14px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           :class="
             tpl.slug === templateSlug
               ? 'bg-glass-active text-ink border-line-acid'
@@ -183,7 +183,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           <span class="truncate">{{ templateLabel(tpl, t, activityTypeName) }}</span>
           <span
             v-if="!tpl.approved"
-            class="text-[10px] text-ink-4 flex-shrink-0"
+            class="text-[12px] text-ink-4 flex-shrink-0"
           >{{ t('notices.templateNotApproved') }}</span>
         </button>
       </div>
@@ -199,7 +199,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
         :key="k.key"
         class="block"
       >
-        <span class="flex items-center justify-between text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+        <span class="flex items-center justify-between text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
           <span>{{ editableKeyLabel(k.key, t) }}</span>
           <span class="font-normal normal-case tracking-normal text-ink-4">
             {{ value(k.key, k.value).length }}/{{ k.max_length }}
@@ -210,7 +210,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           :value="value(k.key, k.value)"
           :maxlength="k.max_length"
           rows="4"
-          class="w-full px-2.5 py-2 rounded-sm bg-bg-2 border border-line text-[13px] text-ink outline-none focus:border-line-acid resize-y"
+          class="w-full px-2.5 py-2 rounded-sm bg-bg-2 border border-line text-[15px] text-ink outline-none focus:border-line-acid resize-y"
           :disabled="disabled"
           :data-test="`notice-field-${k.key}`"
           @input="emit('update:draft', k.key, ($event.target as HTMLTextAreaElement).value)"
@@ -220,20 +220,20 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           type="text"
           :value="value(k.key, k.value)"
           :maxlength="k.max_length"
-          class="w-full h-11 lg:h-9 px-2.5 rounded-sm bg-bg-2 border border-line text-[13px] text-ink outline-none focus:border-line-acid"
+          class="w-full h-11 lg:h-9 px-2.5 rounded-sm bg-bg-2 border border-line text-[15px] text-ink outline-none focus:border-line-acid"
           :disabled="disabled"
           :data-test="`notice-field-${k.key}`"
           @input="emit('update:draft', k.key, ($event.target as HTMLInputElement).value)"
         >
         <span
           v-if="blank.has(k.key)"
-          class="block text-[11px] text-brand-orange mt-1"
+          class="block text-[13px] text-brand-orange mt-1"
           :data-test="`notice-field-blank-${k.key}`"
         >{{ t('notices.fields.blank') }}</span>
       </label>
       <p
         v-if="channel === 'whatsapp'"
-        class="text-[10px] text-ink-4"
+        class="text-[12px] text-ink-4"
       >
         {{ t('notices.whatsappHint') }}
       </p>
@@ -242,11 +242,11 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
     <!-- Destinatarios -->
     <section>
       <div class="flex items-baseline justify-between gap-2 mb-1.5">
-        <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase">
+        <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase">
           {{ t('notices.recipients.title') }}
         </p>
         <p
-          class="text-[11px] text-ink-2"
+          class="text-[13px] text-ink-2"
           data-test="notice-reach"
         >
           {{ t('notices.recipients.reach', { reachable: counts.reachable, total: counts.total }) }}
@@ -254,7 +254,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
       </div>
       <p
         v-if="unreachable > 0"
-        class="text-[11px] text-brand-orange mb-1.5"
+        class="text-[13px] text-brand-orange mb-1.5"
         data-test="notice-unreachable"
       >
         {{ t(`notices.recipients.unreachable.${channel}`, { n: unreachable }, unreachable) }}
@@ -271,7 +271,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
 
     <!-- Vista previa -->
     <section>
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1.5">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1.5">
         {{ t('notices.urgent.preview') }}
       </p>
       <div
@@ -280,10 +280,10 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
         data-test="notice-preview"
       >
         <template v-if="rendered">
-          <p class="text-[13px] font-semibold text-ink mb-1 break-words">
+          <p class="text-[15px] font-semibold text-ink mb-1 break-words">
             {{ rendered.title }}
           </p>
-          <p class="text-[12px] text-ink-2 whitespace-pre-line break-words">
+          <p class="text-[14px] text-ink-2 whitespace-pre-line break-words">
             {{ rendered.body }}
           </p>
         </template>
@@ -294,7 +294,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
           <div
             v-for="v in variables"
             :key="v.key"
-            class="text-[12px] break-words"
+            class="text-[14px] break-words"
           >
             <dt
               v-if="v.label"
@@ -309,7 +309,7 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
         </dl>
         <p
           v-else
-          class="text-[11px] text-ink-4"
+          class="text-[13px] text-ink-4"
         >
           {{ t('notices.noPreview') }}
         </p>
@@ -319,14 +319,14 @@ const blank = computed(() => new Set(blankRequiredTexts(props.drafts)))
     <!-- Coste (WhatsApp) -->
     <section v-if="channel === 'whatsapp'">
       <p
-        class="text-[11px] text-ink-2"
+        class="text-[13px] text-ink-2"
         data-test="notice-cost"
       >
         {{ costText }}
       </p>
       <p
         v-if="preview.cost.over_quota"
-        class="text-[11px] text-brand-orange mt-1"
+        class="text-[13px] text-brand-orange mt-1"
         data-test="notice-over-quota"
       >
         {{ t('notices.overQuota') }}

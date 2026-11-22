@@ -15,7 +15,7 @@ defineEmits<{ openAdd: [] }>()
 
 const CATEGORIES = [
   { value: 'logistics', label: 'Logística',  color: '#1a8fff' },
-  { value: 'production', label: 'Producción', color: '#f59e0b' },
+  { value: 'production', label: 'Producción', color: 'var(--pending-fg)' },
   { value: 'media',      label: 'Medios',     color: '#9b5de5' },
   { value: 'meetings',   label: 'Reuniones',  color: '#06b6d4' },
   { value: 'fan',        label: 'Fan',        color: '#e91e8c' },
@@ -94,7 +94,7 @@ const showCategoryFilter = ref(false)
         <input
           v-model="store.searchQuery"
           placeholder="Buscar actividades..."
-          class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+          class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
         >
       </div>
 
@@ -113,7 +113,7 @@ const showCategoryFilter = ref(false)
                 class="w-2 h-2 rounded-full flex-shrink-0"
                 :style="{ background: CATEGORIES.find((c) => c.value === val)?.color }"
               />
-              <span class="text-[11px] text-ink truncate">
+              <span class="text-[13px] text-ink truncate">
                 {{
                   store.filterCategory.length === 1
                     ? CATEGORIES.find((c) => c.value === store.filterCategory[0])?.label
@@ -123,13 +123,13 @@ const showCategoryFilter = ref(false)
             </template>
             <span
               v-else
-              class="text-[11px] text-ink-4"
+              class="text-[13px] text-ink-4"
             >Filtrar por categoría</span>
           </div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
             <span
               v-if="store.filterCategory.length > 0"
-              class="text-[10px] text-ink-4 hover:text-ink leading-none"
+              class="text-[12px] text-ink-4 hover:text-ink leading-none"
               @click.stop="store.filterCategory.splice(0)"
             >✕</span>
             <svg
@@ -183,7 +183,7 @@ const showCategoryFilter = ref(false)
               class="w-2 h-2 rounded-full flex-shrink-0"
               :style="{ background: cat.color }"
             />
-            <span class="text-[12px] text-ink">{{ cat.label }}</span>
+            <span class="text-[14px] text-ink">{{ cat.label }}</span>
           </button>
         </div>
 
@@ -196,7 +196,7 @@ const showCategoryFilter = ref(false)
       </div>
 
       <!-- Filter tabs -->
-      <div class="flex gap-[3px] mt-2">
+      <div class="flex gap-1 p-1 mt-2 rounded-[10px] bg-glass-hover">
         <button
           v-for="tab in [
             { key: 'all', label: 'Todas' },
@@ -204,11 +204,11 @@ const showCategoryFilter = ref(false)
             { key: 'past', label: 'Pasadas' },
           ]"
           :key="tab.key"
-          class="flex-1 py-[5px] border-none rounded-[7px] text-[11px] font-medium cursor-pointer transition-all duration-200 tracking-[0.2px]"
+          class="flex-1 min-h-[44px] lg:min-h-[32px] border-none rounded-[7px] text-[13px] cursor-pointer transition-all duration-200 tracking-[0.2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           :class="
             store.filterTab === tab.key
-              ? 'bg-glass-active text-acid'
-              : 'bg-transparent text-ink-3 hover:bg-glass hover:text-ink-2'
+              ? 'bg-bg-3 text-ink shadow-sm font-semibold'
+              : 'bg-transparent text-ink-2 font-medium hover:text-ink'
           "
           @click="store.filterTab = tab.key as typeof store.filterTab"
         >
@@ -232,7 +232,7 @@ const showCategoryFilter = ref(false)
         v-else
         class="h-full flex items-center justify-center px-4 text-center"
       >
-        <p class="text-[11px] text-ink-4">
+        <p class="text-[13px] text-ink-4">
           Elige una gira para ver sus actividades
         </p>
       </div>
@@ -243,7 +243,7 @@ const showCategoryFilter = ref(false)
       v-else-if="toursStore.activeTourId && !hasTourUuid"
       class="flex-1 flex flex-col items-center justify-center gap-2 px-4 text-center"
     >
-      <p class="text-[11px] text-ink-4">
+      <p class="text-[13px] text-ink-4">
         Esta gira aún no tiene datos del servidor
       </p>
     </div>
@@ -282,8 +282,7 @@ const showCategoryFilter = ref(false)
         :key="group.label"
       >
         <p
-          class="text-[9px] font-bold text-ink-4 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5"
-          :class="group.label === 'Pasadas' ? 'opacity-60' : ''"
+          class="text-[11px] font-bold text-ink-2 tracking-[1.2px] uppercase px-1 pt-2.5 pb-1.5"
         >
           {{ group.label }}
         </p>
@@ -292,14 +291,14 @@ const showCategoryFilter = ref(false)
           :key="act.uuid"
           :activity="act"
           :selected="store.selectedUuid === act.uuid"
-          :dimmed="group.label === 'Pasadas'"
+          :past="group.label === 'Pasadas'"
           @select="store.selectActivity"
         />
       </template>
 
       <div
         v-if="store.groupedActivities.length === 0 && !store.loading"
-        class="text-center py-8 text-ink-4 text-xs"
+        class="text-center py-8 text-ink-4 text-[14px]"
       >
         Sin resultados
       </div>

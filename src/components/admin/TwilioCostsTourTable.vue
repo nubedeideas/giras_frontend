@@ -69,7 +69,7 @@ const th = 'font-semibold py-1.5 px-2 whitespace-nowrap'
 <template>
   <div class="bg-bg-3 border border-line rounded-lg p-[14px_16px]">
     <div class="flex items-center justify-between gap-2 flex-wrap mb-2.5">
-      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase">
+      <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
         {{ t('admin.costs.table.title') }}
       </p>
       <div
@@ -81,8 +81,8 @@ const th = 'font-semibold py-1.5 px-2 whitespace-nowrap'
           v-for="s in SORT_KEYS"
           :key="s.key"
           :data-testid="`sort-${s.key}`"
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-medium border-none cursor-pointer transition-colors"
-          :class="sortKey === s.key ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
+          class="px-2.5 py-0.5 rounded-full text-[12px] font-medium border-none cursor-pointer transition-colors"
+          :class="sortKey === s.key ? 'bg-acid text-ink' : 'bg-transparent text-ink-3 hover:text-ink'"
           :aria-pressed="sortKey === s.key"
           @click="sortKey = s.key"
         >
@@ -93,7 +93,7 @@ const th = 'font-semibold py-1.5 px-2 whitespace-nowrap'
 
     <p
       v-if="!tours.length"
-      class="text-[12px] text-ink-4 text-center py-4"
+      class="text-[14px] text-ink-4 text-center py-4"
     >
       {{ t('admin.costs.table.empty') }}
     </p>
@@ -102,9 +102,9 @@ const th = 'font-semibold py-1.5 px-2 whitespace-nowrap'
       v-else
       class="overflow-x-auto -mx-2"
     >
-      <table class="w-full text-[11px] min-w-[880px]">
+      <table class="w-full text-[13px] min-w-[880px]">
         <thead>
-          <tr class="text-[9px] text-ink-3 uppercase tracking-[0.5px]">
+          <tr class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             <th :class="[th, 'text-left']">
               {{ t('admin.costs.table.tour') }}
             </th>
@@ -209,7 +209,7 @@ const th = 'font-semibold py-1.5 px-2 whitespace-nowrap'
     <p
       v-if="truncated"
       data-testid="truncated"
-      class="text-[10px] text-ink-4 mt-2"
+      class="text-[12px] text-ink-4 mt-2"
     >
       {{ t('admin.costs.table.truncated', { n: tours.length }) }}
     </p>

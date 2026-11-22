@@ -13,7 +13,7 @@ const classes: Record<NonNullable<PillVariant>, string> = {
 
 <template>
   <span
-    class="text-[11px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.4px]"
+    class="text-[12px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.4px]"
     :class="variant ? classes[variant] : classes.n"
   >
     <slot />

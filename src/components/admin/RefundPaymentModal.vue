@@ -48,12 +48,12 @@ async function submit() {
       <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
         {{ t('admin.refund.title') }}
       </p>
-      <p class="text-[11px] text-ink-4 mb-4">
+      <p class="text-[13px] text-ink-4 mb-4">
         {{ payment.user_email }} · {{ payment.amount }} {{ payment.currency }} · {{ payment.tour_name }}
       </p>
 
       <div class="bg-glass border border-line-acid rounded-lg px-3 py-2.5 mb-3">
-        <p class="text-[11px] text-ink-2">
+        <p class="text-[13px] text-ink-2">
           <I18nT
             keypath="admin.refund.warning"
             tag="span"
@@ -65,10 +65,10 @@ async function submit() {
         </p>
       </div>
 
-      <label class="block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1">{{ t('admin.refund.reason') }} *</label>
+      <label class="block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1">{{ t('admin.refund.reason') }} *</label>
       <textarea
         v-model="reason"
-        class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors"
+        class="w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors"
         rows="3"
         :placeholder="t('admin.refund.reasonPlaceholder')"
         style="resize: vertical"
@@ -76,21 +76,21 @@ async function submit() {
 
       <p
         v-if="error"
-        class="text-[11px] text-red-400 mt-2"
+        class="text-[13px] text-failed-fg mt-2"
       >
         {{ error }}
       </p>
 
       <div class="flex justify-end gap-2 pt-3">
         <button
-          class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+          class="px-3.5 py-[7px] rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
           @click="emit('close')"
         >
           {{ t('admin.common.cancel') }}
         </button>
         <button
-          class="px-3.5 py-[7px] rounded-sm text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-          style="background: rgba(239,68,68,0.15); color: #f87171"
+          class="px-3.5 py-[7px] rounded-sm text-[13px] font-semibold cursor-pointer border-none disabled:opacity-50"
+          style="background: var(--failed-bg); color: var(--failed-fg)"
           :disabled="saving || !reason.trim()"
           @click="submit"
         >

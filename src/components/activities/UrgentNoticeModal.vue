@@ -213,7 +213,7 @@ function close() {
       <div class="flex items-start gap-3 mb-4">
         <div class="flex-1 min-w-0">
           <span
-            class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 bg-brand-orange-dim text-brand-orange"
+            class="inline-block text-[12px] font-bold px-2 py-0.5 rounded-full mb-1.5 bg-brand-orange-dim text-brand-orange"
           >{{ t('notices.urgent.title') }}</span>
           <p
             v-if="activityTitle"
@@ -238,12 +238,12 @@ function close() {
         class="py-2"
         data-test="urgent-sent"
       >
-        <p class="text-[14px] font-semibold text-acid">
+        <p class="text-[15px] font-semibold text-olive">
           {{ t('notices.sentOk', { n: sent.recipients_count }, sent.recipients_count) }}
         </p>
         <button
           type="button"
-          class="mt-4 w-full min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink text-[13px] font-medium cursor-pointer"
+          class="mt-4 w-full min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink text-[15px] font-medium cursor-pointer"
           @click="close"
         >
           {{ t('notices.close') }}
@@ -267,12 +267,12 @@ function close() {
         class="text-center py-4"
         data-test="urgent-error"
       >
-        <p class="text-[12px] text-red-400">
+        <p class="text-[14px] text-failed-fg">
           {{ loadError }}
         </p>
         <button
           type="button"
-          class="min-h-[44px] mt-1 text-[12px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+          class="min-h-[44px] mt-1 text-[14px] font-semibold text-olive bg-transparent border-none cursor-pointer"
           data-test="urgent-retry"
           @click="loadPreview"
         >
@@ -283,7 +283,7 @@ function close() {
       <template v-else-if="preview">
         <p
           v-if="actionError"
-          class="text-[12px] text-red-400 mb-3"
+          class="text-[14px] text-failed-fg mb-3"
           role="alert"
           data-test="urgent-action-error"
         >
@@ -315,13 +315,13 @@ function close() {
         v-if="confirmClose"
         data-test="urgent-confirm-close"
       >
-        <p class="text-[13px] text-ink mb-2.5">
+        <p class="text-[15px] text-ink mb-2.5">
           {{ t('notices.urgent.closeConfirm') }}
         </p>
         <div class="flex gap-2">
           <button
             type="button"
-            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer hover:text-ink"
+            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[15px] font-medium cursor-pointer hover:text-ink"
             data-test="urgent-close-cancel"
             @click="confirmClose = false"
           >
@@ -329,7 +329,7 @@ function close() {
           </button>
           <button
             type="button"
-            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-red-500/15 text-red-400 border border-red-500/30 text-[13px] font-bold cursor-pointer"
+            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-failed-bg text-failed-fg border border-[#FCA5A5] text-[15px] font-bold cursor-pointer"
             data-test="urgent-close-anyway"
             @click="close"
           >
@@ -341,13 +341,13 @@ function close() {
         v-else-if="confirming"
         data-test="urgent-confirm"
       >
-        <p class="text-[13px] text-ink mb-2.5">
+        <p class="text-[15px] text-ink mb-2.5">
           {{ t('notices.confirmSend', { n: reachable, channel: channelName }, reachable) }}
         </p>
         <div class="flex gap-2">
           <button
             type="button"
-            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer hover:text-ink"
+            class="flex-1 min-h-[48px] lg:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[15px] font-medium cursor-pointer hover:text-ink"
             :disabled="sending"
             @click="confirming = false"
           >
@@ -355,7 +355,7 @@ function close() {
           </button>
           <button
             type="button"
-            class="flex-[2] min-h-[48px] lg:min-h-[38px] rounded-sm bg-brand-orange text-ink text-[13px] font-bold border-none cursor-pointer disabled:opacity-50"
+            class="flex-[2] min-h-[48px] lg:min-h-[38px] rounded-sm bg-brand-orange text-white text-[15px] font-bold border-none cursor-pointer disabled:opacity-50"
             :disabled="!canSend"
             data-test="urgent-confirm-yes"
             @click="send"
@@ -367,7 +367,7 @@ function close() {
       <button
         v-else
         type="button"
-        class="w-full min-h-[52px] lg:min-h-[38px] rounded-sm bg-brand-orange text-ink text-[14px] lg:text-[13px] font-bold border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full min-h-[52px] lg:min-h-[38px] rounded-sm bg-brand-orange text-white text-[15px] lg:text-[14px] font-bold border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         :disabled="!canSend"
         data-test="urgent-send"
         @click="confirming = true"

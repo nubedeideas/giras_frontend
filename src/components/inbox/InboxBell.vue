@@ -35,7 +35,7 @@ const inbox = useInboxStore()
     <span
       v-if="inbox.badgeLabel"
       data-testid="inbox-badge"
-      class="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-acid text-black text-[10px] font-bold leading-[17px] text-center"
+      class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-acid text-ink text-[12px] font-bold leading-[18px] text-center"
       aria-hidden="true"
     >{{ inbox.badgeLabel }}</span>
   </button>

@@ -13,16 +13,8 @@ function activePct() {
 </script>
 
 <template>
-  <div
-    class="relative overflow-hidden rounded-lg shadow-[0_10px_30px_var(--acid-glow)] p-5 mb-4"
-    style="background: linear-gradient(135deg, var(--acid-muted), var(--acid-light))"
-  >
-    <div
-      class="pointer-events-none absolute inset-0"
-      style="background: linear-gradient(120deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 40%)"
-    />
-
-    <p class="relative text-[9px] font-bold text-black/70 tracking-[1px] uppercase mb-4">
+  <div class="relative overflow-hidden rounded-lg bg-bg-3 border border-line shadow-sm p-5 mb-4">
+    <p class="relative text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-4">
       {{ t('admin.stats.overview') }}
     </p>
 
@@ -31,50 +23,50 @@ function activePct() {
         :percentage="activePct()"
         :center-value="`${activePct()}%`"
         :center-label="t('admin.stats.activeTours')"
-        color="#000000"
-        track-color="rgba(0,0,0,0.15)"
-        value-color="#000000"
-        label-color="rgba(0,0,0,0.65)"
+        color="var(--olive)"
+        track-color="var(--line-soft)"
+        value-color="var(--ink)"
+        label-color="var(--ink-2)"
       />
 
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
         <div>
-          <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
+          <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             {{ t('admin.stats.totalTours') }}
           </p>
-          <p class="text-[16px] font-bold text-black">
+          <p class="text-[16px] font-bold text-ink">
             {{ stats.total_tours.toLocaleString() }}
           </p>
         </div>
         <div>
-          <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
+          <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             {{ t('admin.stats.activeSubscriptions') }}
           </p>
-          <p class="text-[16px] font-bold text-black">
+          <p class="text-[16px] font-bold text-ink">
             {{ stats.active_subscriptions.toLocaleString() }}
           </p>
         </div>
         <div>
-          <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
+          <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             {{ t('admin.stats.notificationsSent') }}
           </p>
-          <p class="text-[16px] font-bold text-black">
+          <p class="text-[16px] font-bold text-ink">
             {{ stats.total_notifications_sent.toLocaleString() }}
           </p>
         </div>
         <div>
-          <p class="text-[9px] text-black/60 uppercase tracking-[0.5px]">
+          <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             {{ t('admin.stats.totalRevenue') }}
           </p>
-          <p class="text-[16px] font-bold text-black">
+          <p class="text-[16px] font-bold text-ink">
             {{ stats.total_revenue }}
           </p>
         </div>
         <div class="col-span-2 md:col-span-1">
-          <p class="text-[9px] text-black/60 uppercase tracking-[0.5px] mb-1">
+          <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px] mb-1">
             {{ t('admin.stats.byPlan') }}
           </p>
-          <p class="text-[11px] text-black/80">
+          <p class="text-[13px] text-ink">
             <span
               v-for="(n, code) in stats.subscriptions_by_plan"
               :key="code"

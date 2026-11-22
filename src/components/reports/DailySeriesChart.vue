@@ -80,19 +80,19 @@ const hoveredPoint = computed(() =>
 <template>
   <GlassBlock :title="t('reports.daily')">
     <!-- Leyenda / detalle del día bajo el cursor -->
-    <div class="flex items-center gap-3 flex-wrap text-[10px] text-ink-3 mb-3 min-h-[16px]">
+    <div class="flex items-center gap-3 flex-wrap text-[12px] text-ink-2 mb-3 min-h-[16px]">
       <template v-if="hoveredPoint">
-        <span class="font-semibold text-ink">{{ longDate(hoveredPoint.date) }}</span>
+        <span class="font-semibold text-ink font-time tnum">{{ longDate(hoveredPoint.date) }}</span>
         <span>{{ t('reports.sent') }} <strong class="text-ink">{{ hoveredPoint.sent }}</strong></span>
-        <span>{{ t('reports.delivered') }} <strong class="text-wa-green">{{ hoveredPoint.delivered }}</strong></span>
-        <span>{{ t('reports.confirmed') }} <strong class="text-acid">{{ hoveredPoint.confirmed }}</strong></span>
-        <span>{{ t('reports.failed') }} <strong class="text-red-400">{{ hoveredPoint.failed }}</strong></span>
+        <span>{{ t('reports.delivered') }} <strong class="text-wa-fg">{{ hoveredPoint.delivered }}</strong></span>
+        <span>{{ t('reports.confirmed') }} <strong class="text-olive">{{ hoveredPoint.confirmed }}</strong></span>
+        <span>{{ t('reports.failed') }} <strong class="text-failed-fg">{{ hoveredPoint.failed }}</strong></span>
       </template>
       <template v-else>
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-wa-green" />{{ t('reports.delivered') }}</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-brand-blue" />{{ t('reports.sent') }}</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-red-400" />{{ t('reports.failed') }}</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-[2px] bg-acid" />{{ t('reports.confirmed') }}</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-wa-fg" />{{ t('reports.delivered') }}</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-line-2" />{{ t('reports.sent') }}</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-sm bg-failed-fg" />{{ t('reports.failed') }}</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-[2px] bg-olive" />{{ t('reports.confirmed') }}</span>
       </template>
     </div>
 
@@ -112,15 +112,15 @@ const hoveredPoint = computed(() =>
           @mouseleave="hovered = null"
         >
           <div
-            class="w-full bg-red-400/80"
+            class="w-full bg-failed-fg"
             :style="{ height: h(p.failed) }"
           />
           <div
-            class="w-full bg-brand-blue opacity-70"
+            class="w-full bg-line-2"
             :style="{ height: h(sentOnly(p)) }"
           />
           <div
-            class="w-full bg-wa-green"
+            class="w-full bg-wa-fg"
             :style="{ height: h(p.delivered) }"
           />
         </div>
@@ -136,7 +136,7 @@ const hoveredPoint = computed(() =>
           v-if="series.length > 1"
           :points="confirmedPoints"
           fill="none"
-          stroke="var(--acid)"
+          stroke="var(--olive)"
           stroke-width="2"
           vector-effect="non-scaling-stroke"
           stroke-linejoin="round"
@@ -145,7 +145,7 @@ const hoveredPoint = computed(() =>
       <!-- Un solo día: un punto (en el SVG estirado un círculo saldría deformado) -->
       <span
         v-if="hasConfirmed && series.length === 1"
-        class="absolute left-1/2 w-2 h-2 -ml-1 -mt-1 rounded-full bg-acid pointer-events-none"
+        class="absolute left-1/2 w-2 h-2 -ml-1 -mt-1 rounded-full bg-olive pointer-events-none"
         :style="{ top: `${singlePointY}%` }"
       />
     </div>
@@ -158,11 +158,11 @@ const hoveredPoint = computed(() =>
       <div
         v-for="(p, i) in series"
         :key="p.date"
-        class="flex-1 min-w-0 relative h-3"
+        class="flex-1 min-w-0 relative h-4"
       >
         <span
           v-if="labelIdx.has(i)"
-          class="absolute top-0 text-[9px] text-ink-4 whitespace-nowrap"
+          class="absolute top-0 text-[12px] text-ink-2 font-time tnum whitespace-nowrap"
           :class="i === 0 ? 'left-0' : i === series.length - 1 ? 'right-0' : 'left-1/2 -translate-x-1/2'"
         >
           {{ shortDate(p.date) }}

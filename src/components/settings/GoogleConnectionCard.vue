@@ -101,7 +101,7 @@ onMounted(() => {
           />
         </svg>
       </div>
-      <h3 class="text-[13px] font-bold text-ink">
+      <h3 class="text-[15px] font-bold text-ink">
         {{ t('googleIntegration.card.title') }}
       </h3>
     </div>
@@ -109,7 +109,7 @@ onMounted(() => {
     <!-- Demo -->
     <p
       v-if="auth.isDemoMode"
-      class="text-[11px] text-ink-3"
+      class="text-[13px] text-ink-3"
     >
       {{ t('googleIntegration.card.demo') }}
     </p>
@@ -130,7 +130,7 @@ onMounted(() => {
       class="space-y-2"
       data-testid="google-card-error"
     >
-      <p class="text-[11px] text-red-400">
+      <p class="text-[13px] text-failed-fg">
         {{ googleStore.error }}
       </p>
       <BtnSecondary
@@ -143,7 +143,7 @@ onMounted(() => {
 
     <template v-else>
       <p
-        class="text-[12px] break-words"
+        class="text-[14px] break-words"
         :class="status?.connected ? 'text-ink-2' : 'text-ink-3'"
         data-testid="google-card-status"
       >
@@ -170,14 +170,14 @@ onMounted(() => {
         <li
           v-for="s in scopes"
           :key="s.key"
-          class="flex items-center gap-2 text-[11px]"
+          class="flex items-center gap-2 text-[13px]"
           :class="s.granted ? 'text-ink-2' : 'text-ink-4'"
           :data-testid="`google-scope-${s.key}`"
           :data-granted="String(s.granted)"
         >
           <span
             class="w-4 text-center font-bold"
-            :class="s.granted ? 'text-acid' : 'text-ink-4'"
+            :class="s.granted ? 'text-olive' : 'text-ink-4'"
             aria-hidden="true"
           >{{ s.granted ? '✓' : '–' }}</span>
           {{ t(`googleIntegration.scopes.${s.key}`) }}
@@ -203,7 +203,7 @@ onMounted(() => {
       >
         <button
           type="button"
-          class="text-[11px] font-semibold text-ink-3 hover:text-red-400 bg-transparent border-none cursor-pointer p-0 transition-colors"
+          class="text-[13px] font-semibold text-ink-3 hover:text-failed-fg bg-transparent border-none cursor-pointer p-0 transition-colors"
           data-testid="google-disconnect"
           @click="askDisconnect"
         >
@@ -213,8 +213,8 @@ onMounted(() => {
 
       <p
         v-if="feedback"
-        class="text-[11px]"
-        :class="feedback.kind === 'ok' ? 'text-acid' : 'text-red-400'"
+        class="text-[13px]"
+        :class="feedback.kind === 'ok' ? 'text-olive' : 'text-failed-fg'"
         data-testid="google-disconnect-feedback"
       >
         {{ feedback.text }}
@@ -225,11 +225,11 @@ onMounted(() => {
       :show="confirmOpen"
       @close="confirmOpen = false"
     >
-      <p class="text-[14px] font-bold text-ink mb-2">
+      <p class="text-[15px] font-bold text-ink mb-2">
         {{ t('googleIntegration.disconnect.confirmTitle') }}
       </p>
       <p
-        class="text-[12px] text-ink-2 leading-relaxed mb-5"
+        class="text-[14px] text-ink-2 leading-relaxed mb-5"
         data-testid="google-disconnect-confirm-body"
       >
         {{ t('googleIntegration.disconnect.confirmBody') }}

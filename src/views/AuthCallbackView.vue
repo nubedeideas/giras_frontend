@@ -129,7 +129,7 @@ onMounted(async () => {
       <!-- Logo -->
       <div
         class="w-12 h-12 rounded-[16px] bg-acid flex items-center justify-center mx-auto mb-5"
-        :class="errorMsg ? 'bg-red-500/20' : 'bg-acid'"
+        :class="errorMsg ? 'bg-failed-bg' : 'bg-acid'"
       >
         <svg
           v-if="!errorMsg"
@@ -155,7 +155,7 @@ onMounted(async () => {
           height="22"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#f87171"
+          stroke="var(--failed-fg)"
           stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -181,24 +181,24 @@ onMounted(async () => {
       </div>
 
       <template v-if="!errorMsg">
-        <p class="text-[14px] font-semibold text-ink mb-1">
+        <p class="text-[15px] font-semibold text-ink mb-1">
           {{ title }}
         </p>
-        <p class="text-[12px] text-ink-3">
+        <p class="text-[14px] text-ink-3">
           {{ t('googleAuth.callback.wait') }}
         </p>
       </template>
       <template v-else>
-        <p class="text-[14px] font-semibold text-red-400 mb-1">
+        <p class="text-[15px] font-semibold text-failed-fg mb-1">
           {{ t('googleAuth.callback.errorTitle') }}
         </p>
         <p
-          class="text-[12px] text-ink-3 max-w-[280px]"
+          class="text-[14px] text-ink-3 max-w-[280px]"
           data-testid="callback-error"
         >
           {{ errorMsg }}
         </p>
-        <p class="text-[11px] text-ink-4 mt-3">
+        <p class="text-[13px] text-ink-4 mt-3">
           {{ t('googleAuth.callback.redirecting') }}
         </p>
       </template>

@@ -10,6 +10,7 @@ import RuleListItem from './RuleListItem.vue'
 import RulePresetsPanel from './RulePresetsPanel.vue'
 import RulePreviewPanel from './RulePreviewPanel.vue'
 import { useToursStore } from '@/stores/tours'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import {
   RuleApiError,
   useNotificationRules,
@@ -179,7 +180,11 @@ function openDeepLinkedRule() {
   if (rule?.is_editable) openEdit(rule)
 }
 
+// Una regla legada puede sustituir los recordatorios por defecto ("notificable" en calendario).
+const sharedCatalog = useReminderCatalogStore()
+
 function upsert(rule: Rule) {
+  void sharedCatalog.invalidate()
   const idx = rules.value.findIndex((r) => r.uuid === rule.uuid)
   if (idx >= 0) rules.value.splice(idx, 1, rule)
   else rules.value.push(rule)
@@ -240,6 +245,7 @@ async function onDelete(rule: Rule) {
   try {
     await api.deleteRule(rule.uuid)
     rules.value = rules.value.filter((r) => r.uuid !== rule.uuid)
+    void sharedCatalog.invalidate()
     reloadPresets()
   } catch (e) {
     listError.value = errorText(e, 'rules.list.deleteError')
@@ -309,7 +315,7 @@ const sortedRules = computed(() =>
       class="py-6 text-center"
       data-test="rules-tours-error"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ t('rules.toursError') }}
       </p>
       <BtnSecondary
@@ -324,7 +330,7 @@ const sortedRules = computed(() =>
     <!-- Sin giras administrables -->
     <div
       v-else-if="!adminTours.length"
-      class="py-6 text-center text-[12px] text-ink-3"
+      class="py-6 text-center text-[14px] text-ink-3"
       data-test="rules-no-admin"
     >
       {{ t('rules.empty.noAdminTours') }}
@@ -334,12 +340,12 @@ const sortedRules = computed(() =>
       <!-- Cabecera: gira + nueva regla -->
       <div class="flex flex-col sm:flex-row sm:items-end gap-2 mb-4">
         <label class="flex-1 min-w-0">
-          <span class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase">{{
+          <span class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">{{
             t('rules.tourSelector')
           }}</span>
           <select
             :value="selectedTourUuid"
-            class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+            class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
             data-test="rules-tour-select"
             @change="selectTour(($event.target as HTMLSelectElement).value)"
           >
@@ -364,7 +370,7 @@ const sortedRules = computed(() =>
       </div>
       <p
         v-if="limitReached"
-        class="text-[11px] text-brand-orange -mt-2 mb-3"
+        class="text-[13px] text-brand-orange -mt-2 mb-3"
         data-test="rules-limit"
       >
         {{ t('rules.limitReached', { max: maxRules }) }}
@@ -376,7 +382,7 @@ const sortedRules = computed(() =>
         class="py-6 text-center"
         data-test="rules-no-access"
       >
-        <p class="text-[12px] text-ink-3 mb-2">
+        <p class="text-[14px] text-ink-3 mb-2">
           {{ t('rules.empty.noAdminTours') }}
         </p>
         <BtnSecondary
@@ -407,7 +413,7 @@ const sortedRules = computed(() =>
         class="py-6 text-center"
         data-test="rules-error"
       >
-        <p class="text-[12px] text-red-400 mb-2">
+        <p class="text-[14px] text-failed-fg mb-2">
           {{ loadError }}
         </p>
         <BtnSecondary
@@ -430,7 +436,7 @@ const sortedRules = computed(() =>
 
         <p
           v-if="listError"
-          class="text-[11px] text-red-400 mb-2"
+          class="text-[13px] text-failed-fg mb-2"
           data-test="rules-list-error"
         >
           {{ listError }}
@@ -438,7 +444,7 @@ const sortedRules = computed(() =>
 
         <div
           v-if="!rules.length"
-          class="py-6 text-center text-[12px] text-ink-3"
+          class="py-6 text-center text-[14px] text-ink-3"
           data-test="rules-empty"
         >
           {{ t('rules.empty.noRules') }}
@@ -489,7 +495,7 @@ const sortedRules = computed(() =>
         v-if="previewRule"
         class="space-y-3"
       >
-        <p class="text-[13px] font-bold text-ink">
+        <p class="text-[15px] font-bold text-ink">
           {{ previewRule.name }}
         </p>
         <RulePreviewPanel

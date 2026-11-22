@@ -135,8 +135,8 @@ onBeforeUnmount(() => {
               :key="f.key"
               type="button"
               :data-testid="`inbox-filter-${f.key}`"
-              class="px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer border-none"
-              :class="inbox.filter === f.key ? 'bg-glass-active text-acid' : 'bg-glass text-ink-2 hover:text-ink'"
+              class="px-3.5 py-2 rounded-full text-[14px] font-medium transition-colors cursor-pointer border-none"
+              :class="inbox.filter === f.key ? 'bg-glass-active text-olive' : 'bg-glass text-ink-2 hover:text-ink'"
               :aria-pressed="inbox.filter === f.key"
               @click="selectFilter(f.key)"
             >
@@ -146,8 +146,8 @@ onBeforeUnmount(() => {
           <button
             type="button"
             data-testid="inbox-mark-all"
-            class="text-[12px] font-medium bg-transparent border-none px-1 py-1 transition-colors"
-            :class="inbox.unreadCount === 0 ? 'text-ink-4 cursor-default' : 'text-acid cursor-pointer hover:underline'"
+            class="text-[14px] font-medium bg-transparent border-none px-1 py-1 transition-colors"
+            :class="inbox.unreadCount === 0 ? 'text-ink-4 cursor-default' : 'text-olive cursor-pointer hover:underline'"
             :disabled="inbox.unreadCount === 0"
             @click="inbox.markAllRead()"
           >
@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
           v-if="inbox.actionError"
           data-testid="inbox-action-error"
           role="alert"
-          class="px-4 pt-2.5 text-[12px] text-brand-orange"
+          class="px-4 pt-2.5 text-[14px] text-brand-orange"
         >
           {{ inbox.actionError }}
         </p>
@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
             data-testid="inbox-error"
             class="flex flex-col items-center gap-3 py-10 text-center"
           >
-            <p class="text-[12px] text-ink-2">
+            <p class="text-[14px] text-ink-2">
               {{ t('inbox.errors.load') }}
             </p>
             <BtnSecondary
@@ -205,7 +205,7 @@ onBeforeUnmount(() => {
           <p
             v-else-if="inbox.items.length === 0"
             data-testid="inbox-empty"
-            class="py-10 text-center text-[12px] text-ink-4"
+            class="py-10 text-center text-[14px] text-ink-4"
           >
             {{ inbox.filter === 'unread' ? t('inbox.empty.unread') : t('inbox.empty.all') }}
           </p>
@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
           <template v-else>
             <div
               v-if="inbox.error"
-              class="flex items-center justify-between gap-2 mb-2 px-1 text-[12px] text-brand-orange"
+              class="flex items-center justify-between gap-2 mb-2 px-1 text-[14px] text-brand-orange"
             >
               <span>{{ t('inbox.errors.load') }}</span>
               <BtnSecondary
@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
             <p
               v-if="inbox.loadMoreError"
               data-testid="inbox-load-more-error"
-              class="mt-2 px-1 text-[12px] text-brand-orange"
+              class="mt-2 px-1 text-[14px] text-brand-orange"
             >
               {{ t('inbox.errors.load') }}
             </p>

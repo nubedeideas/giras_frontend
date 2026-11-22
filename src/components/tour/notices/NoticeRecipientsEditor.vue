@@ -202,7 +202,7 @@ onUnmounted(() => {
   <div data-test="notice-recipients">
     <p
       v-if="people.length === 0"
-      class="text-[11px] text-ink-4 py-1"
+      class="text-[13px] text-ink-4 py-1"
       data-test="notice-recipients-empty"
     >
       {{ t('notices.recipients.empty') }}
@@ -218,12 +218,12 @@ onUnmounted(() => {
         data-test="notice-person"
       >
         <div class="flex-1 min-w-0">
-          <p class="text-[12px] text-ink truncate">
+          <p class="text-[14px] text-ink truncate">
             {{ p.name }}
           </p>
           <p
             v-if="!reachable(p)"
-            class="text-[10px] text-brand-orange truncate"
+            class="text-[12px] text-brand-orange truncate"
             data-test="notice-person-unreachable"
           >
             {{ unreachableLabel() }}
@@ -232,7 +232,7 @@ onUnmounted(() => {
         <button
           v-if="p.contact_uuid"
           type="button"
-          class="flex-shrink-0 min-h-[44px] min-w-[44px] lg:min-h-[28px] lg:min-w-[28px] flex items-center justify-center rounded-sm text-ink-3 hover:text-red-400 hover:bg-glass-hover bg-transparent border-none cursor-pointer disabled:opacity-40"
+          class="flex-shrink-0 min-h-[44px] min-w-[44px] lg:min-h-[28px] lg:min-w-[28px] flex items-center justify-center rounded-sm text-ink-3 hover:text-failed-fg hover:bg-glass-hover bg-transparent border-none cursor-pointer disabled:opacity-40"
           :aria-label="t('notices.recipients.remove', { name: p.name })"
           :title="t('notices.recipients.remove', { name: p.name })"
           :disabled="disabled"
@@ -269,14 +269,14 @@ onUnmounted(() => {
       v-if="groupChips.length"
       class="mt-2.5"
     >
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
         {{ t('notices.recipients.addedGroups') }}
       </p>
       <div class="flex flex-wrap gap-1.5">
         <span
           v-for="g in groupChips"
           :key="g.uuid"
-          class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-acid-dim text-acid text-[11px]"
+          class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-acid-dim text-olive text-[13px]"
           data-test="notice-group-chip"
         >
           {{ g.name }}
@@ -297,20 +297,20 @@ onUnmounted(() => {
       v-if="excludedChips.length"
       class="mt-2.5"
     >
-      <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1">
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1">
         {{ t('notices.recipients.removed') }}
       </p>
       <div class="flex flex-wrap gap-1.5">
         <span
           v-for="c in excludedChips"
           :key="c.uuid"
-          class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-glass-2 text-ink-3 text-[11px]"
+          class="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-glass-2 text-ink-3 text-[13px]"
           data-test="notice-excluded-chip"
         >
           <span class="line-through">{{ c.name }}</span>
           <button
             type="button"
-            class="min-h-[32px] lg:min-h-0 px-1.5 rounded-full bg-transparent border-none text-acid text-[10px] font-semibold cursor-pointer hover:bg-glass-hover"
+            class="min-h-[32px] lg:min-h-0 px-1.5 rounded-full bg-transparent border-none text-olive text-[12px] font-semibold cursor-pointer hover:bg-glass-hover"
             :disabled="disabled"
             data-test="notice-excluded-restore"
             @click="restore(c.uuid)"
@@ -323,8 +323,8 @@ onUnmounted(() => {
     <div class="flex flex-wrap gap-1.5 mt-2.5">
       <button
         type="button"
-        class="flex-1 lg:flex-none min-h-[44px] lg:min-h-0 px-3 py-1.5 rounded-sm border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer"
-        :class="picker === 'group' ? 'text-ink border-line-2' : ''"
+        class="flex-1 lg:flex-none min-h-[44px] lg:min-h-0 px-3 py-1.5 rounded-sm border border-dashed text-[13px] font-medium hover:border-line-2 bg-transparent cursor-pointer"
+        :class="picker === 'group' ? 'text-ink border-line-2' : 'text-ink-3 border-line hover:text-ink'"
         :disabled="disabled"
         data-test="notice-add-group"
         @click="openGroupPicker"
@@ -333,8 +333,8 @@ onUnmounted(() => {
       </button>
       <button
         type="button"
-        class="flex-1 lg:flex-none min-h-[44px] lg:min-h-0 px-3 py-1.5 rounded-sm border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer"
-        :class="picker === 'contact' ? 'text-ink border-line-2' : ''"
+        class="flex-1 lg:flex-none min-h-[44px] lg:min-h-0 px-3 py-1.5 rounded-sm border border-dashed text-[13px] font-medium hover:border-line-2 bg-transparent cursor-pointer"
+        :class="picker === 'contact' ? 'text-ink border-line-2' : 'text-ink-3 border-line hover:text-ink'"
         :disabled="disabled"
         data-test="notice-add-contact"
         @click="openContactPicker"
@@ -350,19 +350,19 @@ onUnmounted(() => {
     >
       <p
         v-if="groupsLoading"
-        class="text-[11px] text-ink-4 py-1"
+        class="text-[13px] text-ink-4 py-1"
       >
         {{ t('common.loading') }}
       </p>
       <p
         v-else-if="groupsError"
-        class="text-[11px] text-red-400 py-1"
+        class="text-[13px] text-failed-fg py-1"
       >
         {{ groupsError }}
       </p>
       <p
         v-else-if="availableGroups.length === 0"
-        class="text-[11px] text-ink-4 py-1"
+        class="text-[13px] text-ink-4 py-1"
       >
         {{ t('recipients.noGroups') }}
       </p>
@@ -371,13 +371,13 @@ onUnmounted(() => {
         v-else
         :key="g.uuid"
         type="button"
-        class="w-full flex items-center justify-between gap-2 min-h-[44px] lg:min-h-0 px-2 py-1.5 rounded-sm text-left text-[12px] text-ink bg-transparent border-none hover:bg-glass-hover cursor-pointer"
+        class="w-full flex items-center justify-between gap-2 min-h-[44px] lg:min-h-0 px-2 py-1.5 rounded-sm text-left text-[14px] text-ink bg-transparent border-none hover:bg-glass-hover cursor-pointer"
         :disabled="disabled"
         :data-test="`notice-group-option-${g.uuid}`"
         @click="addGroup(g)"
       >
         <span class="truncate">{{ g.name }}</span>
-        <span class="text-[10px] text-ink-4 flex-shrink-0">{{
+        <span class="text-[12px] text-ink-4 flex-shrink-0">{{
           t('reminders.tour.contacts', { n: g.contact_count }, g.contact_count)
         }}</span>
       </button>
@@ -392,30 +392,30 @@ onUnmounted(() => {
         v-model="search"
         type="search"
         :placeholder="t('recipients.searchContact')"
-        class="w-full h-11 lg:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none focus:border-line-acid"
+        class="w-full h-11 lg:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none focus:border-line-acid"
         data-test="notice-contact-search"
       >
       <p
         v-if="search.trim().length < 2"
-        class="text-[10px] text-ink-4 mt-1.5"
+        class="text-[12px] text-ink-4 mt-1.5"
       >
         {{ t('recipients.searchHint') }}
       </p>
       <p
         v-else-if="contactsLoading"
-        class="text-[11px] text-ink-4 mt-1.5"
+        class="text-[13px] text-ink-4 mt-1.5"
       >
         {{ t('common.loading') }}
       </p>
       <p
         v-else-if="contactsError"
-        class="text-[11px] text-red-400 mt-1.5"
+        class="text-[13px] text-failed-fg mt-1.5"
       >
         {{ contactsError }}
       </p>
       <p
         v-else-if="availableContacts.length === 0"
-        class="text-[11px] text-ink-4 mt-1.5"
+        class="text-[13px] text-ink-4 mt-1.5"
       >
         {{ t('recipients.noContacts') }}
       </p>
@@ -432,10 +432,10 @@ onUnmounted(() => {
           :data-test="`notice-contact-option-${c.uuid}`"
           @click="addContact(c)"
         >
-          <span class="text-[12px] text-ink truncate max-w-full">{{ c.full_name }}</span>
+          <span class="text-[14px] text-ink truncate max-w-full">{{ c.full_name }}</span>
           <span
             v-if="c.role || c.company_name"
-            class="text-[10px] text-ink-4 truncate max-w-full"
+            class="text-[12px] text-ink-4 truncate max-w-full"
           >{{ c.role?.name ?? c.company_name }}</span>
         </button>
       </div>

@@ -28,17 +28,8 @@ const tracksDelivery = computed(
 </script>
 
 <template>
-  <div
-    class="relative overflow-hidden rounded-lg shadow-[0_10px_30px_var(--acid-glow)] p-5"
-    style="background: linear-gradient(135deg, var(--acid-muted), var(--acid-light))"
-  >
-    <!-- Glossy diagonal sheen -->
-    <div
-      class="pointer-events-none absolute inset-0"
-      style="background: linear-gradient(120deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 40%)"
-    />
-
-    <p class="relative text-[9px] font-bold text-black/70 tracking-[1px] uppercase mb-4">
+  <div class="relative overflow-hidden rounded-lg bg-bg-3 border border-line shadow-sm p-5">
+    <p class="relative text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-4">
       {{ title }}
     </p>
 
@@ -47,50 +38,50 @@ const tracksDelivery = computed(
         :percentage="readRate"
         :center-value="readRateText"
         :center-label="t('reports.readRate')"
-        color="#000000"
-        track-color="rgba(0,0,0,0.15)"
-        value-color="#000000"
-        label-color="rgba(0,0,0,0.65)"
+        color="var(--olive)"
+        track-color="var(--line-soft)"
+        value-color="var(--ink)"
+        label-color="var(--ink-2)"
       />
 
       <div class="mt-5 space-y-3">
-        <div class="flex items-center justify-between text-[12px]">
-          <span class="text-black/65">{{ t('reports.sent') }}</span>
-          <span class="font-semibold text-black">{{ totals.sent.toLocaleString() }}</span>
+        <div class="flex items-center justify-between text-[14px]">
+          <span class="text-ink-2">{{ t('reports.sent') }}</span>
+          <span class="font-semibold text-ink">{{ totals.sent.toLocaleString() }}</span>
         </div>
         <div
-          class="flex items-center justify-between text-[12px]"
+          class="flex items-center justify-between text-[14px]"
           :title="tracksDelivery ? undefined : t('reports.notTracked')"
         >
-          <span class="text-black/65">{{ t('reports.deliveryRate') }}</span>
-          <span class="font-semibold text-black">{{ deliveryRateText }}</span>
+          <span class="text-ink-2">{{ t('reports.deliveryRate') }}</span>
+          <span class="font-semibold text-ink">{{ deliveryRateText }}</span>
         </div>
         <div
-          class="flex items-center justify-between text-[12px]"
+          class="flex items-center justify-between text-[14px]"
           :title="t('reports.confirmationRateHint')"
         >
-          <span class="text-black/65">{{ t('reports.confirmed') }}</span>
-          <span class="font-semibold text-black">
+          <span class="text-ink-2">{{ t('reports.confirmed') }}</span>
+          <span class="font-semibold text-ink">
             {{ totals.confirmed.toLocaleString() }}
-            <span class="text-black/60 font-medium">· {{ pct(rates.confirmation_rate) }}</span>
+            <span class="text-ink-2 font-medium">· {{ pct(rates.confirmation_rate) }}</span>
           </span>
         </div>
-        <div class="flex items-center justify-between text-[12px]">
-          <span class="text-black/65">{{ t('reports.failed') }}</span>
-          <span class="font-semibold text-black">{{ totals.failed.toLocaleString() }}</span>
+        <div class="flex items-center justify-between text-[14px]">
+          <span class="text-ink-2">{{ t('reports.failed') }}</span>
+          <span class="font-semibold text-ink">{{ totals.failed.toLocaleString() }}</span>
         </div>
-        <div class="flex items-center justify-between text-[12px]">
-          <span class="text-black/65">{{ t('reports.pending') }}</span>
-          <span class="font-semibold text-black">{{ totals.pending.toLocaleString() }}</span>
+        <div class="flex items-center justify-between text-[14px]">
+          <span class="text-ink-2">{{ t('reports.pending') }}</span>
+          <span class="font-semibold text-ink">{{ totals.pending.toLocaleString() }}</span>
         </div>
-        <div class="flex items-center justify-between text-[12px] pt-2 border-t border-black/10">
-          <span class="text-black/65">{{ t('reports.notifications') }}</span>
-          <span class="font-semibold text-black">{{ notificationsTotal.toLocaleString() }}</span>
+        <div class="flex items-center justify-between text-[14px] pt-2 border-t border-line">
+          <span class="text-ink-2">{{ t('reports.notifications') }}</span>
+          <span class="font-semibold text-ink">{{ notificationsTotal.toLocaleString() }}</span>
         </div>
         <p
           v-if="crewPortal && crewPortal.links > 0"
           data-testid="crew-portal-summary"
-          class="text-[11px] text-black/65 leading-snug"
+          class="text-[13px] text-ink-2 leading-snug"
         >
           {{
             t('reports.crewPortal', {

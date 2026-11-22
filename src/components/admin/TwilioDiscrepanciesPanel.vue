@@ -233,13 +233,13 @@ const tourChipName = computed(() => {
 const STATUS_VARIANT = { open: 'o', acknowledged: 'b', resolved: 'g' } as const
 
 const selectClass =
-  'bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none cursor-pointer max-w-full'
+  'bg-glass border border-line rounded-sm px-3 py-1.5 text-[13px] text-ink-2 outline-none cursor-pointer max-w-full'
 </script>
 
 <template>
   <div class="bg-bg-3 border border-line rounded-lg p-[14px_16px]">
     <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
-      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase">
+      <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
         {{ t('admin.costs.discrepancies.title') }}
       </p>
       <div class="flex items-center gap-2 flex-wrap">
@@ -280,7 +280,7 @@ const selectClass =
     <div
       v-if="tour"
       data-testid="tour-filter"
-      class="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-full bg-glass-active border border-line-acid text-[11px] text-ink-2"
+      class="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-full bg-glass-active border border-line-acid text-[13px] text-ink-2"
     >
       {{ t('admin.costs.discrepancies.tourFilter', { name: tourChipName }) }}
       <button
@@ -297,7 +297,7 @@ const selectClass =
     <p
       v-if="actionError"
       data-testid="action-error"
-      class="text-[11px] text-red-400 mb-2"
+      class="text-[13px] text-failed-fg mb-2"
       role="alert"
     >
       {{ actionError }}
@@ -318,7 +318,7 @@ const selectClass =
       v-else-if="loadError"
       class="flex flex-col items-center gap-2 py-4 text-center"
     >
-      <p class="text-[12px] text-red-400">
+      <p class="text-[14px] text-failed-fg">
         {{ loadError }}
       </p>
       <BtnSecondary @click="load">
@@ -329,7 +329,7 @@ const selectClass =
     <p
       v-else-if="!items.length"
       data-testid="discrepancies-empty"
-      class="text-[12px] text-ink-4 text-center py-4"
+      class="text-[14px] text-ink-4 text-center py-4"
     >
       {{ t('admin.costs.discrepancies.empty') }}
     </p>
@@ -348,7 +348,7 @@ const selectClass =
         <div class="flex items-start justify-between gap-2 flex-wrap">
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <p class="text-[12px] font-semibold text-ink">
+              <p class="text-[14px] font-semibold text-ink">
                 {{ kindLabel(item.kind) }}
               </p>
               <Pill
@@ -358,8 +358,8 @@ const selectClass =
                 {{ t(`admin.costs.discrepancies.statusOne.${item.status}`) }}
               </Pill>
             </div>
-            <p class="text-[10px] text-ink-4 mt-0.5">
-              {{ formatDate(item.last_seen_at) }} ·
+            <p class="text-[12px] text-ink-4 mt-0.5">
+              <span class="font-time tnum">{{ formatDate(item.last_seen_at) }}</span> ·
               {{ item.tour?.name ?? t('admin.costs.discrepancies.noTour') }}
               <template v-if="item.sid">
                 ·
@@ -374,7 +374,7 @@ const selectClass =
           <button
             v-if="item.status === 'open'"
             data-testid="acknowledge"
-            class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors hover:bg-glass-hover disabled:opacity-40"
+            class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer transition-colors hover:bg-glass-hover disabled:opacity-40"
             :disabled="pending.has(item.uuid)"
             @click="acknowledge(item)"
           >
@@ -384,7 +384,7 @@ const selectClass =
         <dl
           v-if="details(item).length"
           data-testid="discrepancy-details"
-          class="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10px]"
+          class="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[12px]"
         >
           <div
             v-for="d in details(item)"

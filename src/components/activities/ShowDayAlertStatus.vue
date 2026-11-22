@@ -52,10 +52,10 @@ const chipClass = computed(() => {
       return 'bg-glass-2 text-ink-2'
     case 'sent':
       return s.total > 0 && s.confirmed >= s.total
-        ? 'bg-acid-dim text-acid'
+        ? 'bg-acid-dim text-olive'
         : 'bg-glass-2 text-ink-2'
     case 'failed':
-      return 'bg-red-500/10 text-red-400'
+      return 'bg-failed-bg text-failed-fg'
     default:
       return 'bg-glass text-ink-4'
   }
@@ -93,7 +93,7 @@ const chipClass = computed(() => {
         />
       </svg>
       <span
-        class="text-[11px] font-semibold px-2 py-0.5 rounded-full leading-snug break-words min-w-0"
+        class="text-[13px] font-semibold px-2 py-0.5 rounded-full leading-snug break-words min-w-0"
         :class="chipClass"
       >
         {{ label }}

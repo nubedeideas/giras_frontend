@@ -23,9 +23,9 @@ function confirmationRate(row: ReportsTypeRow): string {
 <template>
   <GlassBlock :title="t('reports.byType')">
     <div class="overflow-x-auto -mx-1">
-      <table class="w-full text-[11px] min-w-[320px]">
+      <table class="w-full text-[13px] min-w-[320px]">
         <thead>
-          <tr class="text-[9px] text-ink-3 uppercase tracking-[0.5px]">
+          <tr class="text-[11px] text-ink-2 uppercase tracking-[0.5px]">
             <th class="text-left font-semibold py-1 px-1">
               {{ t('reports.type') }}
             </th>
@@ -57,7 +57,7 @@ function confirmationRate(row: ReportsTypeRow): string {
             <td class="py-1.5 px-1 text-right text-ink-2">
               {{ row.sent }}
             </td>
-            <td class="py-1.5 px-1 text-right font-semibold text-acid">
+            <td class="py-1.5 px-1 text-right font-semibold text-olive">
               {{ confirmationRate(row) }}
             </td>
           </tr>

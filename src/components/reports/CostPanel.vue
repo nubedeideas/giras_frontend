@@ -134,7 +134,7 @@ const updatedLabel = computed(() => {
         data-testid="cost-error"
         class="flex flex-col items-center gap-2 text-center py-1"
       >
-        <p class="text-[12px] text-red-400 whitespace-pre-line">
+        <p class="text-[14px] text-failed-fg whitespace-pre-line">
           {{ error }}
         </p>
         <BtnSecondary @click="load">
@@ -155,7 +155,7 @@ const updatedLabel = computed(() => {
         <p
           v-if="isEmpty"
           data-testid="cost-empty"
-          class="text-[12px] text-ink-3 text-center py-2"
+          class="text-[14px] text-ink-3 text-center py-2"
         >
           {{ t('reports.costs.empty') }}
         </p>
@@ -169,20 +169,20 @@ const updatedLabel = computed(() => {
           </p>
           <p
             data-testid="cost-messages"
-            class="text-[11px] text-ink-3 mt-0.5"
+            class="text-[13px] text-ink-3 mt-0.5"
           >
             {{ messagesLine }}
           </p>
           <p
             data-testid="cost-email"
-            class="text-[11px] text-ink-4 mt-0.5"
+            class="text-[13px] text-ink-4 mt-0.5"
           >
             {{ t('reports.costs.email', { n: report.totals.email_messages }, report.totals.email_messages) }}
           </p>
           <p
             v-if="report.totals.pending_price_messages > 0"
             data-testid="cost-pending"
-            class="text-[11px] text-brand-orange mt-1"
+            class="text-[13px] text-brand-orange mt-1"
           >
             {{
               t(
@@ -195,7 +195,7 @@ const updatedLabel = computed(() => {
 
           <!-- Por mes -->
           <template v-if="report.by_month.length">
-            <p class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] mt-4 mb-2">
+            <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mt-4 mb-2">
               {{ t('reports.costs.byMonth') }}
             </p>
             <div class="flex flex-col gap-2">
@@ -204,7 +204,7 @@ const updatedLabel = computed(() => {
                 :key="m.month"
                 data-testid="cost-month"
               >
-                <div class="flex items-center justify-between gap-2 text-[11px] mb-1">
+                <div class="flex items-center justify-between gap-2 text-[13px] mb-1">
                   <span class="text-ink-2 capitalize">{{ monthLabel(m.month) }}</span>
                   <span class="text-ink font-semibold">{{ money(m.amount) }}</span>
                 </div>
@@ -220,7 +220,7 @@ const updatedLabel = computed(() => {
 
           <!-- Por tipo (top 5) -->
           <template v-if="topTypes.length">
-            <p class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] mt-4 mb-2">
+            <p class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] mt-4 mb-2">
               {{ t('reports.costs.byType') }}
             </p>
             <div class="flex flex-col gap-1">
@@ -228,7 +228,7 @@ const updatedLabel = computed(() => {
                 v-for="row in topTypes"
                 :key="row.notification_type ?? '__none__'"
                 data-testid="cost-type"
-                class="flex items-start justify-between gap-3 text-[11px]"
+                class="flex items-start justify-between gap-3 text-[13px]"
               >
                 <span class="text-ink-2 break-words min-w-0">{{ typeLabel(row.notification_type) }}</span>
                 <span class="font-semibold text-ink flex-shrink-0">{{ money(row.amount) }}</span>
@@ -241,14 +241,14 @@ const updatedLabel = computed(() => {
         <div class="mt-4 pt-3 border-t border-line flex flex-col gap-1">
           <p
             data-testid="cost-updated"
-            class="text-[10px] text-ink-4"
+            class="text-[12px] text-ink-4"
           >
             {{ updatedLabel }}
           </p>
           <p
             v-if="report.last_sync_status === 'failed'"
             data-testid="cost-sync-failed"
-            class="text-[10px] text-red-400"
+            class="text-[12px] text-failed-fg"
           >
             {{ t('reports.costs.syncFailed') }}
           </p>
@@ -256,7 +256,7 @@ const updatedLabel = computed(() => {
             v-if="typeof report.open_discrepancies === 'number' && report.open_discrepancies > 0"
             data-testid="cost-discrepancies"
             :to="{ path: '/admin', query: { tab: 'costs', tour: props.tour } }"
-            class="text-[11px] font-semibold text-acid no-underline hover:underline"
+            class="text-[13px] font-semibold text-olive no-underline hover:underline"
           >
             {{ t('reports.costs.discrepancies', { n: report.open_discrepancies }, report.open_discrepancies) }}
           </RouterLink>

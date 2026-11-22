@@ -55,7 +55,7 @@ const dashOffset = computed(() => CIRCUMFERENCE * (1 - clamped.value / 100))
     </svg>
     <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-4 text-center">
       <p
-        class="text-[10px]"
+        class="text-[12px]"
         :style="{ color: labelColor }"
       >
         {{ centerLabel }}

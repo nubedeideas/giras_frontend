@@ -7,6 +7,7 @@ import {
   type ReminderTypeSetting,
 } from '@/composables/useReminderSettings'
 import { useToursStore } from '@/stores/tours'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import ReminderEstimateCard from './ReminderEstimateCard.vue'
 import TourReminderTypeRow from './TourReminderTypeRow.vue'
 import ManageGroupContactsModal from '@/components/modals/ManageGroupContactsModal.vue'
@@ -24,6 +25,8 @@ const props = defineProps<{ tourUuid: string }>()
 const { t } = useI18n()
 const api = useReminderSettings()
 const toursStore = useToursStore()
+// Catálogo compartido (chips notificables del calendario/dashboard): se invalida al guardar.
+const sharedCatalog = useReminderCatalogStore()
 
 const catalog = ref<ReminderCatalog | null>(null)
 const loading = ref(false)
@@ -116,12 +119,14 @@ function onSaved(updated: ReminderTypeSetting) {
   )
   if (idx >= 0) catalog.value.types[idx] = updated
   void refreshQuietly()
+  void sharedCatalog.invalidate(props.tourUuid)
 }
 
 function onTeamSaved(count: number) {
   showManageTeam.value = false
   if (catalog.value?.default_group) catalog.value.default_group.contact_count = count
   void refreshQuietly({ mergeTypes: true })
+  void sharedCatalog.invalidate(props.tourUuid)
 }
 
 /**
@@ -146,6 +151,7 @@ function onRoleGroupsApplied(result: RoleGroupsApplyResult, applyDestinations: b
     })
     .filter(Boolean)
   void refreshQuietly({ replaceTypes: true })
+  void sharedCatalog.invalidate(props.tourUuid)
   void aiReview.value?.reload()
 }
 
@@ -173,14 +179,14 @@ watch(() => props.tourUuid, load, { immediate: true })
         <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
           {{ t('reminders.tour.title') }}
         </h2>
-        <p class="text-[12px] text-ink-3 mt-1">
+        <p class="text-[14px] text-ink-3 mt-1">
           {{ t('reminders.tour.subtitle') }}
         </p>
       </div>
       <button
         v-if="catalog && !forbidden"
         type="button"
-        class="w-full sm:w-auto min-h-[44px] sm:min-h-0 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm text-[11px] font-semibold bg-glass border border-line-acid text-acid hover:bg-glass-hover cursor-pointer"
+        class="w-full sm:w-auto min-h-[44px] sm:min-h-0 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-glass border border-line-acid text-olive hover:bg-glass-hover cursor-pointer"
         data-test="role-groups-open"
         @click="openRoleGroups"
       >
@@ -206,7 +212,7 @@ watch(() => props.tourUuid, load, { immediate: true })
       class="bg-glass border border-line rounded-lg px-4 py-4 text-center"
       data-test="reminders-not-admin"
     >
-      <p class="text-[12px] text-ink-2">
+      <p class="text-[14px] text-ink-2">
         {{ t('reminders.errors.notAdmin') }}
       </p>
     </div>
@@ -232,11 +238,11 @@ watch(() => props.tourUuid, load, { immediate: true })
       class="bg-glass border border-line rounded-lg px-4 py-4 text-center"
       data-test="reminders-error"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ error }}
       </p>
       <button
-        class="min-h-[44px] sm:min-h-0 text-[12px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+        class="min-h-[44px] sm:min-h-0 text-[14px] font-semibold text-olive bg-transparent border-none cursor-pointer"
         data-test="reminders-retry"
         @click="load"
       >
@@ -247,7 +253,7 @@ watch(() => props.tourUuid, load, { immediate: true })
     <template v-else-if="catalog">
       <p
         v-if="roleGroupsNotice"
-        class="text-[12px] text-wa-green mb-3"
+        class="text-[14px] text-wa-green mb-3"
         role="status"
         data-test="role-groups-applied"
       >
@@ -256,7 +262,7 @@ watch(() => props.tourUuid, load, { immediate: true })
       <p
         v-for="w in roleGroupsWarnings"
         :key="w"
-        class="text-[12px] text-ink-2 mb-3"
+        class="text-[14px] text-ink-2 mb-3"
         role="status"
         data-test="role-groups-warning"
       >
@@ -275,14 +281,14 @@ watch(() => props.tourUuid, load, { immediate: true })
         data-test="reminders-team"
       >
         <div class="flex-1 min-w-0">
-          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase">
+          <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase">
             {{ t('reminders.team.title') }}
           </p>
           <template v-if="catalog.default_group">
-            <p class="text-[13px] text-ink font-semibold mt-0.5 truncate">
+            <p class="text-[15px] text-ink font-semibold mt-0.5 truncate">
               {{ catalog.default_group.name }}
               <span
-                class="text-[11px] font-normal text-ink-3"
+                class="text-[13px] font-normal text-ink-3"
                 data-test="team-count"
               >· {{
                 t(
@@ -294,7 +300,7 @@ watch(() => props.tourUuid, load, { immediate: true })
             </p>
             <p
               v-if="catalog.default_group.contact_count === 0"
-              class="text-[11px] text-brand-orange mt-1"
+              class="text-[13px] text-brand-orange mt-1"
               data-test="team-empty"
             >
               {{ t('reminders.team.empty') }}
@@ -302,7 +308,7 @@ watch(() => props.tourUuid, load, { immediate: true })
           </template>
           <p
             v-else
-            class="text-[11px] text-brand-orange mt-1"
+            class="text-[13px] text-brand-orange mt-1"
             data-test="team-missing"
           >
             {{ t('reminders.team.missing') }}
@@ -311,7 +317,7 @@ watch(() => props.tourUuid, load, { immediate: true })
         <button
           v-if="catalog.default_group"
           type="button"
-          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-semibold bg-glass border border-line text-ink-2 hover:bg-glass-hover hover:text-ink cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-glass border border-line text-ink-2 hover:bg-glass-hover hover:text-ink cursor-pointer"
           data-test="team-manage"
           @click="showManageTeam = true"
         >
@@ -330,7 +336,7 @@ watch(() => props.tourUuid, load, { immediate: true })
       <!-- Por tipo -->
       <p
         v-if="catalog.types.length === 0"
-        class="text-[12px] text-ink-4 text-center py-6"
+        class="text-[14px] text-ink-4 text-center py-6"
         data-test="reminders-empty"
       >
         {{ t('reminders.tour.empty') }}

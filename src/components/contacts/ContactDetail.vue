@@ -127,7 +127,7 @@ const EMAIL_LABEL: Record<string, string> = {
               height="7"
               viewBox="0 0 24 24"
               fill="currentColor"
-              class="text-black"
+              class="text-ink"
             >
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
@@ -135,7 +135,7 @@ const EMAIL_LABEL: Record<string, string> = {
           <div
             v-else-if="contact.is_emergency"
             class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-bg-3"
-            style="background: #e85d00"
+            style="background: var(--brand-orange)"
             :title="t('contacts.emergency')"
           />
         </div>
@@ -147,20 +147,20 @@ const EMAIL_LABEL: Record<string, string> = {
           </h2>
           <p
             v-if="contact.job_title"
-            class="text-[12px] text-ink-2 mb-0.5"
+            class="text-[14px] text-ink-2 mb-0.5"
           >
             {{ contact.job_title }}
           </p>
           <p
             v-if="contact.company_name"
-            class="text-[11px] text-ink-3 mb-1.5"
+            class="text-[13px] text-ink-3 mb-1.5"
           >
             {{ contact.company_name }}
           </p>
           <!-- Role badge -->
           <span
             v-if="contact.role"
-            class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            class="inline-flex items-center gap-1 text-[12px] font-semibold px-2 py-0.5 rounded-full"
             :style="{
               background: contact.role.color + '22',
               color: contact.role.color,
@@ -175,20 +175,20 @@ const EMAIL_LABEL: Record<string, string> = {
       <div class="flex gap-1.5 mb-3">
         <span
           v-if="contact.is_favorite"
-          class="text-[9px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full bg-acid/15 text-acid"
+          class="text-[11px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full bg-acid-dim text-olive"
         >
           ★ {{ t('contacts.favorite') }}
         </span>
         <span
           v-if="contact.is_emergency"
-          class="text-[9px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full"
-          style="background: rgba(232,93,0,0.15); color: #e85d00"
+          class="text-[11px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full"
+          style="background: var(--brand-orange-dim); color: var(--brand-orange)"
         >
           ⚠ {{ t('contacts.emergency') }}
         </span>
         <span
           v-if="contact.source && contact.source !== 'manual'"
-          class="text-[9px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full bg-glass border border-line text-ink-3"
+          class="text-[11px] font-bold tracking-[0.4px] uppercase px-2 py-[3px] rounded-full bg-glass border border-line text-ink-2"
         >
           {{ contact.source }}
         </span>
@@ -261,10 +261,10 @@ const EMAIL_LABEL: Record<string, string> = {
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.34 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.4a16 16 0 0 0 6 6l.38-.38a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
             <div class="flex-1">
-              <p class="text-[9px] text-ink-3 uppercase tracking-[0.5px] font-semibold mb-0.5">
+              <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px] font-semibold mb-0.5">
                 {{ t('contacts.phone') }}
               </p>
-              <p class="text-[12px] text-ink">
+              <p class="text-[14px] text-ink">
                 {{ contact.primary_phone }}
               </p>
               <!-- Extra phones -->
@@ -273,8 +273,8 @@ const EMAIL_LABEL: Record<string, string> = {
                 :key="ph.id"
                 class="mt-1 flex items-center gap-1.5"
               >
-                <span class="text-[9px] text-ink-4 uppercase tracking-[0.3px]">{{ PHONE_LABEL[ph.label] ?? ph.label }}</span>
-                <span class="text-[11px] text-ink-2">{{ ph.phone }}</span>
+                <span class="text-[11px] text-ink-2 uppercase tracking-[0.3px]">{{ PHONE_LABEL[ph.label] ?? ph.label }}</span>
+                <span class="text-[13px] text-ink-2">{{ ph.phone }}</span>
               </div>
             </div>
           </div>
@@ -299,10 +299,10 @@ const EMAIL_LABEL: Record<string, string> = {
               <polyline points="22,6 12,13 2,6" />
             </svg>
             <div class="flex-1">
-              <p class="text-[9px] text-ink-3 uppercase tracking-[0.5px] font-semibold mb-0.5">
+              <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px] font-semibold mb-0.5">
                 {{ t('contacts.email') }}
               </p>
-              <p class="text-[12px] text-ink">
+              <p class="text-[14px] text-ink">
                 {{ contact.primary_email }}
               </p>
               <!-- Extra emails -->
@@ -311,8 +311,8 @@ const EMAIL_LABEL: Record<string, string> = {
                 :key="em.id"
                 class="mt-1 flex items-center gap-1.5"
               >
-                <span class="text-[9px] text-ink-4 uppercase tracking-[0.3px]">{{ EMAIL_LABEL[em.label] ?? em.label }}</span>
-                <span class="text-[11px] text-ink-2">{{ em.email }}</span>
+                <span class="text-[11px] text-ink-2 uppercase tracking-[0.3px]">{{ EMAIL_LABEL[em.label] ?? em.label }}</span>
+                <span class="text-[13px] text-ink-2">{{ em.email }}</span>
               </div>
             </div>
           </div>
@@ -341,10 +341,10 @@ const EMAIL_LABEL: Record<string, string> = {
               <path d="M12 2a8 8 0 0 0-8 8c0 5.5 8 14 8 14s8-8.5 8-14a8 8 0 0 0-8-8z" />
             </svg>
             <div>
-              <p class="text-[9px] text-ink-3 uppercase tracking-[0.5px] font-semibold mb-0.5">
+              <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px] font-semibold mb-0.5">
                 {{ t('contacts.location') }}
               </p>
-              <p class="text-[12px] text-ink">
+              <p class="text-[14px] text-ink">
                 {{ [contact.city, contact.country].filter(Boolean).join(', ') }}
               </p>
             </div>
@@ -380,14 +380,14 @@ const EMAIL_LABEL: Record<string, string> = {
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
             </svg>
             <div>
-              <p class="text-[9px] text-ink-3 uppercase tracking-[0.5px] font-semibold mb-0.5">
+              <p class="text-[11px] text-ink-2 uppercase tracking-[0.5px] font-semibold mb-0.5">
                 Web
               </p>
               <a
                 :href="contact.website"
                 target="_blank"
                 rel="noopener"
-                class="text-[12px] text-acid-muted hover:text-acid transition-colors truncate block"
+                class="text-[14px] text-acid-muted hover:text-olive transition-colors truncate block"
               >
                 {{ contact.website }}
               </a>
@@ -431,19 +431,19 @@ const EMAIL_LABEL: Record<string, string> = {
               />
             </svg>
             <div class="flex-1 min-w-0">
-              <p class="text-[11px] font-semibold text-ink truncate">
+              <p class="text-[13px] font-semibold text-ink truncate">
                 {{ rel.tour_name }}
               </p>
               <p
                 v-if="rel.role_name"
-                class="text-[10px] text-ink-3"
+                class="text-[12px] text-ink-3"
               >
                 {{ rel.role_name }}
               </p>
             </div>
             <span
               v-if="rel.is_primary"
-              class="text-[9px] font-bold text-acid bg-acid/10 px-1.5 py-0.5 rounded-full flex-shrink-0"
+              class="text-[12px] font-bold text-olive bg-acid-dim px-1.5 py-0.5 rounded-full flex-shrink-0"
             >
               Principal
             </span>
@@ -456,7 +456,7 @@ const EMAIL_LABEL: Record<string, string> = {
         v-if="contact.notes"
         :title="t('contacts.notes')"
       >
-        <p class="text-[12px] text-ink-2 leading-relaxed">
+        <p class="text-[14px] text-ink-2 leading-relaxed">
           {{ contact.notes }}
         </p>
       </GlassBlock>
@@ -489,11 +489,11 @@ const EMAIL_LABEL: Record<string, string> = {
               />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-[11px] font-semibold text-ink truncate">
+              <p class="text-[13px] font-semibold text-ink truncate">
                 {{ item.title }}
               </p>
-              <p class="text-[10px] text-ink-3 truncate">
-                {{ historyDate(item.reference_at) }} · {{ item.tour_name }}
+              <p class="text-[12px] text-ink-3 truncate">
+                <span class="font-time tnum">{{ historyDate(item.reference_at) }}</span> · {{ item.tour_name }}
               </p>
             </div>
             <RecipientStatusChip
@@ -521,7 +521,7 @@ const EMAIL_LABEL: Record<string, string> = {
           v-else-if="historyError"
           class="flex flex-col items-center gap-2 py-2"
         >
-          <p class="text-[12px] text-red-400 text-center">
+          <p class="text-[14px] text-failed-fg text-center">
             {{ historyError }}
           </p>
           <BtnSecondary
@@ -535,7 +535,7 @@ const EMAIL_LABEL: Record<string, string> = {
         <!-- Empty -->
         <p
           v-else-if="history.length === 0"
-          class="text-[12px] text-ink-3 text-center py-2"
+          class="text-[14px] text-ink-3 text-center py-2"
         >
           {{ t('contacts.noNotifications') }}
         </p>

@@ -115,7 +115,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
   >
     <p
       v-if="rows.length === 0"
-      class="text-[11px] text-ink-4"
+      class="text-[13px] text-ink-4"
       data-test="steps-none"
     >
       {{ t('reminders.step.none') }}
@@ -132,7 +132,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
           type="number"
           inputmode="numeric"
           min="1"
-          class="w-16 h-9 px-2 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none focus:border-line-acid"
+          class="w-16 h-9 px-2 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none focus:border-line-acid"
           :aria-label="t('reminders.step.amount')"
           :value="row.value"
           :disabled="disabled"
@@ -140,7 +140,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
           @input="setValue(row, ($event.target as HTMLInputElement).value)"
         >
         <select
-          class="h-9 px-2 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none cursor-pointer"
+          class="h-9 px-2 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none cursor-pointer"
           :aria-label="t('reminders.step.unit')"
           :value="row.unit"
           :disabled="disabled"
@@ -155,7 +155,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
             {{ t(`reminders.units.${u}`) }}
           </option>
         </select>
-        <span class="text-[11px] text-ink-3">{{ t('reminders.step.before') }}</span>
+        <span class="text-[13px] text-ink-3">{{ t('reminders.step.before') }}</span>
 
         <!-- Canal: tres botones con icono -->
         <div
@@ -170,7 +170,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
             role="radio"
             :aria-checked="row.channel === ch"
             :title="t(`reminders.channels.${ch}`)"
-            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0 sm:h-8 px-2 rounded-sm border text-[10px] font-semibold cursor-pointer transition-colors"
+            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0 sm:h-8 px-2 rounded-sm border text-[12px] font-semibold cursor-pointer transition-colors"
             :class="
               row.channel === ch
                 ? [channelMeta(ch).bgClass, channelMeta(ch).colorClass, 'border-line-2']
@@ -197,7 +197,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
 
         <button
           type="button"
-          class="min-h-[44px] sm:min-h-0 sm:h-8 px-2 text-[11px] text-ink-3 hover:text-red-400 bg-transparent border-none cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 sm:h-8 px-2 text-[13px] text-ink-3 hover:text-failed-fg bg-transparent border-none cursor-pointer"
           :disabled="disabled"
           data-test="step-remove"
           @click="removeStep(row.id)"
@@ -208,14 +208,14 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
 
       <p
         v-if="row.channel === 'in_app'"
-        class="text-[10px] text-ink-3 mt-1.5"
+        class="text-[12px] text-ink-3 mt-1.5"
         data-test="step-in-app-hint"
       >
         {{ t('reminders.channels.inAppHint') }}
       </p>
       <p
         v-if="stepError(i)"
-        class="text-[10px] text-red-400 mt-1"
+        class="text-[12px] text-failed-fg mt-1"
         data-test="step-error"
       >
         {{ stepError(i) }}
@@ -224,7 +224,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
 
     <p
       v-if="validation.code === 'too_many_steps'"
-      class="text-[10px] text-red-400"
+      class="text-[12px] text-failed-fg"
     >
       {{ t('reminders.errors.too_many_steps') }}
     </p>
@@ -232,7 +232,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
     <div class="flex items-center gap-2 flex-wrap">
       <button
         type="button"
-        class="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-dashed border-line text-[11px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        class="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-dashed border-line text-[13px] font-medium text-ink-3 hover:text-ink hover:border-line-2 bg-transparent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         :disabled="atMax || disabled"
         data-test="step-add"
         @click="addStep"
@@ -241,7 +241,7 @@ const UNITS: OffsetUnit[] = ['minutes', 'hours', 'days']
       </button>
       <span
         v-if="atMax"
-        class="text-[10px] text-ink-4"
+        class="text-[12px] text-ink-4"
         data-test="step-max"
       >
         {{ t('reminders.step.max', { max: limits.max_steps }) }}

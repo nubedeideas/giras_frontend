@@ -272,7 +272,7 @@ async function confirmPending() {
   <div>
     <!-- Ajustes -->
     <div class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-5 mb-4">
-      <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-3">
+      <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-3">
         {{ t('tourHub.crew.title') }}
       </p>
       <div
@@ -297,15 +297,15 @@ async function confirmPending() {
               :class="enabled ? 'left-[13px] bg-bg' : 'left-[1px] bg-ink-3'"
             />
           </span>
-          <span class="text-[12px] text-ink-2">{{ t('tourHub.crew.enabled') }}</span>
+          <span class="text-[14px] text-ink-2">{{ t('tourHub.crew.enabled') }}</span>
         </button>
         <label class="flex items-center gap-2 sm:ml-auto">
-          <span class="text-[11px] text-ink-3">{{ t('tourHub.crew.days') }}</span>
+          <span class="text-[13px] text-ink-3">{{ t('tourHub.crew.days') }}</span>
           <select
             data-testid="crew-days"
             :value="days"
             :disabled="savingSettings"
-            class="bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid cursor-pointer"
+            class="bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer"
             @change="onDaysChange"
           >
             <option
@@ -318,25 +318,25 @@ async function confirmPending() {
           </select>
         </label>
       </div>
-      <p class="text-[10px] text-ink-4 leading-relaxed mt-3">
+      <p class="text-[12px] text-ink-4 leading-relaxed mt-3">
         {{ t('tourHub.crew.help') }}
       </p>
       <p
         v-if="settingsLoaded && blockedReason"
         data-testid="crew-blocked"
-        class="text-[10px] text-brand-orange bg-brand-orange-dim border border-line rounded px-2.5 py-1.5 mt-2"
+        class="text-[12px] text-brand-orange bg-brand-orange-dim border border-line rounded px-2.5 py-1.5 mt-2"
       >
         {{ t(blockedReason === 'cancelled' ? 'tourHub.crew.cancelledNotice' : 'tourHub.crew.expiredNotice') }}
       </p>
       <p
         v-else-if="settingsLoaded && !enabled"
-        class="text-[10px] text-brand-orange bg-brand-orange-dim border border-line rounded px-2.5 py-1.5 mt-2"
+        class="text-[12px] text-brand-orange bg-brand-orange-dim border border-line rounded px-2.5 py-1.5 mt-2"
       >
         {{ t('tourHub.crew.disabledNotice') }}
       </p>
       <p
         v-if="settingsError"
-        class="text-[10px] text-red-400 mt-2"
+        class="text-[12px] text-failed-fg mt-2"
       >
         {{ settingsError }}
       </p>
@@ -371,11 +371,11 @@ async function confirmPending() {
       v-else-if="linksError && !rows.length"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ linksError }}
       </p>
       <button
-        class="text-[11px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
+        class="text-[13px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
         @click="loadLinks()"
       >
         {{ t('crewPortal.retry') }}
@@ -387,7 +387,7 @@ async function confirmPending() {
       data-testid="crew-links-empty"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-ink-3 max-w-md mx-auto leading-relaxed">
+      <p class="text-[14px] text-ink-3 max-w-md mx-auto leading-relaxed">
         {{ t('tourHub.crew.empty') }}
       </p>
     </div>
@@ -396,7 +396,7 @@ async function confirmPending() {
       v-else
       class="space-y-2"
     >
-      <p class="text-[10px] text-ink-4 mb-1">
+      <p class="text-[12px] text-ink-4 mb-1">
         {{ t('tourHub.crew.people', { n: total }, total) }}
       </p>
       <div
@@ -408,14 +408,14 @@ async function confirmPending() {
         <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
           <div class="flex-1 min-w-0">
             <div class="flex flex-wrap items-center gap-1.5 mb-1">
-              <p class="text-[12px] font-semibold text-ink truncate">
+              <p class="text-[14px] font-semibold text-ink truncate">
                 {{ row.contact.display_name }}
               </p>
               <Pill :variant="STATE_VARIANT[row.state]">
                 {{ t(`tourHub.crew.states.${row.state}`) }}
               </Pill>
             </div>
-            <p class="text-[10px] text-ink-3">
+            <p class="text-[12px] text-ink-3">
               <span
                 v-for="(s, i) in row.sources"
                 :key="s"
@@ -462,17 +462,17 @@ async function confirmPending() {
         <div
           v-if="feedback && feedback.uuid === row.contact.uuid"
           data-testid="crew-feedback"
-          class="mt-2 text-[11px]"
+          class="mt-2 text-[13px]"
         >
           <p
             v-if="feedback.kind === 'ok'"
-            class="text-acid"
+            class="text-olive"
           >
             {{ feedback.text }}
           </p>
           <p
             v-else-if="feedback.kind === 'error'"
-            class="text-red-400"
+            class="text-failed-fg"
           >
             {{ feedback.text }}
           </p>
@@ -483,7 +483,7 @@ async function confirmPending() {
             <input
               readonly
               :value="feedback.text"
-              class="w-full bg-glass border border-line rounded px-2 py-1 text-ink text-[11px]"
+              class="w-full bg-glass border border-line rounded px-2 py-1 text-ink text-[13px]"
               @focus="($event.target as HTMLInputElement).select()"
             >
           </template>
@@ -510,7 +510,7 @@ async function confirmPending() {
     >
       <p
         data-testid="crew-confirm-text"
-        class="text-[13px] text-ink mb-4"
+        class="text-[15px] text-ink mb-4"
       >
         {{ confirmText }}
       </p>

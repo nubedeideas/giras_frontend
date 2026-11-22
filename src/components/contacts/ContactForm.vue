@@ -178,14 +178,14 @@ async function save() {
           </p>
           <p
             v-if="selectedRole"
-            class="text-[11px] mt-px"
+            class="text-[13px] mt-px"
             :style="{ color: selectedRole.color }"
           >
             {{ selectedRole.name }}
           </p>
           <p
             v-else-if="form.job_title"
-            class="text-[11px] text-ink-3 mt-px"
+            class="text-[13px] text-ink-3 mt-px"
           >
             {{ form.job_title }}
           </p>
@@ -223,9 +223,9 @@ async function save() {
       </div>
       <div
         v-if="saveError"
-        class="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+        class="mt-2 rounded-lg border border-[#FCA5A5] bg-failed-bg px-3 py-2"
       >
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+        <p class="text-[13px] text-failed-fg whitespace-pre-line font-mono">
           {{ saveError }}
         </p>
       </div>
@@ -235,7 +235,7 @@ async function save() {
     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
       <!-- ── Tipo de contacto ── -->
       <div>
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1.5">
           Tipo
         </label>
         <div class="grid grid-cols-2 gap-1.5 p-1 bg-bg-2 rounded-lg border border-line">
@@ -243,10 +243,10 @@ async function save() {
             v-for="opt in [{ value: 'person', label: 'Persona' }, { value: 'company', label: 'Empresa' }]"
             :key="opt.value"
             type="button"
-            class="py-1.5 rounded text-[11px] font-semibold transition-all cursor-pointer border-none"
+            class="py-1.5 rounded text-[13px] font-semibold transition-all cursor-pointer border-none"
             :class="
               form.contact_type === opt.value
-                ? 'bg-glass-active text-acid'
+                ? 'bg-glass-active text-olive'
                 : 'bg-transparent text-ink-3 hover:text-ink'
             "
             @click="form.contact_type = opt.value as 'person' | 'company'"
@@ -258,24 +258,24 @@ async function save() {
 
       <!-- ── Nombre ── -->
       <div class="space-y-2.5">
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block">
           Nombre *
         </label>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[9px] text-ink-4 block mb-1">Nombre</label>
+            <label class="text-[12px] text-ink-4 block mb-1">Nombre</label>
             <input
               v-model="form.first_name"
               placeholder="Nombre"
-              class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+              class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             >
           </div>
           <div>
-            <label class="text-[9px] text-ink-4 block mb-1">Apellido</label>
+            <label class="text-[12px] text-ink-4 block mb-1">Apellido</label>
             <input
               v-model="form.last_name"
               placeholder="Apellido"
-              class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+              class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
             >
           </div>
         </div>
@@ -283,7 +283,7 @@ async function save() {
 
       <!-- ── Rol & Empresa ── -->
       <div class="space-y-2.5">
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block">
           Rol & Empresa
         </label>
 
@@ -296,7 +296,7 @@ async function save() {
           />
           <select
             v-model="form.role_uuid"
-            class="w-full bg-glass border border-line rounded py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
+            class="w-full bg-glass border border-line rounded py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
             :class="selectedRole ? 'pl-7 pr-2.5' : 'px-2.5'"
           >
             <option value="">
@@ -329,7 +329,7 @@ async function save() {
         <input
           v-model="form.job_title"
           placeholder="Cargo / Puesto"
-          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         >
 
         <!-- Company name -->
@@ -337,13 +337,13 @@ async function save() {
           v-if="form.contact_type === 'company' || form.company_name"
           v-model="form.company_name"
           placeholder="Empresa"
-          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         >
       </div>
 
       <!-- ── Teléfonos ── -->
       <div class="space-y-1.5">
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-2">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-2">
           Teléfonos
         </label>
 
@@ -355,7 +355,7 @@ async function save() {
           <!-- Label select -->
           <select
             v-model="ph.label"
-            class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
+            class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
           >
             <option
               v-for="l in PHONE_LABELS"
@@ -370,7 +370,7 @@ async function save() {
           <input
             v-model="ph.phone"
             placeholder="+52 55 0000 0000"
-            class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
 
           <!-- Primary toggle -->
@@ -380,7 +380,7 @@ async function save() {
             :class="
               ph.is_primary
                 ? 'bg-acid border-acid'
-                : 'bg-transparent border-line-2 hover:border-acid'
+                : 'bg-transparent border-line-2 hover:border-olive'
             "
             :title="ph.is_primary ? 'Principal' : 'Marcar como principal'"
             @click="setPrimaryPhone(idx)"
@@ -405,7 +405,7 @@ async function save() {
           <button
             v-if="form.phones.length > 1"
             type="button"
-            class="w-5 h-5 flex items-center justify-center text-ink-4 hover:text-red-400 transition-colors cursor-pointer flex-shrink-0 border-none bg-transparent"
+            class="w-5 h-5 flex items-center justify-center text-ink-4 hover:text-failed-fg transition-colors cursor-pointer flex-shrink-0 border-none bg-transparent"
             @click="removePhone(idx)"
           >
             <svg
@@ -435,7 +435,7 @@ async function save() {
 
         <button
           type="button"
-          class="flex items-center gap-1 text-[11px] text-ink-3 hover:text-acid transition-colors cursor-pointer border-none bg-transparent mt-1"
+          class="flex items-center gap-1 text-[13px] text-ink-3 hover:text-olive transition-colors cursor-pointer border-none bg-transparent mt-1"
           @click="addPhone"
         >
           <svg
@@ -466,7 +466,7 @@ async function save() {
 
       <!-- ── Emails ── -->
       <div class="space-y-1.5">
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-2">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-2">
           Emails
         </label>
 
@@ -478,7 +478,7 @@ async function save() {
           <!-- Label select -->
           <select
             v-model="em.label"
-            class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[10px] outline-none focus:border-acid transition-colors appearance-none cursor-pointer"
+            class="w-[78px] flex-shrink-0 bg-glass border border-line rounded px-2 py-1.5 text-ink-3 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
           >
             <option
               v-for="l in EMAIL_LABELS"
@@ -494,7 +494,7 @@ async function save() {
             v-model="em.email"
             type="email"
             placeholder="email@ejemplo.com"
-            class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="flex-1 min-w-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
 
           <!-- Primary toggle -->
@@ -504,7 +504,7 @@ async function save() {
             :class="
               em.is_primary
                 ? 'bg-acid border-acid'
-                : 'bg-transparent border-line-2 hover:border-acid'
+                : 'bg-transparent border-line-2 hover:border-olive'
             "
             :title="em.is_primary ? 'Principal' : 'Marcar como principal'"
             @click="setPrimaryEmail(idx)"
@@ -529,7 +529,7 @@ async function save() {
           <button
             v-if="form.emails.length > 1"
             type="button"
-            class="w-5 h-5 flex items-center justify-center text-ink-4 hover:text-red-400 transition-colors cursor-pointer flex-shrink-0 border-none bg-transparent"
+            class="w-5 h-5 flex items-center justify-center text-ink-4 hover:text-failed-fg transition-colors cursor-pointer flex-shrink-0 border-none bg-transparent"
             @click="removeEmail(idx)"
           >
             <svg
@@ -559,7 +559,7 @@ async function save() {
 
         <button
           type="button"
-          class="flex items-center gap-1 text-[11px] text-ink-3 hover:text-acid transition-colors cursor-pointer border-none bg-transparent mt-1"
+          class="flex items-center gap-1 text-[13px] text-ink-3 hover:text-olive transition-colors cursor-pointer border-none bg-transparent mt-1"
           @click="addEmail"
         >
           <svg
@@ -590,31 +590,31 @@ async function save() {
 
       <!-- ── Ubicación ── -->
       <div class="space-y-2.5">
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block">
           Ubicación
         </label>
         <div class="grid grid-cols-2 gap-2">
           <input
             v-model="form.city"
             placeholder="Ciudad"
-            class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
           <input
             v-model="form.country"
             placeholder="País"
-            class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
         <input
           v-model="form.website"
           placeholder="https://..."
-          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
         >
       </div>
 
       <!-- ── Clasificación ── -->
       <div>
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-2">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-2">
           Clasificación
         </label>
         <div class="flex flex-col gap-2">
@@ -624,7 +624,7 @@ async function save() {
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all cursor-pointer text-left"
             :class="
               form.is_favorite
-                ? 'bg-acid/10 border-acid/30 text-acid'
+                ? 'bg-acid-dim border-olive text-olive'
                 : 'bg-glass border-line text-ink-3 hover:bg-glass-2 hover:text-ink'
             "
             @click="form.is_favorite = !form.is_favorite"
@@ -644,16 +644,16 @@ async function save() {
               />
             </svg>
             <div class="flex-1">
-              <p class="text-[12px] font-semibold">
+              <p class="text-[14px] font-semibold">
                 Favorito
               </p>
-              <p class="text-[10px] opacity-60">
+              <p class="text-[12px] text-ink-2">
                 Aparece destacado en la lista
               </p>
             </div>
             <div
               class="w-8 h-4 rounded-full transition-colors relative flex-shrink-0"
-              :class="form.is_favorite ? 'bg-acid' : 'bg-glass-2'"
+              :class="form.is_favorite ? 'bg-acid' : 'bg-line-2'"
             >
               <div
                 class="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all"
@@ -668,10 +668,10 @@ async function save() {
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all cursor-pointer text-left"
             :class="
               form.is_emergency
-                ? 'border-[#e85d00]/30 text-[#e85d00]'
+                ? 'border-brand-orange text-brand-orange'
                 : 'bg-glass border-line text-ink-3 hover:bg-glass-2 hover:text-ink'
             "
-            :style="form.is_emergency ? 'background: rgba(232,93,0,0.10)' : ''"
+            :style="form.is_emergency ? 'background: var(--brand-orange-dim)' : ''"
             @click="form.is_emergency = !form.is_emergency"
           >
             <svg
@@ -699,17 +699,17 @@ async function save() {
               />
             </svg>
             <div class="flex-1">
-              <p class="text-[12px] font-semibold">
+              <p class="text-[14px] font-semibold">
                 Emergencia
               </p>
-              <p class="text-[10px] opacity-60">
+              <p class="text-[12px] text-ink-2">
                 Contacto de emergencia de la gira
               </p>
             </div>
             <div
               class="w-8 h-4 rounded-full transition-colors relative flex-shrink-0"
-              :style="form.is_emergency ? 'background: #e85d00' : ''"
-              :class="!form.is_emergency ? 'bg-glass-2' : ''"
+              :style="form.is_emergency ? 'background: var(--brand-orange)' : ''"
+              :class="!form.is_emergency ? 'bg-line-2' : ''"
             >
               <div
                 class="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all"
@@ -722,14 +722,14 @@ async function save() {
 
       <!-- ── Notas ── -->
       <div>
-        <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">
+        <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1.5">
           Notas
         </label>
         <textarea
           v-model="form.notes"
           placeholder="Notas internas sobre este contacto..."
           rows="3"
-          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors resize-none"
+          class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors resize-none"
         />
       </div>
     </div>

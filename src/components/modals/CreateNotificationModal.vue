@@ -179,10 +179,10 @@ const canSave = computed(() => {
 })
 
 const inputClass =
-  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[12px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'w-full bg-glass border border-line rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-ink-4 outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 const selectClass =
-  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
+  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer'
 </script>
 
 <template>
@@ -196,14 +196,14 @@ const selectClass =
         <!-- Icon -->
         <div
           class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: rgba(168,216,0,0.12)"
+          style="background: var(--acid-dim)"
         >
           <svg
             width="22"
             height="22"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#a8d800"
+            stroke="var(--olive)"
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -215,13 +215,13 @@ const selectClass =
           <p class="text-[15px] font-bold text-ink">
             Notificación creada
           </p>
-          <p class="text-[11px] text-ink-3 mt-1">
+          <p class="text-[13px] text-ink-3 mt-1">
             ¿Deseas agregar contactos ahora?
           </p>
         </div>
         <div class="flex gap-2 w-full mt-1">
           <button
-            class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] bg-acid text-black cursor-pointer border-none transition-all hover:bg-[#b8e800]"
+            class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] bg-acid text-ink cursor-pointer border-none transition-all hover:bg-acid-light"
             @click="goAddContacts"
           >
             <svg
@@ -255,7 +255,7 @@ const selectClass =
             Agregar contactos
           </button>
           <button
-            class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+            class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
             @click="finish"
           >
             Listo
@@ -274,7 +274,7 @@ const selectClass =
           </p>
           <p
             v-if="activity"
-            class="text-[10px] text-ink-3 mt-0.5 truncate max-w-[260px]"
+            class="text-[12px] text-ink-3 mt-0.5 truncate max-w-[260px]"
           >
             {{ activity.title }}
           </p>
@@ -377,7 +377,7 @@ const selectClass =
           </select>
           <p
             v-if="!templatesLoading && waTemplates.length === 0"
-            class="text-[11px] text-[#f59e0b] mt-1"
+            class="text-[13px] text-pending-fg mt-1"
           >
             No hay templates de WhatsApp activos. Crea uno en Configuración → Templates.
           </p>
@@ -402,9 +402,9 @@ const selectClass =
             <button
               v-for="mode in (['reminder', 'datetime', 'now'] as const)"
               :key="mode"
-              class="py-1.5 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer"
+              class="py-1.5 rounded-lg text-[13px] font-medium border transition-colors cursor-pointer"
               :class="scheduleMode === mode
-                ? 'bg-acid text-black border-acid'
+                ? 'bg-acid text-ink border-acid'
                 : 'bg-glass text-ink-2 border-line hover:bg-glass-hover'"
               @click="scheduleMode = mode"
             >
@@ -432,7 +432,7 @@ const selectClass =
           >
           <p
             v-else
-            class="text-[11px] text-ink-3"
+            class="text-[13px] text-ink-3"
           >
             Se guardará como borrador. Podrás programarla o enviarla manualmente después.
           </p>
@@ -455,7 +455,7 @@ const selectClass =
                 {{ tz.label }}
               </option>
             </select>
-            <p class="text-[10px] text-ink-4 mt-1">
+            <p class="text-[12px] text-ink-4 mt-1">
               La notificación se enviará a la hora indicada en esta zona. Zona de la actividad:
               <span class="text-ink-3 font-medium">{{ activity?.timezone || 'UTC' }}</span>
             </p>
@@ -466,9 +466,9 @@ const selectClass =
       <!-- Error -->
       <div
         v-if="saveError"
-        class="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2"
+        class="mt-3 rounded-lg border border-[#FCA5A5] bg-failed-bg px-3 py-2"
       >
-        <p class="text-[11px] text-red-400 whitespace-pre-line font-mono">
+        <p class="text-[13px] text-failed-fg whitespace-pre-line font-mono">
           {{ saveError }}
         </p>
       </div>
@@ -476,15 +476,15 @@ const selectClass =
       <!-- Actions -->
       <div class="flex gap-2 mt-4">
         <button
-          class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] border-none cursor-pointer transition-all"
-          :class="saving || !canSave ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-black'"
+          class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] border-none cursor-pointer transition-all"
+          :class="saving || !canSave ? 'bg-glass text-ink-4 cursor-not-allowed' : 'bg-acid text-ink'"
           :disabled="saving || !canSave"
           @click="save"
         >
           {{ saving ? 'Creando…' : 'Crear notificación' }}
         </button>
         <button
-          class="px-4 py-2.5 rounded-lg font-semibold text-[12px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
+          class="px-4 py-2.5 rounded-lg font-semibold text-[14px] bg-glass border border-line text-ink-2 cursor-pointer hover:bg-glass-hover transition-colors"
           @click="emit('close')"
         >
           Cancelar

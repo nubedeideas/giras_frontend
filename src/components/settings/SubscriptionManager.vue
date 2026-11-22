@@ -74,8 +74,8 @@ function formatDate(iso: string | null) {
 
 const barColor = computed(() => {
   const pct = usage.value?.usage_percentage ?? 0
-  if (pct >= 90) return '#f87171'
-  if (pct >= 70) return '#e85d00'
+  if (pct >= 90) return 'var(--failed-fg)'
+  if (pct >= 70) return 'var(--brand-orange)'
   return 'var(--acid)'
 })
 </script>
@@ -89,7 +89,7 @@ const barColor = computed(() => {
 
       <div
         v-if="!activeTourUuid"
-        class="text-center py-10 text-ink-4 text-[12px]"
+        class="text-center py-10 text-ink-4 text-[14px]"
       >
         Elegí una gira desde el menú "Giras" para ver su suscripción.
       </div>
@@ -119,7 +119,7 @@ const barColor = computed(() => {
 
       <p
         v-else-if="error"
-        class="text-[12px] text-red-400"
+        class="text-[14px] text-failed-fg"
       >
         {{ error }}
       </p>
@@ -130,15 +130,15 @@ const barColor = computed(() => {
           <div class="bg-glass border border-line rounded-lg px-4 py-3.5 mb-3">
             <div class="flex items-center justify-between mb-3">
               <div>
-                <p class="text-[13px] font-bold text-ink">
+                <p class="text-[15px] font-bold text-ink">
                   {{ usage.plan_name }}
                 </p>
-                <p class="text-[10px] text-ink-4 uppercase tracking-[0.4px]">
+                <p class="text-[12px] text-ink-2 uppercase tracking-[0.4px]">
                   {{ subscription.status }}
                 </p>
               </div>
               <button
-                class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-acid text-black cursor-pointer"
+                class="px-3 py-1.5 rounded-lg text-[13px] font-semibold bg-acid text-ink cursor-pointer"
                 @click="showChoosePlan = true"
               >
                 Cambiar plan
@@ -150,7 +150,7 @@ const barColor = computed(() => {
               v-if="!usage.is_unlimited"
               class="mb-1"
             >
-              <div class="flex items-center justify-between text-[10px] text-ink-4 mb-1">
+              <div class="flex items-center justify-between text-[12px] text-ink-4 mb-1">
                 <span>{{ usage.notifications_used }} / {{ usage.notification_limit }} notificaciones</span>
                 <span>{{ usage.usage_percentage }}%</span>
               </div>
@@ -162,27 +162,27 @@ const barColor = computed(() => {
               </div>
               <p
                 v-if="usage.usage_percentage >= 90"
-                class="text-[10px] mt-1"
-                style="color: #f87171"
+                class="text-[12px] mt-1"
+                style="color: var(--failed-fg)"
               >
                 Te queda poco consumo disponible — considerá cambiar de plan para no quedarte sin notificaciones.
               </p>
             </div>
             <p
               v-else
-              class="text-[11px] text-ink-3"
+              class="text-[13px] text-ink-3"
             >
               Notificaciones ilimitadas en este plan.
             </p>
 
-            <p class="text-[10px] text-ink-4 mt-2">
+            <p class="text-[12px] text-ink-4 mt-2">
               Shows: {{ usage.shows_used }}/{{ usage.shows_limit === 0 ? '∞' : usage.shows_limit }}
             </p>
           </div>
 
           <button
             v-if="usage.plan_code !== 'free' && !showCancelConfirm"
-            class="text-[11px] text-ink-4 hover:text-red-400 cursor-pointer border-none bg-transparent"
+            class="text-[13px] text-ink-4 hover:text-failed-fg cursor-pointer border-none bg-transparent"
             @click="showCancelConfirm = true"
           >
             Cancelar suscripción
@@ -191,26 +191,26 @@ const barColor = computed(() => {
             v-if="showCancelConfirm"
             class="mt-1.5 space-y-1.5"
           >
-            <p class="text-[11px] text-ink-3">
+            <p class="text-[13px] text-ink-3">
               ¿Confirmas la cancelación de la suscripción de esta gira?
             </p>
             <p
               v-if="cancelError"
-              class="text-[11px] text-red-400"
+              class="text-[13px] text-failed-fg"
             >
               {{ cancelError }}
             </p>
             <div class="flex gap-1.5">
               <button
-                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none disabled:opacity-50"
-                style="background: rgba(239,68,68,0.15); color: #f87171"
+                class="px-2.5 py-1 rounded-lg text-[13px] font-semibold cursor-pointer border-none disabled:opacity-50"
+                style="background: var(--failed-bg); color: var(--failed-fg)"
                 :disabled="cancelling"
                 @click="doCancel"
               >
                 {{ cancelling ? '…' : 'Confirmar cancelación' }}
               </button>
               <button
-                class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+                class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
                 @click="showCancelConfirm = false"
               >
                 Volver
@@ -221,10 +221,10 @@ const barColor = computed(() => {
 
         <!-- Pagos de esta gira -->
         <section class="mb-8">
-          <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Pagos</label>
+          <label class="block text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-3">Pagos</label>
           <p
             v-if="payments.length === 0"
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             Sin pagos registrados todavía.
           </p>
@@ -238,24 +238,24 @@ const barColor = computed(() => {
               class="flex items-center justify-between bg-glass border border-line rounded-lg px-3 py-2"
             >
               <div>
-                <p class="text-[12px] text-ink">
+                <p class="text-[14px] text-ink">
                   {{ p.amount }} {{ p.currency }}
                 </p>
-                <p class="text-[10px] text-ink-4">
-                  {{ formatDate(p.payment_date ?? p.created_at) }}
+                <p class="text-[12px] text-ink-4">
+                  <span class="font-time tnum">{{ formatDate(p.payment_date ?? p.created_at) }}</span>
                 </p>
               </div>
-              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 capitalize">{{ p.status }}</span>
+              <span class="text-[12px] font-semibold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-3 capitalize">{{ p.status }}</span>
             </div>
           </div>
         </section>
 
         <!-- Historial de uso -->
         <section>
-          <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">Historial de uso</label>
+          <label class="block text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-3">Historial de uso</label>
           <p
             v-if="history.length === 0"
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             Sin notificaciones registradas todavía.
           </p>

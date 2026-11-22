@@ -33,8 +33,9 @@ const BASE_TABS: { key: Tab; labelKey: string }[] = [
 const hasTourUuid = computed(() => !!toursStore.activeTour?.uuid)
 
 // Rol real del usuario en la gira: `current_user_is_admin` del detalle (staff, owner o miembro
-// activo admin/tour_manager), igual que el backend. El listado no lo trae, así que se carga el
-// detalle; mientras falte (o si el backend aún no lo expone) se aproxima por owner/superuser.
+// activo admin/tour_manager), igual que el backend. El listado también lo trae
+// (`TourListSerializer`, ya mapeado en `toursStore`), pero aquí se refresca con el detalle;
+// mientras falte (o si el backend aún no lo expone) se aproxima por owner/superuser.
 const tourDetail = ref<TourFull | null>(null)
 let detailRequest = 0
 
@@ -167,7 +168,7 @@ watch([TABS, detailSettledFor], applyRequestedTab)
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto bg-bg-3">
+  <div class="h-full overflow-y-auto bg-bg">
     <!-- No tour selected -->
     <TourSelectPrompt v-if="!toursStore.activeTourId" />
 
@@ -176,7 +177,7 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       v-else-if="!hasTourUuid"
       class="h-full flex flex-col items-center justify-center gap-2 px-4 text-center"
     >
-      <p class="text-[12px] text-ink-4">
+      <p class="text-[14px] text-ink-4">
         Esta gira aún no tiene datos del servidor
       </p>
     </div>
@@ -186,18 +187,20 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       class="max-w-6xl mx-auto px-4 sm:px-6 py-6"
     >
       <!-- Tabs -->
-      <div class="flex flex-wrap items-center gap-1.5 mb-6">
+      <div
+        class="flex items-center gap-1 p-1 mb-6 rounded-[10px] bg-glass-hover overflow-x-auto max-w-full w-fit"
+      >
         <button
           v-for="tab in TABS"
           :key="tab.key"
-          class="px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors cursor-pointer border-none"
-          :class="activeTab === tab.key ? 'bg-glass-active text-acid' : 'bg-glass text-ink-2 hover:text-ink'"
+          class="flex-shrink-0 whitespace-nowrap inline-flex items-center min-h-[44px] lg:min-h-[32px] px-3.5 py-1.5 rounded-[7px] text-[13px] transition-colors cursor-pointer border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+          :class="activeTab === tab.key ? 'bg-bg-3 text-ink shadow-sm font-semibold' : 'bg-transparent text-ink-2 font-medium hover:text-ink'"
           @click="activeTab = tab.key"
         >
           {{ t(tab.labelKey) }}
           <span
             v-if="tab.key === 'notices' && pendingNotices"
-            class="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-brand-orange text-ink text-[10px] font-bold"
+            class="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-pending-bg text-pending-fg text-[12px] font-bold"
             data-test="notices-tab-count"
             :aria-label="t('notices.pendingCount', { n: pendingNotices }, pendingNotices)"
           >{{ pendingNotices }}</span>

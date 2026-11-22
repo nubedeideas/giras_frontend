@@ -116,10 +116,10 @@ function confirm() {
         </svg>
       </div>
       <div>
-        <p class="text-[14px] font-bold text-ink">
+        <p class="text-[15px] font-bold text-ink">
           Agregar actividad
         </p>
-        <p class="text-[11px] text-ink-2 mt-px">
+        <p class="text-[13px] text-ink-2 mt-px">
           Elige cómo quieres agregar la actividad
         </p>
       </div>
@@ -160,10 +160,10 @@ function confirm() {
             />
           </svg>
         </div>
-        <p class="text-[11px] font-semibold text-ink leading-snug">
+        <p class="text-[13px] font-semibold text-ink leading-snug">
           Google Calendar
         </p>
-        <p class="text-[9px] text-ink-3 mt-0.5">
+        <p class="text-[12px] text-ink-3 mt-0.5">
           Importar eventos
         </p>
       </div>
@@ -192,10 +192,10 @@ function confirm() {
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
         </div>
-        <p class="text-[11px] font-semibold text-ink leading-snug">
+        <p class="text-[13px] font-semibold text-ink leading-snug">
           Manual
         </p>
-        <p class="text-[9px] text-ink-3 mt-0.5">
+        <p class="text-[12px] text-ink-3 mt-0.5">
           Crear formulario
         </p>
       </div>
@@ -203,10 +203,10 @@ function confirm() {
 
     <!-- Action -->
     <button
-      class="w-full py-2.5 rounded-[8px] border-none text-[12px] font-semibold cursor-pointer transition-all duration-200"
+      class="w-full py-2.5 rounded-[8px] border-none text-[14px] font-semibold cursor-pointer transition-all duration-200"
       :class="
         choice
-          ? 'bg-acid text-black hover:bg-[#b8e800]'
+          ? 'bg-acid text-ink hover:bg-acid-light'
           : 'bg-glass border border-line text-ink-4 cursor-not-allowed'
       "
       :disabled="!choice"

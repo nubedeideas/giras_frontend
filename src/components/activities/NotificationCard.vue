@@ -5,7 +5,6 @@ import {
   useNotifications,
   CHANNEL_LABELS,
   notifStatusLabel,
-  notifStatusColors,
   type NotificationListItem,
   type NotificationRecipient,
 } from '@/composables/useNotifications'
@@ -15,6 +14,8 @@ import AddContactsToNotificationModal from '@/components/modals/AddContactsToNot
 import EditRecipientModal from '@/components/modals/EditRecipientModal.vue'
 import EditNotificationModal from '@/components/modals/EditNotificationModal.vue'
 import RecipientStatusChip from '@/components/activities/RecipientStatusChip.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { notificationBadge } from '@/utils/statusBadge'
 import RemindUnconfirmedButton from '@/components/activities/RemindUnconfirmedButton.vue'
 import {
   canRemindUnconfirmed,
@@ -73,19 +74,18 @@ function formatDateTime(iso: string | null | undefined, zone?: string): string {
 }
 
 const RECIPIENT_DOT_CLASS: Record<string, string> = {
-  pending: 'bg-ink-4',
-  sent: 'bg-brand-blue',
-  delivered: 'bg-wa-green',
-  read: 'bg-acid-muted',
-  confirmed: 'bg-acid',
-  failed: 'bg-red-400',
-  bounced: 'bg-red-400',
+  pending: 'bg-pending-fg',
+  sent: 'bg-scheduled-fg',
+  delivered: 'bg-wa-fg',
+  read: 'bg-sent-fg',
+  confirmed: 'bg-sent-fg',
+  failed: 'bg-failed-fg',
+  bounced: 'bg-failed-fg',
 }
 
 // Las acciones y colores siguen a la prop: tras un `refresh` el padre pasa un objeto nuevo
 // con la misma key y el componente se reutiliza.
 const n = computed(() => props.notification)
-const colors = computed(() => notifStatusColors(props.notification.status))
 
 const showConfirmBadge = computed(
   () => props.notification.confirmable && props.notification.status === 'sent'
@@ -174,17 +174,20 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
     >
       <!-- Channel badge -->
       <span
-        class="text-[10px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
-        style="background: rgba(168,216,0,0.1); color: #a8d800"
+        class="text-[12px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
+        style="background: var(--acid-dim); color: var(--olive)"
       >{{ CHANNEL_LABELS[notification.channel] }}</span>
 
       <!-- Title + meta -->
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-medium text-ink truncate">
+        <p class="text-[14px] font-medium text-ink truncate">
           {{ notification.title }}
         </p>
-        <p class="text-[10px] text-ink-4">
-          <span v-if="notification.scheduled_for">{{ formatDateTime(notification.scheduled_for, notification.send_timezone) }}</span>
+        <p class="text-[12px] text-ink-4">
+          <span
+            v-if="notification.scheduled_for"
+            class="font-time tnum"
+          >{{ formatDateTime(notification.scheduled_for, notification.send_timezone) }}</span>
           <span v-else>Sin programar</span>
           <span v-if="notification.recipient_count"> · {{ notification.recipient_count }} contacto{{ notification.recipient_count !== 1 ? 's' : '' }}</span>
         </p>
@@ -193,10 +196,10 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
       <!-- Confirmaciones -->
       <span
         v-if="showConfirmBadge"
-        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap"
+        class="text-[12px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap"
         :class="
           notification.confirmed_count >= notification.recipient_count && notification.recipient_count > 0
-            ? 'bg-acid-dim text-acid'
+            ? 'bg-acid-dim text-olive'
             : 'bg-glass-2 text-ink-2'
         "
       >
@@ -209,12 +212,12 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
       </span>
 
       <!-- Status pill -->
-      <span
-        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
-        :style="{ background: colors.bg, color: colors.text }"
-      >
-        {{ notifStatusLabel(notification.status) }}
-      </span>
+      <StatusBadge
+        class="flex-shrink-0"
+        :status="notificationBadge(notification.status)"
+        :label="notifStatusLabel(notification.status)"
+        size="sm"
+      />
 
       <!-- Chevron -->
       <svg
@@ -240,7 +243,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
     >
       <!-- Recipients list -->
       <div class="px-3 pt-2.5 pb-2">
-        <p class="text-[9px] font-semibold text-ink-4 uppercase tracking-[0.5px] mb-1.5">
+        <p class="text-[11px] font-semibold text-ink-2 uppercase tracking-[0.5px] mb-1.5">
           Contactos
         </p>
 
@@ -269,14 +272,14 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
 
         <p
           v-else-if="recipientsError"
-          class="text-[11px] text-red-400 py-1"
+          class="text-[13px] text-failed-fg py-1"
         >
           {{ recipientsError }}
         </p>
 
         <p
           v-else-if="recipients.length === 0"
-          class="text-[11px] text-ink-4 italic py-1"
+          class="text-[13px] text-ink-4 italic py-1"
         >
           Sin contactos asignados
         </p>
@@ -298,10 +301,10 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
             />
             <!-- Name + contact -->
             <div class="flex-1 min-w-0">
-              <p class="text-[11px] text-ink truncate">
+              <p class="text-[13px] text-ink truncate">
                 {{ r.contact_name || r.recipient_display || '—' }}
               </p>
-              <p class="text-[10px] text-ink-4 truncate">
+              <p class="text-[12px] text-ink-4 truncate">
                 {{ r.contact_email || r.contact_phone || r.email || r.phone || '' }}
               </p>
             </div>
@@ -333,7 +336,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
       <div class="px-3 pb-3 space-y-2">
         <p
           v-if="actionError"
-          class="text-[11px] text-red-400"
+          class="text-[13px] text-failed-fg"
         >
           {{ actionError }}
         </p>
@@ -342,7 +345,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
           <!-- Edit -->
           <button
             v-if="canEdit"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
             @click="showEdit = true"
           >
             <svg
@@ -364,7 +367,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
           <!-- Add contacts -->
           <button
             v-if="canAddContacts"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
             @click="showAddContacts = true"
           >
             <svg
@@ -399,8 +402,8 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
           <!-- Send now -->
           <button
             v-if="canSend"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium border-none cursor-pointer transition-all"
-            :class="actionLoading ? 'opacity-50 bg-acid/80 text-black' : 'bg-acid text-black'"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium border-none cursor-pointer transition-all"
+            :class="actionLoading ? 'opacity-50 bg-acid text-ink' : 'bg-acid text-ink'"
             :disabled="actionLoading"
             @click="send"
           >
@@ -427,7 +430,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
           <!-- Cancel -->
           <button
             v-if="canCancel"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
             :disabled="actionLoading"
             @click="cancel"
           >
@@ -438,7 +441,7 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
           <template v-if="canDelete">
             <button
               v-if="!showDeleteConfirm"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
+              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5] cursor-pointer transition-colors"
               @click="showDeleteConfirm = true"
             >
               <svg
@@ -460,15 +463,15 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
               class="flex gap-1"
             >
               <button
-                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer border-none"
-                style="background: rgba(239,68,68,0.15); color: #f87171"
+                class="px-2.5 py-1 rounded-lg text-[13px] font-semibold cursor-pointer border-none"
+                style="background: var(--failed-bg); color: var(--failed-fg)"
                 :class="actionLoading ? 'opacity-50' : ''"
                 @click="doDelete"
               >
                 {{ actionLoading ? '…' : 'Confirmar' }}
               </button>
               <button
-                class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+                class="px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
                 @click="showDeleteConfirm = false"
               >
                 Cancelar
@@ -487,9 +490,9 @@ const canEdit = computed(() => ['draft', 'scheduled', 'failed'].includes(n.value
         <!-- Sent summary -->
         <p
           v-if="notification.status === 'sent'"
-          class="text-[11px] text-ink-3"
+          class="text-[13px] text-ink-3"
         >
-          Enviada {{ formatDateTime(notification.sent_at, notification.send_timezone) }}
+          Enviada <span class="font-time tnum">{{ formatDateTime(notification.sent_at, notification.send_timezone) }}</span>
           <span v-if="notification.recipient_count">
             · {{ notification.recipient_count }} destinatario{{ notification.recipient_count !== 1 ? 's' : '' }}
           </span>

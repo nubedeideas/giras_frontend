@@ -275,7 +275,7 @@ function requestClose() {
           ×
         </button>
       </div>
-      <p class="text-[11px] text-ink-3 mb-4">
+      <p class="text-[13px] text-ink-3 mb-4">
         {{ t('roleGroups.subtitle') }}
       </p>
 
@@ -286,7 +286,7 @@ function requestClose() {
         data-test="role-groups-loading"
       >
         <div class="h-1 w-24 mx-auto mb-3 rounded-full bg-acid-dim animate-pulse" />
-        <p class="text-[12px] text-ink-2">
+        <p class="text-[14px] text-ink-2">
           {{ t('roleGroups.loading') }}
         </p>
       </div>
@@ -297,12 +297,12 @@ function requestClose() {
         class="py-4 text-center"
         data-test="role-groups-error"
       >
-        <p class="text-[12px] text-red-400 mb-2">
+        <p class="text-[14px] text-failed-fg mb-2">
           {{ loadError }}
         </p>
         <button
           type="button"
-          class="min-h-[44px] sm:min-h-0 text-[12px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 text-[14px] font-semibold text-olive bg-transparent border-none cursor-pointer"
           data-test="role-groups-retry"
           @click="load"
         >
@@ -313,7 +313,7 @@ function requestClose() {
       <!-- Sin equipo -->
       <p
         v-else-if="isEmpty"
-        class="text-[12px] text-ink-3 text-center py-6"
+        class="text-[14px] text-ink-3 text-center py-6"
         data-test="role-groups-empty"
       >
         {{ t('roleGroups.empty') }}
@@ -322,7 +322,7 @@ function requestClose() {
       <template v-else-if="proposal">
         <p
           v-if="!proposal.ai_used && unassigned.length"
-          class="text-[11px] text-brand-orange mb-3"
+          class="text-[13px] text-brand-orange mb-3"
           data-test="role-groups-no-ai"
         >
           {{ t('roleGroups.noAi') }}
@@ -342,18 +342,18 @@ function requestClose() {
                 type="text"
                 maxlength="100"
                 :aria-label="t('roleGroups.groupName')"
-                class="flex-1 min-w-0 h-11 sm:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[13px] font-semibold text-ink outline-none focus:border-line-acid"
+                class="flex-1 min-w-0 h-11 sm:h-8 px-2.5 rounded-sm bg-bg-2 border border-line text-[15px] font-semibold text-ink outline-none focus:border-line-acid"
                 data-test="bucket-name"
               >
               <span
                 v-if="b.existing"
-                class="flex-shrink-0 text-[10px] text-ink-4"
+                class="flex-shrink-0 text-[12px] text-ink-4"
                 data-test="bucket-existing"
               >{{ t('roleGroups.existing') }}</span>
             </div>
             <p
               v-if="b.contacts.length === 0"
-              class="text-[11px] text-ink-4"
+              class="text-[13px] text-ink-4"
             >
               {{ t('roleGroups.noPeople') }}
             </p>
@@ -372,20 +372,20 @@ function requestClose() {
                   <input
                     v-model="c.selected"
                     type="checkbox"
-                    class="accent-acid w-4 h-4 flex-shrink-0"
+                    class="accent-olive w-4 h-4 flex-shrink-0"
                     :data-test="`contact-${b.key}-${c.uuid}`"
                   >
                   <span class="flex-1 min-w-0">
-                    <span class="block text-[12px] text-ink truncate">{{ c.name }}</span>
+                    <span class="block text-[14px] text-ink truncate">{{ c.name }}</span>
                     <span
                       v-if="c.role_text"
-                      class="block text-[10px] text-ink-4 truncate"
+                      class="block text-[12px] text-ink-4 truncate"
                     >{{ c.role_text }}</span>
                   </span>
                   <span
                     v-if="sourceLabel(c.source)"
-                    class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full"
-                    :class="c.source === 'ai' ? 'bg-acid-dim text-acid' : 'bg-glass-2 text-ink-3'"
+                    class="flex-shrink-0 text-[12px] px-1.5 py-0.5 rounded-full"
+                    :class="c.source === 'ai' ? 'bg-acid-dim text-olive' : 'bg-glass-2 text-ink-3'"
                     data-test="contact-source"
                   >{{ sourceLabel(c.source) }}</span>
                 </label>
@@ -399,7 +399,7 @@ function requestClose() {
             class="bg-glass border border-line rounded-sm p-3"
             data-test="unassigned"
           >
-            <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-2">
+            <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-2">
               {{ t('roleGroups.unassigned') }}
             </p>
             <ul class="space-y-1.5">
@@ -409,16 +409,16 @@ function requestClose() {
                 class="flex flex-wrap items-center gap-2"
               >
                 <span class="flex-1 min-w-[140px]">
-                  <span class="block text-[12px] text-ink truncate">{{ u.name }}</span>
+                  <span class="block text-[14px] text-ink truncate">{{ u.name }}</span>
                   <span
                     v-if="u.role_text"
-                    class="block text-[10px] text-ink-4 truncate"
+                    class="block text-[12px] text-ink-4 truncate"
                   >{{ u.role_text }}</span>
                 </span>
                 <select
                   v-model="u.target"
                   :aria-label="t('roleGroups.assignTo', { name: u.name })"
-                  class="h-11 sm:h-8 px-2 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none focus:border-line-acid"
+                  class="h-11 sm:h-8 px-2 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none focus:border-line-acid"
                   :data-test="`unassigned-${u.uuid}`"
                 >
                   <option value="">
@@ -445,10 +445,10 @@ function requestClose() {
               <input
                 v-model="applyDestinations"
                 type="checkbox"
-                class="accent-acid w-4 h-4 mt-0.5 flex-shrink-0"
+                class="accent-olive w-4 h-4 mt-0.5 flex-shrink-0"
                 data-test="apply-destinations"
               >
-              <span class="text-[12px] text-ink">{{ t('roleGroups.applyDestinations') }}</span>
+              <span class="text-[14px] text-ink">{{ t('roleGroups.applyDestinations') }}</span>
             </label>
             <ul
               class="mt-2 space-y-1"
@@ -458,14 +458,14 @@ function requestClose() {
               <li
                 v-for="(row, i) in destinationRows"
                 :key="i"
-                class="text-[11px] text-ink-3"
+                class="text-[13px] text-ink-3"
                 data-test="destination-row"
               >
                 <span class="text-ink-2">{{ row.types.join(', ') }}</span>
                 → {{ row.groups.join(', ') }}
               </li>
             </ul>
-            <p class="text-[10px] text-ink-4 mt-1.5">
+            <p class="text-[12px] text-ink-4 mt-1.5">
               {{ t('roleGroups.destinationsHint') }}
             </p>
           </section>
@@ -473,13 +473,13 @@ function requestClose() {
 
         <p
           v-if="nameTooLong"
-          class="text-[11px] text-red-400 mt-3"
+          class="text-[13px] text-failed-fg mt-3"
         >
           {{ t('reminders.errors.name_too_long') }}
         </p>
         <p
           v-if="applyError"
-          class="text-[11px] text-red-400 mt-3"
+          class="text-[13px] text-failed-fg mt-3"
           data-test="role-groups-apply-error"
         >
           {{ applyError }}
@@ -492,7 +492,7 @@ function requestClose() {
         class="mt-4 bg-glass border border-line rounded-sm p-3"
         data-test="role-groups-discard"
       >
-        <p class="text-[12px] text-ink-2 mb-2">
+        <p class="text-[14px] text-ink-2 mb-2">
           {{ t('roleGroups.discardConfirm') }}
         </p>
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
@@ -506,7 +506,7 @@ function requestClose() {
           </BtnSecondary>
           <BtnSecondary
             type="button"
-            class="min-h-[44px] sm:min-h-0 justify-center text-red-400"
+            class="min-h-[44px] sm:min-h-0 justify-center text-failed-fg"
             data-test="role-groups-discard-confirm"
             @click="requestClose"
           >

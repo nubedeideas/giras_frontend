@@ -171,7 +171,7 @@ async function signOut() {
       <div class="flex items-center gap-2.5 px-4 py-3 lg:pt-5 lg:pb-4 lg:flex-col lg:items-stretch border-b border-line flex-shrink-0">
         <div class="flex items-center gap-2.5 lg:mb-3 flex-1 min-w-0">
           <div
-            class="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-[13px] font-bold text-black border-2 border-acid"
+            class="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-[15px] font-bold text-ink border-2 border-olive"
             :style="{ background: auth.user?.avatar ? 'transparent' : 'var(--acid)' }"
           >
             <img
@@ -183,21 +183,21 @@ async function signOut() {
             <span v-else>{{ userInitials(auth.user) }}</span>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-[12px] font-bold text-ink truncate leading-tight">
+            <p class="text-[14px] font-bold text-ink truncate leading-tight">
               {{ auth.user?.full_name }}
             </p>
-            <p class="text-[10px] text-ink-4 truncate mt-0.5">
+            <p class="text-[12px] text-ink-4 truncate mt-0.5">
               {{ auth.user?.email }}
             </p>
           </div>
         </div>
-        <p class="hidden lg:block text-[13px] font-bold text-ink tracking-[-0.2px]">
+        <p class="hidden lg:block text-[15px] font-bold text-ink tracking-[-0.2px]">
           Configuración
         </p>
 
         <!-- Sign out (mobile: compact icon next to profile) -->
         <button
-          class="lg:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+          class="lg:hidden w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-lg text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
           title="Cerrar sesión"
           @click="signOut"
         >
@@ -228,18 +228,18 @@ async function signOut() {
         <button
           v-for="tab in TABS"
           :key="tab.key"
-          class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150"
+          class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 min-h-[44px] lg:min-h-0 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           :class="
             activeTab === tab.key
-              ? 'bg-glass-active text-acid'
-              : 'bg-transparent text-ink-3 hover:bg-glass-hover hover:text-ink-2'
+              ? 'bg-bg-3 text-ink shadow-sm font-semibold'
+              : 'bg-transparent text-ink-2 hover:bg-glass-hover hover:text-ink'
           "
           @click="activeTab = tab.key"
         >
           <!-- Active indicator bar (desktop only — mobile uses the fill instead) -->
           <div
             v-if="activeTab === tab.key"
-            class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-acid rounded-r"
+            class="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[16px] bg-olive rounded-r"
           />
           <svg
             width="14"
@@ -252,14 +252,14 @@ async function signOut() {
             stroke-linejoin="round"
             v-html="tab.iconPath"
           />
-          <span class="text-[12px] font-medium">{{ tab.label }}</span>
+          <span class="text-[14px]">{{ tab.label }}</span>
         </button>
       </nav>
 
       <!-- Sign out (desktop only) -->
       <div class="hidden lg:block px-2 py-3 border-t border-line flex-shrink-0">
         <button
-          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-red-400 hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
           @click="signOut"
         >
           <svg
@@ -281,7 +281,7 @@ async function signOut() {
               y2="12"
             />
           </svg>
-          <span class="text-[12px] font-medium">Cerrar sesión</span>
+          <span class="text-[14px] font-medium">Cerrar sesión</span>
         </button>
       </div>
     </div>
@@ -298,7 +298,7 @@ async function signOut() {
       <!-- Other tabs: centered scrollable content -->
       <div
         v-else
-        class="h-full overflow-y-auto bg-bg-3"
+        class="h-full overflow-y-auto bg-bg"
       >
         <div class="max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
           <!-- ── General ────────────────────────────────────────────────────── -->
@@ -309,21 +309,21 @@ async function signOut() {
 
             <!-- Language -->
             <section class="mb-8">
-              <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">
+              <label class="block text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-3">
                 Idioma de la aplicación
               </label>
               <div class="flex gap-[3px] bg-glass border border-line rounded-lg p-0.5 w-fit">
                 <button
                   v-for="l in ['es', 'en']"
                   :key="l"
-                  class="px-5 py-2 rounded-[7px] border-none text-[12px] font-semibold cursor-pointer transition-all duration-150"
-                  :class="locale === l ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
+                  class="px-5 py-2 rounded-[7px] border-none text-[14px] font-semibold cursor-pointer transition-all duration-150"
+                  :class="locale === l ? 'bg-acid text-ink' : 'bg-transparent text-ink-3 hover:text-ink'"
                   @click="locale = l"
                 >
                   {{ l === 'es' ? 'Español' : 'English' }}
                 </button>
               </div>
-              <p class="text-[10px] text-ink-4 mt-2">
+              <p class="text-[12px] text-ink-4 mt-2">
                 Cambia el idioma de la interfaz al instante, sin necesidad de recargar.
               </p>
             </section>
@@ -332,7 +332,7 @@ async function signOut() {
             <section class="mb-8">
               <label
                 for="settings-phone"
-                class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3"
+                class="block text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-3"
               >
                 {{ t('settings.phone') }}
               </label>
@@ -348,13 +348,13 @@ async function signOut() {
                   inputmode="tel"
                   autocomplete="tel"
                   :placeholder="t('settings.phonePlaceholder')"
-                  class="flex-1 min-w-0 h-11 sm:h-9 px-3 rounded-sm bg-glass border border-line text-[13px] text-ink outline-none focus:border-line-acid"
+                  class="flex-1 min-w-0 h-11 sm:h-9 px-3 rounded-sm bg-glass border border-line text-[15px] text-ink outline-none focus:border-line-acid"
                   data-test="phone-input"
                   @input="phoneSaved = false"
                 >
                 <button
                   type="submit"
-                  class="h-11 sm:h-9 px-4 rounded-sm text-[12px] font-bold bg-acid text-black border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="h-11 sm:h-9 px-4 rounded-sm text-[14px] font-bold bg-acid text-ink border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   :disabled="phoneSaving || !phoneDirty"
                   data-test="phone-save"
                 >
@@ -363,26 +363,26 @@ async function signOut() {
               </form>
               <p
                 v-if="phoneError"
-                class="text-[11px] text-red-400 mt-2"
+                class="text-[13px] text-failed-fg mt-2"
                 data-test="phone-error"
               >
                 {{ phoneError }}
               </p>
               <p
                 v-else-if="phoneSaved"
-                class="text-[11px] text-acid mt-2"
+                class="text-[13px] text-olive mt-2"
                 data-test="phone-saved"
               >
                 {{ t('settings.phoneSaved') }}
               </p>
-              <p class="text-[10px] text-ink-4 mt-2">
+              <p class="text-[12px] text-ink-4 mt-2">
                 {{ t('settings.phoneHelp') }}
               </p>
             </section>
 
             <!-- Integrations -->
             <section class="mb-8">
-              <label class="block text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-3">
+              <label class="block text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-3">
                 {{ t('settings.integrations') }}
               </label>
               <div class="bg-glass border border-line rounded-xl overflow-hidden">
@@ -392,7 +392,7 @@ async function signOut() {
                   class="flex items-center justify-between px-4 py-3"
                   :class="idx < integrations.length - 1 ? 'border-b border-line' : ''"
                 >
-                  <span class="text-[13px] text-ink">{{ int.name }}</span>
+                  <span class="text-[15px] text-ink">{{ int.name }}</span>
                   <Pill :variant="int.variant">
                     {{ t(`settings.${int.label}`) }}
                   </Pill>
@@ -407,7 +407,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 Calendarios
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 Conecta Google Calendars para sincronizar eventos automáticamente.
               </p>
             </div>
@@ -422,7 +422,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 Tipos de actividad
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 Define los tipos de actividades disponibles para las giras.
               </p>
             </div>
@@ -435,7 +435,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 {{ t('reminders.templates.title') }}
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 {{ t('reminders.templates.subtitle') }}
               </p>
             </div>
@@ -448,7 +448,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 Roles de contactos
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 Organiza tus contactos por rol dentro de la producción.
               </p>
             </div>
@@ -461,7 +461,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 Grupos de notificación
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 Agrupa contactos para aplicarlos con un click al notificar una actividad.
               </p>
             </div>
@@ -474,7 +474,7 @@ async function signOut() {
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 {{ t('rules.title') }}
               </h2>
-              <p class="text-[12px] text-ink-3 mt-1">
+              <p class="text-[14px] text-ink-3 mt-1">
                 {{ t('rules.subtitle') }}
               </p>
             </div>

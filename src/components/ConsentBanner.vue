@@ -17,7 +17,7 @@ const { status, accept, reject } = useConsent()
       <div
         class="sidebar-dark w-full max-w-xl bg-bg-3 border border-line rounded-2xl shadow-[0_8px_30px_var(--shadow-md)] p-4 flex flex-col sm:flex-row sm:items-center gap-3"
       >
-        <p class="flex-1 text-[12px] text-ink-2 leading-relaxed">
+        <p class="flex-1 text-[14px] text-ink-2 leading-relaxed">
           {{ t('consent.message') }}
           <a
             href="/terms"

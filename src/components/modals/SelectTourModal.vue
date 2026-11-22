@@ -60,7 +60,7 @@ function selectTour(id: number) {
 
     <!-- Header -->
     <div class="flex items-center gap-2.5 mb-[18px]">
-      <div class="w-[34px] h-[34px] rounded-[9px] bg-[rgba(245,158,11,0.12)] text-[#f59e0b] flex items-center justify-center flex-shrink-0">
+      <div class="w-[34px] h-[34px] rounded-[9px] bg-pending-bg text-pending-fg flex items-center justify-center flex-shrink-0">
         <svg
           width="16"
           height="16"
@@ -91,10 +91,10 @@ function selectTour(id: number) {
         </svg>
       </div>
       <div>
-        <p class="text-[14px] font-bold text-ink">
+        <p class="text-[15px] font-bold text-ink">
           Selecciona una gira
         </p>
-        <p class="text-[11px] text-ink-3 mt-px">
+        <p class="text-[13px] text-ink-3 mt-px">
           Para agregar actividades necesitas tener una gira activa
         </p>
       </div>
@@ -128,10 +128,10 @@ function selectTour(id: number) {
           r="3"
         />
       </svg>
-      <p class="text-[12px] text-ink-3">
+      <p class="text-[14px] text-ink-3">
         No hay giras activas o en borrador
       </p>
-      <p class="text-[11px] text-ink-4">
+      <p class="text-[13px] text-ink-4">
         Crea una gira desde el menú lateral primero
       </p>
     </div>
@@ -159,7 +159,7 @@ function selectTour(id: number) {
           >
           <span
             v-else
-            class="text-[11px] font-bold text-black uppercase"
+            class="text-[13px] font-bold text-ink uppercase"
           >
             {{ tour.name.charAt(0) }}
           </span>
@@ -167,24 +167,24 @@ function selectTour(id: number) {
 
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 min-w-0">
-            <p class="text-[13px] font-semibold text-ink truncate">
+            <p class="text-[15px] font-semibold text-ink truncate">
               {{ tour.name }}
             </p>
             <span
-              class="flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
+              class="flex-shrink-0 text-[12px] font-semibold px-1.5 py-0.5 rounded-full border"
               :class="tour.status === 'active'
-                ? 'bg-[rgba(168,216,0,0.1)] text-acid border-[rgba(168,216,0,0.2)]'
+                ? 'bg-acid-dim text-olive border-line-acid'
                 : 'bg-glass border-line text-ink-4'"
             >
               {{ STATUS_LABEL[tour.status] ?? tour.status }}
             </span>
           </div>
-          <p class="text-[11px] text-ink-3 truncate">
+          <p class="text-[13px] text-ink-3 truncate">
             {{ tour.artist_name }}
           </p>
           <p
             v-if="tour.start_date"
-            class="text-[10px] text-ink-4 mt-0.5"
+            class="text-[12px] text-ink-4 mt-0.5"
           >
             {{ tour.start_date }}{{ tour.end_date ? ` — ${tour.end_date}` : '' }}
           </p>

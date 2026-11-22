@@ -190,24 +190,9 @@ export const NOTIF_STATUS_LABELS: Record<NotificationStatus, string> = {
   cancelled: 'Cancelada',
 }
 
-export const NOTIF_STATUS_COLORS: Record<NotificationStatus, { bg: string; text: string }> = {
-  draft: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
-  pending: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
-  scheduled: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
-  sending: { bg: 'rgba(168,216,0,0.12)', text: '#a8d800' },
-  sent: { bg: 'rgba(31,173,90,0.15)', text: '#34d399' },
-  failed: { bg: 'rgba(239,68,68,0.12)', text: '#f87171' },
-  cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
-}
-
 /** Etiqueta de estado con fallback al valor crudo (el backend puede traer estados heredados). */
 export function notifStatusLabel(status: string): string {
   return NOTIF_STATUS_LABELS[status as NotificationStatus] ?? status
-}
-
-/** Colores de estado con fallback a los de borrador. */
-export function notifStatusColors(status: string): { bg: string; text: string } {
-  return NOTIF_STATUS_COLORS[status as NotificationStatus] ?? NOTIF_STATUS_COLORS.draft
 }
 
 // Populated by the backend in `metadata.auto_cancelled_reason` when a reminder is

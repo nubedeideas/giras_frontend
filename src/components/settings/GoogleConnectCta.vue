@@ -33,19 +33,19 @@ function connect() {
   >
     <p
       v-if="!compact"
-      class="text-[9px] font-bold text-ink-3 tracking-[0.6px] uppercase"
+      class="text-[11px] font-bold text-ink-2 tracking-[0.6px] uppercase"
     >
       {{ t('googleIntegration.card.notConnectedShort') }}
     </p>
     <p
       v-if="intro"
-      class="text-[12px] text-ink-2 leading-relaxed"
+      class="text-[14px] text-ink-2 leading-relaxed"
     >
       {{ intro }}
     </p>
     <p
       v-if="!compact"
-      class="text-[11px] text-ink-3 leading-relaxed"
+      class="text-[13px] text-ink-3 leading-relaxed"
       data-testid="google-consent-text"
     >
       {{ t(`googleIntegration.consent.${purpose}`) }}
@@ -84,7 +84,7 @@ function connect() {
     </BtnPrimary>
     <p
       v-if="error"
-      class="text-[10px] text-red-400"
+      class="text-[12px] text-failed-fg"
       data-testid="google-connect-error"
     >
       {{ error }}

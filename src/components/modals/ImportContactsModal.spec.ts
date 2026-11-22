@@ -107,7 +107,7 @@ describe('ImportContactsModal (pestaña Google)', () => {
     await flushPromises()
     expect(w.find('[data-testid="google-connect-contacts"]').exists()).toBe(true)
     expect(w.text()).not.toContain('Necesitas conectar Google Contactos')
-    expect(w.find('.text-red-400').exists()).toBe(false)
+    expect(w.find('.text-failed-fg').exists()).toBe(false)
   })
 
   it('autoSync con contactos conectados arranca la sincronización al abrirse', async () => {

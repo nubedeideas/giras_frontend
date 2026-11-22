@@ -137,7 +137,7 @@ onMounted(() => {
       <p class="text-[22px] font-bold tracking-[-0.5px] text-ink mb-1">
         {{ t('onboarding.done.title') }}
       </p>
-      <p class="text-[13px] text-ink-3 mb-6">
+      <p class="text-[15px] text-ink-3 mb-6">
         {{ t('onboarding.done.subtitle') }}
       </p>
 
@@ -149,7 +149,7 @@ onMounted(() => {
         <!-- Tour identity -->
         <div class="flex items-center gap-3 mb-4 pb-4 border-b border-line">
           <div
-            class="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-[13px] font-bold text-white"
+            class="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-[15px] font-bold text-white"
             :style="tour.spotify_image_url ? {} : { background: 'linear-gradient(135deg,#a8d800,#5a7a00)' }"
           >
             <img
@@ -161,10 +161,10 @@ onMounted(() => {
             <span v-else>{{ tour.artist_name.charAt(0) }}</span>
           </div>
           <div class="min-w-0">
-            <p class="text-[14px] font-bold text-ink leading-tight">
+            <p class="text-[15px] font-bold text-ink leading-tight">
               {{ tour.artist_name }}
             </p>
-            <p class="text-[11px] text-ink-3 truncate">
+            <p class="text-[13px] text-ink-3 truncate">
               {{ tour.name }}
             </p>
           </div>
@@ -173,34 +173,34 @@ onMounted(() => {
         <!-- Stats grid -->
         <div class="grid grid-cols-4 gap-2 mb-4">
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">
+            <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.shows }}
             </p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+            <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
               {{ t('onboarding.done.shows') }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">
+            <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.cities }}
             </p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+            <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
               {{ t('onboarding.done.cities') }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">
+            <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.crew }}
             </p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+            <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
               {{ t('onboarding.done.crew') }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-[20px] font-bold text-acid leading-none">
+            <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.days }}
             </p>
-            <p class="text-[9px] text-ink-4 mt-0.5 uppercase tracking-[0.5px]">
+            <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
               {{ t('onboarding.done.days') }}
             </p>
           </div>
@@ -232,11 +232,11 @@ onMounted(() => {
               y2="12"
             />
           </svg>
-          <span class="text-[12px] font-semibold text-ink">
+          <span class="text-[14px] font-semibold text-ink">
             {{ stats.startCity || '—' }}
           </span>
-          <span class="text-ink-4 text-[11px]">→</span>
-          <span class="text-[12px] font-semibold text-ink">
+          <span class="text-ink-4 text-[13px]">→</span>
+          <span class="text-[14px] font-semibold text-ink">
             {{ stats.endCity || '—' }}
           </span>
         </div>

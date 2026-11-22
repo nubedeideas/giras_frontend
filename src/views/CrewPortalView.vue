@@ -5,7 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { useHead } from '@unhead/vue'
 import { useNoIndex } from '@/composables/usePageMeta'
 import { useCrewPortal, type CrewActivity } from '@/composables/useCrewPortal'
-import { STATUS_COLORS } from '@/composables/useActivities'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import { activityBadge } from '@/utils/statusBadge'
 import {
   activityTimeLabel,
   dateRange,
@@ -97,11 +98,6 @@ function placeLabel(a: CrewActivity): string {
   return [a.location_name, a.destination_name].filter(Boolean).join(' → ')
 }
 
-function statusStyle(a: CrewActivity) {
-  const c = STATUS_COLORS[a.status]
-  return { background: c.bg, color: c.text }
-}
-
 function dotColor(a: CrewActivity): string {
   return a.activity_type?.color || 'var(--ink-3)'
 }
@@ -117,11 +113,11 @@ function dotColor(a: CrewActivity): string {
         class="animate-pulse space-y-3"
         aria-busy="true"
       >
-        <div class="h-24 rounded-lg bg-glass" />
-        <div class="h-5 w-1/3 rounded bg-glass" />
-        <div class="h-20 rounded-lg bg-glass" />
-        <div class="h-20 rounded-lg bg-glass" />
-        <div class="h-20 rounded-lg bg-glass" />
+        <div class="h-24 rounded-lg bg-bg-4 animate-pulse motion-reduce:animate-none" />
+        <div class="h-5 w-1/3 rounded bg-bg-4 animate-pulse motion-reduce:animate-none" />
+        <div class="h-20 rounded-lg bg-bg-4 animate-pulse motion-reduce:animate-none" />
+        <div class="h-20 rounded-lg bg-bg-4 animate-pulse motion-reduce:animate-none" />
+        <div class="h-20 rounded-lg bg-bg-4 animate-pulse motion-reduce:animate-none" />
       </div>
 
       <!-- Error sin datos -->
@@ -134,14 +130,14 @@ function dotColor(a: CrewActivity): string {
         <p class="text-[15px] font-semibold text-ink mb-2">
           {{ t('crewPortal.errorTitle') }}
         </p>
-        <p class="text-[13px] text-ink-2 leading-relaxed">
+        <p class="text-[15px] text-ink-2 leading-relaxed">
           {{ t(`crewPortal.errors.${error}`) }}
         </p>
         <button
           v-if="error === 'network' || error === 'rate_limited'"
           type="button"
           data-testid="crew-retry"
-          class="mt-5 px-4 py-2 rounded-sm bg-acid text-black text-[12px] font-bold border-none cursor-pointer"
+          class="mt-5 px-4 py-2 rounded-sm bg-acid text-ink text-[14px] font-bold border-none cursor-pointer"
           @click="refresh"
         >
           {{ t('crewPortal.retry') }}
@@ -161,7 +157,7 @@ function dotColor(a: CrewActivity): string {
           <div class="p-4">
             <p
               v-if="greetingName"
-              class="text-[12px] text-acid font-medium mb-1"
+              class="text-[14px] text-olive font-medium mb-1"
             >
               {{ t('crewPortal.hello', { name: greetingName }) }}
             </p>
@@ -170,17 +166,17 @@ function dotColor(a: CrewActivity): string {
             </h1>
             <p
               v-if="portal.tour.artist_name"
-              class="text-[13px] text-ink-2 mt-0.5"
+              class="text-[15px] text-ink-2 mt-0.5"
             >
               {{ portal.tour.artist_name }}
             </p>
-            <p class="text-[12px] text-ink-3 mt-1">
+            <p class="text-[14px] text-ink-3 mt-1">
               {{ dates }}<span v-if="cities"> · {{ cities }}</span>
             </p>
             <p
               v-if="modeNotice"
               data-testid="crew-mode"
-              class="mt-3 text-[12px] text-ink-2 bg-glass border border-line rounded px-3 py-2"
+              class="mt-3 text-[14px] text-ink-2 bg-glass border border-line rounded px-3 py-2"
             >
               {{ modeNotice }}
             </p>
@@ -191,20 +187,20 @@ function dotColor(a: CrewActivity): string {
         <p
           v-if="error"
           data-testid="crew-refresh-error"
-          class="mb-3 text-[12px] text-brand-orange bg-brand-orange-dim border border-line rounded px-3 py-2"
+          class="mb-3 text-[14px] text-brand-orange bg-brand-orange-dim border border-line rounded px-3 py-2"
         >
           {{ t(`crewPortal.errors.${error}`) }}
         </p>
 
         <!-- Agenda -->
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-[10px] font-bold text-ink-3 tracking-[1px] uppercase">
+          <h2 class="text-[12px] font-bold text-ink-2 tracking-[1px] uppercase">
             {{ t('crewPortal.agenda') }}
           </h2>
           <button
             type="button"
             data-testid="crew-refresh"
-            class="text-[12px] text-acid bg-transparent border-none cursor-pointer disabled:opacity-50"
+            class="text-[14px] text-olive bg-transparent border-none cursor-pointer disabled:opacity-50"
             :disabled="loading"
             @click="refresh"
           >
@@ -215,7 +211,7 @@ function dotColor(a: CrewActivity): string {
         <p
           v-if="!hasActivities && portal.next_activity_date"
           data-testid="crew-next-activity"
-          class="mb-3 text-[12px] text-ink-2"
+          class="mb-3 text-[14px] text-ink-2"
         >
           {{ t('crewPortal.nextActivity', { date: longDate(portal.next_activity_date, locale) }) }}
         </p>
@@ -227,8 +223,8 @@ function dotColor(a: CrewActivity): string {
           class="mb-4"
         >
           <h3
-            class="text-[13px] font-semibold mb-2 capitalize"
-            :class="day.is_today ? 'text-acid' : 'text-ink'"
+            class="text-[15px] font-semibold mb-2 capitalize"
+            :class="day.is_today ? 'text-olive' : 'text-ink'"
           >
             <span v-if="day.is_today">{{ t('crewPortal.today') }} · </span>{{ dayLabel(day.date, locale) }}
           </h3>
@@ -236,7 +232,7 @@ function dotColor(a: CrewActivity): string {
           <p
             v-if="!day.activities.length"
             data-testid="crew-day-empty"
-            class="text-[12px] text-ink-4 px-1"
+            class="text-[14px] text-ink-4 px-1"
           >
             {{ t('crewPortal.noActivities') }}
           </p>
@@ -245,14 +241,11 @@ function dotColor(a: CrewActivity): string {
             v-for="a in day.activities"
             :key="a.uuid"
             data-testid="crew-activity"
-            class="bg-glass border border-line rounded p-3 mb-2"
-            :class="a.status === 'cancelled' ? 'opacity-60' : ''"
+            class="bg-bg-3 border border-line rounded p-3 mb-2"
           >
             <div class="flex items-start gap-3">
               <div
-                class="w-[30px] h-[30px] rounded-lg flex items-center justify-center flex-shrink-0"
-                :class="a.activity_type?.color ? '' : 'bg-glass-2'"
-                :style="a.activity_type?.color ? { background: a.activity_type.color + '22' } : undefined"
+                class="w-[30px] h-[30px] rounded-lg flex items-center justify-center flex-shrink-0 bg-bg-2 border border-line"
               >
                 <div
                   class="w-[8px] h-[8px] rounded-full"
@@ -267,14 +260,14 @@ function dotColor(a: CrewActivity): string {
                   :class="hasZone(a) ? 'flex-col' : 'items-baseline justify-between'"
                 >
                   <p
-                    class="text-[14px] font-semibold text-ink break-words"
-                    :class="a.status === 'cancelled' ? 'line-through' : ''"
+                    class="text-[15px] font-semibold break-words"
+                    :class="a.status === 'cancelled' ? 'line-through text-ink-2' : 'text-ink'"
                   >
                     {{ a.title }}
                   </p>
                   <p
                     data-testid="crew-time"
-                    class="text-[13px] text-ink tabular-nums flex-shrink-0"
+                    class="text-[15px] text-ink font-time tnum flex-shrink-0"
                     :class="hasZone(a) ? 'text-left mt-0.5' : 'text-right'"
                     :title="t('crewPortal.localTime')"
                   >
@@ -285,40 +278,40 @@ function dotColor(a: CrewActivity): string {
                       <span>{{ timeOf(a).start }}</span>
                       <span
                         v-if="timeOf(a).startZone"
-                        class="text-[10px] text-ink-3 ml-1"
+                        class="text-[12px] text-ink-3 ml-1"
                       >{{ timeOf(a).startZone }}</span>
                       <span v-if="timeOf(a).end">–{{ timeOf(a).end }}</span>
                       <sup
                         v-if="timeOf(a).end && timeOf(a).endDayOffset !== 0"
                         data-testid="crew-day-offset"
-                        class="text-[9px] text-ink-3"
+                        class="text-[12px] text-ink-3"
                       >{{ dayOffsetLabel(timeOf(a).endDayOffset) }}</sup>
                       <span
                         v-if="timeOf(a).endZone"
-                        class="text-[10px] text-ink-3 ml-1"
+                        class="text-[12px] text-ink-3 ml-1"
                       >{{ timeOf(a).endZone }}</span>
                     </template>
                   </p>
                 </div>
 
-                <p class="text-[12px] text-ink-2 mt-0.5 break-words">
+                <p class="text-[14px] text-ink-2 mt-0.5 break-words">
                   <span v-if="a.activity_type">{{ a.activity_type.name }}</span>
                   <span v-if="a.activity_type && placeLabel(a)"> · </span>
                   <span v-if="placeLabel(a)">{{ placeLabel(a) }}</span>
                 </p>
 
-                <span
+                <StatusBadge
                   v-if="showStatus(a.status)"
                   data-testid="crew-status"
-                  class="inline-block mt-1.5 text-[10px] font-semibold px-1.5 py-px rounded-full"
-                  :style="statusStyle(a)"
-                >
-                  {{ t(`crewPortal.status.${a.status}`) }}
-                </span>
+                  class="mt-1.5"
+                  :status="activityBadge(a.status)"
+                  :label="t(`crewPortal.status.${a.status}`)"
+                  size="sm"
+                />
 
                 <p
                   v-if="a.description"
-                  class="text-[12px] text-ink-3 mt-1.5 whitespace-pre-line break-words"
+                  class="text-[14px] text-ink-3 mt-1.5 whitespace-pre-line break-words"
                 >
                   {{ a.description }}
                 </p>
@@ -327,7 +320,7 @@ function dotColor(a: CrewActivity): string {
                   v-for="(line, i) in detailLines(a.details)"
                   :key="i"
                   data-testid="crew-detail"
-                  class="text-[12px] text-ink-2 mt-1 break-words"
+                  class="text-[14px] text-ink-2 mt-1 break-words"
                 >
                   <template
                     v-for="(part, j) in line"
@@ -340,7 +333,7 @@ function dotColor(a: CrewActivity): string {
                       <a
                         v-if="part.href"
                         :href="part.href"
-                        class="text-acid no-underline ml-1"
+                        class="text-olive no-underline ml-1"
                       >{{ part.value }}</a>
                       <span
                         v-else
@@ -356,7 +349,7 @@ function dotColor(a: CrewActivity): string {
                   :href="a.maps_url"
                   target="_blank"
                   rel="noreferrer noopener"
-                  class="inline-flex items-center gap-1 mt-2 text-[12px] text-acid no-underline"
+                  class="inline-flex items-center gap-1 mt-2 text-[14px] text-olive no-underline"
                 >
                   <svg
                     width="12"
@@ -385,24 +378,24 @@ function dotColor(a: CrewActivity): string {
           data-testid="crew-documents"
           class="mt-6"
         >
-          <h2 class="text-[10px] font-bold text-ink-3 tracking-[1px] uppercase mb-2">
+          <h2 class="text-[12px] font-bold text-ink-2 tracking-[1px] uppercase mb-2">
             {{ t('crewPortal.documents') }}
           </h2>
           <div
             v-for="doc in portal.documents"
             :key="doc.uuid"
-            class="bg-glass border border-line rounded p-3 mb-2 flex items-center gap-3"
+            class="bg-bg-3 border border-line rounded p-3 mb-2 flex items-center gap-3"
           >
             <div class="flex-1 min-w-0">
               <Pill variant="n">
                 {{ doc.document_type_display }}
               </Pill>
-              <p class="text-[13px] text-ink mt-1 truncate">
+              <p class="text-[15px] text-ink mt-1 truncate">
                 {{ doc.description || doc.file_name }}
               </p>
               <p
                 v-if="fileSize(doc.file_size)"
-                class="text-[11px] text-ink-4"
+                class="text-[13px] text-ink-4"
               >
                 {{ fileSize(doc.file_size) }}
               </p>
@@ -417,7 +410,7 @@ function dotColor(a: CrewActivity): string {
               target="_blank"
               rel="noreferrer noopener"
               download
-              class="flex-shrink-0 px-3 py-2 rounded-sm bg-acid text-black text-[12px] font-bold no-underline"
+              class="flex-shrink-0 px-3 py-2 rounded-sm bg-acid text-ink text-[14px] font-bold no-underline"
             >
               {{ t('crewPortal.download') }}
             </a>
@@ -430,10 +423,10 @@ function dotColor(a: CrewActivity): string {
           data-testid="crew-contacts"
           class="mt-6"
         >
-          <h2 class="text-[10px] font-bold text-ink-3 tracking-[1px] uppercase mb-2">
+          <h2 class="text-[12px] font-bold text-ink-2 tracking-[1px] uppercase mb-2">
             {{ t('crewPortal.keyContacts') }}
           </h2>
-          <pre class="bg-glass border border-line rounded p-3 text-[12px] text-ink-2 whitespace-pre-wrap break-words font-sans">{{ portal.tour.contacts_text }}</pre>
+          <pre class="bg-bg-3 border border-line rounded p-3 text-[14px] text-ink-2 whitespace-pre-wrap break-words font-sans">{{ portal.tour.contacts_text }}</pre>
         </section>
       </template>
     </main>

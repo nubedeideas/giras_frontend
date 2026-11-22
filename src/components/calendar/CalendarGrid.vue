@@ -1,25 +1,64 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { useCalendarStore } from '@/stores/calendar'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
+import type { ActivityListItem } from '@/composables/useActivities'
 import CalendarActivityListPanel from '@/components/calendar/CalendarActivityListPanel.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 
 const { t, tm } = useI18n()
 const cal = useCalendarStore()
 const tours = useToursStore()
+const auth = useAuthStore()
+const reminderCatalog = useReminderCatalogStore()
 
 // tm() (not t()) is required for `calendar.days`/`calendar.months` — they're arrays, and t()
 // only resolves compiled string leaves, returning the key itself unresolved
 // when it points at an array (see SupportView.vue for the same gotcha).
 const weekdays = computed(() => tm('calendar.days') as unknown as string[])
 const months = computed(() => tm('calendar.months') as unknown as string[])
+
+// Catálogo de recordatorios (solo admins; el endpoint da 403 al resto). Sin catálogo,
+// `notifiableCodes` está vacío y todos los chips se pintan como "normal".
+watch(
+  () => [tours.activeTour?.uuid, tours.activeTour?.current_user_is_admin, auth.isDemoMode] as const,
+  ([uuid, isAdmin, demo]) => {
+    if (uuid && isAdmin && !demo) reminderCatalog.load(uuid)
+    else reminderCatalog.reset()
+  },
+  { immediate: true }
+)
+
+function isNotifiable(act: ActivityListItem): boolean {
+  return act.status !== 'cancelled' && reminderCatalog.notifiableCodes.has(act.activity_type_code)
+}
+
+// Hora local de la actividad (`local_start_time`, posiciones 11-16); si no viene, la del navegador.
+function chipTime(act: ActivityListItem): string {
+  if (act.all_day) return ''
+  if (act.local_start_time && act.local_start_time.length >= 16) {
+    return act.local_start_time.substring(11, 16)
+  }
+  const dt = DateTime.fromISO(act.scheduled_at)
+  return dt.isValid ? dt.toFormat('HH:mm') : ''
+}
+
+function chipClass(act: ActivityListItem): string {
+  if (isNotifiable(act)) return 'bg-night text-on-night'
+  // Contorno de "importado" solo si el listado trae `external_source` (hoy no; spec §11.1).
+  const border = act.external_source ? 'border-ink-3' : 'border-line'
+  const text = act.status === 'cancelled' ? 'line-through text-ink-2' : 'text-ink'
+  return `bg-bg-2 border ${border} ${text}`
+}
 </script>
 
 <template>
   <div
-    class="flex-1 flex flex-col overflow-hidden bg-bg-3 m-3 lg:my-3 lg:ml-3 lg:mr-1.5 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)]"
+    class="flex-1 min-w-0 flex flex-col overflow-hidden bg-bg-3 m-3 lg:my-3 lg:ml-3 lg:mr-1.5 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)]"
   >
     <!-- No tour selected — same picker as Tour/Events/Contacts, replacing the
     whole card (header included, since its own tour <select> below would
@@ -44,7 +83,7 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
               </h2>
               <div class="flex gap-1">
                 <button
-                  class="flex items-center justify-center w-7 h-7 rounded-lg border border-line bg-glass text-ink-2 hover:bg-glass-hover hover:text-ink transition-all duration-200 cursor-pointer"
+                  class="flex items-center justify-center w-11 h-11 lg:w-7 lg:h-7 rounded-lg border border-line bg-bg-3 text-ink-2 hover:bg-glass-hover hover:text-ink transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
                   @click="cal.prevMonth()"
                 >
                   <svg
@@ -61,7 +100,7 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
                   </svg>
                 </button>
                 <button
-                  class="flex items-center justify-center w-7 h-7 rounded-lg border border-line bg-glass text-ink-2 hover:bg-glass-hover hover:text-ink transition-all duration-200 cursor-pointer"
+                  class="flex items-center justify-center w-11 h-11 lg:w-7 lg:h-7 rounded-lg border border-line bg-bg-3 text-ink-2 hover:bg-glass-hover hover:text-ink transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
                   @click="cal.nextMonth()"
                 >
                   <svg
@@ -90,17 +129,17 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
 
           <div class="flex items-center gap-2">
             <!-- View mode toggle -->
-            <div class="flex items-center gap-0.5 bg-glass border border-line rounded-full p-0.5">
+            <div class="flex items-center gap-1 bg-glass-hover rounded-[10px] p-1">
               <button
-                class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer border-none"
-                :class="cal.viewMode === 'grid' ? 'bg-glass-active text-acid' : 'bg-transparent text-ink-2 hover:text-ink'"
+                class="min-h-[44px] lg:min-h-[32px] px-2.5 py-1 rounded-[7px] text-[13px] transition-colors cursor-pointer border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+                :class="cal.viewMode === 'grid' ? 'bg-bg-3 text-ink shadow-sm font-semibold' : 'bg-transparent text-ink-2 hover:text-ink'"
                 @click="cal.viewMode = 'grid'"
               >
                 {{ t('calendar.viewGrid') }}
               </button>
               <button
-                class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer border-none"
-                :class="cal.viewMode === 'list' ? 'bg-glass-active text-acid' : 'bg-transparent text-ink-2 hover:text-ink'"
+                class="min-h-[44px] lg:min-h-[32px] px-2.5 py-1 rounded-[7px] text-[13px] transition-colors cursor-pointer border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+                :class="cal.viewMode === 'list' ? 'bg-bg-3 text-ink shadow-sm font-semibold' : 'bg-transparent text-ink-2 hover:text-ink'"
                 @click="cal.viewMode = 'list'"
               >
                 {{ t('calendar.viewList') }}
@@ -109,7 +148,7 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
 
             <!-- Tour filter -->
             <select
-              class="bg-glass border border-line rounded-sm px-3 py-1.5 text-[11px] text-ink-2 outline-none focus:border-acid cursor-pointer"
+              class="min-h-[44px] lg:min-h-0 bg-bg-3 border border-line rounded-sm px-3 py-1.5 text-[13px] text-ink-2 outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer"
               :value="cal.filterTourId ?? ''"
               @change="cal.setFilterTour(($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : null)"
             >
@@ -136,7 +175,7 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
             <div
               v-for="day in weekdays"
               :key="String(day)"
-              class="text-center text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase py-1"
+              class="text-center text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase py-1"
             >
               {{ day }}
             </div>
@@ -152,60 +191,77 @@ const months = computed(() => tm('calendar.months') as unknown as string[])
         <div
           v-if="cal.viewMode === 'grid'"
           key="grid-body"
-          class="flex-1 overflow-y-auto px-4 py-3"
+          class="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 py-3"
         >
-          <div class="grid grid-cols-7 gap-1">
+          <div class="grid grid-cols-7 gap-0.5 sm:gap-1">
             <div
               v-for="cell in cal.daysGrid"
               :key="cell.isoDate"
-              class="min-h-[72px] rounded-lg p-1.5 cursor-pointer transition-all duration-150 border"
+              class="min-h-[72px] min-w-0 overflow-hidden rounded-lg p-0.5 sm:p-1 lg:p-1.5 cursor-pointer transition-all duration-150 border"
               :class="[
-                cell.isCurrentMonth ? 'bg-glass' : 'bg-transparent opacity-40',
-                cell.isToday ? 'border-line-acid bg-acid-dim' : 'border-transparent',
-                cal.selectedDate === cell.isoDate ? 'border-line-acid bg-glass-active' : '',
-                cell.isCurrentMonth && cal.selectedDate !== cell.isoDate ? 'hover:bg-glass-2 hover:border-line' : '',
+                cal.selectedDate === cell.isoDate
+                  ? 'bg-bg-3 border-ink ring-1 ring-ink'
+                  : cell.isToday
+                    ? 'bg-lime-soft border-olive'
+                    : cell.isCurrentMonth
+                      ? 'bg-bg-3 border-line hover:border-line-2'
+                      : 'bg-transparent border-transparent hover:border-line-2',
               ]"
+              :data-today="cell.isToday ? 'true' : undefined"
               @click="cal.selectDate(cell.isoDate)"
             >
               <!-- Day number -->
-              <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center justify-between gap-1 mb-1 min-w-0">
                 <span
-                  class="text-[12px] font-medium"
-                  :class="[
-                    cell.isToday ? 'text-acid font-bold' : '',
-                    cell.isCurrentMonth ? 'text-ink-2' : 'text-ink-4',
-                    cal.selectedDate === cell.isoDate ? 'text-acid' : '',
-                  ]"
+                  class="text-[14px] font-time tnum"
+                  :class="
+                    cell.isToday
+                      ? 'text-olive font-bold'
+                      : cell.isCurrentMonth
+                        ? 'text-ink-2 font-medium'
+                        : 'text-ink-3 font-medium'
+                  "
                 >
                   {{ cell.dayNum }}
                 </span>
                 <span
                   v-if="cell.isToday"
-                  class="text-[8px] font-bold text-acid tracking-[0.5px] uppercase"
+                  class="hidden sm:inline text-[11px] font-bold text-olive tracking-[0.5px] uppercase truncate"
                 >
                   {{ t('calendar.today') }}
                 </span>
               </div>
 
-              <!-- Activity dots -->
-              <div class="flex flex-col gap-0.5">
+              <!-- Activity chips -->
+              <div class="flex flex-col gap-0.5 min-w-0">
                 <div
                   v-for="act in cell.activities.slice(0, 3)"
                   :key="act.uuid"
-                  class="flex items-center gap-1 px-1 py-0.5 rounded text-[9px] font-medium truncate"
-                  :style="{ backgroundColor: act.activity_type_color + '22', color: act.activity_type_color }"
+                  class="flex items-center gap-1 min-w-0 overflow-hidden px-1 lg:px-1.5 py-0.5 rounded text-[12px] font-medium"
+                  :class="chipClass(act)"
+                  :title="isNotifiable(act) ? `${act.title} · ${t('calendar.notifiable')}` : act.title"
+                  :data-notifiable="isNotifiable(act) ? 'true' : undefined"
+                  data-test="calendar-chip"
                 >
-                  <div
-                    class="w-[5px] h-[5px] rounded-full flex-shrink-0"
+                  <span
+                    v-if="!isNotifiable(act)"
+                    class="w-[6px] h-[6px] rounded-full flex-shrink-0"
                     :style="{ backgroundColor: act.activity_type_color }"
                   />
-                  <span class="truncate">{{ act.title }}</span>
+                  <span
+                    v-if="chipTime(act)"
+                    class="hidden xl:inline font-time tnum flex-shrink-0"
+                    :class="isNotifiable(act) ? 'text-acid' : 'text-ink-2'"
+                    data-test="calendar-chip-time"
+                  >{{ chipTime(act) }}</span>
+                  <span class="truncate min-w-0">{{ act.title }}</span>
                 </div>
                 <div
                   v-if="cell.activities.length > 3"
-                  class="text-[9px] text-ink-3 px-1"
+                  class="text-[12px] text-ink-2 px-1 truncate"
+                  data-test="calendar-more"
                 >
-                  +{{ cell.activities.length - 3 }} más
+                  {{ t('calendar.moreCount', { n: cell.activities.length - 3 }) }}
                 </div>
               </div>
             </div>

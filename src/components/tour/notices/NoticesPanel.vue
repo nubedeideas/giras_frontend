@@ -98,7 +98,7 @@ function cardMeta(n: Notice): string {
 function toneClass(n: Notice): string {
   return originTone(n.origin) === 'orange'
     ? 'bg-brand-orange-dim text-brand-orange'
-    : 'bg-acid-dim text-acid'
+    : 'bg-acid-dim text-olive'
 }
 
 const isEmpty = computed(() => loaded.value && pending.value.length === 0)
@@ -229,7 +229,7 @@ onUnmounted(() => {
       <h2 class="text-[16px] font-bold text-ink">
         {{ t('notices.title') }}
       </h2>
-      <p class="text-[12px] text-ink-3 mt-0.5">
+      <p class="text-[14px] text-ink-3 mt-0.5">
         {{ t('notices.subtitle') }}
       </p>
     </div>
@@ -250,13 +250,13 @@ onUnmounted(() => {
       class="bg-bg-3 border border-line rounded-lg p-4 text-center"
       data-test="notices-error"
     >
-      <p class="text-[12px] text-red-400">
+      <p class="text-[14px] text-failed-fg">
         {{ errorMessage }}
       </p>
       <button
         v-if="!forbidden"
         type="button"
-        class="min-h-[44px] mt-1 text-[12px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+        class="min-h-[44px] mt-1 text-[14px] font-semibold text-olive bg-transparent border-none cursor-pointer"
         data-test="notices-retry"
         @click="load()"
       >
@@ -267,16 +267,16 @@ onUnmounted(() => {
     <template v-else-if="loaded">
       <!-- Pendientes -->
       <section class="mb-6">
-        <p class="text-[10px] font-bold text-ink-3 tracking-[1px] uppercase mb-2">
+        <p class="text-[12px] font-bold text-ink-2 tracking-[1px] uppercase mb-2">
           {{ t('notices.pending') }}
           <span
             v-if="pending.length"
-            class="ml-1 text-acid"
+            class="ml-1 text-olive"
           >({{ pending.length }})</span>
         </p>
         <p
           v-if="isEmpty"
-          class="text-[12px] text-ink-4 bg-bg-3 border border-line rounded-lg p-4"
+          class="text-[14px] text-ink-4 bg-bg-3 border border-line rounded-lg p-4"
           data-test="notices-empty"
         >
           {{ t('notices.empty') }}
@@ -298,27 +298,27 @@ onUnmounted(() => {
               <div class="flex items-start gap-2.5">
                 <div class="flex-1 min-w-0">
                   <span
-                    class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-1"
+                    class="inline-block text-[12px] font-bold px-2 py-0.5 rounded-full mb-1"
                     :class="toneClass(n)"
                   >{{ originLabel(n.origin, t) }}</span>
-                  <p class="text-[14px] font-semibold text-ink truncate">
+                  <p class="text-[15px] font-semibold text-ink truncate">
                     {{ noticeHeadline(n) }}
                   </p>
                   <p
-                    class="text-[12px] text-ink-2 break-words"
+                    class="text-[14px] text-ink-2 break-words"
                     data-test="notice-card-summary"
                   >
                     {{ noticeSummary(n, t) }}
                   </p>
                   <p
                     v-if="cardMeta(n)"
-                    class="text-[11px] text-ink-3 mt-1"
+                    class="text-[13px] text-ink-3 mt-1"
                     data-test="notice-card-meta"
                   >
                     {{ cardMeta(n) }}
                   </p>
                 </div>
-                <span class="flex-shrink-0 self-center text-[12px] font-bold text-acid">
+                <span class="flex-shrink-0 self-center text-[14px] font-bold text-olive">
                   <span class="hidden sm:inline">{{ t('inbox.reviewAndSend') }} </span>→
                 </span>
               </div>
@@ -329,7 +329,7 @@ onUnmounted(() => {
 
       <!-- Historial -->
       <section v-if="history.length">
-        <p class="text-[10px] font-bold text-ink-3 tracking-[1px] uppercase mb-2">
+        <p class="text-[12px] font-bold text-ink-2 tracking-[1px] uppercase mb-2">
           {{ t('notices.history') }}
         </p>
         <ul class="space-y-1.5">
@@ -344,11 +344,11 @@ onUnmounted(() => {
               @click="open(n.uuid)"
             >
               <div class="flex items-baseline gap-2">
-                <span class="text-[11px] font-semibold text-ink-2 flex-shrink-0">{{ originLabel(n.origin, t) }}</span>
-                <span class="text-[12px] text-ink truncate flex-1 min-w-0">{{ noticeHeadline(n) }}</span>
+                <span class="text-[13px] font-semibold text-ink-2 flex-shrink-0">{{ originLabel(n.origin, t) }}</span>
+                <span class="text-[14px] text-ink truncate flex-1 min-w-0">{{ noticeHeadline(n) }}</span>
               </div>
               <p
-                class="text-[11px] text-ink-3 mt-0.5"
+                class="text-[13px] text-ink-3 mt-0.5"
                 data-test="notice-history-status"
               >
                 {{ noticeStatusLine(n, t, locale) }}

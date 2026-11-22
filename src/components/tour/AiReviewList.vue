@@ -325,13 +325,13 @@ defineExpose({ reload: () => load(), count })
     data-test="ai-review"
   >
     <div class="flex flex-wrap items-center gap-2 mb-2">
-      <h3 class="flex-1 text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase">
+      <h3 class="flex-1 text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase">
         {{ t('aiReview.title', { count }) }}
       </h3>
       <button
         v-if="count > 0 && !confirmingAll"
         type="button"
-        class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-semibold bg-glass border border-line text-acid hover:bg-glass-hover cursor-pointer disabled:opacity-50"
+        class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-glass border border-line text-olive hover:bg-glass-hover cursor-pointer disabled:opacity-50"
         :disabled="bulkBusy || busy.size > 0"
         data-test="ai-review-confirm-all"
         @click="confirmingAll = true"
@@ -346,7 +346,7 @@ defineExpose({ reload: () => load(), count })
       class="bg-glass border border-line rounded-sm p-3 mb-2"
       data-test="ai-review-confirm-all-prompt"
     >
-      <p class="text-[12px] text-ink-2 mb-2">
+      <p class="text-[14px] text-ink-2 mb-2">
         {{
           t('aiReview.confirmAllPrompt', {
             groups: suggestions.length,
@@ -357,7 +357,7 @@ defineExpose({ reload: () => load(), count })
       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
         <button
           type="button"
-          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] bg-glass border border-line text-ink-2 cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] bg-glass border border-line text-ink-2 cursor-pointer"
           data-test="ai-review-confirm-all-cancel"
           @click="confirmingAll = false"
         >
@@ -365,7 +365,7 @@ defineExpose({ reload: () => load(), count })
         </button>
         <button
           type="button"
-          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-bold bg-acid text-black border-none cursor-pointer"
+          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-bold bg-acid text-ink border-none cursor-pointer"
           data-test="ai-review-confirm-all-go"
           @click="confirmAll"
         >
@@ -376,7 +376,7 @@ defineExpose({ reload: () => load(), count })
 
     <p
       v-if="bulkError"
-      class="text-[11px] text-red-400 mb-2"
+      class="text-[13px] text-failed-fg mb-2"
       data-test="ai-review-bulk-error"
     >
       {{ bulkError }}
@@ -388,12 +388,12 @@ defineExpose({ reload: () => load(), count })
       class="bg-glass border border-line rounded-sm px-3 py-3 text-center"
       data-test="ai-review-error"
     >
-      <p class="text-[11px] text-red-400 mb-1">
+      <p class="text-[13px] text-failed-fg mb-1">
         {{ loadError }}
       </p>
       <button
         type="button"
-        class="min-h-[44px] sm:min-h-0 text-[11px] font-semibold text-acid bg-transparent border-none cursor-pointer"
+        class="min-h-[44px] sm:min-h-0 text-[13px] font-semibold text-olive bg-transparent border-none cursor-pointer"
         data-test="ai-review-retry"
         @click="load"
       >
@@ -412,10 +412,10 @@ defineExpose({ reload: () => load(), count })
         :data-test="`ai-card-${c.uuid}`"
       >
         <div class="flex flex-wrap items-baseline gap-x-2 mb-1.5">
-          <p class="text-[12px] font-semibold text-ink truncate max-w-full">
+          <p class="text-[14px] font-semibold text-ink truncate max-w-full">
             {{ c.title }}
           </p>
-          <span class="text-[10px] text-ink-4">{{ formatDate(c) }}</span>
+          <span class="text-[12px] text-ink-4 font-time tnum">{{ formatDate(c) }}</span>
         </div>
 
         <!-- Tipo propuesto -->
@@ -423,12 +423,12 @@ defineExpose({ reload: () => load(), count })
           v-if="c.review"
           class="flex flex-wrap items-center gap-2 mb-1.5"
         >
-          <span class="text-[10px] text-ink-3">{{ t('aiReview.typeProposed') }}</span>
+          <span class="text-[12px] text-ink-3">{{ t('aiReview.typeProposed') }}</span>
           <select
             v-if="types.length"
             v-model="typeDraft[c.uuid]"
             :aria-label="t('aiReview.typeProposed')"
-            class="h-11 sm:h-8 px-2 rounded-sm bg-bg-2 border border-line text-[12px] text-ink outline-none focus:border-line-acid max-w-full"
+            class="h-11 sm:h-8 px-2 rounded-sm bg-bg-2 border border-line text-[14px] text-ink outline-none focus:border-line-acid max-w-full"
             :disabled="busy.has(`confirm:${c.uuid}`) || bulkBusy"
             data-test="ai-card-type"
           >
@@ -448,7 +448,7 @@ defineExpose({ reload: () => load(), count })
           </select>
           <span
             v-else
-            class="text-[12px] text-ink"
+            class="text-[14px] text-ink"
           >{{ c.typeName }}</span>
         </div>
 
@@ -457,7 +457,7 @@ defineExpose({ reload: () => load(), count })
           v-if="c.suggestions.length"
           class="mb-1.5"
         >
-          <p class="text-[10px] text-ink-3 mb-1">
+          <p class="text-[12px] text-ink-3 mb-1">
             {{ t('aiReview.suggestedGroups') }}
           </p>
           <ul class="space-y-1">
@@ -468,16 +468,16 @@ defineExpose({ reload: () => load(), count })
               data-test="ai-suggestion"
             >
               <span class="flex-1 min-w-[120px]">
-                <span class="block text-[12px] text-acid">{{ suggestionLabel(s) }}</span>
+                <span class="block text-[14px] text-olive">{{ suggestionLabel(s) }}</span>
                 <span
                   v-if="s.reason"
-                  class="block text-[10px] text-ink-4"
+                  class="block text-[12px] text-ink-4"
                   data-test="ai-suggestion-reason"
                 >{{ s.reason }}</span>
               </span>
               <button
                 type="button"
-                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-acid-dim text-acid border-none cursor-pointer disabled:opacity-50"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[13px] font-semibold bg-acid-dim text-olive border-none cursor-pointer disabled:opacity-50"
                 :disabled="busy.has(`s:${s.uuid}`) || busy.has(`confirm:${c.uuid}`) || bulkBusy"
                 data-test="ai-suggestion-accept"
                 @click="onAccept(c, s)"
@@ -486,7 +486,7 @@ defineExpose({ reload: () => load(), count })
               </button>
               <button
                 type="button"
-                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] bg-glass border border-line text-ink-3 hover:text-ink cursor-pointer disabled:opacity-50"
+                class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[13px] bg-glass border border-line text-ink-3 hover:text-ink cursor-pointer disabled:opacity-50"
                 :disabled="busy.has(`s:${s.uuid}`) || busy.has(`confirm:${c.uuid}`) || bulkBusy"
                 data-test="ai-suggestion-reject"
                 @click="onReject(c, s)"
@@ -499,7 +499,7 @@ defineExpose({ reload: () => load(), count })
 
         <p
           v-if="cardErrors[c.uuid]"
-          class="text-[11px] text-red-400 mb-1"
+          class="text-[13px] text-failed-fg mb-1"
           data-test="ai-card-error"
         >
           {{ cardErrors[c.uuid] }}
@@ -508,7 +508,7 @@ defineExpose({ reload: () => load(), count })
         <div class="flex justify-end">
           <button
             type="button"
-            class="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[11px] font-bold bg-acid text-black border-none cursor-pointer disabled:opacity-50"
+            class="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-bold bg-acid text-ink border-none cursor-pointer disabled:opacity-50"
             :disabled="busy.has(`confirm:${c.uuid}`) || bulkBusy"
             data-test="ai-card-confirm"
             @click="onConfirm(c)"

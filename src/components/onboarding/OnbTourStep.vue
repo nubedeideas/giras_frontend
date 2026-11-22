@@ -158,7 +158,7 @@ async function submit() {
   <div>
     <!-- Artist search -->
     <div class="mb-4">
-      <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1.5">
+      <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1.5">
         {{ t('onboarding.tour.searchLabel') }}
       </label>
 
@@ -169,7 +169,7 @@ async function submit() {
       >
         <!-- Avatar -->
         <div
-          class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-[13px] font-bold text-white overflow-hidden"
+          class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-[15px] font-bold text-white overflow-hidden"
           :style="selectedArtist.images[0] ? {} : { background: artistGradient(selectedArtist.name) }"
         >
           <img
@@ -181,26 +181,26 @@ async function submit() {
           <span v-else>{{ artistInitials(selectedArtist.name) }}</span>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-[13px] font-bold text-ink leading-tight">
+          <p class="text-[15px] font-bold text-ink leading-tight">
             {{ selectedArtist.name }}
           </p>
           <div class="flex items-center gap-2 mt-1 flex-wrap">
             <span
               v-if="selectedArtist.followers.total > 0"
-              class="text-[10px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium"
+              class="text-[12px] px-1.5 py-0.5 rounded bg-acid-dim text-acid-muted font-medium"
             >
               {{ t('onboarding.tour.followers', { count: formatFollowers(selectedArtist.followers.total) }) }}
             </span>
             <span
               v-else
-              class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium"
+              class="text-[12px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-4 font-medium"
             >
               {{ t('onboarding.tour.manualArtist') }}
             </span>
             <span
               v-for="g in selectedArtist.genres.slice(0, 2)"
               :key="g"
-              class="text-[10px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-3"
+              class="text-[12px] px-1.5 py-0.5 rounded bg-glass border border-line text-ink-3"
             >
               {{ g }}
             </span>
@@ -242,13 +242,13 @@ async function submit() {
         v-else-if="spotifyUnavailable"
         class="space-y-2"
       >
-        <div class="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2">
+        <div class="flex items-center gap-2 rounded-lg bg-pending-bg border border-[#FCD34D] px-3 py-2">
           <svg
             width="13"
             height="13"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#f59e0b"
+            stroke="var(--pending-fg)"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -266,7 +266,7 @@ async function submit() {
               y2="17"
             />
           </svg>
-          <p class="text-[11px] text-amber-400 leading-tight">
+          <p class="text-[13px] text-pending-fg leading-tight">
             {{ t('onboarding.tour.spotifyUnavailable') }}
           </p>
         </div>
@@ -274,11 +274,11 @@ async function submit() {
           <input
             v-model="manualArtistInput"
             :placeholder="t('onboarding.tour.artistPlaceholder')"
-            class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="flex-1 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             @keydown.enter="confirmManualArtist"
           >
           <button
-            class="flex-shrink-0 px-3 py-2 rounded bg-acid text-black text-[11px] font-bold disabled:opacity-40 transition-opacity"
+            class="flex-shrink-0 px-3 py-2 rounded bg-acid text-ink text-[13px] font-bold disabled:opacity-40 transition-opacity"
             :disabled="!manualArtistInput.trim()"
             @click="confirmManualArtist"
           >
@@ -289,7 +289,7 @@ async function submit() {
 
       <!-- Search input -->
       <div v-else>
-        <div class="flex items-center gap-2 bg-glass border border-line rounded px-2.5 py-2 focus-within:border-acid transition-colors">
+        <div class="flex items-center gap-2 bg-glass border border-line rounded px-2.5 py-2 focus-within:border-olive transition-colors">
           <svg
             v-if="!searching"
             width="12"
@@ -315,7 +315,7 @@ async function submit() {
           </svg>
           <svg
             v-else
-            class="animate-spin text-acid flex-shrink-0"
+            class="animate-spin text-olive flex-shrink-0"
             width="12"
             height="12"
             viewBox="0 0 24 24"
@@ -334,7 +334,7 @@ async function submit() {
           <input
             v-model="query"
             :placeholder="t('onboarding.tour.searchPlaceholder')"
-            class="flex-1 bg-transparent border-none outline-none text-ink text-[12px] placeholder:text-ink-4"
+            class="flex-1 bg-transparent border-none outline-none text-ink text-[14px] placeholder:text-ink-4"
             @input="onQueryInput"
           >
         </div>
@@ -351,7 +351,7 @@ async function submit() {
             @click="selectArtist(a)"
           >
             <div
-              class="w-12 h-12 rounded-lg flex items-center justify-center text-[14px] font-bold text-white overflow-hidden flex-shrink-0"
+              class="w-12 h-12 rounded-lg flex items-center justify-center text-[15px] font-bold text-white overflow-hidden flex-shrink-0"
               :style="a.images[0] ? {} : { background: artistGradient(a.name) }"
             >
               <img
@@ -362,16 +362,16 @@ async function submit() {
               >
               <span v-else>{{ artistInitials(a.name) }}</span>
             </div>
-            <p class="text-[11px] font-semibold text-ink leading-tight group-hover:text-acid transition-colors line-clamp-2">
+            <p class="text-[13px] font-semibold text-ink leading-tight group-hover:text-olive transition-colors line-clamp-2">
               {{ a.name }}
             </p>
-            <span class="text-[9px] text-ink-4">{{ formatFollowers(a.followers.total) }}</span>
+            <span class="text-[12px] text-ink-4">{{ formatFollowers(a.followers.total) }}</span>
           </button>
         </div>
 
         <p
           v-if="searchError"
-          class="text-[11px] text-ink-3 mt-1.5 text-center"
+          class="text-[13px] text-ink-3 mt-1.5 text-center"
         >
           {{ t('onboarding.tour.searchErrorHint', { error: searchError }) }}
         </p>
@@ -382,89 +382,89 @@ async function submit() {
     <div class="space-y-3">
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.name') }} *
           </label>
           <input
             v-model="form.name"
             :placeholder="t('onboarding.tour.namePlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.artist') }} *
           </label>
           <input
             v-model="form.artist_name"
             :placeholder="t('onboarding.tour.artistPlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.start') }} *
           </label>
           <input
             v-model="form.start_date"
             type="date"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.end') }} *
           </label>
           <input
             v-model="form.end_date"
             type="date"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.startCity') }}
           </label>
           <input
             v-model="form.start_city"
             :placeholder="t('onboarding.tour.startCityPlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
         <div>
-          <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+          <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
             {{ t('onboarding.tour.endCity') }}
           </label>
           <input
             v-model="form.end_city"
             :placeholder="t('onboarding.tour.endCityPlaceholder')"
-            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
       </div>
 
       <div>
-        <label class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase block mb-1">
+        <label class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1">
           {{ t('onboarding.tour.notes') }}
         </label>
         <textarea
           v-model="form.notes"
           rows="2"
           :placeholder="t('onboarding.tour.notesPlaceholder')"
-          class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[12px] outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
+          class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4 resize-none"
         />
       </div>
     </div>
 
     <p
       v-if="submitError"
-      class="text-[11px] text-red-400 mt-2"
+      class="text-[13px] text-failed-fg mt-2"
     >
       {{ submitError }}
     </p>

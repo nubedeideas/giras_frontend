@@ -36,11 +36,11 @@ function onCompactChange(e: Event) {
     class="px-4 py-6"
   >
     <template v-if="toursStore.activeTours.length > 0">
-      <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">
+      <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1.5">
         {{ t('home.selectLabel') }}
       </label>
       <select
-        class="w-full bg-glass border border-line rounded-lg px-3 py-2.5 text-ink text-[13px] outline-none focus:border-acid cursor-pointer transition-colors"
+        class="w-full bg-glass border border-line rounded-lg px-3 py-2.5 text-ink text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors"
         :value="''"
         @change="onCompactChange"
       >
@@ -61,7 +61,7 @@ function onCompactChange(e: Event) {
     </template>
     <p
       v-else
-      class="text-[12px] text-ink-3 text-center"
+      class="text-[14px] text-ink-3 text-center"
     >
       {{ t('home.noTours') }}
     </p>
@@ -85,7 +85,7 @@ function onCompactChange(e: Event) {
       />
       <path
         d="M0,730 C120,690 200,770 400,710 L400,800 L0,800 Z"
-        fill="#1a8fff"
+        fill="var(--brand-blue)"
         opacity="0.05"
       />
       <path
@@ -116,7 +116,7 @@ function onCompactChange(e: Event) {
 
     <div class="relative min-h-full flex flex-col items-center justify-center gap-6 px-5 py-12">
       <!-- Icon -->
-      <div class="w-12 h-12 rounded-[15px] bg-glass border border-line flex items-center justify-center">
+      <div class="w-12 h-12 rounded-[15px] bg-bg-3 border border-line flex items-center justify-center">
         <svg
           width="20"
           height="20"
@@ -126,7 +126,7 @@ function onCompactChange(e: Event) {
           stroke-width="1.5"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="text-acid"
+          class="text-olive"
         >
           <circle
             cx="6"
@@ -142,13 +142,13 @@ function onCompactChange(e: Event) {
 
       <!-- Heading -->
       <div class="text-center space-y-2 max-w-xs">
-        <p class="text-[10px] font-bold text-acid tracking-[0.35em] uppercase">
+        <p class="text-[12px] font-bold text-olive tracking-[0.35em] uppercase">
           {{ t('home.eyebrow') }}
         </p>
         <h1 class="text-2xl font-bold text-ink tracking-[-0.3px]">
           {{ t('home.heading') }}
         </h1>
-        <p class="text-[13px] text-ink-3 leading-relaxed">
+        <p class="text-[15px] text-ink-3 leading-relaxed">
           {{ t('home.subheading') }}
         </p>
       </div>
@@ -156,12 +156,12 @@ function onCompactChange(e: Event) {
       <!-- Tour picker -->
       <div class="w-full max-w-sm bg-bg-3 border border-line rounded-2xl p-5 shadow-[0_4px_20px_var(--shadow-sm)]">
         <template v-if="toursStore.activeTours.length > 0">
-          <label class="text-[9px] font-bold text-ink-3 tracking-[0.5px] uppercase block mb-1.5">
+          <label class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1.5">
             {{ t('home.selectLabel') }}
           </label>
           <select
             v-model="selectedTourId"
-            class="w-full bg-glass border border-line rounded-lg px-3 py-2.5 text-ink text-[13px] outline-none focus:border-acid cursor-pointer transition-colors mb-3"
+            class="w-full bg-glass border border-line rounded-lg px-3 py-2.5 text-ink text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors mb-3"
           >
             <option
               :value="null"
@@ -188,7 +188,7 @@ function onCompactChange(e: Event) {
         </template>
         <p
           v-else
-          class="text-[12px] text-ink-3 text-center"
+          class="text-[14px] text-ink-3 text-center"
         >
           {{ t('home.noTours') }}
         </p>

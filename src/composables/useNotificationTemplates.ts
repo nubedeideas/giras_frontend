@@ -135,12 +135,12 @@ export const TEMPLATE_CHANNEL_LABELS: Record<TemplateChannel, string> = {
 }
 
 export const TEMPLATE_CHANNEL_COLORS: Record<TemplateChannel, { bg: string; text: string }> = {
-  email: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
-  sms: { bg: 'rgba(232,93,0,0.12)', text: '#e85d00' },
-  whatsapp: { bg: 'rgba(31,173,90,0.12)', text: '#1fad5a' },
+  email: { bg: 'var(--scheduled-bg)', text: 'var(--scheduled-fg)' },
+  sms: { bg: 'var(--brand-orange-dim)', text: 'var(--brand-orange)' },
+  whatsapp: { bg: 'var(--wa-bg)', text: 'var(--wa-fg)' },
   telegram: { bg: 'rgba(41,182,246,0.12)', text: '#29b6f6' },
   push: { bg: 'rgba(149,117,205,0.12)', text: '#9575cd' },
-  in_app: { bg: 'rgba(100,116,139,0.12)', text: '#94a3b8' },
+  in_app: { bg: 'var(--off-bg)', text: 'var(--off-fg)' },
 }
 
 // ─── Canonical variable groups ────────────────────────────────────────────────

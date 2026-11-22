@@ -127,7 +127,7 @@ watch(
               />
             </svg>
           </div>
-          <p class="text-[12px]">
+          <p class="text-[14px]">
             Selecciona una actividad para ver el detalle
           </p>
         </div>

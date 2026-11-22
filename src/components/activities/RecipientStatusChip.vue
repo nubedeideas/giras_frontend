@@ -18,13 +18,13 @@ const { t } = useI18n()
 const kind = computed(() => recipientChipKind(props.recipient, props.confirmable))
 
 const CHIP_CLASS: Record<RecipientChipKind, string> = {
-  confirmed: 'bg-acid-dim text-acid',
-  failed: 'bg-red-500/10 text-red-400',
-  pending: 'bg-glass-2 text-ink-2',
-  notSent: 'bg-glass text-ink-4',
-  sent: 'bg-brand-blue-dim text-brand-blue',
-  delivered: 'bg-wa-green-dim text-wa-green',
-  read: 'bg-acid-dim text-acid-muted',
+  confirmed: 'bg-sent-bg text-sent-fg',
+  failed: 'bg-failed-bg text-failed-fg',
+  pending: 'bg-pending-bg text-pending-fg',
+  notSent: 'bg-off-bg text-off-fg',
+  sent: 'bg-scheduled-bg text-scheduled-fg',
+  delivered: 'bg-wa-bg text-wa-fg',
+  read: 'bg-sent-bg text-sent-fg',
 }
 
 const label = computed(() => t(`confirmations.${kind.value}`))
@@ -57,14 +57,14 @@ const tooltip = computed(() => {
     :title="tooltip"
   >
     <span
-      class="text-[9px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.3px] whitespace-nowrap"
+      class="text-[12px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.3px] whitespace-nowrap"
       :class="CHIP_CLASS[kind]"
     >
       {{ label }}
     </span>
     <span
       v-if="subtitle"
-      class="text-[9px] text-ink-4 mt-0.5 truncate max-w-full"
+      class="text-[12px] text-ink-4 mt-0.5 truncate max-w-full"
     >
       {{ subtitle }}
     </span>

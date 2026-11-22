@@ -2,12 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import {
   AUTO_CANCEL_REASON_LABELS,
-  NOTIF_STATUS_COLORS,
-  notifStatusColors,
   notifStatusLabel,
   useNotifications,
 } from './useNotifications'
 import i18n from '@/i18n'
+import { notificationBadge } from '@/utils/statusBadge'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
 
 beforeEach(() => {
@@ -78,14 +77,14 @@ describe('useNotifications.remindUnconfirmed', () => {
 })
 
 describe('estado de notificación heredado o desconocido', () => {
-  it('pending tiene etiqueta y colores propios', () => {
+  it('pending tiene etiqueta y tono propios', () => {
     expect(notifStatusLabel('pending')).toBe('Pendiente')
-    expect(notifStatusColors('pending')).toEqual(NOTIF_STATUS_COLORS.draft)
+    expect(notificationBadge('pending')).toBe(notificationBadge('draft'))
   })
 
-  it('un estado desconocido no rompe: etiqueta cruda y colores de borrador', () => {
+  it('un estado desconocido no rompe: etiqueta cruda y tono neutro', () => {
     expect(notifStatusLabel('raro')).toBe('raro')
-    expect(notifStatusColors('raro')).toEqual(NOTIF_STATUS_COLORS.draft)
+    expect(notificationBadge('raro')).toBe('off')
   })
 })
 

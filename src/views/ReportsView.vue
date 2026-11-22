@@ -139,15 +139,15 @@ function toggleTour(uuid: string) {
 const isEmpty = computed(() => !!summary.value && summary.value.totals.recipients === 0)
 
 const selectClass =
-  'bg-bg-3 border border-line rounded-full px-4 py-2 text-[12px] font-medium text-ink outline-none focus:border-acid cursor-pointer max-w-full'
+  'min-h-[44px] lg:min-h-0 bg-bg-3 border border-line rounded-full px-4 py-2 text-[14px] font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer max-w-full'
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto bg-bg-3">
+  <div class="h-full overflow-y-auto bg-bg">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
       <!-- Subtítulo + filtros -->
       <div class="flex flex-col gap-3 mb-6">
-        <p class="text-[12px] text-ink-3">
+        <p class="text-[14px] text-ink-3">
           {{ t('reports.subtitle') }}
         </p>
 
@@ -190,15 +190,15 @@ const selectClass =
 
           <!-- Canal -->
           <div
-            class="flex items-center gap-1 bg-bg-2 border border-line rounded-full p-1"
+            class="flex items-center gap-1 bg-glass-hover rounded-[10px] p-1"
             role="group"
             :aria-label="t('reports.filters.channel')"
           >
             <button
               v-for="c in CHANNELS"
               :key="c || 'all'"
-              class="px-3 py-1 rounded-full text-[11px] font-medium border-none cursor-pointer transition-colors"
-              :class="channel === c ? 'bg-acid text-black' : 'bg-transparent text-ink-3 hover:text-ink'"
+              class="min-h-[44px] lg:min-h-[32px] px-3 py-1 rounded-[7px] text-[13px] border-none cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+              :class="channel === c ? 'bg-bg-3 text-ink shadow-sm font-semibold' : 'bg-transparent text-ink-2 font-medium hover:text-ink'"
               @click="channel = c"
             >
               {{ c ? t(`reports.${c}`) : t('reports.filters.allChannels') }}
@@ -207,7 +207,7 @@ const selectClass =
         </div>
         <p
           v-if="rangePreset !== 'fullTour' && fullTourDisabledReason && selectedTour"
-          class="text-[10px] text-ink-4"
+          class="text-[12px] text-ink-4"
         >
           {{ fullTourDisabledReason }}
         </p>
@@ -218,10 +218,10 @@ const selectClass =
         v-if="error && !loading"
         class="bg-bg-3 border border-line rounded-lg p-6 flex flex-col items-center gap-3 text-center"
       >
-        <p class="text-[13px] font-semibold text-ink">
+        <p class="text-[15px] font-semibold text-ink">
           {{ t('reports.error') }}
         </p>
-        <p class="text-[12px] text-red-400 whitespace-pre-line">
+        <p class="text-[14px] text-failed-fg whitespace-pre-line">
           {{ error }}
         </p>
         <BtnSecondary @click="load">
@@ -251,7 +251,7 @@ const selectClass =
           class="bg-bg-3 border border-line rounded-lg p-8 text-center transition-opacity"
           :class="loading ? 'opacity-60' : ''"
         >
-          <p class="text-[13px] text-ink-2">
+          <p class="text-[15px] text-ink-2">
             {{ t('reports.empty') }}
           </p>
         </div>
@@ -275,31 +275,31 @@ const selectClass =
               v-if="summary.by_tour.length"
               class="bg-bg-3 border border-line rounded-lg shadow-[0_1px_3px_var(--shadow-sm)] p-[14px_16px] mb-3"
             >
-              <p class="text-[9px] font-bold text-ink-3 tracking-[1px] uppercase mb-2.5">
+              <p class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase mb-2.5">
                 {{ t('reports.byTour') }}
               </p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   v-for="row in summary.by_tour"
                   :key="row.tour_uuid"
-                  class="text-left p-3 rounded-lg bg-bg-2 border cursor-pointer transition-all hover:border-line-2"
+                  class="text-left p-3 min-h-[44px] rounded-lg bg-bg-2 border cursor-pointer transition-all hover:border-line-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
                   :class="selectedTour === row.tour_uuid ? 'border-line-acid bg-glass-active' : 'border-line'"
                   :title="t('reports.filterByTour')"
                   @click="toggleTour(row.tour_uuid)"
                 >
-                  <p class="text-[12px] font-semibold text-ink truncate">
+                  <p class="text-[14px] font-semibold text-ink truncate">
                     {{ row.artist_name || row.tour_name }}
                   </p>
                   <p
                     v-if="row.artist_name"
-                    class="text-[10px] text-ink-3 truncate mb-2"
+                    class="text-[12px] text-ink-3 truncate mb-2"
                   >
                     {{ row.tour_name }}
                   </p>
-                  <div class="flex gap-3 text-[10px] flex-wrap">
+                  <div class="flex gap-3 text-[12px] flex-wrap">
                     <span class="text-ink-3">{{ t('reports.notificationsCount', row.notifications) }}</span>
                     <span class="text-ink-2 font-semibold">{{ t('reports.sentCount', row.sent) }}</span>
-                    <span class="text-acid font-semibold">{{ t('reports.confirmedCount', row.confirmed) }}</span>
+                    <span class="text-olive font-semibold">{{ t('reports.confirmedCount', row.confirmed) }}</span>
                   </div>
                 </button>
               </div>

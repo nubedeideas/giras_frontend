@@ -47,7 +47,7 @@ function clearFilters() {
 }
 
 const selectClass =
-  'bg-bg-3 border border-line rounded-lg px-2 py-1.5 text-[11px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer flex-1'
+  'bg-bg-3 border border-line rounded-lg px-2 py-1.5 text-[13px] text-ink outline-none focus:border-line-2 transition-colors cursor-pointer flex-1'
 </script>
 
 <template>
@@ -59,7 +59,7 @@ const selectClass =
           Templates
         </p>
         <button
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-acid text-black text-[11px] font-semibold cursor-pointer border-none hover:brightness-105 transition-all"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-acid text-ink text-[13px] font-semibold cursor-pointer border-none hover:brightness-105 transition-all"
           @click="emit('create')"
         >
           <svg
@@ -142,7 +142,7 @@ const selectClass =
         </div>
         <button
           v-if="hasFilters"
-          class="text-[10px] text-ink-4 hover:text-ink-2 transition-colors border-none bg-transparent cursor-pointer p-0"
+          class="text-[12px] text-ink-4 hover:text-ink-2 transition-colors border-none bg-transparent cursor-pointer p-0"
           @click="clearFilters"
         >
           ✕ Limpiar filtros
@@ -189,7 +189,7 @@ const selectClass =
           <!-- Name row -->
           <div class="flex items-start justify-between gap-2 mb-1.5">
             <p
-              class="text-[12px] font-semibold text-ink leading-tight"
+              class="text-[14px] font-semibold text-ink leading-tight"
               :class="!t.is_active ? 'opacity-50' : ''"
             >
               {{ t.name }}
@@ -198,26 +198,26 @@ const selectClass =
               <!-- Default badge -->
               <span
                 v-if="t.is_default"
-                class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid/15 text-acid leading-none"
+                class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-olive leading-none"
               >
                 ★
               </span>
               <!-- Active / inactive dot -->
               <span
                 class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                :class="t.is_active ? 'bg-[#34d399]' : 'bg-ink-4'"
+                :class="t.is_active ? 'bg-sent-fg' : 'bg-ink-4'"
               />
             </div>
           </div>
 
           <!-- Type label -->
-          <p class="text-[10px] text-ink-3 mb-1.5 truncate">
+          <p class="text-[12px] text-ink-3 mb-1.5 truncate">
             {{ TEMPLATE_TYPE_LABELS[t.notification_type] }}
           </p>
 
           <!-- Channel pill -->
           <span
-            class="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full"
+            class="inline-flex items-center text-[12px] font-semibold px-2 py-0.5 rounded-full"
             :style="{
               background: TEMPLATE_CHANNEL_COLORS[t.channel].bg,
               color: TEMPLATE_CHANNEL_COLORS[t.channel].text,
@@ -229,7 +229,7 @@ const selectClass =
 
         <div
           v-if="filtered.length === 0"
-          class="text-center py-8 text-ink-4 text-xs"
+          class="text-center py-8 text-ink-4 text-[14px]"
         >
           {{ hasFilters ? 'Sin templates con estos filtros' : 'Sin templates creados' }}
         </div>

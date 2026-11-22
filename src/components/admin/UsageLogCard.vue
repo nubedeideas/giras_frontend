@@ -16,24 +16,24 @@ function formatDate(iso: string) {
 <template>
   <div class="bg-glass border border-line rounded-xl px-3 py-2.5 flex items-center gap-3">
     <span
-      class="text-[10px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
-      style="background: rgba(168,216,0,0.1); color: #a8d800"
+      class="text-[12px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
+      style="background: var(--acid-dim); color: var(--olive)"
     >
       {{ entry.channel }}
     </span>
     <div class="flex-1 min-w-0">
-      <p class="text-[12px] text-ink">
+      <p class="text-[14px] text-ink">
         {{ t('admin.usage.recipients', entry.recipients_count) }}
         · {{ t('admin.usage.plan', { plan: entry.plan_code }) }}
       </p>
-      <p class="text-[10px] text-ink-4">
+      <p class="text-[12px] text-ink-4">
         {{ t('admin.usage.usage') }}: {{ entry.notifications_used_before }} →
         {{ entry.notifications_used_after }}
         / {{ entry.notification_limit === 0 ? '∞' : entry.notification_limit }}
       </p>
     </div>
-    <p class="text-[10px] text-ink-4 flex-shrink-0">
-      {{ formatDate(entry.created_at) }}
+    <p class="text-[12px] text-ink-4 flex-shrink-0">
+      <span class="font-time tnum">{{ formatDate(entry.created_at) }}</span>
     </p>
   </div>
 </template>

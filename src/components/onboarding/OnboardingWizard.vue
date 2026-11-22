@@ -66,7 +66,7 @@ function onFinish() {
               <p class="text-[16px] font-bold text-ink tracking-[-0.3px]">
                 {{ t('onboarding.title') }}
               </p>
-              <p class="text-[11px] text-ink-3 mt-0.5">
+              <p class="text-[13px] text-ink-3 mt-0.5">
                 {{
                   t('onboarding.stepOf', {
                     current: stepIndex + 1,
@@ -138,10 +138,10 @@ function onFinish() {
             <div
               v-for="(s, i) in STEPS"
               :key="s"
-              class="text-center text-[10px] font-semibold px-1 transition-colors duration-200"
+              class="text-center text-[12px] font-semibold px-1 transition-colors duration-200"
               :class="
                 i < stepIndex
-                  ? 'text-acid'
+                  ? 'text-olive'
                   : i === stepIndex
                     ? 'text-ink'
                     : 'text-ink-4'

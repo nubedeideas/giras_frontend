@@ -71,7 +71,7 @@ describe('SubscriptionUsageBanner', () => {
     const w = await mountBanner(usage(80))
     const banner = w.get('[data-test="usage-banner"]')
     expect(banner.attributes('data-level')).toBe('warning')
-    expect(banner.classes()).toContain('bg-amber-500/10')
+    expect(banner.classes()).toContain('bg-pending-bg')
     expect(w.get('[data-test="usage-banner-text"]').text()).toBe(
       'Esta gira ha usado el 80 % de sus WhatsApp del plan Starter.'
     )
@@ -81,7 +81,7 @@ describe('SubscriptionUsageBanner', () => {
     const w = await mountBanner(usage(100))
     const banner = w.get('[data-test="usage-banner"]')
     expect(banner.attributes('data-level')).toBe('reached')
-    expect(banner.classes()).toContain('bg-red-500/10')
+    expect(banner.classes()).toContain('bg-failed-bg')
     expect(w.get('[data-test="usage-banner-text"]').text()).toBe(
       'Esta gira ha agotado los WhatsApp del plan Starter. Los recordatorios automáticos pasan a email y aviso en la app; los avisos que envíes tú siguen saliendo por WhatsApp.'
     )

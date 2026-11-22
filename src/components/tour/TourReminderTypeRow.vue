@@ -66,7 +66,7 @@ const sourceChip = computed(() => {
   if (s.steps_source === 'tour') {
     return s.tour_steps && s.tour_steps.length === 0
       ? { key: 'disabledHere', cls: 'bg-glass-2 text-ink-3' }
-      : { key: 'customized', cls: 'bg-acid-dim text-acid' }
+      : { key: 'customized', cls: 'bg-acid-dim text-olive' }
   }
   return { key: 'fromTemplate', cls: 'bg-glass-2 text-ink-2' }
 })
@@ -207,22 +207,22 @@ function close() {
       />
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-1.5 flex-wrap">
-          <p class="text-[12px] font-semibold text-ink truncate max-w-full">
+          <p class="text-[14px] font-semibold text-ink truncate max-w-full">
             {{ setting.name }}
           </p>
           <span
-            class="text-[9px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.4px]"
+            class="text-[12px] font-bold px-1.5 py-0.5 rounded-full tracking-[0.4px]"
             :class="sourceChip.cls"
             data-test="type-source"
           >{{ t(`reminders.tour.${sourceChip.key}`) }}</span>
         </div>
         <p
-          class="text-[11px] text-ink-2 mt-0.5"
+          class="text-[13px] text-ink-2 mt-0.5"
           data-test="type-summary"
         >
           {{ stepsSummary(setting.effective_steps, t) }}
         </p>
-        <p class="text-[10px] mt-0.5">
+        <p class="text-[12px] mt-0.5">
           <span class="text-ink-4">{{ t('reminders.tour.groups') }}: </span>
           <span
             v-if="setting.groups.length"
@@ -237,7 +237,7 @@ function close() {
         </p>
         <p
           v-if="setting.replaced_by_legacy_rule"
-          class="text-[10px] text-brand-orange mt-0.5"
+          class="text-[12px] text-brand-orange mt-0.5"
           data-test="type-legacy-rule"
         >
           {{ t('reminders.tour.legacyRule') }}
@@ -245,14 +245,14 @@ function close() {
         <p
           v-for="w in setting.warnings"
           :key="w"
-          class="text-[10px] text-brand-orange mt-0.5"
+          class="text-[12px] text-brand-orange mt-0.5"
           data-test="type-warning"
         >
           ⚠ {{ recipientWarningLabel(w, t) }}
         </p>
         <p
           v-if="error && !expanded"
-          class="text-[10px] text-red-400 mt-0.5"
+          class="text-[12px] text-failed-fg mt-0.5"
           data-test="type-error"
         >
           {{ error }}
@@ -260,7 +260,7 @@ function close() {
       </div>
       <button
         type="button"
-        class="flex-shrink-0 min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[11px] font-medium bg-transparent border border-line text-ink-2 hover:text-ink hover:bg-glass-hover cursor-pointer"
+        class="flex-shrink-0 min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-sm text-[13px] font-medium bg-transparent border border-line text-ink-2 hover:text-ink hover:bg-glass-hover cursor-pointer"
         :aria-expanded="expanded"
         data-test="type-configure"
         @click="expanded ? close() : open()"
@@ -283,34 +283,34 @@ function close() {
       >
         <p
           v-if="isMobile"
-          class="text-[14px] font-bold text-ink mb-3"
+          class="text-[15px] font-bold text-ink mb-3"
         >
           {{ setting.name }}
         </p>
 
         <!-- Personalizar en esta gira -->
         <div class="flex items-center justify-between gap-3 mb-3">
-          <span class="text-[12px] text-ink">{{ t('reminders.tour.customize') }}</span>
+          <span class="text-[14px] text-ink">{{ t('reminders.tour.customize') }}</span>
           <button
             type="button"
             role="switch"
             :aria-checked="customizing"
             :aria-label="t('reminders.tour.customize')"
             class="relative flex-shrink-0 w-9 h-5 rounded-full border-none cursor-pointer transition-colors"
-            :class="[customizing ? 'bg-acid' : 'bg-glass-2', saving ? 'opacity-50' : '']"
+            :class="[customizing ? 'bg-acid' : 'bg-line-2', saving ? 'opacity-50' : '']"
             :disabled="saving"
             data-test="type-customize"
             @click="toggleCustomize"
           >
             <span
-              class="absolute top-0.5 w-4 h-4 rounded-full bg-bg-3 transition-all"
-              :class="customizing ? 'left-[18px]' : 'left-0.5'"
+              class="absolute top-0.5 w-4 h-4 rounded-full transition-all"
+              :class="customizing ? 'left-[18px] bg-ink' : 'left-0.5 bg-bg-3'"
             />
           </button>
         </div>
 
         <template v-if="customizing">
-          <label class="flex items-center gap-2 mb-3 text-[12px] text-ink-2 cursor-pointer min-h-[44px] sm:min-h-0">
+          <label class="flex items-center gap-2 mb-3 text-[14px] text-ink-2 cursor-pointer min-h-[44px] sm:min-h-0">
             <input
               v-model="noReminders"
               type="checkbox"
@@ -329,21 +329,21 @@ function close() {
         </template>
         <p
           v-else
-          class="text-[11px] text-ink-3 mb-1"
+          class="text-[13px] text-ink-3 mb-1"
         >
           {{ t('reminders.tour.fromTemplate') }}: {{ stepsSummary(setting.template_steps, t) }}
         </p>
 
         <!-- Grupos destino -->
         <div class="mt-4">
-          <p class="text-[10px] font-bold text-ink-3 tracking-[0.6px] uppercase mb-1.5">
+          <p class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase mb-1.5">
             {{ t('reminders.tour.groups') }}
           </p>
           <div class="flex flex-wrap gap-1.5">
             <span
               v-for="g in hiddenGroups"
               :key="g.uuid"
-              class="inline-flex items-center min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-full text-[11px] border border-line bg-glass-2 text-ink-3"
+              class="inline-flex items-center min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-full text-[13px] border border-line bg-glass-2 text-ink-3"
               :data-test="`type-group-readonly-${g.uuid}`"
             >
               {{ groupLabel(g) }}
@@ -353,10 +353,10 @@ function close() {
               :key="g.uuid"
               type="button"
               :aria-pressed="selectedGroups.includes(g.uuid)"
-              class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-full text-[11px] border cursor-pointer transition-colors"
+              class="min-h-[44px] sm:min-h-0 px-2.5 py-1 rounded-full text-[13px] border cursor-pointer transition-colors"
               :class="
                 selectedGroups.includes(g.uuid)
-                  ? 'bg-acid-dim text-acid border-line-acid'
+                  ? 'bg-acid-dim text-olive border-line-acid'
                   : 'bg-transparent text-ink-3 border-line hover:text-ink'
               "
               :disabled="saving"
@@ -368,7 +368,7 @@ function close() {
           </div>
           <p
             v-if="selectedGroups.length === 0"
-            class="text-[10px] text-ink-4 mt-1.5"
+            class="text-[12px] text-ink-4 mt-1.5"
           >
             {{ t('reminders.tour.groupsHint') }}
           </p>
@@ -376,7 +376,7 @@ function close() {
 
         <p
           v-if="error"
-          class="text-[11px] text-red-400 mt-3"
+          class="text-[13px] text-failed-fg mt-3"
           data-test="type-editor-error"
         >
           {{ error }}
@@ -385,7 +385,7 @@ function close() {
         <div class="flex flex-wrap gap-2 mt-4">
           <button
             type="button"
-            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3.5 py-[7px] rounded-sm text-[13px] font-bold bg-acid text-ink border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!canSave"
             data-test="type-save"
             @click="save"
@@ -394,7 +394,7 @@ function close() {
           </button>
           <button
             type="button"
-            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
+            class="flex-1 sm:flex-none min-h-[44px] sm:min-h-0 px-3 py-[7px] rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 cursor-pointer"
             @click="close"
           >
             {{ t('reminders.tour.cancel') }}

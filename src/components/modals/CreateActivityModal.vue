@@ -255,13 +255,13 @@ async function submit() {
     @close="closeUrgent"
   >
     <div data-test="urgent-offer">
-      <p class="text-[14px] font-semibold text-ink mb-4">
+      <p class="text-[15px] font-semibold text-ink mb-4">
         {{ tr('notices.urgent.offerAfterCreate') }}
       </p>
       <div class="flex flex-col sm:flex-row-reverse gap-2">
         <button
           type="button"
-          class="flex-1 min-h-[48px] sm:min-h-[38px] rounded-sm bg-brand-orange text-ink text-[13px] font-bold border-none cursor-pointer"
+          class="flex-1 min-h-[48px] sm:min-h-[38px] rounded-sm bg-brand-orange text-white text-[15px] font-bold border-none cursor-pointer"
           data-test="urgent-offer-accept"
           @click="acceptUrgentOffer"
         >
@@ -269,7 +269,7 @@ async function submit() {
         </button>
         <button
           type="button"
-          class="flex-1 min-h-[44px] sm:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[13px] font-medium cursor-pointer"
+          class="flex-1 min-h-[44px] sm:min-h-[38px] rounded-sm bg-glass border border-line text-ink-2 text-[15px] font-medium cursor-pointer"
           data-test="urgent-offer-decline"
           @click="closeUrgent"
         >
@@ -298,7 +298,7 @@ async function submit() {
         <p class="text-base font-bold text-ink tracking-[-0.2px]">
           Nueva Actividad
         </p>
-        <p class="text-[11px] text-ink-3 mt-0.5">
+        <p class="text-[13px] text-ink-3 mt-0.5">
           Registra una actividad para esta gira
         </p>
       </div>
@@ -360,12 +360,12 @@ async function submit() {
     >
       <!-- Activity type -->
       <div>
-        <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">
+        <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">
           Tipo de Actividad *
         </label>
         <select
           v-model="form.activity_type"
-          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors cursor-pointer"
+          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
         >
           <option
             value=""
@@ -396,7 +396,7 @@ async function submit() {
             class="w-2 h-2 rounded-full"
             :style="{ background: selectedType.color }"
           />
-          <span class="text-[10px] text-ink-3">
+          <span class="text-[12px] text-ink-3">
             {{ CATEGORY_LABELS[selectedType.category] ?? selectedType.category }}
             <span v-if="selectedType.has_destination"> · Con destino</span>
             <span v-if="!selectedType.has_duration"> · Sin hora fin</span>
@@ -406,10 +406,10 @@ async function submit() {
 
       <!-- Title -->
       <div>
-        <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Título *</label>
+        <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Título *</label>
         <input
           v-model="form.title"
-          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           placeholder="Ej: Vuelo CDMX → MAD"
         >
       </div>
@@ -417,11 +417,11 @@ async function submit() {
       <!-- Date + all_day -->
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Fecha *</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Fecha *</label>
           <input
             v-model="form.date"
             type="date"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
         <div class="flex flex-col justify-end pb-0.5">
@@ -436,7 +436,7 @@ async function submit() {
                 :style="{ left: form.all_day ? '18px' : '2px' }"
               />
             </div>
-            <span class="text-[11px] text-ink-2">Todo el día</span>
+            <span class="text-[13px] text-ink-2">Todo el día</span>
           </label>
         </div>
       </div>
@@ -447,29 +447,29 @@ async function submit() {
         class="grid grid-cols-2 gap-2"
       >
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Hora inicio</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Hora inicio</label>
           <input
             v-model="form.time_start"
             type="time"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
         <div v-if="selectedType?.has_duration !== false">
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Hora fin</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Hora fin</label>
           <input
             v-model="form.time_end"
             type="time"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
           >
         </div>
       </div>
 
       <!-- Timezone -->
       <div>
-        <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Zona horaria</label>
+        <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Zona horaria</label>
         <select
           v-model="form.timezone"
-          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
+          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink-2 outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
         >
           <option
             v-for="tz in TIMEZONES"
@@ -484,10 +484,10 @@ async function submit() {
       <!-- Status + Priority -->
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Estado</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Estado</label>
           <select
             v-model="form.status"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink-2 outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
           >
             <option
               v-for="s in STATUSES"
@@ -499,10 +499,10 @@ async function submit() {
           </select>
         </div>
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Prioridad</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Prioridad</label>
           <select
             v-model="form.priority"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink-2 outline-none focus:border-acid transition-colors cursor-pointer"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink-2 outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
           >
             <option
               v-for="p in PRIORITIES"
@@ -518,18 +518,18 @@ async function submit() {
       <!-- Location -->
       <div :class="selectedType?.has_destination ? 'grid grid-cols-2 gap-2' : ''">
         <div>
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Ubicación</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Ubicación</label>
           <input
             v-model="form.location_name"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             placeholder="Nombre del lugar"
           >
         </div>
         <div v-if="selectedType?.has_destination">
-          <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Destino</label>
+          <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Destino</label>
           <input
             v-model="form.destination_name"
-            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4"
+            class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
             placeholder="Destino"
           >
         </div>
@@ -537,18 +537,18 @@ async function submit() {
 
       <!-- Notes -->
       <div>
-        <label class="text-[10px] font-semibold text-ink-3 uppercase tracking-[0.5px] block mb-1">Notas</label>
+        <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Notas</label>
         <textarea
           v-model="form.notes"
           rows="2"
-          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-acid transition-colors placeholder:text-ink-4 resize-none"
+          class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4 resize-none"
           placeholder="Notas internas…"
         />
       </div>
 
       <p
         v-if="error"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ error }}
       </p>
@@ -556,7 +556,7 @@ async function submit() {
       <!-- Actions -->
       <div class="flex gap-2 pt-1">
         <button
-          class="flex-1 py-2.5 rounded-lg font-semibold text-[12px] bg-acid text-black cursor-pointer border-none transition-opacity"
+          class="flex-1 py-2.5 rounded-lg font-semibold text-[14px] bg-acid text-ink cursor-pointer border-none transition-opacity"
           :class="saving || !form.activity_type || !form.title.trim() ? 'opacity-50' : ''"
           :disabled="saving || !form.activity_type || !form.title.trim()"
           @click="submit"
@@ -564,7 +564,7 @@ async function submit() {
           {{ saving ? 'Creando…' : 'Crear Actividad' }}
         </button>
         <button
-          class="px-4 py-2.5 rounded-lg font-medium text-[12px] bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+          class="px-4 py-2.5 rounded-lg font-medium text-[14px] bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="emit('close')"
         >
           Cancelar

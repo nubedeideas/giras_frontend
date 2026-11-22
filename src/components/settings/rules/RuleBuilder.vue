@@ -442,7 +442,7 @@ async function save() {
 const CHANNEL_ACTIVE: Record<RuleChannel, string> = {
   whatsapp: 'border-wa-green text-wa-green bg-wa-green-dim',
   email: 'border-brand-blue text-brand-blue bg-brand-blue-dim',
-  in_app: 'border-line-acid text-acid bg-acid-dim',
+  in_app: 'border-line-acid text-olive bg-acid-dim',
 }
 
 const offsetDirectionLabel = computed(() =>
@@ -466,7 +466,7 @@ function shortIcon(icon: string) {
     class="space-y-4"
     data-test="rule-builder"
   >
-    <h3 class="text-[14px] font-bold text-ink tracking-[-0.2px]">
+    <h3 class="text-[15px] font-bold text-ink tracking-[-0.2px]">
       {{ rule ? t('rules.editRule') : t('rules.newRule') }}
     </h3>
 
@@ -475,7 +475,7 @@ function shortIcon(icon: string) {
       class="space-y-2 border-none p-0 m-0"
       data-test="step-when"
     >
-      <legend class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+      <legend class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
         1 · {{ t('rules.builder.when') }}
       </legend>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -494,10 +494,10 @@ function shortIcon(icon: string) {
           @click="trigger = code"
         >
           <span
-            class="block text-[12px] font-semibold"
-            :class="trigger === code ? 'text-acid' : 'text-ink'"
+            class="block text-[14px] font-semibold"
+            :class="trigger === code ? 'text-olive' : 'text-ink'"
           >{{ t(`rules.triggers.${code}`) }}</span>
-          <span class="block text-[10px] text-ink-3 mt-0.5">{{
+          <span class="block text-[12px] text-ink-3 mt-0.5">{{
             t(`rules.triggerHints.${code}`)
           }}</span>
         </button>
@@ -510,9 +510,9 @@ function shortIcon(icon: string) {
       >
         <button
           type="button"
-          class="text-[11px] px-2 py-1 rounded-full border cursor-pointer"
+          class="text-[13px] px-2 py-1 rounded-full border cursor-pointer"
           :class="
-            !codes.length ? 'border-line-acid text-acid bg-acid-dim' : 'border-line text-ink-3 bg-glass'
+            !codes.length ? 'border-line-acid text-olive bg-acid-dim' : 'border-line text-ink-3 bg-glass'
           "
           data-test="type-all"
           @click="codes = []"
@@ -523,7 +523,7 @@ function shortIcon(icon: string) {
           v-for="at in options.activity_types"
           :key="at.code"
           type="button"
-          class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border cursor-pointer"
+          class="inline-flex items-center gap-1 text-[13px] px-2 py-1 rounded-full border cursor-pointer"
           :class="
             codes.includes(at.code)
               ? 'border-line-acid text-ink bg-acid-dim'
@@ -554,10 +554,10 @@ function shortIcon(icon: string) {
           @change="replacesTouched = true"
         >
         <span>
-          <span class="block text-[12px] text-ink">{{ t('rules.builder.replaces') }}</span>
-          <span class="block text-[10px] text-ink-3">{{ t('rules.builder.replacesHelp') }}</span>
+          <span class="block text-[14px] text-ink">{{ t('rules.builder.replaces') }}</span>
+          <span class="block text-[12px] text-ink-3">{{ t('rules.builder.replacesHelp') }}</span>
           <span
-            class="block text-[10px] text-ink-2 mt-0.5"
+            class="block text-[12px] text-ink-2 mt-0.5"
             data-test="replaces-hint"
           >{{ replacesHint }}</span>
         </span>
@@ -565,7 +565,7 @@ function shortIcon(icon: string) {
       <p
         v-for="msg in stepErrors.when"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
         data-test="error-when"
       >
         {{ msg }}
@@ -579,12 +579,12 @@ function shortIcon(icon: string) {
       :disabled="!whenValid"
       data-test="step-notify"
     >
-      <legend class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+      <legend class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
         2 · {{ t('rules.builder.notify') }}
       </legend>
       <p
         v-if="isUnconfirmed"
-        class="text-[12px] text-ink-2"
+        class="text-[14px] text-ink-2"
         data-test="original-recipients"
       >
         {{
@@ -598,7 +598,7 @@ function shortIcon(icon: string) {
           <label
             v-for="r in recipientChoices"
             :key="r"
-            class="flex items-center gap-2 text-[12px] text-ink cursor-pointer"
+            class="flex items-center gap-2 text-[14px] text-ink cursor-pointer"
           >
             <input
               v-model="recipientsType"
@@ -615,14 +615,14 @@ function shortIcon(icon: string) {
         <div v-if="recipientsType === 'group'">
           <p
             v-if="!tourGroups.length"
-            class="text-[11px] text-brand-orange"
+            class="text-[13px] text-brand-orange"
           >
             {{ t('rules.builder.noGroups') }}
           </p>
           <select
             v-else
             v-model="group"
-            class="w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+            class="w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
             data-test="group-select"
           >
             <option value="">
@@ -638,7 +638,7 @@ function shortIcon(icon: string) {
           </select>
           <p
             v-if="selectedGroup && selectedGroup.contact_count === 0"
-            class="text-[11px] text-brand-orange mt-1"
+            class="text-[13px] text-brand-orange mt-1"
           >
             {{ t('rules.builder.groupEmpty') }}
           </p>
@@ -646,7 +646,7 @@ function shortIcon(icon: string) {
 
         <div
           v-if="recipientsType === 'default_group'"
-          class="text-[11px]"
+          class="text-[13px]"
         >
           <p
             v-if="defaultGroup"
@@ -667,7 +667,7 @@ function shortIcon(icon: string) {
             {{ t('rules.builder.defaultGroupMissing') }}
             <RouterLink
               :to="{ path: '/settings', query: { tab: 'groups' } }"
-              class="text-acid underline ml-1"
+              class="text-olive underline ml-1"
             >
               {{ t('rules.builder.goToGroups') }}
             </RouterLink>
@@ -677,7 +677,7 @@ function shortIcon(icon: string) {
       <p
         v-for="msg in stepErrors.notify"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
         data-test="error-notify"
       >
         {{ msg }}
@@ -691,7 +691,7 @@ function shortIcon(icon: string) {
       :disabled="!notifyValid"
       data-test="step-via"
     >
-      <legend class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+      <legend class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
         3 · {{ t('rules.builder.via') }}
       </legend>
       <div
@@ -702,7 +702,7 @@ function shortIcon(icon: string) {
           v-for="c in channelChoices"
           :key="c.code"
           type="button"
-          class="text-[12px] font-semibold px-3 py-1.5 rounded-sm border transition-colors"
+          class="text-[14px] font-semibold px-3 py-1.5 rounded-sm border transition-colors"
           :class="[
             channel === c.code ? CHANNEL_ACTIVE[c.code] : 'border-line text-ink-2 bg-glass',
             c.disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
@@ -717,7 +717,7 @@ function shortIcon(icon: string) {
       </div>
       <p
         v-if="notifyValid && whatsappBlocked"
-        class="text-[11px] text-brand-orange"
+        class="text-[13px] text-brand-orange"
         data-test="no-approved-whatsapp"
       >
         {{ t('rules.builder.noApprovedWhatsapp') }}
@@ -725,7 +725,7 @@ function shortIcon(icon: string) {
       <p
         v-for="msg in stepErrors.via"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
         data-test="error-via"
       >
         {{ msg }}
@@ -739,12 +739,12 @@ function shortIcon(icon: string) {
       :disabled="!viaValid"
       data-test="step-with"
     >
-      <legend class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+      <legend class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
         4 · {{ t('rules.builder.with') }}
       </legend>
       <p
         v-if="isUnconfirmed"
-        class="text-[12px] text-ink-2"
+        class="text-[14px] text-ink-2"
         data-test="same-template"
       >
         {{ t('rules.builder.sameTemplate') }}
@@ -752,7 +752,7 @@ function shortIcon(icon: string) {
       <template v-else-if="viaValid">
         <p
           v-if="!templateChoices.length"
-          class="text-[11px] text-brand-orange"
+          class="text-[13px] text-brand-orange"
         >
           {{ t('rules.builder.noTemplates') }}
         </p>
@@ -764,7 +764,7 @@ function shortIcon(icon: string) {
           <label
             v-for="tpl in templateChoices"
             :key="tpl.uuid"
-            class="flex items-center gap-2 text-[12px] px-2 py-1.5 rounded-sm border"
+            class="flex items-center gap-2 text-[14px] px-2 py-1.5 rounded-sm border"
             :class="[
               template === tpl.uuid ? 'border-line-acid bg-acid-dim' : 'border-line bg-glass',
               templateSelectable(tpl) ? 'cursor-pointer text-ink' : 'opacity-50 text-ink-3',
@@ -782,19 +782,19 @@ function shortIcon(icon: string) {
             <span class="flex-1 min-w-0 truncate">{{ tpl.name }}</span>
             <span
               v-if="isCurrentForeign(tpl.uuid)"
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-2"
+              class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-2"
             >{{ t('rules.builder.current') }}</span>
             <span
               v-if="isRecommendedTemplate(tpl, codes)"
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-acid"
+              class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-acid-dim text-olive"
             >{{ t('rules.builder.recommended') }}</span>
             <span
               v-if="tpl.is_system"
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-2"
+              class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-glass-2 text-ink-2"
             >{{ t('rules.builder.system') }}</span>
             <span
               v-if="!templateSelectable(tpl)"
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brand-orange-dim text-brand-orange"
+              class="text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-brand-orange-dim text-brand-orange"
             >{{ t('rules.builder.notApproved') }}</span>
           </label>
         </div>
@@ -802,7 +802,7 @@ function shortIcon(icon: string) {
       <p
         v-for="msg in stepErrors.with"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
         data-test="error-with"
       >
         {{ msg }}
@@ -816,12 +816,12 @@ function shortIcon(icon: string) {
       :disabled="!withValid"
       data-test="step-offset"
     >
-      <legend class="text-[10px] font-bold text-ink-3 tracking-[0.5px] uppercase mb-1.5">
+      <legend class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase mb-1.5">
         5 · {{ t('rules.builder.offset') }}
       </legend>
       <p
         v-if="isImmediate"
-        class="text-[12px] text-ink-2"
+        class="text-[14px] text-ink-2"
         data-test="offset-immediately"
       >
         {{ t('rules.builder.immediately') }}
@@ -832,12 +832,12 @@ function shortIcon(icon: string) {
             v-model.number="offsetValue"
             type="number"
             min="1"
-            class="w-20 bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+            class="w-20 bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
             data-test="offset-value"
           >
           <select
             v-model="offsetUnit"
-            class="bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+            class="bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
             data-test="offset-unit"
           >
             <option
@@ -848,11 +848,11 @@ function shortIcon(icon: string) {
               {{ t(`rules.builder.units.${u}`) }}
             </option>
           </select>
-          <span class="text-[12px] text-ink-3">{{ offsetDirectionLabel }}</span>
+          <span class="text-[14px] text-ink-3">{{ offsetDirectionLabel }}</span>
         </div>
         <p
-          class="text-[10px]"
-          :class="withValid && !offsetValid ? 'text-red-400' : 'text-ink-4'"
+          class="text-[12px]"
+          :class="withValid && !offsetValid ? 'text-failed-fg' : 'text-ink-4'"
           data-test="offset-range"
         >
           {{ offsetRangeLabel }}
@@ -861,7 +861,7 @@ function shortIcon(icon: string) {
       <p
         v-for="msg in stepErrors.offset"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
         data-test="error-offset"
       >
         {{ msg }}
@@ -874,28 +874,28 @@ function shortIcon(icon: string) {
       data-test="step-name"
     >
       <label class="block">
-        <span class="text-[11px] text-ink-3">{{ t('rules.builder.name') }}</span>
+        <span class="text-[13px] text-ink-3">{{ t('rules.builder.name') }}</span>
         <input
           v-model="name"
           type="text"
           :maxlength="NAME_MAX"
-          class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink"
+          class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink"
           data-test="rule-name"
           @input="onNameInput"
         >
       </label>
       <label class="block">
-        <span class="text-[11px] text-ink-3">{{ t('rules.builder.description') }}</span>
+        <span class="text-[13px] text-ink-3">{{ t('rules.builder.description') }}</span>
         <textarea
           v-model="description"
           rows="2"
-          class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[12px] text-ink resize-none"
+          class="mt-1 w-full bg-bg-4 border border-line rounded-sm px-2 py-1.5 text-[14px] text-ink resize-none"
         />
       </label>
       <p
         v-for="msg in stepErrors.name"
         :key="msg"
-        class="text-[11px] text-red-400"
+        class="text-[13px] text-failed-fg"
       >
         {{ msg }}
       </p>
@@ -903,7 +903,7 @@ function shortIcon(icon: string) {
 
     <p
       v-if="generalError"
-      class="text-[11px] text-red-400"
+      class="text-[13px] text-failed-fg"
       data-test="error-general"
     >
       {{ generalError }}

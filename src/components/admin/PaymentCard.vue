@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import type { BadgeStatus } from '@/utils/statusBadge'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { ref, watch } from 'vue'
@@ -13,20 +15,20 @@ const expanded = ref(false)
 const detail = ref<PaymentDetail | null>(null)
 const loading = ref(false)
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  completed: { bg: 'rgba(31,173,90,0.15)', text: '#34d399' },
-  pending: { bg: 'rgba(26,143,255,0.12)', text: '#1a8fff' },
-  failed: { bg: 'rgba(239,68,68,0.12)', text: '#f87171' },
-  refunded: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
-  cancelled: { bg: 'rgba(100,116,139,0.10)', text: '#64748b' },
+const STATUS_BADGE: Record<string, BadgeStatus> = {
+  completed: 'sent',
+  pending: 'pending',
+  failed: 'failed',
+  refunded: 'off',
+  cancelled: 'off',
 }
 function statusLabel(s: string) {
   const key = `admin.paymentStatus.${s}`
   return te(key) ? t(key) : s
 }
 
-function statusColor(s: string) {
-  return STATUS_COLORS[s] ?? { bg: 'rgba(100,116,139,0.10)', text: '#64748b' }
+function statusBadge(s: string): BadgeStatus {
+  return STATUS_BADGE[s] ?? 'off'
 }
 
 function formatDate(iso: string | null) {
@@ -58,22 +60,22 @@ watch(expanded, async (val) => {
       @click="expanded = !expanded"
     >
       <div class="flex-1 min-w-0">
-        <p class="text-[12px] font-medium text-ink truncate">
+        <p class="text-[14px] font-medium text-ink truncate">
           {{ payment.user_email }}
         </p>
-        <p class="text-[10px] text-ink-4 truncate">
-          {{ payment.tour_name }} · {{ formatDate(payment.payment_date ?? payment.created_at) }}
+        <p class="text-[12px] text-ink-4 truncate">
+          {{ payment.tour_name }} · <span class="font-time tnum">{{ formatDate(payment.payment_date ?? payment.created_at) }}</span>
         </p>
       </div>
-      <p class="text-[12px] font-semibold text-ink flex-shrink-0">
+      <p class="text-[14px] font-semibold text-ink flex-shrink-0">
         {{ payment.amount }} {{ payment.currency }}
       </p>
-      <span
-        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 capitalize"
-        :style="{ background: statusColor(payment.status).bg, color: statusColor(payment.status).text }"
-      >
-        {{ statusLabel(payment.status) }}
-      </span>
+      <StatusBadge
+        class="flex-shrink-0 capitalize"
+        :status="statusBadge(payment.status)"
+        :label="statusLabel(payment.status)"
+        size="sm"
+      />
       <svg
         class="flex-shrink-0 text-ink-4 transition-transform"
         :class="expanded ? 'rotate-180' : ''"
@@ -117,31 +119,31 @@ watch(expanded, async (val) => {
         </svg>
       </div>
       <template v-else-if="detail">
-        <p class="text-[11px] text-ink-3">
+        <p class="text-[13px] text-ink-3">
           {{ detail.user_full_name }}
         </p>
         <p
           v-if="detail.subscription_plan"
-          class="text-[11px] text-ink-3"
+          class="text-[13px] text-ink-3"
         >
           {{ t('admin.payments.plan', { plan: detail.subscription_plan }) }}
         </p>
         <p
           v-if="detail.authorization_code"
-          class="text-[11px] text-ink-4"
+          class="text-[13px] text-ink-4"
         >
           {{ t('admin.payments.authCode', { code: detail.authorization_code }) }}
         </p>
         <p
           v-if="detail.notes"
-          class="text-[11px] text-ink-4"
+          class="text-[13px] text-ink-4"
         >
           {{ detail.notes }}
         </p>
 
         <button
           v-if="detail.status === 'completed'"
-          class="mt-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-glass border border-line text-ink-4 hover:text-red-400 hover:border-red-400/30 cursor-pointer transition-colors"
+          class="mt-1.5 px-2.5 py-1 rounded-lg text-[13px] font-medium bg-glass border border-line text-ink-4 hover:text-failed-fg hover:border-[#FCA5A5] cursor-pointer transition-colors"
           @click="emit('refund')"
         >
           {{ t('admin.payments.refund') }}

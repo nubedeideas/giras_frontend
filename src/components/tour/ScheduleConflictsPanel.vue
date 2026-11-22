@@ -70,11 +70,11 @@ async function resolve(conflict: ScheduleConflict) {
       v-else-if="error"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-red-400 mb-2">
+      <p class="text-[14px] text-failed-fg mb-2">
         {{ error }}
       </p>
       <button
-        class="text-[11px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
+        class="text-[13px] text-ink-3 hover:text-ink cursor-pointer border-none bg-transparent underline"
         @click="load"
       >
         Reintentar
@@ -85,7 +85,7 @@ async function resolve(conflict: ScheduleConflict) {
       v-else-if="!conflicts.length"
       class="py-10 text-center"
     >
-      <p class="text-[12px] text-ink-3">
+      <p class="text-[14px] text-ink-3">
         {{ t('tourHub.conflicts.empty') }}
       </p>
     </div>
@@ -101,7 +101,7 @@ async function resolve(conflict: ScheduleConflict) {
       >
         <div
           class="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
-          style="background: rgba(232,93,0,0.15); color: #e85d00"
+          style="background: var(--brand-orange-dim); color: var(--brand-orange)"
         >
           <svg
             width="14"
@@ -131,13 +131,13 @@ async function resolve(conflict: ScheduleConflict) {
               {{ conflict.conflict_type_display }}
             </Pill>
           </div>
-          <p class="text-[12px] text-ink leading-relaxed">
+          <p class="text-[14px] text-ink leading-relaxed">
             {{ conflict.description }}
           </p>
         </div>
 
         <button
-          class="flex-shrink-0 px-3 py-1.5 rounded text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer disabled:opacity-40"
+          class="flex-shrink-0 px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover transition-colors cursor-pointer disabled:opacity-40"
           :disabled="resolvingUuid === conflict.uuid"
           @click="resolve(conflict)"
         >

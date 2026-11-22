@@ -89,8 +89,8 @@ async function submitAllocate() {
 }
 
 const inputClass =
-  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[12px] text-ink outline-none focus:border-line-2 transition-colors'
-const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] uppercase mb-1'
+  'w-full bg-bg-3 border border-line rounded-lg px-3 py-2 text-[14px] text-ink outline-none focus:border-line-2 transition-colors'
+const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] uppercase mb-1'
 </script>
 
 <template>
@@ -102,7 +102,7 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
       <p class="text-base font-bold text-ink tracking-[-0.2px] mb-1">
         {{ t('admin.changePlan.title') }}
       </p>
-      <p class="text-[11px] text-ink-4 mb-4">
+      <p class="text-[13px] text-ink-4 mb-4">
         {{ subscription.tour_name }} · {{ subscription.user_email }}
       </p>
 
@@ -125,20 +125,20 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 
         <p
           v-if="error"
-          class="text-[11px] text-red-400"
+          class="text-[13px] text-failed-fg"
         >
           {{ error }}
         </p>
 
         <div class="flex justify-end gap-2">
           <button
-            class="px-3.5 py-[7px] rounded-sm text-[11px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
+            class="px-3.5 py-[7px] rounded-sm text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer"
             @click="emit('close')"
           >
             {{ t('admin.changePlan.close') }}
           </button>
           <button
-            class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
+            class="px-3.5 py-[7px] rounded-sm text-[13px] font-bold bg-acid text-ink cursor-pointer disabled:opacity-50"
             :disabled="saving"
             @click="submitChangePlan"
           >
@@ -149,19 +149,19 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
         <!-- Allocate: solo aplica una vez que la suscripción está en el plan Custom -->
         <template v-if="selectedPlan === 'custom'">
           <div class="h-px bg-line my-1" />
-          <p class="text-[11px] font-semibold text-ink-2">
+          <p class="text-[13px] font-semibold text-ink-2">
             {{ t('admin.changePlan.allocateTitle') }}
           </p>
 
           <div
             v-if="poolsLoading"
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             {{ t('admin.changePlan.loadingPools') }}
           </div>
           <p
             v-else-if="pools.length === 0"
-            class="text-[11px] text-ink-4"
+            class="text-[13px] text-ink-4"
           >
             {{ t('admin.changePlan.noPools') }}
           </p>
@@ -216,14 +216,14 @@ const labelClass = 'block text-[10px] font-semibold text-ink-3 tracking-[0.5px] 
 
             <p
               v-if="allocateError"
-              class="text-[11px] text-red-400"
+              class="text-[13px] text-failed-fg"
             >
               {{ allocateError }}
             </p>
 
             <div class="flex justify-end">
               <button
-                class="px-3.5 py-[7px] rounded-sm text-[11px] font-bold bg-acid text-black cursor-pointer disabled:opacity-50"
+                class="px-3.5 py-[7px] rounded-sm text-[13px] font-bold bg-acid text-ink cursor-pointer disabled:opacity-50"
                 :disabled="allocateSaving || !selectedPool"
                 @click="submitAllocate"
               >
