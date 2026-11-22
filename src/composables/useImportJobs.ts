@@ -305,6 +305,7 @@ export interface ImportAssumptions {
 
 /** Issues de una fila de actividad (§3.5.7). `in_past` es un booleano aparte, no un issue. */
 export type ImportActivityIssue =
+  | 'month_inferred'
   | 'time_missing'
   | 'time_unverified'
   | 'time_assumed'

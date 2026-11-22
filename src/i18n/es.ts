@@ -2849,6 +2849,7 @@ export default {
       replace: 'Sustituir',
     },
     activityIssues: {
+      month_inferred: 'Mes deducido de la fila anterior',
       time_missing: 'Sin hora',
       time_unverified: 'No encontramos esta hora en el documento',
       time_assumed: 'Hora habitual del hotel',
