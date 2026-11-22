@@ -3,7 +3,8 @@ import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { useToursStore } from '@/stores/tours'
-import { useContactsStore } from '@/stores/contacts'
+import { useAuthStore } from '@/stores/auth'
+import { useContacts } from '@/composables/useContacts'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const props = defineProps<{ tourId: number | null }>()
@@ -11,7 +12,8 @@ const emit = defineEmits<{ finish: [] }>()
 
 const { t } = useI18n()
 const toursStore = useToursStore()
-const contactsStore = useContactsStore()
+const auth = useAuthStore()
+const contactsApi = useContacts()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -19,9 +21,26 @@ const tour = computed(() =>
   props.tourId ? toursStore.tours.find((tr) => tr.id === props.tourId) ?? null : null,
 )
 
+/**
+ * Personas vinculadas a la gira (GET /contacts/?tour=): lo que el asistente ha metido en el Equipo,
+ * también al volver del OAuth de Google. `null` mientras carga o si falla (se oculta la cifra).
+ */
+const teamCount = ref<number | null>(null)
+
+async function loadTeam() {
+  const uuid = tour.value?.uuid
+  if (!uuid || auth.isDemoMode) return
+  try {
+    const list = await contactsApi.listContacts({ tour: uuid })
+    if (tour.value?.uuid === uuid) teamCount.value = list.length
+  } catch {
+    teamCount.value = null
+  }
+}
+
 const stats = computed(() => {
   const current = tour.value
-  if (!current) return { shows: 0, cities: 0, crew: 0, days: 0, startCity: '', endCity: '' }
+  if (!current) return { shows: 0, cities: 0, days: 0, startCity: '', endCity: '' }
   const start = DateTime.fromISO(current.start_date)
   const end = DateTime.fromISO(current.end_date)
   const days = Math.max(1, Math.round(end.diff(start, 'days').days))
@@ -30,7 +49,6 @@ const stats = computed(() => {
   return {
     shows: current.events_count ?? 0,
     cities: current.events_count ?? 0,
-    crew: contactsStore.contacts.length,
     days,
     startCity: settings.start_city ?? '',
     endCity: settings.end_city ?? '',
@@ -106,6 +124,7 @@ function launchConfetti() {
 
 onMounted(() => {
   setTimeout(launchConfetti, 120)
+  void loadTeam()
 })
 </script>
 
@@ -171,7 +190,7 @@ onMounted(() => {
         </div>
 
         <!-- Stats grid -->
-        <div class="grid grid-cols-4 gap-2 mb-4">
+        <div class="grid grid-cols-3 gap-2 mb-4">
           <div class="text-center">
             <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.shows }}
@@ -190,14 +209,6 @@ onMounted(() => {
           </div>
           <div class="text-center">
             <p class="text-[20px] font-bold text-olive leading-none">
-              {{ stats.crew }}
-            </p>
-            <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
-              {{ t('onboarding.done.crew') }}
-            </p>
-          </div>
-          <div class="text-center">
-            <p class="text-[20px] font-bold text-olive leading-none">
               {{ stats.days }}
             </p>
             <p class="text-[11px] text-ink-2 mt-0.5 uppercase tracking-[0.5px]">
@@ -205,6 +216,14 @@ onMounted(() => {
             </p>
           </div>
         </div>
+
+        <p
+          v-if="teamCount !== null"
+          class="text-[14px] text-ink-2 text-center mb-4"
+          data-testid="onb-done-team"
+        >
+          {{ t('onboarding.done.team', { n: teamCount }, teamCount) }}
+        </p>
 
         <!-- Route -->
         <div

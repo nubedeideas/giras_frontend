@@ -22,6 +22,15 @@ export interface TourListItem {
    * rol admin/tour_manager). Staff **no** cuenta (ver `can_manage_crew`). No viene en el PATCH.
    */
   current_user_is_admin?: boolean
+  /** Zona horaria IANA de la gira: por defecto de las actividades nuevas y del day sheet. */
+  timezone: string
+  /**
+   * Avisos de la gira activos. Solo lectura: se cambia con `pause-notifications/` y
+   * `resume-notifications/` (el PATCH lo ignora).
+   */
+  enable_notifications: boolean
+  /** ISO desde que los avisos están en pausa, o null si están activos. */
+  notifications_paused_at: string | null
   created_at: string
   updated_at: string
 }
@@ -36,7 +45,6 @@ export interface TourFull extends TourListItem {
   notes: string
   tags: string[]
   settings: Record<string, unknown>
-  enable_notifications: boolean
   spotify_artist_id: string | null
   spotify_artist_url: string | null
   spotify_followers: number | null
@@ -94,6 +102,8 @@ export interface CreateTourPayload {
   spotify_image_url?: string
   spotify_followers?: number
   spotify_synced_at?: string
+  /** IANA; si falta, el backend usa la del owner (si no es UTC) o `Europe/Madrid`. */
+  timezone?: string
 }
 
 export interface UpdateTourPayload {
@@ -122,6 +132,22 @@ export interface UpdateTourPayload {
   crew_portal_enabled?: boolean
   /** 1-31; fuera de rango da 400 en el campo. */
   crew_portal_days?: number
+  /** IANA; una zona no válida da 400 en el campo. */
+  timezone?: string
+}
+
+/**
+ * Respuesta de POST /api/tours/{uuid}/pause-notifications/ y resume-notifications/.
+ * Pausar trae `held` (programadas futuras retenidas); reanudar, `cancelled` (vencidas durante la
+ * pausa, canceladas con `tour_paused`) y `released`. `changed: false` = ya estaba así.
+ */
+export interface TourPauseResponse {
+  enable_notifications: boolean
+  notifications_paused_at: string | null
+  changed: boolean
+  held?: number
+  cancelled?: number
+  released?: number
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────
@@ -151,5 +177,25 @@ export function useTours() {
     return apiClient.delete(`/tours/${uuid}/`, { fallback: 'Error al eliminar gira' })
   }
 
-  return { listTours, getTour, createTour, updateTour, deleteTour }
+  function pauseNotifications(uuid: string): Promise<TourPauseResponse> {
+    return apiClient.post<TourPauseResponse>(`/tours/${uuid}/pause-notifications/`, undefined, {
+      fallback: 'Error al pausar los avisos',
+    })
+  }
+
+  function resumeNotifications(uuid: string): Promise<TourPauseResponse> {
+    return apiClient.post<TourPauseResponse>(`/tours/${uuid}/resume-notifications/`, undefined, {
+      fallback: 'Error al reanudar los avisos',
+    })
+  }
+
+  return {
+    listTours,
+    getTour,
+    createTour,
+    updateTour,
+    deleteTour,
+    pauseNotifications,
+    resumeNotifications,
+  }
 }

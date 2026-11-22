@@ -144,7 +144,7 @@ function calls(fragment: string): string[] {
   return fetchMock.mock.calls.map(([u]) => String(u)).filter((u) => u.includes(fragment))
 }
 
-function setupStores({ admin = true, tour = true, demo = false } = {}) {
+function setupStores({ admin = true, tour = true, demo = false, paused = false } = {}) {
   const auth = useAuthStore()
   auth.user = { email: 'me@x.es', first_name: 'Oscar', full_name: 'Oscar Cortés' } as never
   auth.isDemoMode = demo
@@ -161,6 +161,9 @@ function setupStores({ admin = true, tour = true, demo = false } = {}) {
       currency: 'EUR',
       color: '#a8d800',
       current_user_is_admin: admin,
+      timezone: 'Europe/Madrid',
+      enable_notifications: !paused,
+      notifications_paused_at: paused ? '2026-11-22T08:00:00Z' : null,
     } as never,
   ]
   if (tour) tours.activeTourId = 1
@@ -211,6 +214,70 @@ afterEach(() => {
 })
 
 describe('DashboardView', () => {
+  it('cabecera: el admin ve el interruptor de avisos y pausar llama a la API', async () => {
+    setupFetch({
+      '/tours/T1/pause-notifications/': () =>
+        jsonResponse({
+          enable_notifications: false,
+          notifications_paused_at: '2026-11-22T09:00:00Z',
+          changed: true,
+          held: 0,
+        }),
+    })
+    setupStores()
+    const w = await mountView()
+    const header = w.find('header')
+    const sw = header.find('[data-testid="notif-pause-switch"]')
+    expect(sw.exists()).toBe(true)
+    expect(sw.attributes('aria-checked')).toBe('true')
+    await sw.trigger('click')
+    await w.find('[data-testid="notif-pause-confirm-btn"]').trigger('click')
+    await flushPromises()
+    expect(calls('/tours/T1/pause-notifications/')).toHaveLength(1)
+    expect(header.find('[data-testid="notif-pause-switch"]').attributes('aria-checked')).toBe(
+      'false'
+    )
+    // "Por resolver" avisa de la pausa con "Reanudar".
+    const item = w.find('[data-testid="pending-item-notifications-paused"]')
+    expect(item.text()).toContain('Los avisos de esta gira están en pausa')
+    expect(item.find('[data-testid="pending-action"]').text()).toBe('Reanudar')
+  })
+
+  it('gira en pausa: "Reanudar" en Por resolver llama a resume-notifications', async () => {
+    setupFetch({
+      '/tours/T1/resume-notifications/': () =>
+        jsonResponse({
+          enable_notifications: true,
+          notifications_paused_at: null,
+          changed: true,
+          cancelled: 1,
+          released: 2,
+        }),
+    })
+    setupStores({ paused: true })
+    const w = await mountView()
+    const pending = w.find('[data-testid="dashboard-pending"]')
+    const items = pending.findAll('li')
+    expect(items[0].attributes('data-testid')).toBe('pending-item-notifications-paused')
+    await items[0].find('[data-testid="pending-action"]').trigger('click')
+    await flushPromises()
+    expect(calls('/tours/T1/resume-notifications/')).toHaveLength(1)
+    expect(w.find('[data-testid="pending-item-notifications-paused"]').exists()).toBe(false)
+    expect(w.find('header [data-testid="notif-pause-badge"]').exists()).toBe(false)
+  })
+
+  it('member con la gira en pausa: badge sin interruptor y fila sin botón', async () => {
+    setupFetch()
+    setupStores({ admin: false, paused: true })
+    const w = await mountView()
+    expect(w.find('header [data-testid="notif-pause-switch"]').exists()).toBe(false)
+    expect(w.find('header [data-testid="notif-pause-badge"]').exists()).toBe(true)
+    const item = w.find('[data-testid="pending-item-notifications-paused"]')
+    expect(item.exists()).toBe(true)
+    expect(item.find('[data-testid="pending-action"]').exists()).toBe(false)
+    expect(item.find('[data-testid="pending-cta"]').exists()).toBe(false)
+  })
+
   it('sin gira enseña el selector y no llama a la API', async () => {
     setupFetch()
     setupStores({ tour: false })

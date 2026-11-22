@@ -14,6 +14,8 @@ import {
   type SyncStats,
 } from '@/composables/useGoogleContactsImport'
 import { useGoogleStore } from '@/stores/google'
+import { useToursStore } from '@/stores/tours'
+import { useContacts } from '@/composables/useContacts'
 import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
 import GoogleConnectCta from '@/components/settings/GoogleConnectCta.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
@@ -28,7 +30,28 @@ const contactsStore = useContactsStore()
 const authStore = useAuthStore()
 const api = useGoogleContactsImport()
 const googleStore = useGoogleStore()
+const toursStore = useToursStore()
+const contactsApi = useContacts()
 const route = useRoute()
+
+/** Uuid de la gira del asistente (el paso recibe el id sintético del store). */
+const tourUuid = computed(
+  () => toursStore.tours.find((tr) => tr.id === props.tourId)?.uuid ?? null
+)
+
+/** Máximo de peticiones simultáneas al vincular contactos importados. */
+const LINK_CONCURRENCY = 4
+
+/** Vincula el contacto a la gira (y al Equipo). Sin gira no hace nada: `true` = vinculado. */
+async function linkToTour(uuid: string, roleUuid?: string): Promise<boolean> {
+  const tour = tourUuid.value
+  if (!tour) {
+    console.warn('[OnbCrewStep] sin gira: el contacto no se vincula', uuid)
+    return false
+  }
+  await contactsApi.addToTour(uuid, tour, { roleUuid: roleUuid || undefined })
+  return true
+}
 
 // Sin permiso de Contactos se ofrece conectar (opcional: la pestaña manual sigue disponible).
 const scopeMissing = ref(false)
@@ -140,18 +163,37 @@ onMounted(async () => {
   }
 })
 
+/** Contactos que no se han podido añadir a la gira en la última importación o alta. */
+const linkFailed = ref(0)
+
+/**
+ * Confirma (PATCH, con su rol) y después vincula a la gira cada contacto elegido: `add-to-tour`
+ * no ve contactos sin confirmar. Por lotes de `LINK_CONCURRENCY`; un fallo no para al resto.
+ */
+async function importOne(uuid: string): Promise<void> {
+  const roleUuid = contactState.value[uuid]?.roleUuid || null
+  await api.patchContactRole(uuid, roleUuid)
+  await linkToTour(uuid, roleUuid ?? undefined)
+}
+
 async function doImport() {
   if (selectedUuids.value.length === 0) return
   gStep.value = 'importing'
   gError.value = ''
-  const patchPromises = selectedUuids.value.map((uuid) => {
-    const roleUuid = contactState.value[uuid]?.roleUuid || null
-    return api.patchContactRole(uuid, roleUuid).catch((e: unknown) => {
-      console.error('[OnbCrewStep] patchContactRole', uuid, e)
-      return null
+  linkFailed.value = 0
+  const uuids = [...selectedUuids.value]
+  let failed = 0
+  for (let i = 0; i < uuids.length; i += LINK_CONCURRENCY) {
+    const batch = uuids.slice(i, i + LINK_CONCURRENCY)
+    const results = await Promise.allSettled(batch.map((uuid) => importOne(uuid)))
+    results.forEach((r, j) => {
+      if (r.status === 'rejected') {
+        failed++
+        console.error('[OnbCrewStep] importar contacto', batch[j], r.reason)
+      }
     })
-  })
-  await Promise.allSettled(patchPromises)
+  }
+  linkFailed.value = failed
   await contactsStore.fetchContacts()
   gStep.value = 'done'
 }
@@ -207,6 +249,7 @@ function resetManualForm() {
   manualStep.value = 'form'
   manualError.value = ''
   createdContact.value = null
+  linkFailed.value = 0
 }
 
 const manualValid = computed(() => {
@@ -238,6 +281,14 @@ async function submitManual() {
     if (form.role) payload.role = form.role
     const created = await api.createContact(payload)
     createdContact.value = created
+    // Si falla el vínculo, el contacto ya existe: se avisa sin volver al formulario.
+    linkFailed.value = 0
+    try {
+      await linkToTour(created.uuid, form.role || undefined)
+    } catch (e) {
+      console.error('[OnbCrewStep] add-to-tour', created.uuid, e)
+      linkFailed.value = 1
+    }
     await contactsStore.fetchContacts()
     manualStep.value = 'done'
   } catch (e) {
@@ -374,6 +425,7 @@ watch(source, (val) => {
           </p>
           <BtnPrimary
             full
+            data-testid="crew-sync"
             @click="startSync"
           >
             <svg
@@ -492,6 +544,7 @@ watch(source, (val) => {
             <button
               class="w-4 h-4 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer p-0"
               :class="allFilteredSelected ? 'bg-acid border-acid' : 'border-line-2 bg-glass'"
+              data-testid="crew-select-all"
               @click="toggleAll"
             >
               <svg
@@ -613,6 +666,7 @@ watch(source, (val) => {
             <BtnPrimary
               full
               :disabled="selectedUuids.length === 0"
+              data-testid="crew-import"
               @click="doImport"
             >
               <svg
@@ -687,6 +741,14 @@ watch(source, (val) => {
           <p class="text-[13px] text-ink-3 mb-5">
             {{ t('onboarding.crew.importedCount', selectedUuids.length) }}
           </p>
+          <p
+            v-if="linkFailed > 0"
+            role="alert"
+            class="text-[13px] text-failed-fg -mt-3 mb-5"
+            data-testid="crew-link-error"
+          >
+            {{ t('onboarding.crew.linkError', { n: linkFailed }, linkFailed) }}
+          </p>
           <BtnPrimary
             full
             @click="emit('next')"
@@ -748,6 +810,14 @@ watch(source, (val) => {
         </p>
         <p class="text-[13px] text-ink-3 mb-5">
           {{ t('onboarding.crew.createdBody', { name: createdContact?.full_name ?? '' }) }}
+        </p>
+        <p
+          v-if="linkFailed > 0"
+          role="alert"
+          class="text-[13px] text-failed-fg -mt-3 mb-5"
+          data-testid="crew-link-error"
+        >
+          {{ t('onboarding.crew.linkError', { n: linkFailed }, linkFailed) }}
         </p>
         <div class="flex gap-2">
           <BtnPrimary
@@ -826,6 +896,7 @@ watch(source, (val) => {
               />
               <select
                 v-model="form.role"
+                data-testid="crew-manual-role"
                 class="w-full bg-glass border border-line rounded py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors appearance-none cursor-pointer"
                 :class="form.role ? 'pl-7 pr-2.5' : 'px-2.5'"
               >
@@ -965,6 +1036,7 @@ watch(source, (val) => {
           <BtnPrimary
             full
             :disabled="!manualValid"
+            data-testid="crew-manual-create"
             @click="submitManual"
           >
             <svg

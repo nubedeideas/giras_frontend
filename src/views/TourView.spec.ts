@@ -37,6 +37,9 @@ function setup(detail: Record<string, unknown>, ownerEmail = 'owner@x.es') {
       currency: 'EUR',
       color: '#a8d800',
       owner_email: ownerEmail,
+      timezone: 'Europe/Madrid',
+      enable_notifications: true,
+      notifications_paused_at: null,
     },
   ]
   tours.setActiveTour(1)

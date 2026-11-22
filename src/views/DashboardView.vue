@@ -13,6 +13,7 @@ import DashboardSendsBlock from '@/components/dashboard/DashboardSendsBlock.vue'
 import DashboardInboxBlock from '@/components/dashboard/DashboardInboxBlock.vue'
 import DashboardPlanBlock from '@/components/dashboard/DashboardPlanBlock.vue'
 import DashboardEmptyTour from '@/components/dashboard/DashboardEmptyTour.vue'
+import NotificationsPauseToggle from '@/components/tour/NotificationsPauseToggle.vue'
 import { useToursStore } from '@/stores/tours'
 import { useAuthStore } from '@/stores/auth'
 import { useActivitiesStore } from '@/stores/activities'
@@ -155,6 +156,11 @@ const showImportCal = ref(false)
           <p class="text-[15px] text-ink-2 truncate">
             {{ tour.artist_name }} · {{ tour.name }}
           </p>
+          <NotificationsPauseToggle
+            :tour="tour"
+            class="mt-1"
+            data-testid="dashboard-notif-pause"
+          />
         </div>
         <BtnPrimary
           class="hidden lg:inline-flex flex-shrink-0"

@@ -103,3 +103,21 @@ describe('TourDocumentsPanel (crew)', () => {
     expect(w.findAll('[data-testid="doc-crew-badge"]')).toHaveLength(1)
   })
 })
+
+describe('TourDocumentsPanel (formatos, F0 A6)', () => {
+  it('el input de archivo acepta .csv e .ics y el texto de formatos los nombra', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () =>
+        jsonResponse({ count: 0, next: null, previous: null, results: [] })
+      )
+    )
+    const w = mountPanel()
+    await flushPromises()
+    const accept = w.get('[data-testid="document-file-input"]').attributes('accept')!.split(',')
+    expect(accept).toEqual(expect.arrayContaining(['.csv', '.ics', '.pdf', '.xlsx']))
+    expect(w.get('[data-testid="document-formats"]').text()).toBe(
+      'PDF, Excel, CSV, calendario (.ics) o imagen'
+    )
+  })
+})

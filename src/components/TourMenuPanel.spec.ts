@@ -5,6 +5,7 @@ import i18n from '@/i18n'
 import { useToursStore } from '@/stores/tours'
 import type { Tour } from '@/types'
 import { jsonResponse } from '@/test/http'
+import { defaultTourZone } from '@/utils/timezones'
 import TourMenuPanel from './TourMenuPanel.vue'
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
@@ -21,6 +22,9 @@ function tour(uuid: string, id: number): Tour {
     currency: 'EUR',
     color: '#a8d800',
     owner_email: 'a@b.c',
+    timezone: 'Europe/Madrid',
+    enable_notifications: true,
+    notifications_paused_at: null,
   }
 }
 
@@ -134,5 +138,60 @@ describe('TourMenuPanel: alerta del día de show', () => {
     await flushPromises()
     const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
     expect(JSON.parse(String(patch![1]!.body)).show_day_alert_time).toBeNull()
+  })
+})
+
+describe('TourMenuPanel: zona horaria y avisos en pausa (F0)', () => {
+  it('badge "Avisos en pausa" en la gira activa cuando está en pausa', async () => {
+    setupFetch()
+    const store = useToursStore()
+    store.activeTourId = 1
+    const w = mountPanel()
+    expect(w.find('[data-testid="tour-menu-paused-badge"]').exists()).toBe(false)
+    store.tours[0].enable_notifications = false
+    await flushPromises()
+    expect(w.find('[data-testid="tour-menu-paused-badge"]').text()).toBe('Avisos en pausa')
+  })
+
+  it('editar: muestra la zona de la gira y la manda en el PATCH', async () => {
+    const { fn } = setupFetch()
+    useToursStore().tours[1].timezone = 'Asia/Tokyo'
+    const w = mountPanel()
+    await editButtons(w)[1].trigger('click')
+    await flushPromises()
+    const select = w.find<HTMLSelectElement>('[data-testid="tour-form-timezone"]')
+    // Una zona fuera de la lista común se añade como opción.
+    expect(select.element.value).toBe('Asia/Tokyo')
+    await select.setValue('America/Lima')
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('common.save'))!.trigger('click')
+    await flushPromises()
+    const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect(JSON.parse(String(patch![1]!.body)).timezone).toBe('America/Lima')
+  })
+
+  it('crear: propone la zona por defecto y la manda en el POST', async () => {
+    const posted: Record<string, unknown>[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (_input, init) => {
+        if (init?.method === 'POST') {
+          const body = JSON.parse(String(init.body))
+          posted.push(body)
+          return jsonResponse({ ...full('C', null), ...body, uuid: 'C' }, 201)
+        }
+        return jsonResponse(empty)
+      })
+    )
+    const w = mountPanel()
+    await w.findAll('button').find((b) => b.text().includes(i18n.global.t('tours.newTour')))!.trigger('click')
+    const select = w.find<HTMLSelectElement>('[data-testid="tour-form-timezone"]')
+    expect(select.element.value).toBe(defaultTourZone())
+    await select.setValue('Europe/Lisbon')
+    await w.find(`input[placeholder="${i18n.global.t('modal.tourNamePh')}"]`).setValue('Gira C')
+    await w.find(`input[placeholder="${i18n.global.t('modal.artistPh')}"]`).setValue('Abc')
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('tours.create'))!.trigger('click')
+    await flushPromises()
+    expect(posted).toHaveLength(1)
+    expect(posted[0].timezone).toBe('Europe/Lisbon')
   })
 })

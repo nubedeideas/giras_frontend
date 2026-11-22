@@ -12,6 +12,7 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { tourBadge } from '@/utils/statusBadge'
 import { alertTimePatch, alertTimeToInput } from '@/utils/showDayAlert'
+import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
 
 type Anchor = { top: number; left: number; bottom: number; width: number }
@@ -94,7 +95,10 @@ const form = reactive({
   spotify_image_url: '',
   spotify_followers: undefined as number | undefined,
   spotify_synced_at: '',
+  timezone: defaultTourZone(),
 })
+
+const timezoneOptions = computed(() => zoneOptions(form.timezone))
 
 const formError = ref('')
 const saving = ref(false)
@@ -189,6 +193,7 @@ function resetForm() {
     color: COLORS[0],
     spotify_artist_id: '', spotify_artist_url: '', spotify_image_url: '',
     spotify_followers: undefined, spotify_synced_at: '',
+    timezone: defaultTourZone(),
   })
   formError.value = ''
   spotifyError.value = ''
@@ -248,6 +253,7 @@ async function openEdit(tour: Tour) {
     spotify_image_url: tour.spotify_image_url ?? '',
     spotify_followers: tour.spotify_followers,
     spotify_synced_at: tour.spotify_synced_at ?? '',
+    timezone: tour.timezone || defaultTourZone(),
   })
   formError.value = ''
   spotifyResults.value = []
@@ -291,6 +297,7 @@ async function openEdit(tour: Tour) {
       spotify_followers: full.spotify_followers ?? undefined,
       spotify_synced_at: full.spotify_synced_at ?? '',
       color: (full.settings?.color as string) || tour.color,
+      timezone: full.timezone || form.timezone,
     })
   } catch {
     // Silently continue with list data if detail fetch fails
@@ -339,6 +346,7 @@ async function submitCreate() {
         spotify_image_url: form.spotify_image_url || undefined,
         spotify_followers: form.spotify_followers,
         spotify_synced_at: form.spotify_synced_at || undefined,
+        timezone: form.timezone,
       },
       form.color,
     )
@@ -385,6 +393,7 @@ async function submitEdit() {
         spotify_followers: form.spotify_followers ?? null,
         spotify_synced_at: form.spotify_synced_at || null,
         default_notification_group: form.default_notification_group || null,
+        timezone: form.timezone,
         ...(showDayAlert.loaded
           ? { show_day_alert_enabled: showDayAlert.enabled, ...showDayTimePatch }
           : {}),
@@ -567,11 +576,18 @@ async function confirmDelete(uuid: string) {
                   <p class="text-[15px] font-bold text-ink truncate leading-snug">
                     {{ toursStore.activeTour.artist_name }} — {{ toursStore.activeTour.name }}
                   </p>
-                  <div class="flex items-center gap-1.5 mt-1">
+                  <div class="flex flex-wrap items-center gap-1.5 mt-1">
                     <StatusBadge
                       :status="tourBadge(toursStore.activeTour.status)"
                       :label="statusLabel(toursStore.activeTour.status)"
                       size="sm"
+                    />
+                    <StatusBadge
+                      v-if="toursStore.activeTour.enable_notifications === false"
+                      status="pending"
+                      :label="t('notifPause.paused')"
+                      size="sm"
+                      data-testid="tour-menu-paused-badge"
                     />
                   </div>
                 </div>
@@ -1099,6 +1115,31 @@ async function confirmDelete(uuid: string) {
                   class="w-full bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[12px] outline-none focus:border-acid transition-colors"
                 >
               </div>
+            </div>
+
+            <!-- Zona horaria de la gira -->
+            <div>
+              <label
+                for="tour-form-timezone"
+                class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1"
+              >{{ t('modal.timezone') }}</label>
+              <select
+                id="tour-form-timezone"
+                v-model="form.timezone"
+                data-testid="tour-form-timezone"
+                class="w-full min-h-[44px] lg:min-h-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus:border-acid cursor-pointer transition-colors"
+              >
+                <option
+                  v-for="tz in timezoneOptions"
+                  :key="tz"
+                  :value="tz"
+                >
+                  {{ tz }}
+                </option>
+              </select>
+              <p class="text-[12px] text-ink-2 mt-1">
+                {{ t('modal.timezoneHelp') }}
+              </p>
             </div>
 
             <!-- Status (edit only) -->

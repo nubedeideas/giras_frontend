@@ -39,6 +39,9 @@ async function mountBanner(data: unknown) {
       currency: 'EUR',
       color: 'var(--acid)',
       owner_email: 'a@b.es',
+      timezone: 'Europe/Madrid',
+      enable_notifications: true,
+      notifications_paused_at: null,
     },
   ]
   tours.setActiveTour(1)

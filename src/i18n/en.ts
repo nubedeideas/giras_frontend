@@ -36,6 +36,8 @@ export default {
     retry: 'Retry',
     loadError: "This section couldn't be loaded.",
     pending: {
+      paused: "This tour's notifications are paused",
+      resume: 'Resume',
       title: 'To resolve',
       allClear: 'All clear. Nothing pending.',
       notices: '{n} notice draft awaits your review | {n} notice drafts await your review',
@@ -143,6 +145,7 @@ export default {
       loadError: 'Error loading tour insights',
     },
     documents: {
+      formats: 'PDF, Excel, CSV, calendar (.ics) or image',
       title: 'Documents',
       subtitle: 'Riders, visas, insurance and contracts for this tour',
       upload: 'Upload document',
@@ -607,7 +610,34 @@ export default {
     },
   },
 
+  notifPause: {
+    active: 'Notifications on',
+    paused: 'Notifications paused',
+    pausedSince: 'Paused since {date}',
+    pause: 'Pause notifications',
+    resume: 'Resume notifications',
+    confirmTitle: 'Pause notifications for {tour}?',
+    confirmBody:
+      'While paused, no scheduled notification will go out: reminders, rules, show-day alert or day sheet. Anything due during the pause is cancelled when you resume. What you send manually still goes out.',
+    heldCount:
+      '{n} scheduled notification is on hold | {n} scheduled notifications are on hold',
+    resumed: 'Notifications resumed.',
+    cancelledCount:
+      '{n} notification due during the pause was cancelled. | {n} notifications due during the pause were cancelled.',
+    forbidden: 'Only a tour admin can pause or resume notifications.',
+    error: "Couldn't change notifications. Try again.",
+    scheduleWhilePaused:
+      "This tour's notifications are paused: anything you schedule won't go out until you resume them.",
+  },
+
+  activityForm: {
+    invalidTime: "The date or time isn't valid.",
+    timeInZone: 'Local time ({zone})',
+  },
+
   modal: {
+    timezone: 'Tour time zone',
+    timezoneHelp: 'Used by default for new activities and the day sheet.',
     createTour: 'Create Tour',
     createTourSub: 'Set up a new tour for your artist',
     tourName: 'Tour Name',
@@ -1245,6 +1275,8 @@ export default {
       done: 'Done!',
     },
     tour: {
+      timezone: 'Time zone',
+      timezoneHelp: 'The one where the tour starts. You can change it later.',
       searchLabel: 'Search artist on Spotify',
       searchPlaceholder: 'Duki, Bizarrap, Bad Bunny...',
       spotifyError: "Couldn't connect to Spotify",
@@ -1271,6 +1303,8 @@ export default {
       createError: 'Error creating the tour',
     },
     crew: {
+      linkError:
+        "{n} contact couldn't be added to the tour. | {n} contacts couldn't be added to the tour.",
       googleSub: 'OAuth sync',
       manual: 'Manual',
       manualSub: 'Form',
@@ -1356,6 +1390,7 @@ export default {
       yourTour: 'your tour',
     },
     done: {
+      team: '{n} person in the Tour team | {n} people in the Tour team',
       title: 'All set!',
       subtitle: 'Your tour is set up and ready for take-off.',
       shows: 'Shows',

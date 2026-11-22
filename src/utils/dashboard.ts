@@ -162,6 +162,7 @@ export function planBarWidth(usage: SubscriptionUsage): number {
 export type PendingSeverity = 'critical' | 'warning' | 'info'
 
 export type PendingKind =
+  | 'notifications-paused'
   | 'plan-reached'
   | 'plan-warning'
   | 'notices'
@@ -182,13 +183,20 @@ export interface PendingItem {
   /** Cupo. */
   percentage?: number
   plan?: string
-  /** Clave i18n del botón. */
-  ctaKey: string
-  to: RouteLocationRaw
+  /** Clave i18n del botón; sin ella la fila no tiene botón. */
+  ctaKey?: string
+  /** Destino del botón (enlace). */
+  to?: RouteLocationRaw
+  /** Acción del botón en vez de enlace (p. ej. reanudar avisos desde el propio bloque). */
+  action?: PendingAction
 }
+
+export type PendingAction = 'resume-notifications'
 
 export interface PendingInput {
   isAdmin: boolean
+  /** La gira tiene los avisos en pausa (`enable_notifications: false`). */
+  notificationsPaused?: boolean
   usage: SubscriptionUsage | null
   /** `null` = sin dato (no admin, 403 o error). */
   pendingNotices: { uuid: string }[] | null
@@ -268,13 +276,24 @@ function upcomingTypeCodes(activities: ActivityListItem[], now: DateTime): Set<s
 }
 
 /**
- * Lista de "Por resolver", ordenada por severidad. Un no admin solo ve el cupo. Los avisos de
+ * Lista de "Por resolver", ordenada por severidad. Un no admin solo ve la pausa y el cupo. Los avisos de
  * audiencia se agrupan por código (una fila aunque afecten a varios tipos); los de la gira
  * (`TOUR_LEVEL_WARNINGS`) salen si algún tipo que avisa los trae, y los del tipo solo si avisa y
  * tiene actividades por delante.
  */
 export function buildPendingItems(input: PendingInput): PendingItem[] {
   const items: PendingItem[] = []
+  // Avisos en pausa: lo ven todos; el primero de los `warning` y solo el admin puede reanudar.
+  if (input.notificationsPaused) {
+    items.push({
+      key: 'notifications-paused',
+      kind: 'notifications-paused',
+      severity: 'warning',
+      ...(input.isAdmin
+        ? { ctaKey: 'dashboard.pending.resume', action: 'resume-notifications' as const }
+        : {}),
+    })
+  }
   const level = planLevel(input.usage)
   if (input.usage && (level === 'reached' || level === 'warning')) {
     items.push({

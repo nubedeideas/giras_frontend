@@ -22,6 +22,9 @@ function tour(uuid: string, isAdmin: boolean, id: number): Tour {
     currency: 'EUR',
     color: 'var(--acid)',
     owner_email: 'owner@giras.pro',
+    timezone: 'Europe/Madrid',
+    enable_notifications: true,
+    notifications_paused_at: null,
     current_user_is_admin: isAdmin,
   }
 }

@@ -190,7 +190,8 @@ function formatDate(iso: string): string {
           ref="fileInputRef"
           type="file"
           class="hidden"
-          accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.webp"
+          accept=".pdf,.xlsx,.xls,.csv,.ics,.jpg,.jpeg,.png,.gif,.webp"
+          data-testid="document-file-input"
           @change="onFileChange"
         >
         <button
@@ -217,6 +218,12 @@ function formatDate(iso: string): string {
           {{ uploading ? t('tourHub.documents.uploading') : t('tourHub.documents.upload') }}
         </button>
       </div>
+      <p
+        class="text-[12px] text-ink-2 mt-2"
+        data-testid="document-formats"
+      >
+        {{ t('tourHub.documents.formats') }}
+      </p>
       <label class="flex items-center gap-2 mt-2.5 cursor-pointer w-fit">
         <input
           v-model="visibleToCrew"

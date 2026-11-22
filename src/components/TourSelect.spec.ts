@@ -17,6 +17,9 @@ const TOUR: Tour = {
   currency: 'EUR',
   color: 'rgb(255, 0, 0)',
   owner_email: 'a@b.es',
+  timezone: 'Europe/Madrid',
+  enable_notifications: true,
+  notifications_paused_at: null,
 }
 
 function mountSelect(open = false) {

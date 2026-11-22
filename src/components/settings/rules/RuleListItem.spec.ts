@@ -40,6 +40,9 @@ describe('RuleListItem: activity_upcoming pasa a Recordatorios', () => {
         currency: 'EUR',
         color: 'var(--acid)',
         owner_email: 'a@b.es',
+        timezone: 'Europe/Madrid',
+        enable_notifications: true,
+        notifications_paused_at: null,
       },
     ]
     const w = await mountItem({ trigger: 'activity_upcoming', is_editable: false, tour: 'tour-1' })

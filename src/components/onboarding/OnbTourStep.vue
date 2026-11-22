@@ -6,6 +6,7 @@ import { searchSpotifyArtists, formatFollowers, type SpotifyArtist } from '@/com
 import { useToursStore } from '@/stores/tours'
 import type { CreateTourPayload } from '@/composables/useTours'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
+import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 
 const emit = defineEmits<{ next: [tourId: number] }>()
 
@@ -111,7 +112,10 @@ const form = reactive({
   start_city: '',
   end_city: '',
   notes: '',
+  timezone: defaultTourZone(),
 })
+
+const timezoneOptions = computed(() => zoneOptions(form.timezone))
 
 const submitting = ref(false)
 const submitError = ref('')
@@ -131,6 +135,7 @@ async function submit() {
       start_date: form.start_date,
       end_date: form.end_date,
       notes: form.notes.trim() || undefined,
+      timezone: form.timezone,
       settings: {
         start_city: form.start_city.trim(),
         end_city: form.end_city.trim(),
@@ -447,6 +452,32 @@ async function submit() {
             class="w-full bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors placeholder:text-ink-4"
           >
         </div>
+      </div>
+
+      <div>
+        <label
+          for="onb-tour-timezone"
+          class="text-[12px] font-bold text-ink-2 tracking-[0.6px] uppercase block mb-1"
+        >
+          {{ t('onboarding.tour.timezone') }}
+        </label>
+        <select
+          id="onb-tour-timezone"
+          v-model="form.timezone"
+          data-testid="onb-tour-timezone"
+          class="w-full min-h-[44px] lg:min-h-0 bg-glass border border-line rounded px-2.5 py-2 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
+        >
+          <option
+            v-for="tz in timezoneOptions"
+            :key="tz"
+            :value="tz"
+          >
+            {{ tz }}
+          </option>
+        </select>
+        <p class="text-[12px] text-ink-2 mt-1">
+          {{ t('onboarding.tour.timezoneHelp') }}
+        </p>
       </div>
 
       <div>

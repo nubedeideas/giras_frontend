@@ -8,6 +8,8 @@ import { useToursStore } from '@/stores/tours'
 import { useI18n } from 'vue-i18n'
 import UrgentNoticeModal from '@/components/activities/UrgentNoticeModal.vue'
 import { activitySaveErrorMessage } from '@/utils/aiReview'
+import { inputValueToIso } from '@/utils/datetime'
+import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -94,17 +96,10 @@ const selectedType = computed(() =>
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
-const TIMEZONES = [
-  'UTC',
-  'America/Mexico_City',
-  'America/Bogota',
-  'America/Argentina/Buenos_Aires',
-  'America/Sao_Paulo',
-  'America/New_York',
-  'America/Los_Angeles',
-  'Europe/Madrid',
-  'Europe/London',
-]
+/** Zona por defecto: la de la gira activa (o la propuesta para giras nuevas). */
+function initialZone(): string {
+  return toursStore.activeTour?.timezone || defaultTourZone()
+}
 
 const STATUSES: { value: ActivityStatus; label: string }[] = [
   { value: 'draft', label: 'Borrador' },
@@ -130,7 +125,7 @@ const form = ref({
   time_start: '10:00',
   time_end: '11:00',
   all_day: false,
-  timezone: 'America/Mexico_City',
+  timezone: initialZone(),
   status: 'scheduled' as ActivityStatus,
   priority: 'normal' as ActivityPriority,
   location_name: '',
@@ -146,7 +141,7 @@ function resetForm() {
     time_start: '10:00',
     time_end: '11:00',
     all_day: false,
-    timezone: 'America/Mexico_City',
+    timezone: initialZone(),
     status: 'scheduled',
     priority: 'normal',
     location_name: '',
@@ -170,13 +165,32 @@ watch(() => form.value.activity_type, (uuid) => {
 const saving = ref(false)
 const error = ref('')
 
-function toISO(date: string, time: string): string {
-  return `${date}T${time}:00`
+const timezoneOptions = computed(() => zoneOptions(form.value.timezone))
+
+/**
+ * Fecha y hora "de pared" en la zona elegida → ISO UTC con su offset aplicado (10:00 en Madrid en
+ * invierno → 09:00Z). El backend interpreta un ISO sin offset como UTC.
+ */
+function toISO(date: string, time: string): string | null {
+  return inputValueToIso(`${date}T${time}`, form.value.timezone)
 }
 
 async function submit() {
   const tourUuid = toursStore.activeTour?.uuid
   if (!tourUuid || !form.value.activity_type || !form.value.title.trim() || !form.value.date) return
+
+  const allDay = form.value.all_day
+  const hasEnd = selectedType.value?.has_duration !== false
+  const start = allDay ? `${form.value.date}T00:00:00` : toISO(form.value.date, form.value.time_start)
+  const end = allDay
+    ? `${form.value.date}T23:59:59`
+    : hasEnd
+      ? toISO(form.value.date, form.value.time_end)
+      : null
+  if (!start || (!allDay && hasEnd && !end)) {
+    error.value = tr('activityForm.invalidTime')
+    return
+  }
 
   saving.value = true
   error.value = ''
@@ -185,12 +199,8 @@ async function submit() {
       tour: tourUuid,
       activity_type: form.value.activity_type,
       title: form.value.title.trim(),
-      scheduled_at: form.value.all_day ? `${form.value.date}T00:00:00` : toISO(form.value.date, form.value.time_start),
-      end_at: form.value.all_day
-        ? `${form.value.date}T23:59:59`
-        : selectedType.value?.has_duration !== false
-          ? toISO(form.value.date, form.value.time_end)
-          : null,
+      scheduled_at: start,
+      end_at: end,
       all_day: form.value.all_day,
       timezone: form.value.timezone,
       status: form.value.status,
@@ -469,10 +479,11 @@ async function submit() {
         <label class="text-[12px] font-semibold text-ink-2 uppercase tracking-[0.5px] block mb-1">Zona horaria</label>
         <select
           v-model="form.timezone"
+          data-testid="activity-timezone"
           class="w-full bg-bg-2 border border-line rounded-lg px-3 py-2 text-[14px] text-ink-2 outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors cursor-pointer"
         >
           <option
-            v-for="tz in TIMEZONES"
+            v-for="tz in timezoneOptions"
             :key="tz"
             :value="tz"
           >

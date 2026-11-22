@@ -367,6 +367,42 @@ describe('buildPendingItems', () => {
     expect(item.ctaKey).toBe('dashboard.pending.reviewAndSend')
   })
 
+  it('avisos en pausa: solo si la gira está en pausa, primero de los warning, con acción', () => {
+    expect(
+      buildPendingItems(input({ notificationsPaused: false })).find(
+        (i) => i.kind === 'notifications-paused'
+      )
+    ).toBeUndefined()
+    const items = buildPendingItems(
+      input({
+        notificationsPaused: true,
+        usage: usage({ usage_percentage: 85 }),
+        pendingNotices: [{ uuid: 'n1' }],
+      })
+    )
+    expect(items.map((i) => i.key)).toEqual(['notifications-paused', 'plan-warning', 'notices'])
+    expect(items[0]).toMatchObject({
+      severity: 'warning',
+      ctaKey: 'dashboard.pending.resume',
+      action: 'resume-notifications',
+    })
+    expect(items[0].to).toBeUndefined()
+  })
+
+  it('avisos en pausa: detrás de los críticos', () => {
+    const items = buildPendingItems(
+      input({ notificationsPaused: true, usage: usage({ usage_percentage: 100 }) })
+    )
+    expect(items.map((i) => i.key)).toEqual(['plan-reached', 'notifications-paused'])
+  })
+
+  it('avisos en pausa: un no admin la ve sin botón', () => {
+    const items = buildPendingItems(input({ isAdmin: false, notificationsPaused: true }))
+    expect(items.map((i) => i.key)).toEqual(['notifications-paused'])
+    expect(items[0].ctaKey).toBeUndefined()
+    expect(items[0].action).toBeUndefined()
+  })
+
   it('joinTypeNames corta en 3 con +N', () => {
     expect(joinTypeNames(['A', 'B'])).toBe('A, B')
     expect(joinTypeNames(['A', 'B', 'C', 'D', 'E'])).toBe('A, B, C +2')

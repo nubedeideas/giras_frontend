@@ -143,6 +143,12 @@ export interface Tour {
    * cuenta), de `current_user_is_admin` del listado. Respaldo: `owner_email` = usuario actual.
    */
   current_user_is_admin?: boolean
+  /** Zona IANA de la gira (respaldo `Europe/Madrid` si el backend no la trae). */
+  timezone: string
+  /** Avisos activos; false = en pausa (`pause-notifications/`). Respaldo `true`. */
+  enable_notifications: boolean
+  /** ISO desde que están en pausa, o null. */
+  notifications_paused_at: string | null
   members_count?: number
   events_count?: number
   // Google Calendar assignment

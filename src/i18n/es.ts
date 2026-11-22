@@ -36,6 +36,8 @@ export default {
     retry: 'Reintentar',
     loadError: 'No se ha podido cargar este bloque.',
     pending: {
+      paused: 'Los avisos de esta gira están en pausa',
+      resume: 'Reanudar',
       title: 'Por resolver',
       allClear: 'Todo en orden. No tienes nada pendiente.',
       notices:
@@ -145,6 +147,7 @@ export default {
       loadError: 'Error al cargar los insights de la gira',
     },
     documents: {
+      formats: 'PDF, Excel, CSV, calendario (.ics) o imagen',
       title: 'Documentos',
       subtitle: 'Riders, visas, seguros y contratos de la gira',
       upload: 'Subir documento',
@@ -609,7 +612,34 @@ export default {
     },
   },
 
+  notifPause: {
+    active: 'Avisos activos',
+    paused: 'Avisos en pausa',
+    pausedSince: 'En pausa desde el {date}',
+    pause: 'Pausar avisos',
+    resume: 'Reanudar avisos',
+    confirmTitle: '¿Pausar los avisos de {tour}?',
+    confirmBody:
+      'Mientras dure la pausa no saldrá ningún aviso programado: recordatorios, reglas, alerta del día de show ni day sheet. Lo que tocaba enviar durante la pausa se cancelará al reanudar. Lo que envíes tú a mano sí sale.',
+    heldCount:
+      '{n} aviso programado queda retenido | {n} avisos programados quedan retenidos',
+    resumed: 'Avisos reanudados.',
+    cancelledCount:
+      '{n} aviso que tocaba durante la pausa se ha cancelado. | {n} avisos que tocaban durante la pausa se han cancelado.',
+    forbidden: 'Solo un administrador de la gira puede pausar o reanudar los avisos.',
+    error: 'No se han podido cambiar los avisos. Inténtalo de nuevo.',
+    scheduleWhilePaused:
+      'La gira tiene los avisos en pausa: lo que programes no saldrá hasta que los reanudes.',
+  },
+
+  activityForm: {
+    invalidTime: 'La fecha o la hora no son válidas.',
+    timeInZone: 'Hora local ({zone})',
+  },
+
   modal: {
+    timezone: 'Zona horaria de la gira',
+    timezoneHelp: 'Se usa por defecto al crear actividades y para el day sheet.',
     createTour: 'Crear Gira',
     createTourSub: 'Configura una nueva gira para tu artista',
     tourName: 'Nombre de la Gira',
@@ -1248,6 +1278,8 @@ export default {
       done: '¡Listo!',
     },
     tour: {
+      timezone: 'Zona horaria',
+      timezoneHelp: 'La de la ciudad donde arranca la gira. Puedes cambiarla después.',
       searchLabel: 'Buscar artista en Spotify',
       searchPlaceholder: 'Duki, Bizarrap, Bad Bunny...',
       spotifyError: 'No se ha podido conectar con Spotify',
@@ -1274,6 +1306,8 @@ export default {
       createError: 'Error al crear la gira',
     },
     crew: {
+      linkError:
+        '{n} contacto no se ha podido añadir a la gira. | {n} contactos no se han podido añadir a la gira.',
       googleSub: 'Sincronización OAuth',
       manual: 'Manual',
       manualSub: 'Formulario',
@@ -1359,6 +1393,7 @@ export default {
       yourTour: 'tu gira',
     },
     done: {
+      team: '{n} persona en el Equipo de la gira | {n} personas en el Equipo de la gira',
       title: '¡Todo listo!',
       subtitle: 'Tu gira está configurada y lista para despegar.',
       shows: 'Shows',

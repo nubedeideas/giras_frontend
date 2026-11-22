@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
+import { useToursStore } from '@/stores/tours'
 import {
   useNotifications,
   CHANNEL_LABELS,
@@ -27,6 +29,17 @@ const emit = defineEmits<{
 
 const api = useNotifications()
 const templateApi = useNotificationTemplates()
+const toursStore = useToursStore()
+// `t` ya se usa como variable de `v-for` en la plantilla.
+const { t: tr } = useI18n()
+
+/** La gira de la actividad (o la activa) tiene los avisos en pausa: lo programado no saldrá. */
+const tourPaused = computed(() => {
+  const uuid = props.activity?.tour
+  const tour =
+    (uuid ? toursStore.tours.find((x) => x.uuid === uuid) : null) ?? toursStore.activeTour
+  return tour?.enable_notifications === false
+})
 
 // ─── Step ─────────────────────────────────────────────────────────────────────
 
@@ -435,6 +448,14 @@ const selectClass =
             class="text-[13px] text-ink-3"
           >
             Se guardará como borrador. Podrás programarla o enviarla manualmente después.
+          </p>
+
+          <p
+            v-if="tourPaused"
+            class="mt-2 text-[13px] text-ink-2"
+            data-testid="schedule-while-paused"
+          >
+            {{ tr('notifPause.scheduleWhilePaused') }}
           </p>
 
           <!-- Timezone selector — visible for reminder and datetime modes -->

@@ -13,6 +13,7 @@ import { useActivities } from '@/composables/useActivities'
 import { useRecipientOverrides } from '@/composables/useRecipientOverrides'
 import type { SubscriptionUsage } from '@/composables/useSubscription'
 import { isForbidden } from '@/utils/reminders'
+import { ApiError } from '@/utils/apiClient'
 import { buildPendingItems, joinTypeNames, type PendingItem } from '@/utils/dashboard'
 
 /**
@@ -112,6 +113,7 @@ const partialError = computed(() => aiError.value || noticesError.value || catal
 const items = computed(() =>
   buildPendingItems({
     isAdmin: isAdmin.value,
+    notificationsPaused: tours.activeTour?.enable_notifications === false,
     usage: props.usage,
     pendingNotices: pendingNotices.value,
     aiPending: aiPending.value,
@@ -128,6 +130,8 @@ const items = computed(() =>
 function itemText(item: PendingItem): string {
   const n = item.count ?? 0
   switch (item.kind) {
+    case 'notifications-paused':
+      return t('dashboard.pending.paused')
     case 'plan-reached':
       return `${t('plan.banner.reached', { plan: item.plan })} ${t('plan.automaticDegraded')}`
     case 'plan-warning':
@@ -153,6 +157,34 @@ const ICON_TONE: Record<PendingItem['severity'], string> = {
   critical: 'text-failed-fg',
   warning: 'text-pending-fg',
   info: 'text-olive',
+}
+
+// ── Reanudar avisos (acción, no enlace) ───────────────────────────────────────
+const resuming = ref(false)
+const actionError = ref('')
+let actionRequest = 0
+
+watch(tourUuid, () => {
+  actionRequest++
+  resuming.value = false
+  actionError.value = ''
+})
+
+async function runAction(item: PendingItem) {
+  const uuid = tourUuid.value
+  if (item.action !== 'resume-notifications' || !uuid || resuming.value) return
+  const req = ++actionRequest
+  resuming.value = true
+  actionError.value = ''
+  try {
+    await tours.resumeNotifications(uuid)
+  } catch (e) {
+    if (req !== actionRequest) return
+    actionError.value =
+      e instanceof ApiError && e.status === 403 ? t('notifPause.forbidden') : t('notifPause.error')
+  } finally {
+    if (req === actionRequest) resuming.value = false
+  }
 }
 
 function retry() {
@@ -266,7 +298,19 @@ const showLoading = computed(() => loading.value && items.value.length === 0)
         <p class="flex-1 min-w-0 basis-[calc(100%-30px)] sm:basis-auto text-[15px] text-ink break-words">
           {{ itemText(item) }}
         </p>
+        <button
+          v-if="item.action && item.ctaKey"
+          type="button"
+          data-testid="pending-action"
+          :disabled="resuming"
+          :aria-busy="resuming"
+          class="ml-[30px] sm:ml-0 flex-shrink-0 inline-flex items-center gap-1 min-h-[44px] lg:min-h-[36px] px-3.5 rounded-sm text-[14px] font-bold border-none cursor-pointer bg-acid text-night hover:bg-acid-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors disabled:opacity-50 disabled:cursor-default"
+          @click="runAction(item)"
+        >
+          {{ t(item.ctaKey) }}
+        </button>
         <RouterLink
+          v-else-if="item.to && item.ctaKey"
           :to="item.to"
           data-testid="pending-cta"
           class="ml-[30px] sm:ml-0 flex-shrink-0 inline-flex items-center gap-1 min-h-[44px] lg:min-h-[36px] px-3.5 rounded-sm text-[14px] font-bold no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
@@ -281,6 +325,15 @@ const showLoading = computed(() => loading.value && items.value.length === 0)
         </RouterLink>
       </li>
     </ul>
+
+    <p
+      v-if="actionError"
+      role="alert"
+      data-testid="pending-action-error"
+      class="mt-2 text-[14px] text-failed-fg"
+    >
+      {{ actionError }}
+    </p>
 
     <div
       v-if="partialError"

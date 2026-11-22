@@ -11,14 +11,18 @@ import {
   PRIORITY_LABELS,
 } from '@/composables/useActivities'
 import { useActivitiesStore } from '@/stores/activities'
+import { useToursStore } from '@/stores/tours'
 import { useI18n } from 'vue-i18n'
 import { activitySaveErrorMessage } from '@/utils/aiReview'
+import { inputValueToIso, isoToInputValue } from '@/utils/datetime'
+import { isValidZone } from '@/utils/timezones'
 
 const props = defineProps<{ show: boolean; activity: Activity | null }>()
 const emit = defineEmits<{ close: []; saved: [activity: Activity] }>()
 
 const api = useActivities()
 const store = useActivitiesStore()
+const toursStore = useToursStore()
 // `t` ya se usa como variable de `v-for` en la plantilla.
 const { t: tr } = useI18n()
 
@@ -44,16 +48,25 @@ const saveError = ref('')
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Zona en la que se muestran y se guardan las horas: la de la actividad; si no vale, la de la gira
+ * activa; si tampoco, UTC. Sin selector de zona en edición (spec F0 §4.3).
+ */
+const zone = computed(() => {
+  const own = props.activity?.timezone
+  if (isValidZone(own)) return own
+  const tourZone = toursStore.activeTour?.timezone
+  return isValidZone(tourZone) ? tourZone : 'UTC'
+})
+
+/** ISO del backend → "YYYY-MM-DDTHH:MM" en la zona de la actividad. */
 function toInputValue(iso: string | null | undefined): string {
-  if (!iso) return ''
-  // Convert UTC ISO to YYYY-MM-DDTHH:MM for datetime-local input
-  return iso.replace('Z', '').slice(0, 16)
+  return isoToInputValue(iso, zone.value)
 }
 
+/** "YYYY-MM-DDTHH:MM" en la zona de la actividad → ISO UTC. */
 function fromInputValue(val: string): string | null {
-  if (!val) return null
-  // Treat input as UTC and add Z
-  return val + ':00Z'
+  return inputValueToIso(val, zone.value)
 }
 
 const STATUSES: ActivityStatus[] = ['draft', 'scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled', 'delayed']
@@ -330,7 +343,7 @@ const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] 
       <!-- Dates -->
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label :class="labelClass">{{ allDay ? 'Fecha inicio' : 'Inicio (UTC)' }}</label>
+          <label :class="labelClass">{{ allDay ? 'Fecha inicio' : 'Inicio' }}</label>
           <input
             v-model="scheduledAt"
             :type="allDay ? 'date' : 'datetime-local'"
@@ -338,13 +351,20 @@ const labelClass = 'block text-[12px] font-semibold text-ink-2 tracking-[0.5px] 
           >
         </div>
         <div v-if="!allDay">
-          <label :class="labelClass">Fin (UTC)</label>
+          <label :class="labelClass">Fin</label>
           <input
             v-model="endAt"
             type="datetime-local"
             :class="inputClass"
           >
         </div>
+        <p
+          v-if="!allDay"
+          class="col-span-2 -mt-1 text-[12px] text-ink-2"
+          data-testid="edit-activity-zone"
+        >
+          {{ tr('activityForm.timeInZone', { zone }) }}
+        </p>
       </div>
 
       <!-- Location + Destination -->

@@ -3,12 +3,14 @@ import { ref, computed } from 'vue'
 import type { Tour, TourStatus } from '@/types'
 import { useTours as useToursApi } from '@/composables/useTours'
 import { useAuthStore } from '@/stores/auth'
+import { useReminderCatalogStore } from '@/stores/reminderCatalog'
 import type {
   TourFull,
   TourListItem,
   TourUpdateResponse,
   CreateTourPayload,
   UpdateTourPayload,
+  TourPauseResponse,
 } from '@/composables/useTours'
 
 // ─── Synthetic ID helpers ─────────────────────────────────────────────────────
@@ -40,6 +42,16 @@ function mapTour(
       ? fromApi
       : (previous?.current_user_is_admin ??
         (!!currentUserEmail && data.owner_email === currentUserEmail))
+  // La respuesta del PATCH no trae el estado de la pausa (solo lectura): se conserva el anterior.
+  const raw = data as Partial<TourListItem>
+  const enableNotifications =
+    typeof raw.enable_notifications === 'boolean'
+      ? raw.enable_notifications
+      : (previous?.enable_notifications ?? true)
+  const pausedAt =
+    raw.notifications_paused_at !== undefined
+      ? raw.notifications_paused_at
+      : (previous?.notifications_paused_at ?? null)
   return {
     id: syntheticId(data.uuid),
     uuid: data.uuid,
@@ -58,6 +70,9 @@ function mapTour(
     color: (full.settings?.color as string) || '#a8d800',
     owner_email: data.owner_email,
     current_user_is_admin: isAdmin,
+    timezone: raw.timezone || previous?.timezone || 'Europe/Madrid',
+    enable_notifications: enableNotifications,
+    notifications_paused_at: enableNotifications ? null : pausedAt,
     default_calendar_id: full.default_calendar ?? null,
     default_notification_group_id: full.default_notification_group ?? null,
     default_notification_group_name: full.default_notification_group_name ?? null,
@@ -176,6 +191,35 @@ export const useToursStore = defineStore('tours', () => {
     }
   }
 
+  // ── Pausar / reanudar avisos ─────────────────────────────────────────────
+
+  function applyPause(uuid: string, res: TourPauseResponse) {
+    const tour = tours.value.find((t) => t.uuid === uuid)
+    if (!tour) return
+    tour.enable_notifications = res.enable_notifications
+    tour.notifications_paused_at = res.enable_notifications
+      ? null
+      : (res.notifications_paused_at ?? null)
+  }
+
+  /** POST pause-notifications/: actualiza la gira en `tours` (y `activeTour`). */
+  async function pauseNotifications(uuid: string): Promise<TourPauseResponse> {
+    const res = await api.pauseNotifications(uuid)
+    applyPause(uuid, res)
+    return res
+  }
+
+  /**
+   * POST resume-notifications/. Reanudar cancela lo vencido y reconcilia los recordatorios: el
+   * catálogo de la gira queda obsoleto.
+   */
+  async function resumeNotifications(uuid: string): Promise<TourPauseResponse> {
+    const res = await api.resumeNotifications(uuid)
+    applyPause(uuid, res)
+    void useReminderCatalogStore().invalidate(uuid)
+    return res
+  }
+
   // ── Calendar assignment ────────────────────────────────────────────────────
 
   async function assignCalendar(uuid: string, subscriptionId: number | null): Promise<void> {
@@ -200,5 +244,7 @@ export const useToursStore = defineStore('tours', () => {
     updateTour,
     deleteTour,
     assignCalendar,
+    pauseNotifications,
+    resumeNotifications,
   }
 })
