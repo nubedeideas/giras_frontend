@@ -1097,6 +1097,23 @@ async function confirmFileImport() {
         v-else
         class="space-y-3"
       >
+        <!-- Pista hacia el importador (F1, lote 3) -->
+        <p
+          v-if="!authStore.isDemoMode"
+          class="flex flex-wrap items-center gap-x-1.5 text-[14px] text-ink-2"
+          data-test="manual-import-hint"
+        >
+          <span>{{ t('importer.contactsTab.manualHint') }}</span>
+          <button
+            type="button"
+            class="inline-flex items-center min-h-[44px] lg:min-h-0 p-0 border-none bg-transparent text-[14px] font-semibold text-olive hover:text-olive-strong cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+            data-test="manual-import-hint-cta"
+            @click="source = 'file'"
+          >
+            {{ t('importer.contactsTab.manualHintCta') }}
+          </button>
+        </p>
+
         <div class="flex gap-[3px] bg-glass border border-line rounded-[7px] p-0.5">
           <button
             v-for="ct in [

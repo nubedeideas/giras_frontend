@@ -82,9 +82,9 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function mountPanel() {
+function mountPanel(props: { canImport?: boolean } = {}) {
   return mount(CrewPortalPanel, {
-    props: { tourUuid: 'T1' },
+    props: { tourUuid: 'T1', ...props },
     global: { plugins: [i18n], stubs: { teleport: true, transition: false } },
   })
 }
@@ -108,6 +108,25 @@ describe('CrewPortalPanel', () => {
     const w = mountPanel()
     await flushPromises()
     expect(w.find('[data-testid="crew-links-empty"]').exists()).toBe(true)
+    // Sin canImport (staff no admin): solo el texto.
+    expect(w.find('[data-testid="crew-links-empty-import"]').exists()).toBe(false)
+  })
+
+  it('vacío con canImport: botón "Importar equipo" que emite importTeam', async () => {
+    setupFetch([])
+    const w = mountPanel({ canImport: true })
+    await flushPromises()
+    const btn = w.get('[data-testid="crew-links-empty-import"]')
+    expect(btn.text()).toBe('Importar equipo')
+    await btn.trigger('click')
+    expect(w.emitted('importTeam')).toHaveLength(1)
+  })
+
+  it('con crew no ofrece importar aunque pueda', async () => {
+    setupFetch([row('c1', 'active', link(URL_A))])
+    const w = mountPanel({ canImport: true })
+    await flushPromises()
+    expect(w.find('[data-testid="crew-links-empty-import"]').exists()).toBe(false)
   })
 
   it('copiar con url no llama a la API y copia', async () => {

@@ -174,26 +174,34 @@ function closeImport() {
   void loadPendingImports()
 }
 
-// Deep links `/tour?tab=<pestaña>` (inbox → Conflictos) y `?tab=notices&notice=<uuid>` (inbox →
-// aviso): solo pestañas visibles; luego se limpian `tab` y `notice` en un único `replace`.
-// `crew`, `reminders` y `notices` dependen del permiso real: esperan al detalle de la gira.
+// Deep links `/tour?tab=<pestaña>` (inbox → Conflictos), `?tab=notices&notice=<uuid>` (inbox →
+// aviso) y `?tab=reminders&import=team` (Hoy → "Añadir equipo"): solo pestañas visibles; luego se
+// limpian `tab`, `notice` e `import` en un único `replace`. `crew`, `reminders`, `notices` y el
+// importador dependen del permiso real: esperan al detalle de la gira. `import=team` solo abre el
+// modal con `canImport` (admin fuera de la demo); cualquier otro valor se ignora.
 const requestedTab = ref<string | null>(null)
 const pendingNotice = ref<string | null>(null)
 const requestedNotice = ref<string | null>(null)
+const pendingImport = ref(false)
 
 function applyRequestedTab() {
   const tab = requestedTab.value
   if (tab === null) return
-  const needsDetail = tab === 'crew' || tab === 'reminders' || tab === 'notices'
+  const needsDetail =
+    tab === 'crew' || tab === 'reminders' || tab === 'notices' || pendingImport.value
   const detailReady =
     !!toursStore.activeTour?.uuid && detailSettledFor.value === toursStore.activeTour.uuid
   if (needsDetail && !detailReady) return
   const match = TABS.value.find((x) => x.key === tab)
   if (match) activeTab.value = match.key
   requestedNotice.value = match?.key === 'notices' ? pendingNotice.value : null
+  if (pendingImport.value && canImport.value) showImport.value = true
   requestedTab.value = null
   pendingNotice.value = null
-  void router.replace({ query: { ...route.query, tab: undefined, notice: undefined } })
+  pendingImport.value = false
+  void router.replace({
+    query: { ...route.query, tab: undefined, notice: undefined, import: undefined },
+  })
 }
 
 function onInitialNoticeConsumed() {
@@ -201,12 +209,14 @@ function onInitialNoticeConsumed() {
 }
 
 watch(
-  () => [route.query.tab, route.query.notice] as const,
-  ([tab, notice]) => {
-    if (tab === undefined && notice === undefined) return
+  () => [route.query.tab, route.query.notice, route.query.import] as const,
+  ([tab, notice, importParam]) => {
+    if (tab === undefined && notice === undefined && importParam === undefined) return
     pendingNotice.value = typeof notice === 'string' && notice ? notice : null
-    // Un `notice` sin `tab` también lleva a la pestaña de avisos.
-    requestedTab.value = typeof tab === 'string' ? tab : tab === undefined ? 'notices' : ''
+    pendingImport.value = importParam === 'team'
+    // Un `notice` sin `tab` también lleva a la pestaña de avisos; un `import` solo, a ninguna.
+    requestedTab.value =
+      typeof tab === 'string' ? tab : tab === undefined && notice !== undefined ? 'notices' : ''
     applyRequestedTab()
   },
   { immediate: true }
@@ -340,10 +350,14 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       <CrewPortalPanel
         v-else-if="activeTab === 'crew' && canManageCrew"
         :tour-uuid="toursStore.activeTour!.uuid"
+        :can-import="canImport"
+        @import-team="showImport = true"
       />
       <TourRemindersPanel
         v-else-if="activeTab === 'reminders' && isAdmin"
         :tour-uuid="toursStore.activeTour!.uuid"
+        :can-import="canImport"
+        @import-team="showImport = true"
       />
       <NoticesPanel
         v-else-if="activeTab === 'notices' && isAdmin"

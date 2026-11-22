@@ -12,6 +12,8 @@ export const useContactsStore = defineStore('contacts', () => {
   const selectedRoles = ref<string[]>([])
   const loading = ref(false)
   const loaded = ref(false)
+  /** La última carga falló (la lista anterior se conserva). */
+  const error = ref(false)
 
   const filtered = computed(() => {
     let list = contacts.value
@@ -61,12 +63,14 @@ export const useContactsStore = defineStore('contacts', () => {
       return
     }
     loading.value = true
+    error.value = false
     try {
       const api = useContacts()
       contacts.value = await api.listContacts({ tour: tourUuid })
       loaded.value = true
     } catch {
       // keep existing list on error
+      error.value = true
     } finally {
       loading.value = false
     }
@@ -102,6 +106,7 @@ export const useContactsStore = defineStore('contacts', () => {
     selectedRoles,
     loading,
     loaded,
+    error,
     filtered,
     selectedContact,
     selectContact,

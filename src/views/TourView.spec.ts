@@ -290,4 +290,140 @@ describe('TourView: importar (F1)', () => {
     await flushPromises()
     expect(w.find('[data-test="import-pending-banner"]').exists()).toBe(false)
   })
+
+  describe('entradas del lote 3', () => {
+    const entryStubs = {
+      ...stubs,
+      TourRemindersPanel: {
+        props: ['canImport'],
+        emits: ['importTeam'],
+        template:
+          '<div data-testid="reminders-panel" :data-can-import="String(canImport)"><button data-testid="reminders-import" @click="$emit(\'importTeam\')" /></div>',
+      },
+      CrewPortalPanel: {
+        props: ['canImport'],
+        emits: ['importTeam'],
+        template:
+          '<div data-testid="crew-panel" :data-can-import="String(canImport)"><button data-testid="crew-import" @click="$emit(\'importTeam\')" /></div>',
+      },
+      ImportDropModal: {
+        props: ['show', 'entryPoint', 'tourUuid'],
+        template:
+          '<div data-testid="import-modal" :data-show="String(show)" :data-entry="entryPoint" />',
+      },
+    }
+
+    async function mountEntry(query: Record<string, string> = {}) {
+      const router = createRouter({
+        history: createMemoryHistory(),
+        routes: [
+          { path: '/tour', name: 'tour', component: { template: '<div />' } },
+          { path: '/tour/import/:jobUuid', name: 'tour-import', component: { template: '<div />' } },
+        ],
+      })
+      await router.push({ path: '/tour', query })
+      await router.isReady()
+      const replace = vi.spyOn(router, 'replace')
+      const w = mount(TourView, { global: { plugins: [i18n, router], stubs: entryStubs } })
+      return Object.assign(w, { router, replace })
+    }
+
+    function modal(w: Awaited<ReturnType<typeof mountEntry>>) {
+      return w.find('[data-testid="import-modal"]')
+    }
+
+    it('importTeam desde Recordatorios y desde Crew abre el modal con entry-point="tour"', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      const w = await mountEntry({ tab: 'reminders' })
+      await flushPromises()
+      expect(w.get('[data-testid="reminders-panel"]').attributes('data-can-import')).toBe('true')
+      expect(modal(w).attributes('data-show')).toBe('false')
+      await w.get('[data-testid="reminders-import"]').trigger('click')
+      expect(modal(w).attributes('data-show')).toBe('true')
+      expect(modal(w).attributes('data-entry')).toBe('tour')
+
+      setup({})
+      stubByUrl({ admin: true })
+      const w2 = await mountEntry({ tab: 'crew' })
+      await flushPromises()
+      expect(w2.get('[data-testid="crew-panel"]').attributes('data-can-import')).toBe('true')
+      await w2.get('[data-testid="crew-import"]').trigger('click')
+      expect(modal(w2).attributes('data-show')).toBe('true')
+      expect(modal(w2).attributes('data-entry')).toBe('tour')
+    })
+
+    it('en la demo los paneles reciben canImport=false', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      useAuthStore().isDemoMode = true
+      const w = await mountEntry({ tab: 'reminders' })
+      await flushPromises()
+      expect(w.get('[data-testid="reminders-panel"]').attributes('data-can-import')).toBe('false')
+      expect(modal(w).exists()).toBe(false)
+    })
+
+    it('?tab=reminders&import=team con admin abre la pestaña y el modal tras el detalle, con un solo replace', async () => {
+      setup({})
+      let resolveDetail: (r: Response) => void = () => {}
+      vi.stubGlobal(
+        'fetch',
+        vi.fn<typeof fetch>(async (input) => {
+          const url = new URL(String(input))
+          if (url.pathname.endsWith('/integrations/import-jobs/')) {
+            return jsonResponse({ count: 0, next: null, previous: null, results: [] })
+          }
+          return new Promise<Response>((r) => (resolveDetail = r))
+        })
+      )
+      const w = await mountEntry({ tab: 'reminders', import: 'team' })
+      await flushPromises()
+      // Sin detalle: ni pestaña ni modal, y la query sigue ahí.
+      expect(w.find('[data-testid="reminders-panel"]').exists()).toBe(false)
+      expect(w.router.currentRoute.value.query.import).toBe('team')
+      expect(w.replace).not.toHaveBeenCalled()
+
+      resolveDetail(jsonResponse({ uuid: 'T1', current_user_is_admin: true }))
+      await flushPromises()
+      expect(w.find('[data-testid="reminders-panel"]').exists()).toBe(true)
+      expect(modal(w).attributes('data-show')).toBe('true')
+      expect(modal(w).attributes('data-entry')).toBe('tour')
+      expect(w.replace).toHaveBeenCalledTimes(1)
+      const q = w.router.currentRoute.value.query
+      expect(q.tab).toBeUndefined()
+      expect(q.import).toBeUndefined()
+    })
+
+    it('miembro no admin: no abre el modal y limpia la query', async () => {
+      setup({})
+      stubByUrl({ admin: false })
+      const w = await mountEntry({ tab: 'reminders', import: 'team' })
+      await flushPromises()
+      expect(modal(w).exists()).toBe(false)
+      expect(w.find('[data-testid="insights"]').exists()).toBe(true)
+      expect(w.replace).toHaveBeenCalledTimes(1)
+      expect(w.router.currentRoute.value.query).toEqual({})
+    })
+
+    it('demo: no abre el modal y limpia la query', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      useAuthStore().isDemoMode = true
+      const w = await mountEntry({ tab: 'reminders', import: 'team' })
+      await flushPromises()
+      expect(modal(w).exists()).toBe(false)
+      expect(w.replace).toHaveBeenCalledTimes(1)
+      expect(w.router.currentRoute.value.query).toEqual({})
+    })
+
+    it('otro valor de import se ignora y se limpia', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      const w = await mountEntry({ tab: 'reminders', import: 'activities' })
+      await flushPromises()
+      expect(w.find('[data-testid="reminders-panel"]').exists()).toBe(true)
+      expect(modal(w).attributes('data-show')).toBe('false')
+      expect(w.router.currentRoute.value.query).toEqual({})
+    })
+  })
 })

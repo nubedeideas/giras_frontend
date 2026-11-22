@@ -303,4 +303,31 @@ describe('OnbCrewStep: fuente Hoja o foto (F1)', () => {
     await w.get('[data-test="crew-import-next"]').trigger('click')
     expect(w.emitted('next')).toHaveLength(1)
   })
+
+  it('en Manual, la pista pasa a la fuente "Hoja o foto" (lote 3)', async () => {
+    setupFetch()
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/:p(.*)*', component: { template: '<div />' } }],
+    })
+    await router.push('/home')
+    await router.isReady()
+    const w = mount(OnbCrewStep, {
+      props: { tourId: 1 },
+      global: { plugins: [router, i18n], stubs: { ImportDropZone: zoneStub } },
+    })
+    await flushPromises()
+    await w
+      .findAll('div')
+      .find((d) => d.text() === `Manual${i18n.global.t('onboarding.crew.manualSub')}`)!
+      .trigger('click')
+    await flushPromises()
+    expect(w.get('[data-test="manual-import-hint"]').text()).toContain(
+      i18n.global.t('importer.contactsTab.manualHintCta')
+    )
+    await w.get('[data-test="manual-import-hint-cta"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="manual-import-hint"]').exists()).toBe(false)
+    expect(w.get('[data-test="zone-stub"]').attributes('data-entry')).toBe('onboarding')
+  })
 })

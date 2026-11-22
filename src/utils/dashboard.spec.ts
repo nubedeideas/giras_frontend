@@ -273,6 +273,30 @@ describe('buildPendingItems', () => {
     expect(items[1].to).toEqual({ path: '/contacts' })
   })
 
+  it('sin equipo, "Añadir equipo" abre Recordatorios con el importador (lote 3)', () => {
+    const importTo = { path: '/tour', query: { tab: 'reminders', import: 'team' } }
+    const empty = buildPendingItems(
+      input({ catalogTypes: [type('concert', 'Concierto', ['default_group_empty'])] })
+    )
+    expect(empty[0].to).toEqual(importTo)
+    const noBase = buildPendingItems(
+      input({ catalogTypes: [type('concert', 'Concierto', ['no_base_groups'])] })
+    )
+    expect(noBase[0].to).toEqual(importTo)
+    // El resto, sin cambios.
+    const groups = buildPendingItems(
+      input({
+        catalogTypes: [type('concert', 'Concierto', ['type_groups_empty'])],
+        activities: future,
+      })
+    )
+    expect(groups[0].to).toEqual({ path: '/tour', query: { tab: 'reminders' } })
+    const phones = buildPendingItems(
+      input({ catalogTypes: [type('concert', 'Concierto', ['admins_without_phone'])] })
+    )
+    expect(phones[0].to).toEqual({ path: '/contacts' })
+  })
+
   it('admins_without_phone lleva a tu perfil si eres tú quien no tiene teléfono', () => {
     const items = buildPendingItems(
       input({

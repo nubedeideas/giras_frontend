@@ -172,4 +172,30 @@ describe('ImportContactsModal (pestaña Hoja o foto)', () => {
     expect(w.find('[data-test="import-dropzone"]').exists()).toBe(true)
     expect(w.text()).not.toContain('Arrastra tu archivo .xlsx o .csv aquí')
   })
+
+  it('en Manual, la pista lleva a la pestaña "Hoja o foto" (lote 3)', async () => {
+    stubMatchMedia(false)
+    setupFetch({ contacts: true })
+    setTour(true)
+    const w = await mountModal()
+    await w.findAll('div').find((d) => d.text() === 'ManualFormulario')!.trigger('click')
+    await flushPromises()
+    const hint = w.get('[data-test="manual-import-hint"]')
+    expect(hint.text()).toContain('¿Tienes la lista en una hoja, un PDF o una foto?')
+    await w.get('[data-test="manual-import-hint-cta"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="manual-import-hint"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-dropzone"]').exists()).toBe(true)
+  })
+
+  it('en la demo no hay pista en Manual', async () => {
+    setupFetch({ contacts: true })
+    setTour(true)
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore().isDemoMode = true
+    const w = await mountModal()
+    await w.findAll('div').find((d) => d.text() === 'ManualFormulario')!.trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="manual-import-hint"]').exists()).toBe(false)
+  })
 })

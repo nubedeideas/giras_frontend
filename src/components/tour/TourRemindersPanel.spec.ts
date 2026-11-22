@@ -38,9 +38,9 @@ function handler(
   }
 }
 
-async function mountPanel() {
+async function mountPanel(props: { canImport?: boolean } = {}) {
   const w = mount(TourRemindersPanel, {
-    props: { tourUuid: 'T1' },
+    props: { tourUuid: 'T1', ...props },
     global: { plugins: [i18n], stubs: { ManageGroupContactsModal: true } },
   })
   await flushPromises()
@@ -309,5 +309,41 @@ describe('TourRemindersPanel', () => {
     expect(gets.filter((p) => p.endsWith('/reminder-settings/'))).toHaveLength(2)
     expect(gets.filter((p) => p.endsWith('/recipient-overrides/'))).toHaveLength(2)
     expect(w.text()).toContain('Banda')
+  })
+
+  describe('Importar equipo (F1, lote 3)', () => {
+    it('con canImport y grupo vacío: botón que emite importTeam', async () => {
+      stubFetch(handler(catalog({ default_group: group({ contact_count: 0 }) })))
+      const w = await mountPanel({ canImport: true })
+      const btn = w.get('[data-test="team-import"]')
+      expect(btn.text()).toBe('Importar equipo')
+      await btn.trigger('click')
+      expect(w.emitted('importTeam')).toHaveLength(1)
+      // "Gestionar" sigue al lado.
+      expect(w.find('[data-test="team-manage"]').exists()).toBe(true)
+    })
+
+    it('sin grupo por defecto: botón visible y sin "Gestionar"', async () => {
+      stubFetch(handler(catalog({ default_group: null })))
+      const w = await mountPanel({ canImport: true })
+      expect(w.find('[data-test="team-missing"]').exists()).toBe(true)
+      expect(w.find('[data-test="team-import"]').exists()).toBe(true)
+      expect(w.find('[data-test="team-manage"]').exists()).toBe(false)
+    })
+
+    it('con contactos en el equipo no aparece', async () => {
+      stubFetch(handler(catalog({ default_group: group({ contact_count: 4 }) })))
+      const w = await mountPanel({ canImport: true })
+      expect(w.find('[data-test="team-import"]').exists()).toBe(false)
+    })
+
+    it('sin canImport no aparece aunque el equipo esté vacío', async () => {
+      stubFetch(handler(catalog({ default_group: group({ contact_count: 0 }) })))
+      const w = await mountPanel()
+      expect(w.find('[data-test="team-import"]').exists()).toBe(false)
+      stubFetch(handler(catalog({ default_group: null })))
+      const w2 = await mountPanel({ canImport: false })
+      expect(w2.find('[data-test="team-import"]').exists()).toBe(false)
+    })
   })
 })

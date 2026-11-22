@@ -15,7 +15,18 @@ import {
 import { copyText } from '@/utils/clipboard'
 import type { PillVariant } from '@/types'
 
-const props = defineProps<{ tourUuid: string }>()
+const props = withDefaults(
+  defineProps<{
+    tourUuid: string
+    /**
+     * Admin de la gira fuera de la demo (F1, lote 3). La pestaña también la ve el staff no
+     * admin, que no puede importar: por eso el botón no depende de que la pestaña sea visible.
+     */
+    canImport?: boolean
+  }>(),
+  { canImport: false }
+)
+const emit = defineEmits<{ importTeam: [] }>()
 const { t, locale } = useI18n()
 const toursApi = useTours()
 const linksApi = useCrewLinks()
@@ -390,6 +401,15 @@ async function confirmPending() {
       <p class="text-[14px] text-ink-3 max-w-md mx-auto leading-relaxed">
         {{ t('tourHub.crew.empty') }}
       </p>
+      <BtnSecondary
+        v-if="canImport"
+        type="button"
+        class="mt-4"
+        data-testid="crew-links-empty-import"
+        @click="emit('importTeam')"
+      >
+        {{ t('importer.cta.importTeam') }}
+      </BtnSecondary>
     </div>
 
     <div

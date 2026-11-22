@@ -452,6 +452,14 @@ export default {
     location: 'Ubicación',
     tours: 'Giras',
     notes: 'Notas',
+    loadError: 'No se han podido cargar los contactos.',
+    retry: 'Reintentar',
+    emptyTour: {
+      title: 'Esta gira todavía no tiene contactos',
+      body: 'Sube la hoja del equipo, un PDF o una foto de la lista y crearemos los contactos por ti.',
+      bodyMember: 'Cuando un administrador de la gira añada al equipo, aparecerá aquí.',
+      manual: 'Añadir a mano',
+    },
   },
 
   reports: {
@@ -2618,6 +2626,11 @@ export default {
       sub: '.xlsx · .csv · .pdf · foto · texto',
       noTour: 'Elige una gira para importar su equipo.',
       notAdmin: 'Solo un administrador de la gira puede importar su equipo.',
+      manualHint: '¿Tienes la lista en una hoja, un PDF o una foto?',
+      manualHintCta: 'Impórtala de una vez',
+    },
+    cta: {
+      importTeam: 'Importar equipo',
     },
     errors: {
       unknown_row: 'Esta fila ya no existe en el borrador. Recarga la página.',

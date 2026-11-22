@@ -451,6 +451,14 @@ export default {
     location: 'Location',
     tours: 'Tours',
     notes: 'Notes',
+    loadError: "Couldn't load the contacts.",
+    retry: 'Retry',
+    emptyTour: {
+      title: 'This tour has no contacts yet',
+      body: "Upload the team sheet, a PDF or a photo of the list and we'll create the contacts for you.",
+      bodyMember: 'When a tour admin adds the team, it will show up here.',
+      manual: 'Add manually',
+    },
   },
 
   reports: {
@@ -2604,6 +2612,11 @@ export default {
       sub: '.xlsx · .csv · .pdf · photo · text',
       noTour: 'Pick a tour to import its team.',
       notAdmin: 'Only a tour admin can import its team.',
+      manualHint: 'Got the list in a sheet, a PDF or a photo?',
+      manualHintCta: 'Import it in one go',
+    },
+    cta: {
+      importTeam: 'Import team',
     },
     errors: {
       unknown_row: 'This row is no longer in the draft. Reload the page.',

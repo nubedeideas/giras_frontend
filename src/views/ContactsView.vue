@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useContactsStore } from '@/stores/contacts'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 import { useIsMobile } from '@/composables/useIsMobile'
 import ContactCard from '@/components/contacts/ContactCard.vue'
 import ContactDetail from '@/components/contacts/ContactDetail.vue'
@@ -12,10 +13,13 @@ import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
 import ImportContactsModal from '@/components/modals/ImportContactsModal.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
+import BtnSecondary from '@/components/ui/BtnSecondary.vue'
+import ImportDropModal from '@/components/import/ImportDropModal.vue'
 
 const { t } = useI18n()
 const store = useContactsStore()
 const toursStore = useToursStore()
+const auth = useAuthStore()
 const { isMobile } = useIsMobile()
 const showImport = ref(false)
 const autoSyncImport = ref(false)
@@ -43,6 +47,24 @@ function closeImport() {
   showImport.value = false
   autoSyncImport.value = false
 }
+
+// ─── Estado vacío de la gira (F1, lote 3) ─────────────────────────────────────
+// Gira sin contactos (sin búsqueda ni filtro de rol): invita a importar el equipo. Importar exige
+// admin de la gira y fuera de la demo; el resto solo ve el texto.
+const showTeamImport = ref(false)
+const canImport = computed(
+  () => toursStore.activeTour?.current_user_is_admin === true && !auth.isDemoMode
+)
+const tourEmpty = computed(
+  () =>
+    !!toursStore.activeTour?.uuid &&
+    store.loaded &&
+    !store.loading &&
+    !store.error &&
+    store.contacts.length === 0 &&
+    !store.searchQuery.trim() &&
+    store.selectedRoles.length === 0
+)
 
 // Unique roles present in the contacts list
 const availableRoles = computed(() => {
@@ -324,8 +346,56 @@ const groupedContacts = computed(() => {
             </div>
           </template>
           <div
-            v-if="store.filtered.length === 0"
+            v-if="store.error && store.contacts.length === 0"
+            class="text-center py-8 px-3"
+            data-testid="contacts-error"
+          >
+            <p class="text-[14px] text-failed-fg">
+              {{ t('contacts.loadError') }}
+            </p>
+            <button
+              type="button"
+              class="mt-2 inline-flex items-center min-h-[44px] lg:min-h-0 text-[14px] font-semibold text-olive hover:text-olive-strong cursor-pointer border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+              @click="store.fetchContacts()"
+            >
+              {{ t('contacts.retry') }}
+            </button>
+          </div>
+          <div
+            v-else-if="tourEmpty"
+            class="text-center py-8 px-3"
+            data-testid="contacts-empty-tour"
+          >
+            <p class="text-[15px] font-semibold text-ink">
+              {{ t('contacts.emptyTour.title') }}
+            </p>
+            <p class="mt-1.5 text-[14px] text-ink-2 leading-relaxed">
+              {{ canImport ? t('contacts.emptyTour.body') : t('contacts.emptyTour.bodyMember') }}
+            </p>
+            <div
+              v-if="canImport"
+              class="mt-4 flex flex-col items-center gap-2"
+            >
+              <BtnPrimary
+                type="button"
+                data-testid="contacts-empty-import"
+                @click="showTeamImport = true"
+              >
+                {{ t('importer.cta.importTeam') }}
+              </BtnPrimary>
+              <BtnSecondary
+                type="button"
+                data-testid="contacts-empty-manual"
+                @click="showImport = true"
+              >
+                {{ t('contacts.emptyTour.manual') }}
+              </BtnSecondary>
+            </div>
+          </div>
+          <div
+            v-else-if="store.filtered.length === 0"
             class="text-center py-8 text-ink-4 text-[14px]"
+            data-testid="contacts-no-results"
           >
             {{ t('contacts.noContacts') }}
           </div>
@@ -419,6 +489,14 @@ const groupedContacts = computed(() => {
       :show="showImport"
       :auto-sync="autoSyncImport"
       @close="closeImport"
+    />
+
+    <ImportDropModal
+      v-if="canImport && toursStore.activeTour?.uuid"
+      :show="showTeamImport"
+      :tour-uuid="toursStore.activeTour.uuid"
+      entry-point="contacts"
+      @close="showTeamImport = false"
     />
   </div>
 </template>

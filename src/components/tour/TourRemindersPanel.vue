@@ -13,6 +13,7 @@ import TourReminderTypeRow from './TourReminderTypeRow.vue'
 import ManageGroupContactsModal from '@/components/modals/ManageGroupContactsModal.vue'
 import RoleGroupsProposalModal from './RoleGroupsProposalModal.vue'
 import AiReviewList from './AiReviewList.vue'
+import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import type { RoleGroupsApplyResult } from '@/composables/useRoleGroups'
 import { isForbidden, reminderErrorMessage } from '@/utils/reminders'
 
@@ -20,7 +21,15 @@ import { isForbidden, reminderErrorMessage } from '@/utils/reminders'
  * Pestaña "Recordatorios" del hub de gira (C1.3): estimación y cupo, Equipo de la gira y una
  * fila por tipo de actividad. Solo para admins (el padre la oculta; el 403/404 se trata aquí).
  */
-const props = defineProps<{ tourUuid: string }>()
+const props = withDefaults(
+  defineProps<{
+    tourUuid: string
+    /** Admin de la gira fuera de la demo: puede abrir el importador (F1, lote 3). */
+    canImport?: boolean
+  }>(),
+  { canImport: false }
+)
+const emit = defineEmits<{ importTeam: [] }>()
 
 const { t } = useI18n()
 const api = useReminderSettings()
@@ -29,6 +38,13 @@ const toursStore = useToursStore()
 const sharedCatalog = useReminderCatalogStore()
 
 const catalog = ref<ReminderCatalog | null>(null)
+
+// "Importar equipo" en el bloque Equipo de la gira: sin grupo por defecto o vacío. Sin grupo,
+// `confirm` crea el Equipo de la gira y lo fija, así que también resuelve `team-missing`.
+const showTeamImport = computed(() => {
+  const group = catalog.value?.default_group
+  return props.canImport && (!group || group.contact_count === 0)
+})
 const loading = ref(false)
 const error = ref('')
 const forbidden = ref(false)
@@ -314,15 +330,26 @@ watch(() => props.tourUuid, load, { immediate: true })
             {{ t('reminders.team.missing') }}
           </p>
         </div>
-        <button
-          v-if="catalog.default_group"
-          type="button"
-          class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-glass border border-line text-ink-2 hover:bg-glass-hover hover:text-ink cursor-pointer"
-          data-test="team-manage"
-          @click="showManageTeam = true"
-        >
-          {{ t('reminders.team.manage') }}
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <BtnSecondary
+            v-if="showTeamImport"
+            type="button"
+            small
+            data-test="team-import"
+            @click="emit('importTeam')"
+          >
+            {{ t('importer.cta.importTeam') }}
+          </BtnSecondary>
+          <button
+            v-if="catalog.default_group"
+            type="button"
+            class="min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-sm text-[13px] font-semibold bg-glass border border-line text-ink-2 hover:bg-glass-hover hover:text-ink cursor-pointer"
+            data-test="team-manage"
+            @click="showManageTeam = true"
+          >
+            {{ t('reminders.team.manage') }}
+          </button>
+        </div>
       </div>
 
       <!-- Revisión de la IA -->

@@ -236,13 +236,15 @@ function isNotifiable(type: ReminderTypeSetting): boolean {
 
 /** Botón y destino de cada aviso de audiencia del catálogo. */
 const AUDIENCE_CTA: Record<string, { ctaKey: string; to: RouteLocationRaw }> = {
+  // Sin equipo: Mi Gira › Recordatorios con el importador abierto (`TourView` atiende
+  // `?import=team` y lo ignora si no eres admin o estás en la demo).
   default_group_empty: {
     ctaKey: 'dashboard.pending.addTeam',
-    to: { path: '/tour', query: { tab: 'reminders' } },
+    to: { path: '/tour', query: { tab: 'reminders', import: 'team' } },
   },
   no_base_groups: {
     ctaKey: 'dashboard.pending.addTeam',
-    to: { path: '/tour', query: { tab: 'reminders' } },
+    to: { path: '/tour', query: { tab: 'reminders', import: 'team' } },
   },
   type_groups_empty: {
     ctaKey: 'dashboard.pending.review',
