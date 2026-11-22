@@ -1056,7 +1056,7 @@ export default {
           'Hostinger: alojamiento de los servidores y de la base de datos.',
           'Twilio: envío de las notificaciones por WhatsApp Business y recepción de sus estados de entrega y respuestas.',
           'Mailgun: envío de emails (notificaciones, enlaces de acceso y resúmenes), en su región de la UE.',
-          'Google: inicio de sesión, Google Calendar y Google Contacts; Google Maps para geolocalizar lugares y estimar trayectos; Google Gemini para leer los archivos, fotos y textos que importas (equipo y, más adelante, itinerarios): antes de enviarlos sustituimos por marcadores los teléfonos, emails y números de documento de las hojas de cálculo, los textos y los PDF con texto; las fotos y los PDF escaneados se envían completos, sin los datos de ubicación de las fotos ni los metadatos del PDF. También para la importación inteligente de actividades de tu calendario y los resúmenes diarios; Google Drive para guardar las copias de seguridad cifradas; y Google Tag Manager y Google Analytics, solo si aceptas las cookies de analítica.',
+          'Google: inicio de sesión, Google Calendar y Google Contacts; Google Maps para geolocalizar lugares y estimar trayectos; Google Gemini para leer los archivos, fotos y textos que importas (equipo y, más adelante, itinerarios) —antes de enviarlos sustituimos por marcadores los teléfonos, emails y números de documento de las hojas de cálculo, los textos y los PDF con texto; las fotos y los PDF escaneados se envían completos, sin los datos de ubicación de las fotos ni los metadatos del PDF—, y también para la importación inteligente de actividades de tu calendario y los resúmenes diarios; Google Drive para guardar las copias de seguridad cifradas; y Google Tag Manager y Google Analytics, solo si aceptas las cookies de analítica.',
           'Cirium: consulta del estado y los horarios de los vuelos de tus actividades a partir del número de vuelo.',
           'Cobry y Viva Wallet: procesamiento de los pagos de las suscripciones.',
           'Spotify y Chartmetric: búsqueda de datos públicos del artista al crear una gira.',
@@ -2517,6 +2517,13 @@ export default {
       cancel: 'Cancelar',
       action: 'Descartar importación',
     },
+    estimate: {
+      total:
+        'Ningún WhatsApp previsto durante la gira | Un WhatsApp durante la gira | Unos {n} WhatsApp durante la gira',
+      remaining: 'no te queda ninguno en tu plan | te queda {n} en tu plan | te quedan {n} en tu plan',
+      exceeds:
+        'No caben todos en tu plan: los recordatorios que no quepan saldrán por email y en la app.',
+    },
     result: {
       title: 'Equipo importado',
       summary: 'Contactos nuevos: {created} · Vinculados: {linked} · En el Equipo de la gira: {group}',
@@ -2526,6 +2533,7 @@ export default {
       importMore: 'Importar más',
       notDefaultGroup:
         'Los avisos de esta gira van al grupo «{group}», no al Equipo de la gira. Cámbialo en la gira si quieres que les lleguen.',
+      confirmerOutside: 'Tú no estás en el Equipo de la gira: los avisos solo te llegarán en la app.',
     },
     warnings: {
       no_team_found: 'No hemos encontrado personas en lo que has subido.',
@@ -2542,6 +2550,7 @@ export default {
       choose: 'Elegir archivos',
       photo: 'Hacer foto',
       pasteToggle: 'Pegar texto',
+      pasteLabel: 'Texto pegado con el equipo',
       pastePlaceholder: 'Pega aquí la lista del equipo (de un email, de WhatsApp…)',
       pasteCount: '{n} / {max}',
       privacyNote:

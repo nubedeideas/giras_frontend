@@ -69,6 +69,11 @@ async function load() {
   selectedId.value = null
   onlyPending.value = false
   rowErrors.value = {}
+  // Los errores de otro job no se arrastran al nuevo.
+  confirmError.value = ''
+  regionError.value = ''
+  discardError.value = ''
+  discardOpen.value = false
   try {
     const j = await getImportJob(uuid)
     if (id !== request) return
@@ -98,11 +103,17 @@ watch(jobUuid, (uuid, prev) => {
   if (uuid && uuid !== prev) void load()
 })
 
-// La gira del job pasa a ser la activa (cuando está en el listado, que puede llegar después).
+// La gira del job pasa a ser la activa una sola vez por job: cuando llega el job o, si el listado
+// de giras aún no estaba, cuando llega (el usuario puede cambiar de gira después sin que se
+// le imponga otra vez la del job al recargarse el listado).
+let tourAppliedFor: string | null = null
 watch(
-  [() => job.value?.tour, () => toursStore.tours.length],
-  ([tourUuid]) => {
-    if (tourUuid && toursStore.activeTour?.uuid !== tourUuid) toursStore.setActiveTourByUuid(tourUuid)
+  [() => job.value?.uuid, () => job.value?.tour, () => toursStore.tours.length],
+  ([uuid, tourUuid]) => {
+    if (!uuid || !tourUuid || tourAppliedFor === uuid) return
+    if (toursStore.activeTour?.uuid === tourUuid || toursStore.setActiveTourByUuid(tourUuid)) {
+      tourAppliedFor = uuid
+    }
   },
   { immediate: true }
 )
@@ -136,6 +147,19 @@ const state = computed<ViewState | null>(() => {
 })
 
 const summary = computed(() => job.value?.summary ?? null)
+const whatsappEstimate = computed(() => job.value?.whatsapp_estimate ?? null)
+// En móvil la barra de confirmar es fija: el contenido deja sitio para ella (más alta con la
+// estimación de WhatsApp y su aviso).
+const readyPadding = computed(() => {
+  if (state.value !== 'ready') return 'pb-28 lg:pb-6'
+  const e = whatsappEstimate.value
+  if (e && e.people > 0) {
+    return e.exceeds
+      ? 'pb-[calc(260px+env(safe-area-inset-bottom))] lg:pb-0'
+      : 'pb-[calc(190px+env(safe-area-inset-bottom))] lg:pb-0'
+  }
+  return 'pb-[calc(160px+env(safe-area-inset-bottom))] lg:pb-0'
+})
 const needsAction = computed(() => summary.value?.needs_action ?? 0)
 const confirmable = computed(() => canConfirm(job.value))
 
@@ -160,9 +184,11 @@ const groupLine = computed(() => {
   const n = summary.value?.in_group ?? 0
   if (!g) return ''
   if (!g.exists) {
-    return g.is_default
-      ? t('importer.group.willCreate')
-      : t('importer.group.willCreatePlain', { n }, n)
+    // Con el grupo sin crear el backend da siempre `is_default=false`: queda como grupo por defecto
+    // si la gira no tiene otro (`default_group_name` vacío).
+    return g.default_group_name
+      ? t('importer.group.willCreatePlain', { n }, n)
+      : t('importer.group.willCreate')
   }
   return t('importer.group.exists', { n }, n)
 })
@@ -390,7 +416,7 @@ function onProcessed(j: ImportJob) {
   <div class="h-full overflow-y-auto bg-bg">
     <div
       class="max-w-5xl mx-auto px-4 sm:px-6 py-5 lg:py-6"
-      :class="state === 'ready' ? 'pb-[calc(160px+env(safe-area-inset-bottom))] lg:pb-0' : 'pb-28 lg:pb-6'"
+      :class="readyPadding"
     >
       <RouterLink
         :to="{ name: 'tour' }"
@@ -656,6 +682,7 @@ function onProcessed(j: ImportJob) {
             :summary="summary"
             :can-confirm="confirmable"
             :busy="busy"
+            :estimate="whatsappEstimate"
             @confirm="confirm"
             @discard="openDiscard"
           />

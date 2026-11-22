@@ -208,8 +208,16 @@ describe('OnbCrewStep: fuente Hoja o foto (F1)', () => {
   const ok = teamRow({ client_id: 't2', display_name: 'Lucía Martín' })
   const resolved = { ...suggestion, action: 'create' as const, reviewed: true, needs_action: false }
 
-  function setupImportFetch() {
+  function setupImportFetch(
+    opts: {
+      team?: ReturnType<typeof teamRow>[]
+      ready?: Partial<ImportJob>
+      result?: Partial<NonNullable<ImportJob['result']>>
+      patchGate?: Promise<void>
+    } = {}
+  ) {
     const log: Call[] = []
+    const team = opts.team ?? [suggestion, ok]
     const fn = vi.fn<typeof fetch>(async (input, init) => {
       const url = new URL(String(input))
       const path = url.pathname.replace(/^\/api/, '')
@@ -217,10 +225,11 @@ describe('OnbCrewStep: fuente Hoja o foto (F1)', () => {
       log.push({ method, path, body: init?.body && typeof init.body === 'string' ? JSON.parse(init.body) : null })
       if (path === '/integrations/google/status/') return jsonResponse(CONNECTED)
       if (path === '/integrations/import-jobs/J1/') {
-        return jsonResponse(importJob({ status: 'ready', draft: { team: [suggestion, ok] } }))
+        return jsonResponse(importJob({ status: 'ready', draft: { team }, ...opts.ready }))
       }
       if (path === '/integrations/import-jobs/J1/draft/') {
-        return jsonResponse(importJob({ status: 'ready', draft: { team: [resolved, ok] } }))
+        if (opts.patchGate) await opts.patchGate
+        return jsonResponse(importJob({ status: 'ready', draft: { team: [resolved, ok] }, ...opts.ready }))
       }
       if (path === '/integrations/import-jobs/J1/confirm/') {
         const done: Partial<ImportJob> = {
@@ -236,6 +245,7 @@ describe('OnbCrewStep: fuente Hoja o foto (F1)', () => {
             team_group_uuid: 'G1',
             team_group_is_default: true,
             contact_uuids: ['N1', 'N2'],
+            ...opts.result,
           },
         }
         return jsonResponse(importJob(done))
@@ -302,6 +312,75 @@ describe('OnbCrewStep: fuente Hoja o foto (F1)', () => {
 
     await w.get('[data-test="crew-import-next"]').trigger('click')
     expect(w.emitted('next')).toHaveLength(1)
+  })
+
+  async function mountWithZone() {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/:p(.*)*', component: { template: '<div />' } }],
+    })
+    await router.push('/home')
+    await router.isReady()
+    const w = mount(OnbCrewStep, {
+      props: { tourId: 1 },
+      global: { plugins: [router, i18n], stubs: { ImportDropZone: zoneStub } },
+    })
+    await flushPromises()
+    await w.get('[data-test="crew-source-file"]').trigger('click')
+    w.findComponent({ name: 'ImportDropZone' }).vm.$emit('created', importJob({ status: 'uploaded' }))
+    await flushPromises()
+    return w
+  }
+
+  it('Confirmar desactivado con un PATCH en cola y un doble clic lanza un solo confirm', async () => {
+    let open = () => {}
+    const patchGate = new Promise<void>((r) => (open = r))
+    const log = setupImportFetch({ team: [ok], patchGate })
+    vi.spyOn(useContactsStore(), 'fetchContacts').mockResolvedValue()
+    vi.spyOn(useReminderCatalogStore(), 'invalidate').mockResolvedValue()
+    const w = await mountWithZone()
+    const btn = () => w.get('[data-test="crew-import-confirm"]')
+    expect(btn().attributes('disabled')).toBeUndefined()
+
+    const box = w.get('[data-row="t2"] [data-test="import-row-ingroup"]')
+    ;(box.element as HTMLInputElement).checked = false
+    await box.trigger('change')
+    expect(btn().attributes('disabled')).toBeDefined()
+
+    open()
+    await flushPromises()
+    expect(btn().attributes('disabled')).toBeUndefined()
+
+    // Dos clics en el mismo tick (antes de que el DOM se desactive): un solo confirm.
+    void btn().trigger('click')
+    void btn().trigger('click')
+    await flushPromises()
+    const confirms = log.filter((c) => c.method === 'POST' && c.path === '/integrations/import-jobs/J1/confirm/')
+    expect(confirms).toHaveLength(1)
+  })
+
+  it('D11 y D10: estimación de WhatsApp en la revisión y aviso si quien confirma no está en el equipo', async () => {
+    setupImportFetch({
+      team: [ok],
+      ready: {
+        whatsapp_estimate: { per_person: 5, people: 2, total: 10, remaining: 4, plan_limit: 50, exceeds: true },
+      },
+      result: { confirmer_in_team: false },
+    })
+    vi.spyOn(useContactsStore(), 'fetchContacts').mockResolvedValue()
+    vi.spyOn(useReminderCatalogStore(), 'invalidate').mockResolvedValue()
+    const w = await mountWithZone()
+    const review = w.get('[data-test="crew-import-review"]')
+    expect(review.get('[data-test="import-wa-estimate-line"]').text()).toBe(
+      'Unos 10 WhatsApp durante la gira · te quedan 4 en tu plan'
+    )
+    expect(review.find('[data-test="import-wa-estimate-exceeds"]').exists()).toBe(true)
+
+    await w.get('[data-test="crew-import-confirm"]').trigger('click')
+    await flushPromises()
+    expect(w.get('[data-test="crew-import-confirmer-outside"]').text()).toBe(
+      'Tú no estás en el Equipo de la gira: los avisos solo te llegarán en la app.'
+    )
   })
 
   it('en Manual, la pista pasa a la fuente "Hoja o foto" (lote 3)', async () => {

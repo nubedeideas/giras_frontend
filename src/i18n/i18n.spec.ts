@@ -36,4 +36,15 @@ describe('i18n', () => {
     })
     expect(offenders).toEqual([])
   })
+
+  it('privacidad: el ítem de Google es una sola entrada de la enumeración (sin punto en medio)', () => {
+    for (const msgs of [es, en]) {
+      const sections = (msgs.privacy as unknown as { sections: { items?: string[] }[] }).sections
+      const google = sections.flatMap((s) => s.items ?? []).find((i) => i.startsWith('Google:'))
+      expect(google).toBeDefined()
+      // Solo el punto final: el texto aprobado de Gemini ya no parte la lista de proveedores.
+      expect(google!.slice(0, -1)).not.toMatch(/\.\s/)
+      expect(google).toMatch(/Gemini/)
+    }
+  })
 })

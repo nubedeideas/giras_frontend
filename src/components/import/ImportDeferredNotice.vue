@@ -6,7 +6,12 @@ import { useI18n } from 'vue-i18n'
 import type { ImportJob } from '@/composables/useImportJobs'
 import { deferredSources, pageRanges } from '@/utils/importReview'
 
-/** `IMPORT_PDF_MAX_SCANNED_PAGES` del backend (§3.3); el detalle del job no lo expone. */
+/**
+ * `IMPORT_PDF_MAX_SCANNED_PAGES` del backend (§3.3, default 10). Ni `detected` ni
+ * `deferred_pages[]` exponen el límite (comprobado en `preprocess.py`, `defer_pages` guarda solo
+ * `pages` y `reason`): si en producción se cambia por entorno, este texto quedaría desfasado.
+ * Pendiente de que el backend añada `limit` al tramo `scan_pages_limit`; entonces, leerlo de ahí.
+ */
 const SCANNED_PAGES_LIMIT = 10
 
 const props = defineProps<{ job: Pick<ImportJob, 'detected'> }>()

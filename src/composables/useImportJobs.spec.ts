@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { API_BASE } from '@/utils/apiClient'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
@@ -11,6 +11,11 @@ import {
   listImportJobs,
   patchImportDraft,
   useImportJobs,
+  type ImportJob,
+  type ImportJobListItem,
+  type ImportResult,
+  type ImportTeamRow,
+  type ImportWhatsappEstimate,
 } from './useImportJobs'
 
 const BASE = `${API_BASE}/integrations/import-jobs/`
@@ -97,5 +102,16 @@ describe('useImportJobs', () => {
     await expect(p).rejects.toMatchObject({ status: 404 })
     expect(api.loading.value).toBe(false)
     expect(api.error.value).toMatchObject({ status: 404 })
+  })
+})
+
+// vue-tsc comprueba estas aserciones de tipo (en ejecución no hacen nada).
+describe('tipos del contrato', () => {
+  it('la fila no expone user_action ni phone_edited; created_by_name admite null', () => {
+    expectTypeOf<ImportTeamRow>().not.toHaveProperty('user_action')
+    expectTypeOf<ImportTeamRow>().not.toHaveProperty('phone_edited')
+    expectTypeOf<ImportJobListItem['created_by_name']>().toEqualTypeOf<string | null>()
+    expectTypeOf<NonNullable<ImportJob['whatsapp_estimate']>>().toEqualTypeOf<ImportWhatsappEstimate>()
+    expectTypeOf<ImportResult['confirmer_in_team']>().toEqualTypeOf<boolean | undefined>()
   })
 })

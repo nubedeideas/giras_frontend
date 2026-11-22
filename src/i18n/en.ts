@@ -1054,7 +1054,7 @@ export default {
           'Hostinger: hosting of the servers and the database.',
           'Twilio: sending WhatsApp Business notifications and receiving their delivery statuses and replies.',
           'Mailgun: sending emails (notifications, sign-in links and summaries), in its EU region.',
-          'Google: sign-in, Google Calendar and Google Contacts; Google Maps to geolocate venues and estimate travel times; Google Gemini to read the files, photos and text you import (team and, later, itineraries): before sending them we replace phone numbers, emails and ID numbers in spreadsheets, text and text-based PDFs with placeholders; photos and scanned PDFs are sent in full, without photo location data or PDF metadata. Also for smart import of activities from your calendar and daily summaries; Google Drive to store encrypted backups; and Google Tag Manager and Google Analytics, only if you accept analytics cookies.',
+          'Google: sign-in, Google Calendar and Google Contacts; Google Maps to geolocate venues and estimate travel times; Google Gemini to read the files, photos and text you import (team and, later, itineraries) — before sending them we replace phone numbers, emails and ID numbers in spreadsheets, text and text-based PDFs with placeholders; photos and scanned PDFs are sent in full, without photo location data or PDF metadata — and also for smart import of activities from your calendar and daily summaries; Google Drive to store encrypted backups; and Google Tag Manager and Google Analytics, only if you accept analytics cookies.',
           'Cirium: checking the status and schedule of the flights in your activities from the flight number.',
           'Cobry and Viva Wallet: processing subscription payments.',
           'Spotify and Chartmetric: looking up public artist data when you create a tour.',
@@ -2503,6 +2503,13 @@ export default {
       cancel: 'Cancel',
       action: 'Discard import',
     },
+    estimate: {
+      total:
+        'No WhatsApp messages expected during the tour | About 1 WhatsApp message during the tour | About {n} WhatsApp messages during the tour',
+      remaining: 'none left in your plan | 1 left in your plan | {n} left in your plan',
+      exceeds:
+        "They don't all fit in your plan: reminders that don't fit will go out by email and in the app.",
+    },
     result: {
       title: 'Team imported',
       summary: 'New contacts: {created} · Linked: {linked} · In the Tour team: {group}',
@@ -2512,6 +2519,7 @@ export default {
       importMore: 'Import more',
       notDefaultGroup:
         'This tour\'s notifications go to the "{group}" group, not the Tour team. Change it in the tour if you want them to get them.',
+      confirmerOutside: "You're not in the Tour team: you'll only get notifications in the app.",
     },
     warnings: {
       no_team_found: "We couldn't find any people in what you uploaded.",
@@ -2528,6 +2536,7 @@ export default {
       choose: 'Choose files',
       photo: 'Take photo',
       pasteToggle: 'Paste text',
+      pasteLabel: 'Pasted text with the team',
       pastePlaceholder: 'Paste the team list here (from an email, WhatsApp…)',
       pasteCount: '{n} / {max}',
       privacyNote:

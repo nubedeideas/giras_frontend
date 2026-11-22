@@ -156,6 +156,52 @@ describe('deferredSources', () => {
   })
 })
 
+describe('deferredSources con una fuente diferida entera que trae tramos', () => {
+  it('pinta solo los tramos de páginas, sin la línea de la fuente entera', () => {
+    const job = importJob({
+      detected: {
+        sources: [
+          {
+            ref: 'd1:scan',
+            document_uuid: 'D1',
+            filename: 'Escaneado.pdf',
+            kind: 'pdf_scan',
+            sheet: null,
+            doc_kind: 'team',
+            processed: false,
+            deferred: true,
+            deferred_reason: 'unmasked_disabled',
+            pages: { total: 3, text: [], scanned: [1, 2, 3], team: [] },
+            deferred_pages: [{ pages: [1, 2, 3], reason: 'unmasked_disabled' }],
+            rows_scanned: 0,
+            truncated: false,
+            people_found: 0,
+          },
+          {
+            ref: 'd2',
+            document_uuid: 'D2',
+            filename: 'Cifrado.pdf',
+            kind: 'pdf_text',
+            sheet: null,
+            doc_kind: 'unknown',
+            processed: false,
+            deferred: true,
+            deferred_reason: 'pdf_encrypted',
+            deferred_pages: [],
+            rows_scanned: 0,
+            truncated: false,
+            people_found: 0,
+          },
+        ],
+      },
+    })
+    expect(deferredSources(job)).toEqual([
+      { filename: 'Escaneado.pdf', reason: 'unmasked_disabled', pages: [1, 2, 3] },
+      { filename: 'Cifrado.pdf', reason: 'pdf_encrypted', pages: null },
+    ])
+  })
+})
+
 describe('pageRanges', () => {
   it.each([
     [[3, 4, 5, 7], '3-5, 7'],

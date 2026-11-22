@@ -1,16 +1,22 @@
 <script setup lang="ts">
 // Pie de la revisión (F1 §4.2): resumen de lo que hará `confirm`, "Descartar" y "Confirmar"
 // (desactivado con el motivo si quedan filas por resolver). Fijo sobre la `MobileNav` en móvil y
-// pegado al fondo del scroll en escritorio.
+// pegado al fondo del scroll en escritorio. Con `estimate` (D11), la estimación de WhatsApp.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
-import type { ImportSummary } from '@/composables/useImportJobs'
+import ImportWhatsappEstimate from '@/components/import/ImportWhatsappEstimate.vue'
+import type { ImportSummary, ImportWhatsappEstimate as Estimate } from '@/composables/useImportJobs'
 
 const props = withDefaults(
-  defineProps<{ summary: ImportSummary; canConfirm: boolean; busy?: boolean }>(),
-  { busy: false }
+  defineProps<{
+    summary: ImportSummary
+    canConfirm: boolean
+    busy?: boolean
+    estimate?: Estimate | null
+  }>(),
+  { busy: false, estimate: null }
 )
 const emit = defineEmits<{ confirm: []; discard: [] }>()
 
@@ -45,6 +51,7 @@ const reason = computed(() => {
             })
           }}
         </p>
+        <ImportWhatsappEstimate :estimate="estimate" />
         <p
           v-if="reason"
           id="import-confirm-reason"

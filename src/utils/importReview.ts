@@ -179,13 +179,19 @@ export interface DeferredItem {
   pages: number[] | null
 }
 
-/** Una entrada por fuente diferida entera y otra por cada tramo de páginas de PDF diferido. */
+/**
+ * Una entrada por cada tramo de páginas de PDF diferido y otra por fuente diferida entera que no
+ * traiga tramos.
+ */
 export function deferredSources(job: Pick<ImportJob, 'detected'> | null | undefined): DeferredItem[] {
   const sources = (job?.detected && 'sources' in job.detected ? job.detected.sources : []) ?? []
   const out: DeferredItem[] = []
   const seen = new Set<string>()
   for (const s of sources) {
-    if (s.deferred && s.deferred_reason) {
+    const pageSpans = (s.deferred_pages ?? []).filter((dp) => dp.pages.length)
+    // Si la fuente trae sus tramos de páginas, ya dicen qué se aplaza y por qué: la línea de la
+    // fuente entera los repetiría.
+    if (s.deferred && s.deferred_reason && !pageSpans.length) {
       // Un PDF puede dar dos fuentes (texto y escaneada) diferidas por lo mismo: una sola línea.
       const key = `${s.document_uuid ?? s.filename}|${s.deferred_reason}`
       if (!seen.has(key)) {
@@ -193,8 +199,8 @@ export function deferredSources(job: Pick<ImportJob, 'detected'> | null | undefi
         out.push({ filename: s.filename, reason: s.deferred_reason, pages: null })
       }
     }
-    for (const dp of s.deferred_pages ?? []) {
-      if (dp.pages.length) out.push({ filename: s.filename, reason: dp.reason, pages: [...dp.pages] })
+    for (const dp of pageSpans) {
+      out.push({ filename: s.filename, reason: dp.reason, pages: [...dp.pages] })
     }
   }
   return out

@@ -1,15 +1,16 @@
 <script setup lang="ts">
+import { BTN_PRIMARY_BASE, BTN_PRIMARY_SIZE, BTN_PRIMARY_SIZE_SMALL } from './btnClasses'
+
 defineProps<{ full?: boolean; small?: boolean }>()
 </script>
 
 <template>
-  <!-- text-night (#111) en vez de text-ink: dentro de .sidebar-dark ink pasa a claro y quedaría
-       ilegible sobre lima; night es el mismo #111 en ambos contextos. -->
+  <!-- Clases en `btnClasses.ts` (las comparte el RouterLink de ImportResultSummary). -->
   <button
-    class="inline-flex items-center gap-1.5 rounded-sm bg-acid text-night font-bold transition-colors duration-200 hover:bg-acid-light cursor-pointer border-none min-h-[44px] lg:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
     :class="[
+      BTN_PRIMARY_BASE,
       full ? 'w-full justify-center' : '',
-      small ? 'px-3 py-2 text-[13px]' : 'px-4 py-2.5 text-[14px]',
+      small ? BTN_PRIMARY_SIZE_SMALL : BTN_PRIMARY_SIZE,
     ]"
   >
     <slot />

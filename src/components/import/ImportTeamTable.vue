@@ -3,7 +3,7 @@
 // rol, estado, confianza, "en el grupo" y omitir; la fila elegida se despliega con el slot
 // `expanded` (editor de la vista). Móvil y `compact` (onboarding): tarjetas, primero
 // "Por resolver (n)" y luego "Listas (n)", plegadas mientras quede algo por resolver.
-import { computed, ref, type Ref } from 'vue'
+import { computed, ref, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportMatchResolver from '@/components/import/ImportMatchResolver.vue'
@@ -81,12 +81,31 @@ function toggleSkip(r: ImportTeamRow) {
   emit('patch', { client_id: r.client_id, action: isSkipped(r) ? restoreAction(r) : 'skip' })
 }
 
-function setInGroup(r: ImportTeamRow, e: Event) {
-  emit('patch', {
-    client_id: r.client_id,
-    fields: { in_group: (e.target as HTMLInputElement).checked },
-  })
+// "En el grupo": el valor marcado vive aquí mientras su PATCH está en curso. Al terminar se suelta
+// y manda la fila: si el PATCH ha fallado, `in_group` no ha cambiado y la casilla vuelve a su valor
+// (con solo `:checked` Vue no tocaría el DOM, porque el valor enlazado no cambia).
+const pendingInGroup = ref<Record<string, boolean>>({})
+
+function inGroupChecked(r: ImportTeamRow): boolean {
+  return r.already_in_group || (pendingInGroup.value[r.client_id] ?? r.in_group)
 }
+
+function setInGroup(r: ImportTeamRow, e: Event) {
+  const checked = (e.target as HTMLInputElement).checked
+  pendingInGroup.value = { ...pendingInGroup.value, [r.client_id]: checked }
+  emit('patch', { client_id: r.client_id, fields: { in_group: checked } })
+}
+
+watch(
+  () => [...props.saving],
+  (ids) => {
+    const stale = Object.keys(pendingInGroup.value).filter((id) => !ids.includes(id))
+    if (!stale.length) return
+    const rest = { ...pendingInGroup.value }
+    for (const id of stale) delete rest[id]
+    pendingInGroup.value = rest
+  }
+)
 
 function setRole(r: ImportTeamRow, e: Event) {
   const uuid = (e.target as HTMLSelectElement).value
@@ -236,7 +255,7 @@ const SOFT_BTN =
                 <input
                   type="checkbox"
                   class="w-4 h-4 accent-[var(--olive)]"
-                  :checked="r.in_group || r.already_in_group"
+                  :checked="inGroupChecked(r)"
                   :disabled="r.already_in_group || isSaving(r)"
                   data-test="import-row-ingroup"
                   @change="setInGroup(r, $event)"
@@ -432,7 +451,7 @@ const SOFT_BTN =
                   v-if="!isSkipped(r)"
                   type="checkbox"
                   class="w-4 h-4 accent-[var(--olive)] cursor-pointer disabled:cursor-not-allowed"
-                  :checked="r.in_group || r.already_in_group"
+                  :checked="inGroupChecked(r)"
                   :disabled="r.already_in_group || isSaving(r)"
                   :title="r.already_in_group ? t('importer.editor.inGroupLocked') : undefined"
                   :aria-label="t('importer.team.inGroup')"

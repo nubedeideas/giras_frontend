@@ -117,13 +117,15 @@ function removeFile(i: number) {
   errorMsg.value = ''
 }
 
+const textTooLong = computed(() => text.value.length > IMPORT_MAX_TEXT_CHARS)
+
 async function submit() {
   errorMsg.value = ''
   if (!files.value.length && !text.value.trim()) {
     errorMsg.value = t('importer.errors.empty_import')
     return
   }
-  if (text.value.length > IMPORT_MAX_TEXT_CHARS) {
+  if (textTooLong.value) {
     errorMsg.value = t('importer.errors.textTooLong')
     return
   }
@@ -381,11 +383,17 @@ async function submit() {
           v-model="text"
           data-test="import-text"
           :rows="compact ? 4 : 6"
-          :maxlength="IMPORT_MAX_TEXT_CHARS"
           :placeholder="t('importer.drop.pastePlaceholder')"
+          :aria-label="t('importer.drop.pasteLabel')"
+          :aria-invalid="textTooLong || undefined"
           class="w-full rounded-sm border border-line bg-bg-3 px-3 py-2 text-[15px] text-ink placeholder:text-ink-3 focus:outline-none focus:border-olive resize-y"
         />
-        <p class="text-right font-time tnum text-[12px] text-ink-2">
+        <!-- Sin `maxlength`: el texto pegado de más se cortaría sin avisar; se valida al enviar. -->
+        <p
+          class="text-right font-time tnum text-[12px]"
+          :class="textTooLong ? 'text-failed-fg' : 'text-ink-2'"
+          data-test="import-text-count"
+        >
           {{ t('importer.drop.pasteCount', { n: text.length, max: IMPORT_MAX_TEXT_CHARS }) }}
         </p>
       </div>

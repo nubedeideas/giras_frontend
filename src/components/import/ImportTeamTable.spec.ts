@@ -69,6 +69,34 @@ describe('ImportTeamTable (escritorio)', () => {
     ])
   })
 
+  it('"En el grupo" vuelve a su valor si el PATCH falla (la fila no cambia)', async () => {
+    const saving = new Set<string>()
+    const w = mountTable({ saving })
+    const box = () => w.get('tr[data-row="t1"] [data-test="import-row-ingroup"]')
+    const el = () => box().element as HTMLInputElement
+    expect(el().checked).toBe(true)
+    el().checked = false
+    await box().trigger('change')
+    // El padre marca la fila como guardando: la casilla se queda como la ha dejado el usuario.
+    await w.setProps({ saving: new Set(['t1']) })
+    expect(el().checked).toBe(false)
+    // Termina el PATCH con error: el job no cambia (in_group sigue true) y la casilla vuelve.
+    await w.setProps({ saving: new Set<string>() })
+    expect(el().checked).toBe(true)
+  })
+
+  it('"En el grupo" se queda con el valor nuevo si el PATCH va bien', async () => {
+    const w = mountTable()
+    const box = () => w.get('tr[data-row="t1"] [data-test="import-row-ingroup"]')
+    ;(box().element as HTMLInputElement).checked = false
+    await box().trigger('change')
+    await w.setProps({ saving: new Set(['t1']) })
+    const job = makeJob()
+    job.draft.team = job.draft.team!.map((r) => (r.client_id === 't1' ? { ...r, in_group: false } : r))
+    await w.setProps({ job, saving: new Set<string>() })
+    expect((box().element as HTMLInputElement).checked).toBe(false)
+  })
+
   it('casilla desactivada (y marcada) con already_in_group', () => {
     const w = mountTable()
     const box = w.get('tr[data-row="t4"] [data-test="import-row-ingroup"]')

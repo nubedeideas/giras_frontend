@@ -247,4 +247,107 @@ describe('ImportReviewView', () => {
       'Este borrador ha caducado (30 días). Vuelve a importar el archivo.'
     )
   })
+
+  it('"En el grupo" vuelve a marcada si el PATCH falla', async () => {
+    setupFetch(importJob(), (c) => (c.method === 'PATCH' ? wrapped(500, 'internal_error') : undefined))
+    const w = await mountView()
+    const box = () => w.get('tr[data-row="t1"] [data-test="import-row-ingroup"]')
+    ;(box().element as HTMLInputElement).checked = false
+    await box().trigger('change')
+    await flushPromises()
+    expect((box().element as HTMLInputElement).checked).toBe(true)
+    expect(w.find('tr[data-row="t1"] [data-test="import-row-error"]').exists()).toBe(true)
+  })
+
+  it('grupo sin crear: "queda como grupo por defecto" solo si la gira no tiene otro', async () => {
+    const group = (default_group_name: string | null) => ({
+      uuid: null,
+      name: 'Equipo de la gira',
+      exists: false,
+      is_default: false,
+      default_group_name,
+    })
+    setupFetch(importJob({ team_group: group(null) }))
+    let w = await mountView()
+    expect(w.get('[data-test="import-group-line"]').text()).toBe(
+      'Equipo de la gira → se crea y queda como grupo por defecto'
+    )
+    setupFetch(importJob({ team_group: group('Todos') }))
+    w = await mountView()
+    expect(w.get('[data-test="import-group-line"]').text()).toBe(
+      'Equipo de la gira → se crea con 1 persona'
+    )
+    expect(w.get('[data-test="import-group-not-default"]').text()).toContain('«Todos»')
+  })
+
+  it('al cambiar de job se limpian los errores de confirmar del anterior', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/tour/import/:jobUuid', name: 'tour-import', component: { template: '<div />' } },
+        { path: '/tour', name: 'tour', component: { template: '<div />' } },
+      ],
+    })
+    setupFetch(importJob(), (c) => {
+      if (c.path === `${JOB_PATH}confirm/`) return wrapped(400, 'tour_closed')
+      if (c.path === '/integrations/import-jobs/J2/') return jsonResponse(importJob({ uuid: 'J2' }))
+      return undefined
+    })
+    await router.push('/tour/import/J1')
+    await router.isReady()
+    const w = mount(ImportReviewView, { global: { plugins: [i18n, router] } })
+    await flushPromises()
+    await w.get('[data-test="import-confirm"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="import-confirm-error"]').exists()).toBe(true)
+    await router.push('/tour/import/J2')
+    await flushPromises()
+    expect(w.find('[data-test="import-confirm"]').exists()).toBe(true)
+    expect(w.find('[data-test="import-confirm-error"]').exists()).toBe(false)
+  })
+
+  it('la gira del job se fija como activa una sola vez (aunque cambie el listado)', async () => {
+    const tours = useToursStore()
+    setupFetch(importJob())
+    await mountView()
+    expect(tours.activeTour).toBeNull()
+    // Llega el listado: se aplica la gira del job.
+    tours.tours = [{ id: 1, uuid: 'T1', name: 'Gira' } as Tour, { id: 2, uuid: 'T2', name: 'Otra' } as Tour]
+    await flushPromises()
+    expect(tours.activeTour?.uuid).toBe('T1')
+    // El usuario cambia de gira y el listado se recarga con otra longitud: no se le impone otra vez.
+    tours.setActiveTour(2)
+    tours.tours = [...tours.tours, { id: 3, uuid: 'T3', name: 'Nueva' } as Tour]
+    await flushPromises()
+    expect(tours.activeTour?.uuid).toBe('T2')
+  })
+
+  it('D11: estimación de WhatsApp junto a Confirmar, con aviso si no caben', async () => {
+    setupFetch(
+      importJob({
+        whatsapp_estimate: { per_person: 6, people: 7, total: 42, remaining: 30, plan_limit: 100, exceeds: true },
+      })
+    )
+    const w = await mountView()
+    const bar = w.get('[data-test="import-confirm-bar"]')
+    expect(bar.get('[data-test="import-wa-estimate-line"]').text()).toBe(
+      'Unos 42 WhatsApp durante la gira · te quedan 30 en tu plan'
+    )
+    expect(bar.get('[data-test="import-wa-estimate-exceeds"]').text()).toBe(
+      'No caben todos en tu plan: los recordatorios que no quepan saldrán por email y en la app.'
+    )
+  })
+
+  it('D11: sin estimación (null o people 0) no se muestra nada', async () => {
+    setupFetch(importJob({ whatsapp_estimate: null }))
+    let w = await mountView()
+    expect(w.find('[data-test="import-wa-estimate"]').exists()).toBe(false)
+    setupFetch(
+      importJob({
+        whatsapp_estimate: { per_person: 6, people: 0, total: 0, remaining: 30, plan_limit: 100, exceeds: false },
+      })
+    )
+    w = await mountView()
+    expect(w.find('[data-test="import-wa-estimate"]').exists()).toBe(false)
+  })
 })

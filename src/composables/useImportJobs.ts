@@ -157,10 +157,7 @@ export interface ImportTeamRow {
   needs_action: boolean
   reviewed: boolean
   edited: boolean
-  /** Decisión explícita del usuario sobre la acción (lote B); `null`/ausente si no ha tocado nada. */
-  user_action?: ImportRowAction | null
-  /** El teléfono se ha editado a mano: el cambio de región lo re-normaliza sin volver a `phone_raw`. */
-  phone_edited?: boolean
+  // `user_action` y `phone_edited` son internos del borrador: el serializer no los expone.
 }
 
 export interface ImportPdfPages {
@@ -249,6 +246,7 @@ export interface ImportTeamGroup {
 /** Recuentos de `confirm` (§3.6). `{}` hasta `done`. */
 export interface ImportResult {
   contacts_created: number
+  /** Incluye `linked_late`. */
   contacts_linked: number
   linked_late: number
   already_in_tour: number
@@ -257,6 +255,26 @@ export interface ImportResult {
   team_group_uuid: string
   team_group_is_default: boolean
   contact_uuids: string[]
+  /**
+   * D10: quien confirma está (o ha entrado) en el Equipo de la gira. `false` si no tiene contacto
+   * en la gira. Ausente en jobs confirmados antes de D10.
+   */
+  confirmer_in_team?: boolean
+}
+
+/**
+ * D11: estimación de WhatsApp de la gira con las personas que entran al grupo (solo lectura, en el
+ * detalle del job en `ready`). `remaining`/`plan_limit` son `null` sin cupo de suscripción.
+ */
+export interface ImportWhatsappEstimate {
+  /** Pasos de WhatsApp futuros de la gira por persona. */
+  per_person: number
+  /** Altas y vínculos nuevos en el grupo con móvil válido. */
+  people: number
+  total: number
+  remaining: number | null
+  plan_limit: number | null
+  exceeds: boolean
 }
 
 export interface ImportProgress {
@@ -289,7 +307,7 @@ export interface ImportJobListItem {
   created_at: string
   finished_at: string | null
   confirmed_at: string | null
-  created_by_name: string
+  created_by_name: string | null
 }
 
 /** Detalle de GET /api/integrations/import-jobs/{uuid}/ (ImportJobDetailSerializer). */
@@ -299,6 +317,8 @@ export interface ImportJob extends ImportJobListItem {
   /** `team`/`warnings`/`assumptions` pueden faltar mientras procesa o tras la purga. */
   draft: Partial<ImportDraft>
   team_group: ImportTeamGroup | null
+  /** D11. `null` fuera de `ready` o si no aplica. Opcional hasta que lo despliegue el backend. */
+  whatsapp_estimate?: ImportWhatsappEstimate | null
   result: ImportResult | Record<string, never>
   error_message: string
   purged_at: string | null

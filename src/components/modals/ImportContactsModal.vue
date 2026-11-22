@@ -1213,8 +1213,20 @@ watch(
 
     <!-- ── Hoja o foto (importador F1) ──────────────────────────────────────── -->
     <template v-else>
+      <div
+        v-if="authStore.isDemoMode"
+        class="bg-glass border border-line rounded-lg px-3.5 py-4 text-center mb-4"
+        data-test="import-tab-demo"
+      >
+        <p class="text-[14px] font-semibold text-ink-2 mb-0.5">
+          {{ t('onboarding.calendar.demoTitle') }}
+        </p>
+        <p class="text-[13px] text-ink-2">
+          {{ t('onboarding.crew.importDemo') }}
+        </p>
+      </div>
       <p
-        v-if="!importTourUuid"
+        v-else-if="!importTourUuid"
         class="text-[14px] text-ink-2 rounded-sm bg-bg-2 border border-line px-3.5 py-3 mb-4"
         data-test="import-tab-no-tour"
       >
@@ -1267,7 +1279,7 @@ watch(
         </div>
       </template>
       <div
-        v-if="!importTourUuid || !importIsAdmin"
+        v-if="authStore.isDemoMode || !importTourUuid || !importIsAdmin"
         class="flex gap-2"
       >
         <BtnSecondary

@@ -24,6 +24,7 @@ import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropZone from '@/components/import/ImportDropZone.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
 import ImportTeamTable from '@/components/import/ImportTeamTable.vue'
+import ImportWhatsappEstimate from '@/components/import/ImportWhatsappEstimate.vue'
 import {
   confirmImportJob,
   getImportJob,
@@ -399,12 +400,26 @@ function patchRow(patch: ImportRowPatch) {
   })
 }
 
+const importBusy = computed(() => fileStep.value === 'confirming' || savingRows.value.size > 0)
+// D10: quien confirma no tiene contacto en la gira (solo con `false` explícito).
+const importConfirmerOutside = computed(() => {
+  const r = importJob.value?.result
+  return !!r && 'confirmer_in_team' in r && r.confirmer_in_team === false
+})
+
 async function confirmFileImport() {
   const uuid = importJobUuid.value
-  if (!uuid || !importCanConfirm.value) return
-  await patchQueue
+  if (!uuid || !importCanConfirm.value || importBusy.value) return
+  // Antes de esperar la cola: un segundo clic durante la espera ya no lanza otro confirm.
   fileStep.value = 'confirming'
   importError.value = ''
+  await patchQueue
+  if (importJobUuid.value !== uuid) return
+  // Lo último que se guardó puede haber dejado filas por resolver.
+  if (!importCanConfirm.value) {
+    fileStep.value = 'review'
+    return
+  }
   try {
     importJob.value = await confirmImportJob(uuid)
     fileStep.value = 'done'
@@ -967,13 +982,14 @@ async function confirmFileImport() {
           >
             {{ importError }}
           </p>
+          <ImportWhatsappEstimate :estimate="importJob.whatsapp_estimate" />
           <div class="flex flex-col sm:flex-row gap-2">
             <BtnPrimary
               type="button"
               full
               data-test="crew-import-confirm"
-              :disabled="!importCanConfirm || fileStep === 'confirming'"
-              :class="importCanConfirm && fileStep !== 'confirming' ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
+              :disabled="!importCanConfirm || importBusy"
+              :class="importCanConfirm && !importBusy ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
               @click="confirmFileImport"
             >
               {{ t('onboarding.crew.importConfirm') }}
@@ -1004,6 +1020,13 @@ async function confirmFileImport() {
               {{ t('onboarding.crew.importDone', { n: importAdded }, importAdded) }}
             </p>
           </div>
+          <p
+            v-if="importConfirmerOutside"
+            class="text-[14px] text-pending-fg rounded-sm bg-pending-bg px-3 py-2 mb-4 text-left"
+            data-test="crew-import-confirmer-outside"
+          >
+            {{ t('importer.result.confirmerOutside') }}
+          </p>
           <BtnPrimary
             full
             type="button"

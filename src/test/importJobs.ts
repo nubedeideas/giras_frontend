@@ -97,7 +97,8 @@ export function importJob(overrides: Partial<ImportJob> = {}): ImportJob {
       uuid: null,
       name: 'Equipo de la gira',
       exists: false,
-      is_default: true,
+      // Con el grupo sin crear el backend da siempre `is_default=false`.
+      is_default: false,
       default_group_name: null,
     },
     result: {},

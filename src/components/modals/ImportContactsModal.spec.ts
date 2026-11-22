@@ -164,6 +164,18 @@ describe('ImportContactsModal (pestaña Hoja o foto)', () => {
     expect(w.find('[data-test="import-dropzone"]').exists()).toBe(false)
   })
 
+  it('en la demo, "Hoja o foto" explica que no está disponible y no hay zona de arrastre', async () => {
+    setupFetch({ contacts: true })
+    setTour(true)
+    const { useAuthStore } = await import('@/stores/auth')
+    useAuthStore().isDemoMode = true
+    const w = await openFileTab()
+    expect(w.get('[data-test="import-tab-demo"]').text()).toContain(
+      i18n.global.t('onboarding.crew.importDemo')
+    )
+    expect(w.find('[data-test="import-dropzone"]').exists()).toBe(false)
+  })
+
   it('admin → zona de arrastre (y ya no la zona vacía antigua)', async () => {
     stubMatchMedia(false)
     setupFetch({ contacts: true })
