@@ -392,3 +392,33 @@ describe('ImportResultSummary', () => {
     })
   })
 })
+
+describe('ImportResultSummary · hoja de Google (F4)', () => {
+  it('actividades vinculadas a la hoja', () => {
+    const job = importJob({
+      result: {
+        ...result,
+        activities_created: 1,
+        activities_replaced: 0,
+        activities_skipped: 0,
+        activities_linked: 2,
+        linked_uuids: ['ACT-3', 'ACT-4'],
+      },
+    })
+    const w = mount(ImportResultSummary, {
+      props: { job },
+      global: { plugins: [i18n], stubs: { RouterLink: RouterLinkStub } },
+    })
+    expect(w.get('[data-test="import-result-linked"]').text()).toBe(
+      '2 actividades vinculadas a la hoja'
+    )
+  })
+
+  it('sin activities_linked (o 0), nada', () => {
+    const w = mount(ImportResultSummary, {
+      props: { job: importJob({ result: { ...result, activities_linked: 0 } }) },
+      global: { plugins: [i18n], stubs: { RouterLink: RouterLinkStub } },
+    })
+    expect(w.find('[data-test="import-result-linked"]').exists()).toBe(false)
+  })
+})

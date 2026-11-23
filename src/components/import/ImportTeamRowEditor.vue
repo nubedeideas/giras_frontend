@@ -1,13 +1,14 @@
 <script setup lang="ts">
 // Editor de una fila del equipo (F1 §4.2): nombre, apellidos, empresa, teléfono, email, rol,
 // "en el grupo" y "Dar por buena". Solo manda los campos cambiados, en un único PATCH.
+// F4 §4.4: en filas de una hoja de Google, origen "Hoja de Google · {pestaña} · fila {n}".
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import type { ContactRole } from '@/composables/useContactRoles'
 import type { ImportRowFields, ImportTeamRowPatch, ImportTeamRow } from '@/composables/useImportJobs'
-import { rowDisplayName } from '@/utils/importReview'
+import { isSheetRow, rowDisplayName, sheetRowNumber } from '@/utils/importReview'
 
 const props = withDefaults(
   defineProps<{ row: ImportTeamRow; roles?: ContactRole[]; saving?: boolean; error?: string }>(),
@@ -69,6 +70,10 @@ function save(reviewed = false) {
 const sourceText = computed(() => {
   const s = props.row.source_ref
   if (!s) return ''
+  if (isSheetRow(props.row)) {
+    const row = sheetRowNumber(s)
+    if (s.sheet && row) return t('importer.editor.sourceSheet', { tab: s.sheet, row })
+  }
   return t('importer.editor.source', { file: s.filename || t('importer.pastedText'), row: s.row })
 })
 

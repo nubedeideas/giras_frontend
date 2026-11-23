@@ -1,4 +1,9 @@
-import type { ImportActivityRow, ImportActivitySummary, ImportJob } from '@/composables/useImportJobs'
+import type {
+  ImportActivityRow,
+  ImportActivitySummary,
+  ImportJob,
+  ImportJobSheet,
+} from '@/composables/useImportJobs'
 import { activityRow, importJob } from '@/test/importJobs'
 import { activityNeedsAction } from '@/utils/importReview'
 
@@ -146,4 +151,130 @@ export function calendarCancelledRow(overrides: Partial<ImportActivityRow> = {})
     },
     ...overrides,
   })
+}
+
+// ─── Hoja de Google (F4 §3.6.3) ───────────────────────────────────────────────
+
+/** `job.sheet` de una hoja vinculada; `open_url` solo para quien la lee. */
+export function jobSheet(overrides: Partial<ImportJobSheet> = {}): ImportJobSheet {
+  return {
+    subscription_uuid: 'SUB-1',
+    name: 'Gira 2027 · Producción',
+    new: 2,
+    changed: 1,
+    removed: 1,
+    open_url: 'https://docs.google.com/spreadsheets/d/abc123/edit',
+    ...overrides,
+  }
+}
+
+/** Fila de una hoja (`source_ref.kind = 'gsheet'`, pestaña "Itinerario", fila 14). */
+export function sheetActivityRow(overrides: Partial<ImportActivityRow> = {}): ImportActivityRow {
+  const base = calendarActivityRow()
+  return {
+    ...base,
+    client_id: 's1',
+    source_ref: {
+      source: 'd1:Itinerario',
+      document_uuid: 'D1',
+      filename: 'Gira 2027 · Producción.xlsx',
+      sheet: 'Itinerario',
+      row: 'Hoja1!14',
+      page: null,
+      kind: 'gsheet',
+      snippet: '21:00 | Show | WiZink Center',
+      context: 'DAY 3 — MADRID — Mié 3 dic',
+      gid: 123,
+      row_number: 14,
+    },
+    date_source: 'text',
+    timezone_source: 'city',
+    ...overrides,
+  }
+}
+
+/** "Cambió en la hoja" (`updated_in_source` por `sheet_row`): antes a las 20:00, ahora a las 21:00. */
+export function sheetChangedRow(
+  overrides: Partial<ImportActivityRow> = {},
+  match: Partial<ImportActivityRow['match']> = {}
+): ImportActivityRow {
+  return sheetActivityRow({
+    action: 'replace',
+    match: {
+      status: 'updated_in_source',
+      by: 'sheet_row',
+      activity_uuid: 'ACT-1',
+      activity_title: 'Show Madrid',
+      activity_scheduled_at: '2026-12-03T19:00:00Z',
+      activity_type_code: 'show',
+      activity_external_source: 'gsheet',
+      changed_fields: ['scheduled_at'],
+      conflict: false,
+      ...match,
+    },
+    ...overrides,
+  })
+}
+
+/** "Ya no está en la hoja" (`cancelled_in_source`) sin decidir: `skip` + `needs_action`. */
+export function sheetRemovedRow(
+  reason: 'row_removed' | 'slot_gone' = 'row_removed',
+  overrides: Partial<ImportActivityRow> = {}
+): ImportActivityRow {
+  return sheetActivityRow({
+    client_id: 's2',
+    action: 'skip',
+    needs_action: true,
+    match: {
+      status: 'cancelled_in_source',
+      by: 'sheet_row',
+      activity_uuid: 'ACT-2',
+      activity_title: 'Prueba de sonido',
+      activity_scheduled_at: '2026-12-03T15:00:00Z',
+      activity_type_code: 'soundcheck',
+      activity_external_source: 'gsheet',
+      reason,
+    },
+    ...overrides,
+  })
+}
+
+/** Duplicado de un import manual que se vinculará a la hoja (`match.link`, `skip`). */
+export function sheetLinkRow(overrides: Partial<ImportActivityRow> = {}): ImportActivityRow {
+  return sheetActivityRow({
+    client_id: 's3',
+    action: 'skip',
+    match: {
+      status: 'duplicate',
+      by: 'type_time_title',
+      activity_uuid: 'ACT-3',
+      activity_title: 'Show Madrid',
+      activity_scheduled_at: '2026-12-03T20:00:00Z',
+      activity_type_code: 'show',
+      activity_external_source: 'import_job',
+      link: true,
+    },
+    ...overrides,
+  })
+}
+
+/** Job `sheet_sync` en `ready` con `job.sheet` y `summary.activities.to_link`. */
+export function sheetJob(
+  rows: ImportActivityRow[] = [sheetActivityRow()],
+  overrides: Partial<ImportJob> = {}
+): ImportJob {
+  const base = activityJob(rows, { source_kind: 'sheet_sync', sheet: jobSheet() })
+  const summary = base.summary!
+  return {
+    ...base,
+    filenames: ['Gira 2027 · Producción.xlsx'],
+    summary: {
+      ...summary,
+      activities: {
+        ...summary.activities!,
+        to_link: rows.filter((r) => r.action === 'skip' && r.match.link).length,
+      },
+    },
+    ...overrides,
+  }
 }

@@ -5,7 +5,7 @@ import i18n from '@/i18n'
 import { activityRow } from '@/test/importJobs'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
 import ImportSourcePeek from './ImportSourcePeek.vue'
-import { calendarActivityRow } from '@/test/importActivities'
+import { calendarActivityRow, jobSheet, sheetActivityRow } from '@/test/importActivities'
 
 const doc = { tourUuid: 'T1', uuid: 'D2', filename: 'Itinerario_MAD.pdf' }
 const { createObjectURL, revokeObjectURL } = URL
@@ -117,5 +117,45 @@ describe('ImportSourcePeek · calendario (F3)', () => {
     expect(w.get('[data-test="import-source-uid"]').text()).toBe('UID abc-123@icloud.com')
     expect(w.find('[data-test="import-source-recurrence"]').exists()).toBe(false)
     expect(w.find('[data-test="import-source-version"]').exists()).toBe(false)
+  })
+})
+
+describe('ImportSourcePeek · hoja de Google (F4)', () => {
+  it('nombre · pestaña · fila, cabecera, texto de la fila y enlace a la celda', () => {
+    const w = mountPeek({ sourceRef: sheetActivityRow().source_ref, sheet: jobSheet() })
+    expect(w.get('[data-test="import-source-where"]').text()).toBe(
+      'Gira 2027 · Producción · Itinerario · fila 14'
+    )
+    expect(w.get('[data-test="import-source-context"]').text()).toBe(
+      'Cabecera: DAY 3 — MADRID — Mié 3 dic'
+    )
+    expect(w.get('[data-test="import-source-snippet"]').text()).toBe('21:00 | Show | WiZink Center')
+    const link = w.get('[data-test="import-source-sheet-open"]')
+    expect(link.text()).toBe('Abrir en Google Sheets')
+    expect(link.attributes('href')).toBe(
+      'https://docs.google.com/spreadsheets/d/abc123/edit#gid=123&range=A14'
+    )
+    expect(link.attributes('target')).toBe('_blank')
+    expect(link.attributes('rel')).toBe('noopener noreferrer')
+    expect(w.find('[data-test="import-source-uid"]').exists()).toBe(false)
+  })
+
+  it('sin open_url, sin job.sheet o sin gid: sin enlace', () => {
+    let w = mountPeek({ sourceRef: sheetActivityRow().source_ref, sheet: jobSheet({ open_url: null }) })
+    expect(w.find('[data-test="import-source-sheet-open"]').exists()).toBe(false)
+    w = mountPeek({ sourceRef: sheetActivityRow().source_ref })
+    expect(w.find('[data-test="import-source-sheet-open"]').exists()).toBe(false)
+    // Sin hoja del job, el nombre del archivo de la instantánea.
+    expect(w.get('[data-test="import-source-where"]').text()).toBe(
+      'Gira 2027 · Producción.xlsx · Itinerario · fila 14'
+    )
+    const noGid = { ...sheetActivityRow().source_ref, gid: undefined }
+    w = mountPeek({ sourceRef: noGid, sheet: jobSheet() })
+    expect(w.find('[data-test="import-source-sheet-open"]').exists()).toBe(false)
+  })
+
+  it('un open_url en una fila que no es de hoja no pinta enlace', () => {
+    const w = mountPeek({ sheet: jobSheet() })
+    expect(w.find('[data-test="import-source-sheet-open"]').exists()).toBe(false)
   })
 })

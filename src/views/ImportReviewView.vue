@@ -9,6 +9,8 @@
 // Los PATCH van en cola secuencial; cada respuesta sustituye al job entero.
 // F3 §4.4: cabecera "Cambios de {calendario}" en jobs de suscripción, avisos `ics_*` con recuento,
 // filas que ya no están en el feed (`detected.ical.removed`) y cancelaciones en el paso de avisos.
+// F4 §4.4: cabecera "Cambios de la hoja {nombre}" + "Ver vinculación" en jobs de una hoja de Google;
+// el job se confirma sin cambios como uno de calendario y "Ver origen" recibe la hoja (`open_url`).
 import { computed, onMounted, ref, watch } from 'vue'
 import { DateTime } from 'luxon'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
@@ -56,7 +58,8 @@ import {
   activityTypeOptions,
   apiErrorRows,
   canConfirm,
-  isCalendarJob,
+  isLiveSourceJob,
+  isSheetJob,
   detectedActivities,
   detectedTeam,
   errorKey,
@@ -71,6 +74,7 @@ import {
 } from '@/utils/importReview'
 import { FALLBACK_TOUR_ZONE } from '@/utils/timezones'
 import { calendarCountsText } from '@/utils/icalSubscriptions'
+import { sheetCountsText } from '@/utils/sheetSubscriptions'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -261,7 +265,9 @@ const readyPadding = computed(() => {
 const pending = computed(() => pendingCounts(job.value))
 const needsAction = computed(() => pending.value.total)
 const confirmable = computed(() => canConfirm(job.value))
-const calendarJob = computed(() => isCalendarJob(job.value))
+/** Calendario o hoja de Google: se puede confirmar sin cambios para darlo por revisado. */
+const liveJob = computed(() => isLiveSourceJob(job.value))
+const sheetJob = computed(() => isSheetJob(job.value))
 
 const teamRows = computed(() => job.value?.draft?.team ?? [])
 const activityRows = computed(() => job.value?.draft?.activities ?? [])
@@ -354,6 +360,18 @@ const calendarHeader = computed(() => {
   return counts
     ? t('importer.calendar.header', { name: c.name, counts })
     : t('importer.calendar.headerNoCounts', { name: c.name })
+})
+/** F4: job de una hoja de Google vinculada (nombre, recuentos y `open_url` para quien la lee). */
+const sheet = computed(() => job.value?.sheet ?? null)
+/** "Cambios de la hoja {nombre}: 3 nuevas · 1 ya no está" (solo los recuentos mayores que 0). */
+const sheetHeader = computed(() => {
+  const sh = sheet.value
+  if (!sh) return ''
+  const name = sh.name || t('importer.activities.fromSheetOnly')
+  const counts = sheetCountsText((key, named, n) => t(key, named, n), sh)
+  return counts
+    ? t('importer.sheet.header', { name, counts })
+    : t('importer.sheet.headerNoCounts', { name })
 })
 const removedUuids = computed(() => removedActivityUuids(job.value))
 const toCancel = computed(() => summary.value?.activities?.to_cancel ?? 0)
@@ -591,7 +609,9 @@ function refreshAfterConfirm(j: ImportJob, hadTeam: boolean) {
   if (hadTeam || activities === 0) void contactsStore.fetchContacts()
   void reminderCatalog.invalidate(j.tour)
   if (activities > 0 || r.tour_activated || r.notifications_paused) void toursStore.loadTours()
-  if (activities > 0 && toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
+  // F4: vincular cambia el origen de actividades existentes (lo pinta su detalle).
+  const touched = activities + (r.activities_linked ?? 0)
+  if (touched > 0 && toursStore.activeTour?.uuid === j.tour) void activitiesStore.loadActivities()
 }
 
 function onNoticesConfirm(pause: boolean) {
@@ -807,6 +827,20 @@ function onProcessed(j: ImportJob) {
               </RouterLink>
             </p>
             <p
+              v-if="sheet"
+              class="flex flex-wrap items-center gap-x-2 text-[14px] text-ink"
+              data-test="import-sheet-header"
+            >
+              <span>{{ sheetHeader }}</span>
+              <RouterLink
+                :to="calendarLink"
+                class="inline-flex items-center min-h-[44px] lg:min-h-0 font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+                data-test="import-sheet-link"
+              >
+                {{ t('importer.sheet.viewLink') }}
+              </RouterLink>
+            </p>
+            <p
               v-if="detectedItems.length"
               class="text-[14px] text-ink-2"
               data-test="import-detected"
@@ -993,6 +1027,7 @@ function onProcessed(j: ImportJob) {
                 :source-documents="sourceDocuments"
                 :recalculating="assumptionsSaving"
                 :removed-uuids="removedUuids"
+                :sheet="sheet"
                 @patch="patchRow"
                 @city="onCityZone"
                 @edit="onEdit"
@@ -1036,7 +1071,8 @@ function onProcessed(j: ImportJob) {
             :estimate="whatsappEstimate"
             :pending="needsAction"
             :mode="confirmMode"
-            :calendar="calendarJob"
+            :calendar="liveJob"
+            :sheet="sheetJob"
             @confirm="confirm()"
             @notices="openNotices"
             @discard="openDiscard"

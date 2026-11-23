@@ -6,6 +6,11 @@ import {
   calendarActivityRow,
   calendarCancelledRow,
   calendarChangedRow,
+  jobSheet,
+  sheetActivityRow,
+  sheetChangedRow,
+  sheetLinkRow,
+  sheetRemovedRow,
 } from '@/test/importActivities'
 import ImportActivityRow from './ImportActivityRow.vue'
 
@@ -225,5 +230,66 @@ describe('ImportActivityRow', () => {
       expect(normal.find('[data-test="import-activity-gone"]').exists()).toBe(false)
       expect(normal.find('[data-test="import-activity-restore"]').exists()).toBe(true)
     })
+  })
+})
+
+describe('ImportActivityRow · hoja de Google (F4)', () => {
+  it('origen "Hoja de Google · pestaña · fila" y "Ver origen" con el enlace a la celda', async () => {
+    const w = mountRow({ row: sheetActivityRow(), sheet: jobSheet() })
+    expect(w.text()).toContain('Hoja de Google · Itinerario · fila 14')
+    expect(w.text()).not.toContain('Hoja1!14')
+    await w.get('[data-test="import-activity-peek"]').trigger('click')
+    expect(w.get('[data-test="import-source-where"]').text()).toBe(
+      'Gira 2027 · Producción · Itinerario · fila 14'
+    )
+    expect(w.get('[data-test="import-source-sheet-open"]').attributes('href')).toBe(
+      'https://docs.google.com/spreadsheets/d/abc123/edit#gid=123&range=A14'
+    )
+  })
+
+  it('sin open_url (otro admin) no hay enlace a la hoja', async () => {
+    const w = mountRow({ row: sheetActivityRow(), sheet: jobSheet({ open_url: null }) })
+    await w.get('[data-test="import-activity-peek"]').trigger('click')
+    expect(w.find('[data-test="import-source-sheet-open"]').exists()).toBe(false)
+  })
+
+  it('cambió en la hoja: insignia scheduled y, con conflicto, pending', () => {
+    let w = mountRow({ row: sheetChangedRow() })
+    let badge = w.get('[data-test="import-activity-status"]')
+    expect(badge.attributes('data-status')).toBe('scheduled')
+    expect(badge.text()).toBe('Cambió en la hoja → se actualizará')
+    w = mountRow({ row: sheetChangedRow({ needs_action: true }, { conflict: true }) })
+    badge = w.get('[data-test="import-activity-status"]')
+    expect(badge.attributes('data-status')).toBe('pending')
+    expect(badge.text()).toBe('Cambió en la hoja y en Giras')
+  })
+
+  it('ya no está en la hoja: pending, sin Editar ni Omitir; slot_gone con su texto; cancel en failed', () => {
+    let w = mountRow({ row: sheetRemovedRow() })
+    const badge = w.get('[data-test="import-activity-status"]')
+    expect(badge.attributes('data-status')).toBe('pending')
+    expect(badge.text()).toBe('Ya no está en la hoja')
+    expect(w.find('[data-test="import-activity-edit"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-activity-skip"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-activity-restore"]').exists()).toBe(false)
+    expect(w.get('[data-test="import-activity-title"]').classes()).not.toContain('line-through')
+    w = mountRow({ row: sheetRemovedRow('slot_gone') })
+    expect(w.get('[data-test="import-activity-status"]').text()).toBe(
+      'La fila ya no incluye esta actividad'
+    )
+    w = mountRow({ row: sheetRemovedRow('row_removed', { action: 'cancel', needs_action: false }) })
+    expect(w.get('[data-test="import-activity-status"]').attributes('data-status')).toBe('failed')
+    expect(w.get('[data-test="import-activity-title"]').classes()).toContain('line-through')
+  })
+
+  it('se vinculará: insignia sent, sin tachar, sin Editar ni Omitir/Recuperar', () => {
+    const w = mountRow({ row: sheetLinkRow() })
+    const badge = w.get('[data-test="import-activity-status"]')
+    expect(badge.attributes('data-status')).toBe('sent')
+    expect(badge.text()).toBe('Ya está en la gira → se vinculará a la hoja')
+    expect(w.get('[data-test="import-activity-title"]').classes()).not.toContain('line-through')
+    expect(w.find('[data-test="import-activity-edit"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-activity-skip"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-activity-restore"]').exists()).toBe(false)
   })
 })

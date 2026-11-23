@@ -6,6 +6,9 @@ import {
   activityJob,
   calendarCancelledRow,
   calendarChangedRow,
+  sheetChangedRow,
+  sheetLinkRow,
+  sheetRemovedRow,
 } from '@/test/importActivities'
 import type { ImportActivityRow } from '@/composables/useImportJobs'
 import ImportActivityResolver from './ImportActivityResolver.vue'
@@ -261,5 +264,59 @@ describe('ImportActivityResolver · calendario (F3)', () => {
     ).toBe('true')
     w = mountResolver(calendarCancelledRow({ needs_action: false }))
     expect(w.get('[data-test="resolver-calendar-cancel-keep"]').attributes('aria-pressed')).toBe('true')
+  })
+})
+
+describe('ImportActivityResolver · hoja de Google (F4)', () => {
+  it('"Cambió en la hoja" con conflicto: Actualizar · Mantener la de Giras', async () => {
+    const w = mountResolver(sheetChangedRow({ needs_action: true }, { conflict: true }))
+    const block = w.get('[data-test="resolver-calendar-change"]')
+    expect(block.text()).toContain('Cambió en la hoja')
+    expect(block.text()).not.toContain('calendario')
+    expect(w.get('[data-test="resolver-calendar-conflict"]').text()).toBe(
+      'La cambiaste en Giras después de importarla'
+    )
+    await w.get('[data-test="resolver-calendar-update"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([[{ client_id: 's1', action: 'replace', reviewed: true }]])
+  })
+
+  it('"Ya no está en la hoja" y "La fila ya no incluye esta actividad": Cancelar actividad · Mantener', async () => {
+    let w = mountResolver(sheetRemovedRow())
+    let block = w.get('[data-test="resolver-calendar-cancel"]')
+    expect(block.text()).toContain('Ya no está en la hoja')
+    expect(block.text()).toContain('Prueba de sonido')
+    await w.get('[data-test="resolver-calendar-cancel-activity-btn"]').trigger('click')
+    await w.get('[data-test="resolver-calendar-cancel-keep"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([
+      [{ client_id: 's2', action: 'cancel', reviewed: true }],
+      [{ client_id: 's2', action: 'skip' }],
+    ])
+    w = mountResolver(sheetRemovedRow('slot_gone'))
+    block = w.get('[data-test="resolver-calendar-cancel"]')
+    expect(block.text()).toContain('La fila ya no incluye esta actividad')
+    // Sin editor: ni tipo, ni fecha, ni hora.
+    expect(w.find('[data-test="resolver-type"]').exists()).toBe(false)
+    expect(w.find('[data-test="resolver-time"]').exists()).toBe(false)
+  })
+
+  it('se vinculará: Vincular marcado; "No vincular" crea como nueva', async () => {
+    const w = mountResolver(sheetLinkRow())
+    const block = w.get('[data-test="resolver-sheet-link"]')
+    expect(block.text()).toContain('Ya está en la gira')
+    expect(w.get('[data-test="resolver-sheet-link-activity"]').text()).toContain('Show Madrid')
+    expect(w.get('[data-test="resolver-sheet-link-help"]').text()).toContain('la vincularemos a la hoja')
+    expect(w.get('[data-test="resolver-sheet-link-btn"]').attributes('aria-pressed')).toBe('true')
+    expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
+    await w.get('[data-test="resolver-sheet-unlink"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([[{ client_id: 's3', action: 'create', reviewed: true }]])
+  })
+
+  it('"No vincular" elegido: se puede volver a Vincular (skip)', async () => {
+    const w = mountResolver(sheetLinkRow({ action: 'create', reviewed: true }))
+    expect(w.get('[data-test="resolver-sheet-unlink"]').attributes('aria-pressed')).toBe('true')
+    expect(w.get('[data-test="resolver-sheet-link-help"]').text()).toContain('actividad nueva')
+    expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
+    await w.get('[data-test="resolver-sheet-link-btn"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([[{ client_id: 's3', action: 'skip' }]])
   })
 })

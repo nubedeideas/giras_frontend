@@ -2,7 +2,8 @@
 // Un día del bloque Actividades (F2 §4.3): cabecera con la fecha local (`font-time tnum`), la
 // ciudad y el recuento, y sus filas. Bajo cada fila, el editor desplegado (slot `expanded`, en
 // escritorio) o el resolutor si le queda algo por decidir. F3: las filas cambiadas o canceladas en
-// el calendario llevan siempre su resolutor (se puede cambiar de opción).
+// el calendario llevan siempre su resolutor (se puede cambiar de opción). F4: igual las de una hoja
+// y las que se vincularán a ella (Vincular · No vincular).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImportActivityResolver from '@/components/import/ImportActivityResolver.vue'
@@ -11,6 +12,7 @@ import type {
   ImportActivityRow as Row,
   ImportActivityRowPatch,
   ImportCityTz,
+  ImportJobSheet,
 } from '@/composables/useImportJobs'
 import {
   activityNeedsAction,
@@ -18,6 +20,7 @@ import {
   formatDayLabel,
   isCalendarCancelRow,
   isCalendarChangeRow,
+  isSheetLinkRow,
   type ActivityTypeOption,
   type ImportSourceDocument,
 } from '@/utils/importReview'
@@ -38,6 +41,8 @@ const props = withDefaults(
     titles?: Record<string, string>
     /** F3: `activity_uuid` de las actividades que ya no están en el feed. */
     removedUuids?: string[]
+    /** F4: hoja vinculada del job (para "Ver origen"). */
+    sheet?: ImportJobSheet | null
   }>(),
   {
     types: () => [],
@@ -47,6 +52,7 @@ const props = withDefaults(
     sourceDocuments: () => ({}),
     titles: () => ({}),
     removedUuids: () => [],
+    sheet: null,
   }
 )
 const emit = defineEmits<{
@@ -91,7 +97,8 @@ function hasResolver(r: Row): boolean {
     s === 'duplicate_in_draft_kept' ||
     (s === 'new' && r.match?.status === 'possible_duplicate') ||
     isCalendarChangeRow(r) ||
-    isCalendarCancelRow(r)
+    isCalendarCancelRow(r) ||
+    isSheetLinkRow(r)
   )
 }
 
@@ -145,6 +152,7 @@ function sourceDocument(r: Row): ImportSourceDocument | null {
         :selected="selectedId === r.client_id"
         :source-document="sourceDocument(r)"
         :removed="isRemoved(r)"
+        :sheet="sheet"
         @patch="emit('patch', $event)"
         @edit="emit('edit', $event)"
       >
