@@ -9,6 +9,7 @@ import CalendarGrid from '@/components/calendar/CalendarGrid.vue'
 import CalendarSidePanel from '@/components/calendar/CalendarSidePanel.vue'
 import ActivityDetail from '@/components/activities/ActivityDetail.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
+import DetailPane from '@/components/ui/DetailPane.vue'
 
 const { t } = useI18n()
 const cal = useCalendarStore()
@@ -44,9 +45,8 @@ const showMobileDetail = computed(
     instead of two differently-sized panels briefly competing for space (or,
     with out-in alone and no wrapper, the grid flashing to full width in the
     gap between the old panel leaving and the new one entering). -->
-    <div
+    <DetailPane
       v-if="!isMobile"
-      class="overflow-hidden"
       :class="activitiesStore.selectedUuid ? 'flex-1' : 'w-72 flex-shrink-0'"
     >
       <Transition
@@ -65,14 +65,14 @@ const showMobileDetail = computed(
         <div
           v-else
           key="empty"
-          class="h-full my-3 ml-1.5 mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex items-center justify-center text-center px-4"
+          class="flex-1 my-3 ml-1.5 mr-3 bg-bg-3 rounded-2xl border border-line shadow-[0_4px_20px_var(--shadow-sm)] flex items-center justify-center text-center px-4"
         >
           <p class="text-[14px] text-ink-3">
             {{ t('calendar.selectActivity') }}
           </p>
         </div>
       </Transition>
-    </div>
+    </DetailPane>
   </div>
 
   <!-- Mobile only — full-screen overlay -->

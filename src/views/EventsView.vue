@@ -9,6 +9,7 @@ import { useIsMobile } from '@/composables/useIsMobile'
 import ActivityListPanel from '@/components/activities/ActivityListPanel.vue'
 import ActivityDetail from '@/components/activities/ActivityDetail.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
+import DetailPane from '@/components/ui/DetailPane.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import SelectTourModal from '@/components/modals/SelectTourModal.vue'
 import AddActivityModal from '@/components/modals/AddActivityModal.vue'
@@ -100,9 +101,9 @@ watch(
     />
 
     <!-- Detail panel (desktop only — mobile uses the full-screen overlay below) -->
-    <div
+    <DetailPane
       v-if="!isMobile"
-      class="flex-1 overflow-hidden"
+      class="flex-1"
     >
       <Transition
         name="fade"
@@ -168,7 +169,7 @@ watch(
           </p>
         </div>
       </Transition>
-    </div>
+    </DetailPane>
 
     <!-- Detail panel (mobile only — full-screen overlay) -->
     <MobileDetailOverlay

@@ -8,6 +8,10 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 // immediately on change. Used where screen space is tight (mobile Events'
 // main list panel). Full mode (default) is the same design as the post-login
 // splash (DashboardView sin gira) — icon chip, heading, select + confirm button.
+// `compact`: solo el select. Sin `compact`: mismo diseño que el splash post-login.
+// Sin comentarios en la raíz del template: en desarrollo Vue los conserva y la raíz pasa a ser
+// un Fragment; dentro de <Transition mode="out-in"> (EventsView, ContactsView) el Fragment se
+// quita sin llamar a afterLeave y el hijo entrante no llega a montarse nunca.
 defineProps<{ compact?: boolean }>()
 const emit = defineEmits<{ confirmed: [id: number] }>()
 
@@ -30,7 +34,6 @@ function onCompactChange(e: Event) {
 </script>
 
 <template>
-  <!-- Compact: just the select -->
   <div
     v-if="compact"
     class="px-4 py-6"
@@ -66,8 +69,6 @@ function onCompactChange(e: Event) {
       {{ t('home.noTours') }}
     </p>
   </div>
-
-  <!-- Full: same design as the post-login splash -->
   <div
     v-else
     class="relative h-full overflow-y-auto"

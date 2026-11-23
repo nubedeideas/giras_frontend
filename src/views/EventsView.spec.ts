@@ -70,6 +70,17 @@ describe('EventsView: deep link', () => {
   })
 })
 
+describe('EventsView: panel de detalle (escritorio)', () => {
+  it('ActivityDetail va dentro del DetailPane flex en columna (scroll del panel derecho)', async () => {
+    const { w } = await mountAt({})
+    useActivitiesStore().selectedUuid = UUID
+    await flushPromises()
+    const pane = w.get('[data-testid="detail-pane"]')
+    expect(pane.classes()).toEqual(expect.arrayContaining(['flex', 'flex-col', 'min-h-0', 'flex-1']))
+    expect(pane.find('activity-detail-stub').exists()).toBe(true)
+  })
+})
+
 describe('EventsView: importar agenda (F2 A1, A6, A7)', () => {
   const importStubs = {
     ...stubs,

@@ -10,6 +10,7 @@ import ContactCard from '@/components/contacts/ContactCard.vue'
 import ContactDetail from '@/components/contacts/ContactDetail.vue'
 import ContactForm from '@/components/contacts/ContactForm.vue'
 import MobileDetailOverlay from '@/components/ui/MobileDetailOverlay.vue'
+import DetailPane from '@/components/ui/DetailPane.vue'
 import ImportContactsModal from '@/components/modals/ImportContactsModal.vue'
 import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -420,9 +421,9 @@ const groupedContacts = computed(() => {
     </div>
 
     <!-- Detail / Edit panel (desktop only — mobile uses the full-screen overlay below) -->
-    <div
+    <DetailPane
       v-if="!isMobile"
-      class="flex-1 overflow-hidden"
+      class="flex-1"
     >
       <Transition
         name="fade"
@@ -450,7 +451,7 @@ const groupedContacts = computed(() => {
         <div
           v-else
           key="empty"
-          class="h-full bg-bg-3 flex flex-col items-center justify-center gap-2.5 text-ink-3"
+          class="flex-1 bg-bg-3 flex flex-col items-center justify-center gap-2.5 text-ink-3"
         >
           <div
             class="w-12 h-12 rounded-[15px] bg-glass border border-line flex items-center justify-center"
@@ -479,7 +480,7 @@ const groupedContacts = computed(() => {
           </p>
         </div>
       </Transition>
-    </div>
+    </DetailPane>
 
     <!-- Detail / Edit panel (mobile only — full-screen overlay) -->
     <MobileDetailOverlay

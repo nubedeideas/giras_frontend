@@ -56,7 +56,10 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div
+          data-testid="mobile-detail-body"
+          class="flex-1 min-h-0 flex flex-col overflow-hidden"
+        >
           <slot />
         </div>
       </div>
