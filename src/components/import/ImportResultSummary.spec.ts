@@ -6,6 +6,7 @@ import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import { importJob } from '@/test/importJobs'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 import type { Tour } from '@/types'
 import ImportResultSummary from './ImportResultSummary.vue'
 
@@ -191,6 +192,17 @@ describe('ImportResultSummary', () => {
 
     it('sin admin no hay "Gestionar enlaces" ni "Comparte la agenda"', () => {
       useToursStore().tours = [tour({ current_user_is_admin: false })]
+      const fn = vi.fn<typeof fetch>()
+      vi.stubGlobal('fetch', fn)
+      const w = mountWith(f2Result({ contact_uuids: ['C1'] }))
+      expect(w.find('[data-test="import-result-portal"]').exists()).toBe(false)
+      expect(w.find('[data-test="import-crew-links"]').exists()).toBe(false)
+      expect(fn).not.toHaveBeenCalled()
+    })
+
+    it('en la cuenta demo, aunque administre, no hay enlaces del portal', () => {
+      useToursStore().tours = [tour()]
+      useAuthStore().isDemoMode = true
       const fn = vi.fn<typeof fetch>()
       vi.stubGlobal('fetch', fn)
       const w = mountWith(f2Result({ contact_uuids: ['C1'] }))

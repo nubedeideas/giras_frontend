@@ -151,4 +151,55 @@ describe('useSwipeAction', () => {
     swipe.onClickCapture(next)
     expect(next.stopPropagation).not.toHaveBeenCalled()
   })
+
+  it('en el sentido no permitido no se activa (no enseña "Omitir") y no omite', () => {
+    const { swipe, onSwipe } = setup('left')
+    swipe.onPointerdown(ev(100, 100, 0))
+    swipe.onPointermove(ev(160, 101, 50))
+    expect(swipe.active.value).toBe(false)
+    expect(swipe.offset.value).toBe(0)
+    swipe.onPointermove(ev(80, 101, 80))
+    expect(swipe.active.value).toBe(true)
+    swipe.onPointermove(ev(200, 101, 100))
+    expect(swipe.active.value).toBe(false)
+    swipe.onPointerup(ev(200, 101, 100))
+    expect(onSwipe).not.toHaveBeenCalled()
+  })
+
+  it('un arrastre en el sentido no permitido también se come el clic del final', () => {
+    const { swipe } = setup('left')
+    drag(swipe, 50, 250, 100)
+    const click = { stopPropagation: vi.fn(), preventDefault: vi.fn() } as unknown as Event
+    swipe.onClickCapture(click)
+    expect(click.stopPropagation).toHaveBeenCalled()
+  })
+
+  it('un toque que empieza en un control (campo, botón, enlace, data-no-swipe) no arranca el gesto', () => {
+    const { swipe, onSwipe } = setup('left')
+    for (const html of [
+      '<input>',
+      '<select></select>',
+      '<textarea></textarea>',
+      '<button><span>x</span></button>',
+      '<a href="#">x</a>',
+      '<div data-no-swipe><span>x</span></div>',
+    ]) {
+      const host = document.createElement('div')
+      host.innerHTML = html
+      const target = host.querySelector('span') ?? host.firstElementChild
+      swipe.onPointerdown({ ...ev(250, 100, 0), target })
+      swipe.onPointermove(ev(150, 100, 50))
+      swipe.onPointermove(ev(50, 100, 100))
+      expect(swipe.active.value).toBe(false)
+      swipe.onPointerup(ev(50, 100, 100))
+    }
+    expect(onSwipe).not.toHaveBeenCalled()
+    // En el cuerpo de la tarjeta sí.
+    const plain = document.createElement('div')
+    swipe.onPointerdown({ ...ev(250, 100, 0), target: plain })
+    swipe.onPointermove(ev(150, 100, 50))
+    swipe.onPointermove(ev(50, 100, 100))
+    swipe.onPointerup(ev(50, 100, 100))
+    expect(onSwipe).toHaveBeenCalledWith('left')
+  })
 })

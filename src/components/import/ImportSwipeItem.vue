@@ -32,7 +32,7 @@ const { offset, active, dragDirection } = swipe
 
 <template>
   <li
-    class="relative rounded overflow-hidden focus:outline-none"
+    class="relative rounded overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
     tabindex="-1"
   >
     <div

@@ -174,6 +174,9 @@ export function icalApiErrorKey(
         return { key: 'ical.errors.sync_disabled' }
       case 'tour_required':
         return { key: 'ical.form.tourRequired' }
+      // F5a: reanudar una pausada porque quien la añadió ya no administra la gira.
+      case 'owner_not_admin':
+        return { key: 'ical.ownerNotAdmin.resumeBlocked' }
     }
   }
   if (e instanceof ApiError) {

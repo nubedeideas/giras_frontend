@@ -2599,6 +2599,7 @@ export default {
       takeOver: 'Hacerme responsable',
       taking: 'Un momento…',
       done: 'Ahora eres responsable de este calendario. Lo sincronizamos enseguida.',
+      resumeBlocked: 'Para reanudarlo, pulsa Hacerme responsable.',
     },
   },
 
@@ -3345,6 +3346,7 @@ export default {
       partial_row: 'Fila incompleta',
       in_past: 'Ya ha pasado: no tendrá recordatorios',
       checkout_inferred: 'Salida deducida del fin del evento',
+      date_from_cell: 'Fecha tomada de la celda',
     },
     tzSource: {
       iata: 'Por el aeropuerto',

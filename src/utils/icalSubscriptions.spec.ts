@@ -111,6 +111,10 @@ describe('icalApiErrorKey', () => {
     expect(icalApiErrorKey(err('too_many_subscriptions', 400, { max: 3 })).named).toEqual({ max: 3 })
     expect(icalApiErrorKey(err('tour_closed')).key).toBe('ical.errors.tour_closed')
     expect(icalApiErrorKey(err('sync_disabled')).key).toBe('ical.errors.sync_disabled')
+    expect(icalApiErrorKey(err('owner_not_admin')).key).toBe('ical.ownerNotAdmin.resumeBlocked')
+    expect(i18n.global.t('ical.ownerNotAdmin.resumeBlocked')).toBe(
+      'Para reanudarlo, pulsa Hacerme responsable.'
+    )
     expect(icalApiErrorKey(err('sync_too_soon', 429, { retry_after_seconds: 130 }))).toEqual({
       key: 'ical.errors.sync_too_soon',
       named: { minutes: 3 },

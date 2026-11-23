@@ -2582,6 +2582,7 @@ export default {
       takeOver: 'Take over',
       taking: 'One moment…',
       done: "You're now in charge of this calendar. We'll sync it shortly.",
+      resumeBlocked: 'To resume it, tap Take over.',
     },
   },
 
@@ -3324,6 +3325,7 @@ export default {
       partial_row: 'Incomplete row',
       in_past: 'Already past: no reminders',
       checkout_inferred: 'Check-out taken from the event end',
+      date_from_cell: 'Date taken from the cell',
     },
     tzSource: {
       iata: 'From the airport',

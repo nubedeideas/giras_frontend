@@ -5,7 +5,7 @@ import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import { activityRow, importJob, notificationsPreview, teamRow } from '@/test/importJobs'
-import { activityJob, calendarCancelledRow } from '@/test/importActivities'
+import { activityJob, calendarCancelledRow, calendarChangedRow } from '@/test/importActivities'
 import { stubMatchMedia } from '@/test/reminders'
 import { useActivitiesStore } from '@/stores/activities'
 import { useContactsStore } from '@/stores/contacts'
@@ -18,7 +18,7 @@ import ImportReviewView from './ImportReviewView.vue'
 // Revisión de actividades (F2 §4.3, §6.4). `fetch` por URL: job, roles y tipos van en paralelo.
 
 type Call = { method: string; path: string; search: string; body: Record<string, unknown> | null }
-type Handler = (call: Call) => Response | Promise<Response> | undefined
+type Handler = (call: Call) => Response | Promise<Response | undefined> | undefined
 
 const JOB_PATH = '/integrations/import-jobs/J1/'
 const page = (results: unknown[]) => ({ count: results.length, next: null, previous: null, results })
@@ -385,6 +385,139 @@ describe('ImportReviewView · móvil (F5a)', () => {
       w.unmount()
     }
   }, 10_000)
+
+  it('un conflicto sin decidir se omite sin "Deshacer" (el backend ya guarda la decisión)', async () => {
+    stubMatchMedia(true)
+    const conflictRow = calendarChangedRow(
+      { client_id: 'a2', title: 'Show Madrid', action: 'replace', needs_action: true },
+      { conflict: true }
+    )
+    const job = mixedJob([activityRow({ client_id: 'a1' }), conflictRow])
+    const skipped = mixedJob([activityRow({ client_id: 'a1' }), { ...conflictRow, action: 'skip', needs_action: false }])
+    const log = setupFetch(job, (call) =>
+      call.path === `${JOB_PATH}draft/` && call.method === 'PATCH' ? jsonResponse(skipped) : undefined
+    )
+    const w = await mountView()
+    try {
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      expect(log.filter((c) => c.method === 'PATCH').map((c) => c.body)).toEqual([
+        { rows: [{ client_id: 'a2', action: 'skip' }] },
+      ])
+      expect(w.get('[data-test="import-undo"]').text()).toBe('Omitida: Show Madrid')
+      expect(w.find('[data-test="import-undo-action"]').exists()).toBe(false)
+      // "Recuperar" sigue en la tarjeta.
+      expect(w.find('[data-row="a2"] [data-test="import-activity-restore"]').exists()).toBe(true)
+    } finally {
+      w.unmount()
+    }
+  })
+
+  it('un conflicto ya decidido (sin needs_action) sí ofrece Deshacer', async () => {
+    stubMatchMedia(true)
+    const decided = calendarChangedRow(
+      { client_id: 'a2', title: 'Show Madrid', action: 'replace', needs_action: false, reviewed: true },
+      { conflict: true }
+    )
+    const job = mixedJob([activityRow({ client_id: 'a1' }), decided])
+    const log = setupFetch(job, (call) =>
+      call.path === `${JOB_PATH}draft/` && call.method === 'PATCH'
+        ? jsonResponse(mixedJob([activityRow({ client_id: 'a1' }), { ...decided, action: 'skip' }]))
+        : undefined
+    )
+    const w = await mountView()
+    try {
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      await w.get('[data-test="import-undo-action"]').trigger('click')
+      await flushPromises()
+      expect(log.filter((c) => c.method === 'PATCH').map((c) => c.body)[1]).toEqual({
+        rows: [{ client_id: 'a2', action: 'replace', reviewed: true }],
+      })
+    } finally {
+      w.unmount()
+    }
+  })
+
+  it('Deshacer de una persona vinculada a mano devuelve también el contacto elegido', async () => {
+    stubMatchMedia(true)
+    const linked = teamRow({
+      client_id: 't2',
+      display_name: 'Marta',
+      action: 'link',
+      link_contact_uuid: 'C9',
+    })
+    const base = mixedJob()
+    const job = { ...base, draft: { ...base.draft, team: [teamRow({ client_id: 't1' }), linked] } }
+    const skipped = {
+      ...base,
+      draft: { ...base.draft, team: [teamRow({ client_id: 't1' }), { ...linked, action: 'skip' as const }] },
+    }
+    const log = setupFetch(job, (call) => {
+      if (call.path !== `${JOB_PATH}draft/` || call.method !== 'PATCH') return undefined
+      const rows = (call.body?.rows ?? []) as { action?: string }[]
+      return jsonResponse(rows[0]?.action === 'skip' ? skipped : job)
+    })
+    const w = await mountView()
+    try {
+      // La fila vinculada está en las "Listas" del bloque de equipo.
+      const ready = w.find('[data-test="import-block-team"] [data-test="import-section-ready"]')
+      if (ready.exists() && ready.attributes('aria-expanded') === 'false') await ready.trigger('click')
+      await w.get('[data-row="t2"] [data-test="import-row-skip"]').trigger('click')
+      await flushPromises()
+      await w.get('[data-test="import-undo-action"]').trigger('click')
+      await flushPromises()
+      expect(log.filter((c) => c.method === 'PATCH').map((c) => c.body)).toEqual([
+        { rows: [{ client_id: 't2', action: 'skip' }] },
+        { rows: [{ client_id: 't2', action: 'link', link_contact_uuid: 'C9' }] },
+      ])
+    } finally {
+      w.unmount()
+    }
+  })
+
+  it('el aviso de Deshacer no sobrevive a un cambio de job', async () => {
+    stubMatchMedia(true)
+    const job = mixedJob()
+    const skipped = mixedJob([
+      activityRow({ client_id: 'a1' }),
+      activityRow({ client_id: 'a2', title: 'Show en La Riviera', action: 'skip' }),
+    ])
+    const job2 = { ...job, uuid: 'J2' }
+    let release: (() => void) | null = null
+    const log = setupFetch(job, async (call) => {
+      if (call.path === '/integrations/import-jobs/J2/' && call.method === 'GET') return jsonResponse(job2)
+      if (call.path !== `${JOB_PATH}draft/` || call.method !== 'PATCH') return undefined
+      if (!release) {
+        await new Promise<void>((r) => (release = r))
+      }
+      return jsonResponse(skipped)
+    })
+    const w = await mountView()
+    try {
+      // El PATCH de omitir acaba cuando ya se está en otro job: no sale el aviso.
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      await router.push('/tour/import/J2')
+      await flushPromises()
+      ;(release as unknown as () => void)()
+      await flushPromises()
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(false)
+
+      // Con el aviso a la vista, cambiar de job lo quita.
+      await router.push('/tour/import/J1')
+      await flushPromises()
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(true)
+      await router.push('/tour/import/J2')
+      await flushPromises()
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(false)
+      expect(log.filter((c) => c.method === 'PATCH')).toHaveLength(2)
+    } finally {
+      w.unmount()
+    }
+  })
 
   it('el "Mantener" de un resolutor no ofrece Deshacer; un PATCH fallido tampoco', async () => {
     stubMatchMedia(true)

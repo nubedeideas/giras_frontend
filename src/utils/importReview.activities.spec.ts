@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import i18n from '@/i18n'
 import { activityRow, importJob, teamRow } from '@/test/importJobs'
 import { activityJob } from '@/test/importActivities'
 import type { ImportActivityRow } from '@/composables/useImportJobs'
@@ -99,6 +100,13 @@ describe('claves de issues y zonas', () => {
     expect(activityIssueKey('time_missing')).toBe('importer.activityIssues.time_missing')
     expect(activityIssueKey('in_past')).toBe('importer.activityIssues.in_past')
     expect(activityIssueKey('month_inferred')).toBe('importer.activityIssues.month_inferred')
+    expect(activityIssueKey('date_from_cell')).toBe('importer.activityIssues.date_from_cell')
+    expect(i18n.global.t('importer.activityIssues.date_from_cell', {}, { locale: 'es' })).toBe(
+      'Fecha tomada de la celda'
+    )
+    expect(i18n.global.t('importer.activityIssues.date_from_cell', {}, { locale: 'en' })).toBe(
+      'Date taken from the cell'
+    )
     expect(activityIssueKey('possible_duplicate')).toBeNull()
     expect(activityIssueKey('inventado')).toBeNull()
     expect(timezoneSourceKey('iata')).toBe('importer.tzSource.iata')

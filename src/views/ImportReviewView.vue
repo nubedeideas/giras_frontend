@@ -68,6 +68,7 @@ import {
   errorKey,
   hasDayNumbers,
   importErrorKey,
+  isCalendarChangeRow,
   isHotelRow,
   needsResolver,
   pendingCounts,
@@ -141,7 +142,10 @@ async function refresh() {
 
 onMounted(load)
 watch(jobUuid, (uuid, prev) => {
-  if (uuid && uuid !== prev) void load()
+  if (uuid === prev) return
+  // El "Deshacer" de una fila del job anterior no se ofrece en el nuevo.
+  clearUndo()
+  if (uuid) void load()
 })
 
 // La gira del job pasa a ser la activa una sola vez por job: cuando llega el job o, si el listado
@@ -514,15 +518,17 @@ const assumptionsError = ref('')
 
 /** PATCH de supuestos: recalcula todas las filas; la lista queda bloqueada hasta la respuesta. */
 function patchAssumptions(patch: ImportAssumptionsPatch) {
+  const uuid = jobUuid.value
   assumptionsSaving.value = true
   assumptionsError.value = ''
-  void enqueue(jobUuid.value, { assumptions: patch }, (e) => {
+  void enqueue(uuid, { assumptions: patch }, (e) => {
     assumptionsError.value = rowErrorText(e)
   })
     .then((ok) => {
       // F5a "Recordar para esta gira": la gira del store queda con el orden guardado (el listado
       // no lo trae), para que el aviso "La gira ahora lee las fechas como…" no salte después.
-      if (!ok || patch.remember_date_order === undefined) return
+      // Si ya se ha pasado a otro job, `job` y `jobTour` son de ese: no se tocan.
+      if (!ok || uuid !== jobUuid.value || patch.remember_date_order === undefined) return
       const saved = job.value?.draft?.assumptions?.date_order_saved
       if (saved?.scope === 'tour' && jobTour.value) jobTour.value.date_order = saved.value
     })
@@ -593,10 +599,18 @@ function patchRow(patch: ImportRowPatch, opts: { closeEditor?: boolean } = {}): 
 const UNDO_MS = 5000
 
 interface UndoEntry {
+  /** Job de la fila: el aviso no sobrevive a un cambio de job. */
+  jobUuid: string
   clientId: string
   title: string
   /** PATCH que devuelve la fila a como estaba antes de omitirla. */
   revert: ImportRowPatch
+  /**
+   * La fila pedía decisión sin haberla tomado (`needs_action` en un conflicto del calendario o de la
+   * hoja, sin `user_action`, que el serializer no expone): omitirla guarda `user_action` y el revert
+   * no la devolvería a "sin decidir". El aviso sale sin "Deshacer"; queda "Recuperar".
+   */
+  undecided: boolean
 }
 
 const undo = ref<UndoEntry | null>(null)
@@ -615,18 +629,42 @@ function isActivityRow(row: ImportTeamRow | ImportActivityRow): row is ImportAct
   return 'activity_type_code' in row
 }
 
+/**
+ * Conflicto que el usuario aún no ha decidido: "Cambió en el calendario" editada en Giras
+ * (`conflict`) o fila de la hoja reescrita en su sitio (`weak`), con `needs_action`. En el backend,
+ * `needs_action` en esas filas es "sin `user_action` ni `reviewed`".
+ */
+function isUndecidedConflict(row: ImportActivityRow): boolean {
+  return (
+    row.needs_action &&
+    isCalendarChangeRow(row) &&
+    (!!row.match.conflict || !!row.match.weak)
+  )
+}
+
 /** Omitir con el botón o el gesto de una tarjeta (no la "Mantener" de un resolutor). */
 function onOmit(row: ImportTeamRow | ImportActivityRow) {
   const revert = {
     client_id: row.client_id,
     action: row.action,
     ...(row.reviewed ? { reviewed: true } : {}),
+    // Vínculo elegido a mano: sin el contacto, el backend volvería al emparejado automático.
+    ...(!isActivityRow(row) && row.action === 'link' && row.link_contact_uuid
+      ? { link_contact_uuid: row.link_contact_uuid }
+      : {}),
   } as ImportRowPatch
   const title = isActivityRow(row) ? row.title : rowDisplayName(row)
-  undoCandidate = { clientId: row.client_id, title, revert }
+  undoCandidate = {
+    jobUuid: jobUuid.value,
+    clientId: row.client_id,
+    title,
+    revert,
+    undecided: isActivityRow(row) && isUndecidedConflict(row),
+  }
 }
 
 function showUndo(entry: UndoEntry) {
+  if (entry.jobUuid !== jobUuid.value) return
   if (undoTimer) clearTimeout(undoTimer)
   undo.value = entry
   undoTimer = setTimeout(() => {
@@ -639,6 +677,7 @@ function onUndo() {
   const entry = undo.value
   if (!entry) return
   clearUndo()
+  if (entry.undecided || entry.jobUuid !== jobUuid.value) return
   void patchRow(entry.revert)
 }
 
@@ -1276,12 +1315,14 @@ function onProcessed(j: ImportJob) {
                 <div
                   v-if="undo"
                   class="mb-2 flex items-center justify-between gap-3 rounded-sm border border-line bg-bg-2 pl-3"
+                  :class="undo.undecided ? 'min-h-[44px] pr-3' : ''"
                   data-test="import-undo"
                 >
                   <span class="min-w-0 truncate text-[14px] text-ink">
                     {{ t('importer.mobile.skipped', { title: undo.title }) }}
                   </span>
                   <button
+                    v-if="!undo.undecided"
                     type="button"
                     class="shrink-0 min-h-[44px] lg:min-h-[36px] px-3 text-[14px] font-semibold text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
                     data-test="import-undo-action"

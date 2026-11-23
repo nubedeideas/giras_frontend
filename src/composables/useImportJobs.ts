@@ -350,6 +350,8 @@ export interface ImportSourceDateOrder {
   source: ImportDateOrderSource
   /** La fuente trae pistas de los dos órdenes, o lo elegido contradice sus fechas. */
   conflict: boolean
+  /** Orden que dicen las propias fechas de la fuente; `null` si no lo deciden. */
+  detected?: ImportDateOrder | null
   /** Archivo y hoja ("Vuelos.xlsx · Hoja1"); en `sheet_sync`, el título de la pestaña. */
   label: string
 }
@@ -466,6 +468,8 @@ export type ImportActivityDateSource =
   | 'user'
   | 'ics'
   | 'gsheet'
+  // F5a: fecha tomada de la celda de fecha de la hoja (issue `date_from_cell`).
+  | 'cell'
 
 /** Campos que cambiaron en el calendario respecto a la actividad importada (F3). */
 export type ImportActivityChangedField = 'scheduled_at' | 'end_at' | 'title' | 'location_name'

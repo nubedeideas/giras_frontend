@@ -28,6 +28,7 @@ import {
   type ImportResult,
 } from '@/composables/useImportJobs'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 
 /** Sondeo de `post_import` (F2 §3.7.1): cada 2 s, como mucho 60 s. */
 const POST_IMPORT_POLL_MS = 2000
@@ -40,6 +41,7 @@ const emit = defineEmits<{ importMore: []; updated: [job: ImportJob] }>()
 
 const { t, locale } = useI18n()
 const toursStore = useToursStore()
+const auth = useAuthStore()
 
 const result = computed<Partial<ImportResult>>(() => props.job.result ?? {})
 const n = (v: number | undefined) => v ?? 0
@@ -252,9 +254,10 @@ const BTN_SECONDARY_CLASS =
 /** "Ver agenda" también tras una confirmación que solo cancela. */
 const showSchedule = computed(() => activitiesTouched.value > 0 || cancelled.value > 0)
 
-const canSendPortal = computed(
-  () => activitiesTouched.value > 0 && tour.value?.current_user_is_admin === true
-)
+/** Administra la gira y no es la cuenta demo (la API de enlaces del portal no aplica en demo). */
+const portalAdmin = computed(() => tour.value?.current_user_is_admin === true && !auth.isDemoMode)
+
+const canSendPortal = computed(() => activitiesTouched.value > 0 && portalAdmin.value)
 
 /**
  * Personas confirmadas a las que pasar su enlace del portal (solo quien administra la gira: la API
@@ -265,7 +268,7 @@ const showCrewLinks = computed(
   () =>
     !!props.job.tour &&
     crewContactUuids.value.length > 0 &&
-    tour.value?.current_user_is_admin === true
+    portalAdmin.value
 )
 </script>
 

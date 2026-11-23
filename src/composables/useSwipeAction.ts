@@ -34,12 +34,22 @@ interface PointerLike {
   clientY: number
   timeStamp: number
   currentTarget: EventTarget | null
+  /** Donde empezó el toque: en un control (campo, botón, enlace) no hay gesto. */
+  target?: EventTarget | null
+}
+
+/** Controles dentro de la tarjeta que no arrancan el gesto (`data-no-swipe` para excluir más). */
+const NO_SWIPE = 'input,select,textarea,button,a,[data-no-swipe]'
+
+function startsOnControl(target: EventTarget | null | undefined): boolean {
+  const el = target as Element | null | undefined
+  return typeof el?.closest === 'function' && el.closest(NO_SWIPE) !== null
 }
 
 export interface SwipeAction {
   /** Desplazamiento horizontal en px (0 en reposo o con movimiento reducido). */
   offset: Ref<number>
-  /** Arrastre horizontal en curso hacia `dragDirection`. */
+  /** Arrastre horizontal en curso en el sentido permitido (`dragDirection`). */
   active: Ref<boolean>
   dragDirection: Ref<SwipeDirection | null>
   onPointerdown: (e: PointerLike) => void
@@ -88,6 +98,7 @@ export function useSwipeAction(options: SwipeOptions): SwipeAction {
   function onPointerdown(e: PointerLike) {
     suppressClick = false
     if (e.pointerType !== 'touch') return
+    if (startsOnControl(e.target)) return
     if (typeof window === 'undefined' || window.innerWidth >= SWIPE_MAX_WIDTH) return
     const dir = options.direction()
     if (!dir) return
@@ -114,7 +125,6 @@ export function useSwipeAction(options: SwipeOptions): SwipeAction {
         reset()
         return
       }
-      active.value = true
       const el = e.currentTarget as Element | null
       try {
         if (e.pointerId !== undefined) el?.setPointerCapture?.(e.pointerId)
@@ -125,17 +135,19 @@ export function useSwipeAction(options: SwipeOptions): SwipeAction {
     // Solo cuenta el recorrido en el sentido permitido.
     const along = dragDirection.value === 'left' ? Math.min(0, dx) : Math.max(0, dx)
     distance = Math.abs(along)
+    // En el sentido no permitido no se enseña la acción ("Omitir" al arrastrar a la derecha).
+    active.value = along !== 0
     offset.value = reduced ? 0 : along
   }
 
   function onPointerup(e: PointerLike) {
     if (!tracking) return
     const dir = dragDirection.value
-    const wasActive = active.value
+    const horizontal = axis === 'x'
     const elapsed = Math.max(1, e.timeStamp - startT)
     const dist = distance
     reset()
-    if (!wasActive || !dir) return
+    if (!horizontal || !dir) return
     // Tras un arrastre horizontal no se deja pasar el clic del final (botones bajo el dedo).
     suppressClick = true
     setTimeout(() => (suppressClick = false), 400)

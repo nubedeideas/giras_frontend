@@ -457,6 +457,8 @@ const ACTIVITY_ISSUES = new Set([
   'partial_row',
   'in_past',
   'checkout_inferred',
+  // F5a: fecha de la celda de la hoja (no del texto que leyó la IA), informativo.
+  'date_from_cell',
 ])
 
 /**
