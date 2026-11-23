@@ -40,7 +40,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Variables de build
+        env:
+          HAS_PICKER_API_KEY: ${{ vars.VITE_GOOGLE_PICKER_API_KEY != '' }}
+          HAS_CLOUD_APP_ID: ${{ vars.VITE_GOOGLE_CLOUD_APP_ID != '' }}
         run: |
+          # Opcionales: sin ellas la build sigue, pero el selector de Google Sheets se oculta.
+          [ "$HAS_PICKER_API_KEY" = "true" ] || echo "::warning::Falta la variable VITE_GOOGLE_PICKER_API_KEY: el selector de Google Sheets no aparecerá."
+          [ "$HAS_CLOUD_APP_ID" = "true" ] || echo "::warning::Falta la variable VITE_GOOGLE_CLOUD_APP_ID: el selector de Google Sheets no aparecerá."
           test -n "${{ vars.VITE_API_URL }}" || { echo "Falta la variable VITE_API_URL"; exit 1; }
           test -n "${{ vars.VITE_GOOGLE_CLIENT_ID }}" || { echo "Falta la variable VITE_GOOGLE_CLIENT_ID"; exit 1; }
           printf 'VITE_API_URL=%s\nVITE_GOOGLE_CLIENT_ID=%s\nVITE_GOOGLE_PICKER_API_KEY=%s\nVITE_GOOGLE_CLOUD_APP_ID=%s\n' \

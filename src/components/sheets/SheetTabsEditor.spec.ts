@@ -12,10 +12,13 @@ vi.mock('@/composables/useGooglePicker', async (importOriginal) => {
   return { ...actual, pickSpreadsheet: picker.pick, isPickerConfigured: () => true }
 })
 
-function stub() {
+// `inspect` de la misma hoja: `already_subscribed` es el uuid de la vinculación que se edita.
+function stub(alreadySubscribed: string | null = 'G1') {
   const fn = vi.fn<typeof fetch>(async (input, init) => {
     const url = String(input)
-    if (url.endsWith('/inspect/')) return jsonResponse(sheetInspect())
+    if (url.endsWith('/inspect/')) {
+      return jsonResponse(sheetInspect({ already_subscribed: alreadySubscribed }))
+    }
     if (init?.method === 'PATCH') return jsonResponse(sheetSub())
     return jsonResponse({}, 404)
   })
@@ -74,5 +77,32 @@ describe('SheetTabsEditor', () => {
     await flushPromises()
     expect(picker.pick).toHaveBeenCalledOnce()
     expect(w.findAll('[data-test="sheet-tab"]')).toHaveLength(7)
+  })
+
+  it('otra hoja en el selector: aviso de hoja distinta, sin pestañas ni guardar', async () => {
+    for (const other of [null, 'OTRA-VINCULACION']) {
+      const fn = stub(other)
+      picker.pick.mockResolvedValue({ id: 'OTRA-HOJA', name: 'Otra' })
+      const w = mount(SheetTabsEditor, {
+        props: {
+          sub: sheetSub({ open_url: null, reader: { name: 'Ana', is_me: false, has_access: true } }),
+          displayName: 'Gira 2027',
+        },
+        global: { plugins: [i18n] },
+      })
+      await flushPromises()
+      await w.get('[data-test="sheet-tabs-pick"]').trigger('click')
+      await flushPromises()
+      expect(w.get('[data-test="sheet-tabs-error"]').text()).toBe(
+        'Esa no es la hoja vinculada: elige Gira 2027 · Producción.'
+      )
+      expect(w.findAll('[data-test="sheet-tab"]')).toHaveLength(0)
+      expect(w.find('[data-test="sheet-tabs-save"]').exists()).toBe(false)
+      // Se puede volver a elegir la hoja.
+      expect(w.find('[data-test="sheet-tabs-pick"]').exists()).toBe(true)
+      expect(fn.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false)
+      w.unmount()
+      vi.unstubAllGlobals()
+    }
   })
 })

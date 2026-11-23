@@ -149,21 +149,22 @@ describe('ImportReviewView · hoja de Google', () => {
     expect(w.get('[data-test="import-confirm"]').attributes('disabled')).toBeUndefined()
   })
 
-  it('"No vincular" → PATCH create reviewed', async () => {
-    const link = sheetLinkRow()
-    const after = sheetJob([{ ...link, action: 'create', reviewed: true }])
+  it('fila de vínculo: sin "No vincular"; Vincular → PATCH skip', async () => {
+    const link = sheetLinkRow({ action: 'create', reviewed: true })
+    const after = sheetJob([{ ...link, action: 'skip' }])
     const log = setupFetch(sheetJob([link]), (c) => {
       if (c.method === 'PATCH') return jsonResponse(after)
       return undefined
     })
     const w = await mountView()
-    await w.get('[data-row="s3"] [data-test="resolver-sheet-unlink"]').trigger('click')
+    expect(w.find('[data-row="s3"] [data-test="resolver-sheet-unlink"]').exists()).toBe(false)
+    await w.get('[data-row="s3"] [data-test="resolver-sheet-link-btn"]').trigger('click')
     await flushPromises()
     expect(log.find((c) => c.method === 'PATCH')?.body).toEqual({
-      rows: [{ client_id: 's3', action: 'create', reviewed: true }],
+      rows: [{ client_id: 's3', action: 'skip' }],
     })
     expect(
-      w.get('[data-row="s3"] [data-test="resolver-sheet-unlink"]').attributes('aria-pressed')
+      w.get('[data-row="s3"] [data-test="resolver-sheet-link-btn"]').attributes('aria-pressed')
     ).toBe('true')
   })
 })

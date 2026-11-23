@@ -50,6 +50,10 @@ const activitiesToImport = computed(() =>
     ? activities.value.to_create + activities.value.to_replace + toCancel.value + toLink.value
     : 0
 )
+/** Omitidas de verdad: `to_skip` incluye las filas que se vinculan (`skip` con `match.link`). */
+const activitiesSkipped = computed(() =>
+  activities.value ? Math.max(0, activities.value.to_skip - toLink.value) : 0
+)
 const linkedText = computed(() =>
   toLink.value > 0 ? ` ${t('importer.confirm.summaryLinked', { n: toLink.value }, toLink.value)}` : ''
 )
@@ -101,7 +105,7 @@ function onPrimary() {
             t('importer.confirm.summaryAll', {
               contacts: summary.to_create,
               activities: activities.to_create,
-              skipped: activities.to_skip,
+              skipped: activitiesSkipped,
               replaced: activities.to_replace,
             })
           }}{{ linkedText }}

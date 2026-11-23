@@ -299,23 +299,23 @@ describe('ImportActivityResolver · hoja de Google (F4)', () => {
     expect(w.find('[data-test="resolver-time"]').exists()).toBe(false)
   })
 
-  it('se vinculará: Vincular marcado; "No vincular" crea como nueva', async () => {
+  it('se vinculará: solo Vincular, marcado, con su ayuda', () => {
     const w = mountResolver(sheetLinkRow())
     const block = w.get('[data-test="resolver-sheet-link"]')
     expect(block.text()).toContain('Ya está en la gira')
     expect(w.get('[data-test="resolver-sheet-link-activity"]').text()).toContain('Show Madrid')
     expect(w.get('[data-test="resolver-sheet-link-help"]').text()).toContain('la vincularemos a la hoja')
     expect(w.get('[data-test="resolver-sheet-link-btn"]').attributes('aria-pressed')).toBe('true')
+    expect(w.find('[data-test="resolver-sheet-unlink"]').exists()).toBe(false)
+    expect(block.findAll('button')).toHaveLength(1)
     expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
-    await w.get('[data-test="resolver-sheet-unlink"]').trigger('click')
-    expect(w.emitted('patch')).toEqual([[{ client_id: 's3', action: 'create', reviewed: true }]])
   })
 
-  it('"No vincular" elegido: se puede volver a Vincular (skip)', async () => {
+  it('fila guardada como nueva: Vincular la vuelve a skip', async () => {
     const w = mountResolver(sheetLinkRow({ action: 'create', reviewed: true }))
-    expect(w.get('[data-test="resolver-sheet-unlink"]').attributes('aria-pressed')).toBe('true')
-    expect(w.get('[data-test="resolver-sheet-link-help"]').text()).toContain('actividad nueva')
-    expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
+    expect(w.get('[data-test="resolver-sheet-link-btn"]').attributes('aria-pressed')).toBe('false')
+    expect(w.get('[data-test="resolver-sheet-link-help"]').text()).toContain('la vincularemos a la hoja')
+    expect(w.find('[data-test="resolver-sheet-unlink"]').exists()).toBe(false)
     await w.get('[data-test="resolver-sheet-link-btn"]').trigger('click')
     expect(w.emitted('patch')).toEqual([[{ client_id: 's3', action: 'skip' }]])
   })

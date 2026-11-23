@@ -89,6 +89,18 @@ export function isGoogleScopeMissing(e: unknown): e is ApiError {
   )
 }
 
+/**
+ * 403 `google_scope_missing` con `connected: false`: la cuenta de Google ya no está conectada (se
+ * revocó o caducó). Quien lo recibe recarga `useGoogleStore().load(true)` para que el resto de la
+ * app deje de mostrar "Conectado".
+ */
+export function isGoogleDisconnected(e: unknown): boolean {
+  return (
+    isGoogleScopeMissing(e) &&
+    (e.data as Partial<GoogleScopeMissingError> | null)?.connected === false
+  )
+}
+
 /** `code` de negocio de un error de la API (`{code, detail}` planos), si lo trae. */
 export function apiErrorCode(e: unknown): string | undefined {
   if (!(e instanceof ApiError)) return undefined

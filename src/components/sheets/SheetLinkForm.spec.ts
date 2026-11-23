@@ -190,6 +190,38 @@ describe('SheetLinkForm', () => {
     expect(w.find('[data-testid="google-connect-cta-sheets"]').exists()).toBe(true)
   })
 
+  it('google_scope_missing con connected:false recarga el estado de Google; con true, no', async () => {
+    picker.pick.mockResolvedValue({ id: 'SHEET-ID', name: 'x' })
+    const fn = routes({
+      '/google/status/': () => jsonResponse(googleStatus(true)),
+      '/inspect/': () => jsonResponse({ ...scopeMissing(), connected: false }, 403),
+    })
+    const statusCalls = () => fn.mock.calls.filter(([u]) => String(u).includes('/google/status/'))
+    const w = await mountForm()
+    expect(statusCalls()).toHaveLength(1)
+    await w.get('[data-test="sheet-choose-btn"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-testid="google-connect-cta-sheets"]').exists()).toBe(true)
+    expect(statusCalls()).toHaveLength(2)
+  })
+
+  it('el selector sin permiso y Google desconectado (picker-token) recarga el estado', async () => {
+    const fn = routes({ '/google/status/': () => jsonResponse(googleStatus(true)) })
+    const statusCalls = () => fn.mock.calls.filter(([u]) => String(u).includes('/google/status/'))
+    picker.pick.mockRejectedValueOnce(new PickerError('scope_missing', { connected: true }))
+    const w = await mountForm()
+    await w.get('[data-test="sheet-choose-btn"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-testid="google-connect-cta-sheets"]').exists()).toBe(true)
+    expect(statusCalls()).toHaveLength(1)
+
+    const w2 = await mountForm()
+    picker.pick.mockRejectedValueOnce(new PickerError('scope_missing', { connected: false }))
+    await w2.get('[data-test="sheet-choose-btn"]').trigger('click')
+    await flushPromises()
+    expect(statusCalls()).toHaveLength(2)
+  })
+
   it('already_subscribed: aviso con enlace y sin "Vincular hoja"', async () => {
     picker.pick.mockResolvedValue({ id: 'SHEET-ID', name: 'x' })
     routes({

@@ -419,7 +419,7 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
         class="text-[13px] text-ink-2"
         data-test="resolver-sheet-link-help"
       >
-        {{ skipped ? t('importer.sheetLink.help') : t('importer.sheetLink.helpCreate') }}
+        {{ t('importer.sheetLink.help') }}
       </p>
       <div class="flex flex-wrap gap-2">
         <button
@@ -431,16 +431,6 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
           @click="patch({ action: 'skip' })"
         >
           {{ t('importer.sheetLink.link') }}
-        </button>
-        <button
-          type="button"
-          :class="[CHOICE, row.action === 'create' ? PRESSED : IDLE]"
-          :aria-pressed="row.action === 'create'"
-          :disabled="saving"
-          data-test="resolver-sheet-unlink"
-          @click="patch({ action: 'create', reviewed: true })"
-        >
-          {{ t('importer.sheetLink.unlink') }}
         </button>
       </div>
     </div>

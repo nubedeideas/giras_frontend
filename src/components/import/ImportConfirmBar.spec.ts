@@ -225,13 +225,34 @@ describe('ImportConfirmBar · hoja de Google (F4)', () => {
       global: { plugins: [i18n] },
     })
     expect(w.get('[data-test="import-confirm-summary-all"]').text()).toBe(
-      'Contactos nuevos: 0 · Actividades nuevas: 1 · Sustituidas: 0 · Omitidas: 2 · se vincularán 2'
+      'Contactos nuevos: 0 · Actividades nuevas: 1 · Sustituidas: 0 · Omitidas: 0 · se vincularán 2'
     )
     expect(w.get('[data-test="import-confirm"]').text()).toContain('Confirmar (3)')
     expect(w.find('[data-test="import-confirm-reviewed-only"]').exists()).toBe(false)
     i18n.global.locale.value = 'en'
     await nextTick()
     expect(w.get('[data-test="import-confirm-summary-all"]').text()).toContain('· 2 will be linked')
+  })
+
+  it('las filas que se vinculan no cuentan también como omitidas', () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({
+          to_create: 0,
+          to_link: 0,
+          in_group: 0,
+          to_skip: 0,
+          activities: { ...activities, total: 5, to_skip: 4, to_link: 1 },
+        }),
+        canConfirm: true,
+        calendar: true,
+        sheet: true,
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-summary-all"]').text()).toBe(
+      'Contactos nuevos: 0 · Actividades nuevas: 1 · Sustituidas: 0 · Omitidas: 3 · se vinculará 1'
+    )
   })
 
   it('con cancelaciones, el texto de vínculos va tras el de calendario', () => {

@@ -12,7 +12,7 @@ import { useToursStore } from '@/stores/tours'
 import { useImportsStore } from '@/stores/imports'
 import { useGoogleStore } from '@/stores/google'
 import { ApiError } from '@/utils/apiClient'
-import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { isGoogleDisconnected, isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
 import { isPickerConfigured, isPickerError, pickSpreadsheet } from '@/composables/useGooglePicker'
 import {
   deleteSheetSubscription,
@@ -100,7 +100,8 @@ const errorText = computed(() =>
 const isReader = computed(() => props.sub.reader?.is_me === true)
 const readerText = computed(() => {
   const r = props.sub.reader
-  if (!r) return t('sheets.card.readerGone')
+  // Quien vinculó la hoja ya no existe: el backend manda `{name: null, is_me: false, ...}`.
+  if (!r?.name) return t('sheets.card.readerGone')
   return r.is_me ? t('sheets.card.readerMe') : t('sheets.card.reader', { name: r.name })
 })
 
@@ -134,13 +135,22 @@ function formatDate(iso: string | null): string {
 const lastSync = computed(() => formatDate(props.sub.last_synced_at))
 const nextSync = computed(() => (props.sub.sync_enabled ? formatDate(props.sub.next_sync_at) : ''))
 
+/**
+ * Falta el permiso de Google: la tarjeta ofrece conectar. Si además la cuenta ya no está conectada
+ * (`connected: false`), recarga el estado de Google para toda la app.
+ */
+function onScopeMissing(disconnected: boolean) {
+  scopeMissing.value = true
+  if (disconnected) void googleStore.load(true)
+}
+
 function onError(e: unknown) {
   if (e instanceof ApiError && e.status === 404) {
     emit('stale')
     return
   }
   if (isGoogleScopeMissing(e)) {
-    scopeMissing.value = true
+    onScopeMissing(isGoogleDisconnected(e))
     return
   }
   const { key, named } = sheetApiErrorKey(e, 'manage', props.sub.spreadsheet_title || displayName.value)
@@ -228,7 +238,7 @@ async function reassign() {
     } catch (e) {
       if (!isPickerError(e)) throw e
       if (e.code === 'scope_missing') {
-        scopeMissing.value = true
+        onScopeMissing(e.connected === false)
         return
       }
       const key = pickerErrorKey(e.code)

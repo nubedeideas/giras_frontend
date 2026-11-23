@@ -326,6 +326,15 @@ describe('pickSpreadsheet', () => {
     [502, { code: 'picker_token_unavailable', detail: 'x' }, 'token_failed'],
     [502, { code: 'google_unavailable', detail: 'x' }, 'token_failed'],
     [503, { code: 'google_not_configured', detail: 'x' }, 'not_configured'],
+    [429, { detail: 'Request was throttled.' }, 'too_many_requests'],
+    [
+      429,
+      {
+        success: false,
+        error: { message: 'Demasiadas solicitudes.', status_code: 429, details: {} },
+      },
+      'too_many_requests',
+    ],
   ])('token %i %o → %s, sin abrir el selector', async (status, body, code) => {
     const { pickSpreadsheet } = await load()
     configure()
@@ -334,6 +343,19 @@ describe('pickSpreadsheet', () => {
     mockFetch(jsonResponse(body, status))
     expect(await codeOf(pickSpreadsheet())).toBe(code)
     expect(google.builder.build).not.toHaveBeenCalled()
+  })
+
+  it('scope_missing lleva el connected del 403 (false = Google desconectado)', async () => {
+    const { pickSpreadsheet } = await load()
+    configure()
+    serveScript('load', fakeGoogle())
+    for (const connected of [true, false]) {
+      mockFetch(
+        jsonResponse({ code: 'google_scope_missing', detail: 'x', purpose: 'sheets', connected }, 403)
+      )
+      const err = await pickSpreadsheet().catch((e: unknown) => e)
+      expect(err).toMatchObject({ code: 'scope_missing', connected })
+    }
   })
 
   it('fallo de red del token → token_failed', async () => {

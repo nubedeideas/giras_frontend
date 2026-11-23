@@ -110,6 +110,38 @@ describe('SheetSubscriptionCard', () => {
     expect(w.find('[data-test="sheet-open"]').exists()).toBe(false)
   })
 
+  it('quien vinculó la hoja ya no existe (reader.name null): "readerGone"', async () => {
+    routes(statusOk)
+    const w = await mountCard(
+      sheetSub({ open_url: null, reader: { name: null, is_me: false, has_access: false } })
+    )
+    expect(w.get('[data-test="sheet-reader"]').text()).toBe(i18n.global.t('sheets.card.readerGone'))
+    expect(w.get('[data-test="sheet-reader"]').text()).not.toContain('null')
+  })
+
+  it('google_scope_missing con connected:false recarga el estado de Google', async () => {
+    const fn = routes({
+      ...statusOk,
+      'POST /sheet-subscriptions/G1/sync/': () =>
+        jsonResponse(
+          {
+            code: 'google_scope_missing',
+            detail: 'x',
+            purpose: 'sheets',
+            required_scopes: [],
+            connected: false,
+          },
+          403
+        ),
+    })
+    const w = await mountCard(sheetSub())
+    expect(callsTo(fn, 'GET', '/google/status/')).toHaveLength(1)
+    await w.get('[data-test="sheet-sync"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-testid="google-connect-cta-sheets"]').exists()).toBe(true)
+    expect(callsTo(fn, 'GET', '/google/status/')).toHaveLength(2)
+  })
+
   it('has_access=false → "Usar mi cuenta" abre el selector y manda el id elegido', async () => {
     picker.pick.mockResolvedValue({ id: 'SHEET-ID', name: 'x' })
     const fn = routes({

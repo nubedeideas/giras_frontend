@@ -9,15 +9,17 @@
 // - Móvil (< 1024 px): si el script o el selector no llegan a abrirse → `mobile_unsupported`
 //   ("vincula la hoja desde el ordenador").
 import i18n from '@/i18n'
-import { apiClient } from '@/utils/apiClient'
+import { apiClient, ApiError } from '@/utils/apiClient'
 import { sheetApiErrorCode } from '@/utils/sheetSubscriptions'
 import { MOBILE_QUERY } from '@/composables/useIsMobile'
+import { isGoogleDisconnected } from '@/composables/useGoogleIntegration'
 
 export type PickerErrorCode =
   | 'not_configured'
   | 'script_failed'
   | 'token_failed'
   | 'scope_missing'
+  | 'too_many_requests'
   | 'mobile_unsupported'
   | 'cancelled'
 
@@ -30,11 +32,14 @@ export interface PickedSheet {
 
 export class PickerError extends Error {
   readonly code: PickerErrorCode
+  /** `scope_missing`: `connected` del 403 de `picker-token` (`false` = Google desconectado). */
+  readonly connected?: boolean
 
-  constructor(code: PickerErrorCode) {
+  constructor(code: PickerErrorCode, opts: { connected?: boolean } = {}) {
     super(`google_picker_${code}`)
     this.name = 'PickerError'
     this.code = code
+    this.connected = opts.connected
   }
 }
 
@@ -135,10 +140,14 @@ async function fetchPickerToken(): Promise<string> {
   } catch (e) {
     const code = sheetApiErrorCode(e)
     // 403 `google_scope_missing`: el formulario vuelve al paso de conectar Google Sheets.
-    if (code === 'google_scope_missing') throw new PickerError('scope_missing')
+    if (code === 'google_scope_missing') {
+      throw new PickerError('scope_missing', { connected: !isGoogleDisconnected(e) })
+    }
     // 503: la integración con Google no está configurada en el servidor.
     if (code === 'google_not_configured') throw new PickerError('not_configured')
-    // 502 `picker_token_unavailable` / `google_unavailable`, red, 429...
+    // 429 del throttle de `picker-token`: "demasiadas solicitudes", no "no se pudo abrir".
+    if (e instanceof ApiError && e.status === 429) throw new PickerError('too_many_requests')
+    // 502 `picker_token_unavailable` / `google_unavailable`, red...
     throw new PickerError('token_failed')
   }
   if (!data || typeof data.access_token !== 'string' || !data.access_token) {

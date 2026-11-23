@@ -5,7 +5,8 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import SheetTabsChooser from '@/components/sheets/SheetTabsChooser.vue'
 import { ApiError } from '@/utils/apiClient'
-import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { isGoogleDisconnected, isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { useGoogleStore } from '@/stores/google'
 import { isPickerError, pickSpreadsheet } from '@/composables/useGooglePicker'
 import {
   inspectSheet,
@@ -24,6 +25,7 @@ const props = defineProps<{ sub: SheetSubscription; displayName: string }>()
 const emit = defineEmits<{ saved: [sub: SheetSubscription]; cancel: []; stale: [] }>()
 
 const { t } = useI18n()
+const googleStore = useGoogleStore()
 
 const tabs = ref<SheetInspectTab[] | null>(null)
 const selected = ref<SheetTabInput[]>(
@@ -52,6 +54,13 @@ async function load(spreadsheetId: string) {
   error.value = ''
   try {
     const info = await inspectSheet({ tour: props.sub.tour, spreadsheet_id: spreadsheetId })
+    // Otra hoja (o la misma en otra gira): ni pestañas ni guardar; se puede volver a elegir.
+    if (info.already_subscribed !== props.sub.uuid) {
+      tabs.value = null
+      needsPick.value = true
+      error.value = t('sheets.errors.spreadsheet_mismatch', { name: props.sub.spreadsheet_title })
+      return
+    }
     // Pestañas vinculadas que ya no existen: se siguen pudiendo quitar.
     const known = new Set(info.tabs.map((tab) => tab.gid))
     const gone = props.sub.tabs
@@ -67,6 +76,7 @@ async function load(spreadsheetId: string) {
     tabs.value = [...info.tabs, ...gone]
     needsPick.value = false
   } catch (e) {
+    if (isGoogleDisconnected(e)) void googleStore.load(true)
     error.value = isGoogleScopeMissing(e) ? t('sheets.errors.accessLost') : apiText(e)
   } finally {
     loading.value = false

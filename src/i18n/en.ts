@@ -3198,9 +3198,7 @@ export default {
     sheetLink: {
       title: 'Already in the tour',
       help: "When you confirm, we'll link it to the sheet: nothing is created or sent, and we'll suggest this row's changes as updates.",
-      helpCreate: "It'll be created as a new activity, separate from the one already in the tour.",
       link: 'Link',
-      unlink: "Don't link: create as new",
     },
     duplicate: {
       skip: 'Skip',

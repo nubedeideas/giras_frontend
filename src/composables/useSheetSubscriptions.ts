@@ -69,7 +69,8 @@ export interface SheetSubscriptionPendingJob {
 
 /** Quién lee la hoja (con su token de Google). */
 export interface SheetReader {
-  name: string
+  /** `null` si quien vinculó la hoja ya no existe (`{name: null, is_me: false, has_access: false}`). */
+  name: string | null
   is_me: boolean
   /** Vivo, admin de la gira y con el permiso `sheets` (sin llamar a Google). */
   has_access: boolean
@@ -87,7 +88,7 @@ export interface SheetSubscription {
   tabs: SheetTab[]
   /** Solo si `reader.is_me`; si no, `null`. */
   open_url: string | null
-  /** `null` si quien vinculó la hoja ya no existe. */
+  /** El backend siempre manda el objeto; con el lector borrado, `reader.name` es `null`. */
   reader: SheetReader | null
   sync_enabled: boolean
   last_status: SheetSyncStatus

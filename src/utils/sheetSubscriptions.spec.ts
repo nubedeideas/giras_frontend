@@ -23,6 +23,18 @@ function apiError(status: number, data: unknown) {
   return new ApiError(status, data)
 }
 
+/** Forma real de `ImportJobError.as_payload()`: `details = {<campo>: [msg], code: [...]}`. */
+function invalidValue(details: Record<string, string[]>) {
+  return {
+    success: false,
+    error: {
+      message: 'Valor no válido.',
+      status_code: 400,
+      details: { ...details, code: ['invalid_value'] },
+    },
+  }
+}
+
 describe('sheetStatusBadge / sheetReviewBadge', () => {
   it('solo valores de BadgeStatus y claves que existen', () => {
     const statuses: SheetSyncStatus[] = [
@@ -89,12 +101,14 @@ describe('sheetErrorKey', () => {
       'script_failed',
       'token_failed',
       'scope_missing',
+      'too_many_requests',
       'mobile_unsupported',
       'not_configured',
     ] as const) {
       const key = pickerErrorKey(code)
       expect(key && te(key)).toBe(true)
     }
+    expect(pickerErrorKey('too_many_requests')).toBe('common.tooManyRequests')
   })
 })
 
@@ -109,12 +123,25 @@ describe('sheetApiErrorKey', () => {
     expect(sheetApiErrorKey(apiError(502, icalApiError('google_unavailable', 502))).key).toBe(
       'sheets.errors.google_unavailable'
     )
+    expect(sheetApiErrorKey(apiError(400, invalidValue({ range: ['El rango no es válido.'] }))).key).toBe(
+      'sheets.errors.invalidRange'
+    )
+    expect(sheetApiErrorKey(apiError(400, invalidValue({ tabs: ['Pestaña no válida.'] }))).key).toBe(
+      'sheets.errors.invalidTabs'
+    )
+    expect(sheetApiErrorKey(apiError(400, invalidValue({ name: ['Demasiado largo.'] }))).key).toBe(
+      'sheets.errors.invalidName'
+    )
     expect(
-      sheetApiErrorKey(apiError(400, icalApiError('invalid_value', 400, { field: ['range'] }))).key
-    ).toBe('sheets.errors.invalidRange')
+      sheetApiErrorKey(apiError(400, invalidValue({ spreadsheet_id: ['ID no válido.'] }))).key
+    ).toBe('sheets.errors.invalidSheet')
+    // Varias claves: manda el orden range > tabs > name > spreadsheet_id.
     expect(
-      sheetApiErrorKey(apiError(400, icalApiError('invalid_value', 400, { field: 'tabs' }))).key
+      sheetApiErrorKey(apiError(400, invalidValue({ spreadsheet_id: ['x'], tabs: ['y'] }))).key
     ).toBe('sheets.errors.invalidTabs')
+    expect(
+      sheetApiErrorKey(apiError(400, invalidValue({ non_field_errors: ['Nada que cambiar.'] }))).key
+    ).toBe('sheets.errors.invalidSheet')
     expect(sheetApiErrorKey(apiError(409, icalApiError('already_subscribed', 409))).key).toBe(
       'sheets.form.alreadyLinked'
     )

@@ -123,6 +123,8 @@ export function pickerErrorKey(code: PickerErrorCode): string | null {
       return 'sheets.errors.token_failed'
     case 'scope_missing':
       return 'sheets.errors.accessLost'
+    case 'too_many_requests':
+      return 'common.tooManyRequests'
     case 'mobile_unsupported':
       return 'sheets.errors.mobile_unsupported'
     default:
@@ -138,12 +140,22 @@ export interface SheetApiErrorText {
 /** Tope por gira por defecto (`SHEETS_MAX_SUBSCRIPTIONS_PER_TOUR`) si el error no trae `details.max`. */
 export const SHEETS_DEFAULT_MAX_PER_TOUR = 3
 
-/** `details.field` de un 400 `invalid_value` → texto. */
-const INVALID_FIELD_KEYS: Record<string, string> = {
-  spreadsheet_id: 'sheets.errors.invalidSheet',
-  tabs: 'sheets.errors.invalidTabs',
-  range: 'sheets.errors.invalidRange',
-  name: 'sheets.errors.invalidName',
+/**
+ * Campo de un 400 `invalid_value` → texto. El backend no manda `details.field`: el campo es la
+ * clave presente en `details` (`{<campo>: [msg], code: ['invalid_value']}`), en este orden.
+ */
+const INVALID_FIELD_KEYS: ReadonlyArray<[string, string]> = [
+  ['range', 'sheets.errors.invalidRange'],
+  ['tabs', 'sheets.errors.invalidTabs'],
+  ['name', 'sheets.errors.invalidName'],
+  ['spreadsheet_id', 'sheets.errors.invalidSheet'],
+]
+
+function invalidFieldKey(e: unknown): string {
+  for (const [field, key] of INVALID_FIELD_KEYS) {
+    if (apiErrorDetail(e, field) !== null) return key
+  }
+  return 'sheets.errors.invalidSheet'
 }
 
 /** Código de negocio del error, envuelto (`details.code`) o en plano (`code`). */
@@ -171,10 +183,8 @@ export function sheetApiErrorKey(
   if (plain && !codes.includes(plain)) codes.push(plain)
   for (const code of codes) {
     switch (code) {
-      case 'invalid_value': {
-        const field = apiErrorDetail(e, 'field')
-        return { key: INVALID_FIELD_KEYS[String(field)] ?? 'sheets.errors.invalidSheet' }
-      }
+      case 'invalid_value':
+        return { key: invalidFieldKey(e) }
       case 'already_subscribed':
         return { key: 'sheets.form.alreadyLinked' }
       case 'too_many_subscriptions': {

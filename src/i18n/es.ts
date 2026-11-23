@@ -3219,9 +3219,7 @@ export default {
     sheetLink: {
       title: 'Ya está en la gira',
       help: 'Al confirmar la vincularemos a la hoja: no se crea ni se avisa nada, y los cambios de esta fila te los propondremos como actualizaciones.',
-      helpCreate: 'Se creará como una actividad nueva, aparte de la que ya tienes en la gira.',
       link: 'Vincular',
-      unlink: 'No vincular: crear como nueva',
     },
     duplicate: {
       skip: 'Omitir',

@@ -10,7 +10,7 @@ import SheetTabsChooser from '@/components/sheets/SheetTabsChooser.vue'
 import { useGoogleStore } from '@/stores/google'
 import { useToursStore } from '@/stores/tours'
 import { useImportsStore } from '@/stores/imports'
-import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
+import { isGoogleDisconnected, isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
 import { isPickerError, pickSpreadsheet, type PickedSheet } from '@/composables/useGooglePicker'
 import {
   createSheetSubscription,
@@ -105,6 +105,15 @@ onMounted(() => {
   void googleStore.load()
 })
 
+/**
+ * Falta el permiso de Google: vuelve al paso de conectar. Si además la cuenta ya no está conectada
+ * (`connected: false`), recarga el estado de Google para toda la app.
+ */
+function onScopeMissing(disconnected: boolean) {
+  forceConnect.value = true
+  if (disconnected) void googleStore.load(true)
+}
+
 function apiErrorText(e: unknown): string {
   const { key, named } = sheetApiErrorKey(e, 'create')
   return named ? t(key, named) : t(key)
@@ -128,7 +137,7 @@ async function choose() {
     } catch (e) {
       if (!isPickerError(e)) throw e
       if (e.code === 'scope_missing') {
-        forceConnect.value = true
+        onScopeMissing(e.connected === false)
         return
       }
       const key = pickerErrorKey(e.code)
@@ -149,7 +158,7 @@ async function choose() {
     phase.value = 'tabs'
   } catch (e) {
     if (isGoogleScopeMissing(e)) {
-      forceConnect.value = true
+      onScopeMissing(isGoogleDisconnected(e))
       return
     }
     chooseError.value = apiErrorText(e)
@@ -190,7 +199,7 @@ async function submit() {
     })
   } catch (e) {
     if (isGoogleScopeMissing(e)) {
-      forceConnect.value = true
+      onScopeMissing(isGoogleDisconnected(e))
       phase.value = 'choose'
       return
     }
