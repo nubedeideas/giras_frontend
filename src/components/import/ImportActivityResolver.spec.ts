@@ -9,6 +9,7 @@ import {
   sheetChangedRow,
   sheetLinkRow,
   sheetRemovedRow,
+  sheetWeakRow,
 } from '@/test/importActivities'
 import type { ImportActivityRow } from '@/composables/useImportJobs'
 import ImportActivityResolver from './ImportActivityResolver.vue'
@@ -278,6 +279,37 @@ describe('ImportActivityResolver · hoja de Google (F4)', () => {
     )
     await w.get('[data-test="resolver-calendar-update"]').trigger('click')
     expect(w.emitted('patch')).toEqual([[{ client_id: 's1', action: 'replace', reviewed: true }]])
+  })
+
+  it('fila reescrita: Sustituir · Mantener la actual, sin preselección', async () => {
+    const w = mountResolver(sheetWeakRow())
+    const block = w.get('[data-test="resolver-calendar-change"]')
+    expect(block.text()).toContain('Esta fila se reescribió en la hoja')
+    expect(w.get('[data-test="resolver-sheet-weak"]').text()).toBe(
+      'No se parece a la actividad que ya tienes: ¿la sustituyes o la mantienes?'
+    )
+    expect(w.get('[data-test="import-activity-resolver"]').classes()).toContain('border-failed-fg')
+    const update = w.get('[data-test="resolver-calendar-update"]')
+    const keep = w.get('[data-test="resolver-calendar-keep"]')
+    expect(update.text()).toBe('Sustituir')
+    expect(keep.text()).toBe('Mantener la actual')
+    expect(update.attributes('aria-pressed')).toBe('false')
+    expect(keep.attributes('aria-pressed')).toBe('false')
+    await update.trigger('click')
+    await keep.trigger('click')
+    expect(w.emitted('patch')).toEqual([
+      [{ client_id: 's4', action: 'replace', reviewed: true }],
+      [{ client_id: 's4', action: 'skip', reviewed: true }],
+    ])
+    // Ya elegida "Mantener la actual": marcada.
+    const kept = mountResolver(sheetWeakRow({ reviewed: true, needs_action: false }))
+    expect(kept.get('[data-test="resolver-calendar-keep"]').attributes('aria-pressed')).toBe('true')
+  })
+
+  it('"Cambió en la hoja" sin emparejado débil: textos de siempre', () => {
+    const w = mountResolver(sheetChangedRow())
+    expect(w.find('[data-test="resolver-sheet-weak"]').exists()).toBe(false)
+    expect(w.get('[data-test="resolver-calendar-update"]').text()).toBe('Actualizar')
   })
 
   it('"Ya no está en la hoja" y "La fila ya no incluye esta actividad": Cancelar actividad · Mantener', async () => {

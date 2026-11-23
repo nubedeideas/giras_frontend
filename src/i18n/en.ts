@@ -3151,6 +3151,7 @@ export default {
       // F4: rows from a Google Sheet
       updated_in_sheet: 'Changed in the sheet → will be updated',
       updated_sheet_conflict: 'Changed in the sheet and in Giras',
+      updated_sheet_weak: 'Row rewritten in the sheet: decide what to do',
       removed_in_sheet: 'No longer in the sheet',
       duplicate_link: 'Already in the tour → will be linked to the sheet',
     },
@@ -3190,6 +3191,12 @@ export default {
     sheetChange: {
       title: 'Changed in the sheet',
       conflict: 'You changed it in Giras after importing it',
+    },
+    sheetWeak: {
+      title: 'This row was rewritten in the sheet',
+      help: "It doesn't look like the activity you already have: replace it or keep it?",
+      replace: 'Replace',
+      keep: 'Keep the current one',
     },
     sheetCancel: {
       row_removed: 'No longer in the sheet',
@@ -3239,6 +3246,7 @@ export default {
       user: 'Chosen by you',
       ics: 'From the calendar',
       ics_calendar: 'Calendar time zone',
+      gsheet: 'From the sheet',
     },
     contactsTab: {
       label: 'Sheet or photo',

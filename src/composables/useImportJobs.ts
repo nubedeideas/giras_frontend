@@ -335,6 +335,8 @@ export type ImportTimezoneSource =
   // F3: zona del evento (`TZID`) o, en eventos flotantes, la del calendario (`X-WR-TIMEZONE`).
   | 'ics'
   | 'ics_calendar'
+  // F4: filas de cancelación de una hoja de Google (zona de la actividad existente).
+  | 'gsheet'
 
 /** Zona resuelta de una ciudad del job (`assumptions.cities[city_key]`, F2 §3.5.1). */
 export interface ImportCityTz {
@@ -408,8 +410,17 @@ export type ImportActivityMatchStatus =
 /** F3: `cancel` solo en filas `cancelled_in_source` (cancela la actividad como la manual). */
 export type ImportActivityAction = 'create' | 'skip' | 'replace' | 'cancel'
 
-/** F3: `ics` = fecha y hora tomadas tal cual del calendario. */
-export type ImportActivityDateSource = 'text' | 'year_assumed' | 'day_number' | 'user' | 'ics'
+/**
+ * F3: `ics` = fecha y hora tomadas tal cual del calendario. F4: `gsheet` = filas de cancelación de
+ * una hoja de Google (fecha y hora de la actividad existente).
+ */
+export type ImportActivityDateSource =
+  | 'text'
+  | 'year_assumed'
+  | 'day_number'
+  | 'user'
+  | 'ics'
+  | 'gsheet'
 
 /** Campos que cambiaron en el calendario respecto a la actividad importada (F3). */
 export type ImportActivityChangedField = 'scheduled_at' | 'end_at' | 'title' | 'location_name'
@@ -442,6 +453,12 @@ export interface ImportActivityMatch {
   conflict?: boolean
   /** F4: duplicado de un import manual que, al confirmar, se vinculará a la hoja. */
   link?: boolean
+  /**
+   * F4, solo con `updated_in_source` de una hoja: la fila heredó la clave solo por posición (se
+   * reescribió en su sitio con otro contenido). Llega con `skip` y `needs_action` hasta que el TM
+   * elige "Sustituir" o "Mantener la actual" (§3.5.2 bis).
+   */
+  weak?: boolean
   /**
    * F4, solo con `cancelled_in_source` de una hoja: la fila ya no está (`row_removed`) o la fila
    * sigue pero ya no da esta actividad (`slot_gone`).

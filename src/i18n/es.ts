@@ -3172,6 +3172,7 @@ export default {
       // F4: filas de una hoja de Google
       updated_in_sheet: 'Cambió en la hoja → se actualizará',
       updated_sheet_conflict: 'Cambió en la hoja y en Giras',
+      updated_sheet_weak: 'Fila reescrita en la hoja: decide qué hacer',
       removed_in_sheet: 'Ya no está en la hoja',
       duplicate_link: 'Ya está en la gira → se vinculará a la hoja',
     },
@@ -3211,6 +3212,12 @@ export default {
     sheetChange: {
       title: 'Cambió en la hoja',
       conflict: 'La cambiaste en Giras después de importarla',
+    },
+    sheetWeak: {
+      title: 'Esta fila se reescribió en la hoja',
+      help: 'No se parece a la actividad que ya tienes: ¿la sustituyes o la mantienes?',
+      replace: 'Sustituir',
+      keep: 'Mantener la actual',
     },
     sheetCancel: {
       row_removed: 'Ya no está en la hoja',
@@ -3260,6 +3267,7 @@ export default {
       user: 'Elegida por ti',
       ics: 'Del calendario',
       ics_calendar: 'Zona del calendario',
+      gsheet: 'De la hoja',
     },
     contactsTab: {
       label: 'Hoja o foto',

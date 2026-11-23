@@ -247,6 +247,8 @@ export function activityNeedsAction(r: ImportActivityRow): boolean {
   // F3: "Cancelada en el calendario" llega con `skip` ("Mantener") y `needs_action` hasta que el
   // usuario elige: omitida no basta para darla por resuelta.
   if (r.match?.status === 'cancelled_in_source') return r.action !== 'cancel' && r.needs_action
+  // F4: emparejado débil de una hoja, igual: llega con `skip` y pide decisión hasta elegir.
+  if (isSheetWeakRow(r) && r.action === 'skip') return r.needs_action
   if (r.action === 'skip') return false
   return r.needs_action || !r.scheduled_at
 }
@@ -314,6 +316,8 @@ export type ActivityStatus =
   | 'cancel'
   // F4: duplicado de un import manual que se vinculará a la hoja (`match.link`, `skip`)
   | 'duplicate_link'
+  // F4: fila reescrita en la hoja que no se parece a la actividad (`match.weak`), sin decidir
+  | 'updated_weak'
 
 /** La fila sale de un calendario (`.ics` subido o suscripción iCal). */
 export function isCalendarRow(r: Pick<ImportActivityRow, 'source_ref'>): boolean {
@@ -357,6 +361,14 @@ export function sheetRowNumber(
   return m ? Number(m[1]) : null
 }
 
+/**
+ * Fila de la hoja reescrita en su sitio con otro contenido (`updated_in_source` + `match.weak`):
+ * emparejada solo por posición, el TM decide si sustituye la actividad o la mantiene.
+ */
+export function isSheetWeakRow(r: Pick<ImportActivityRow, 'match'>): boolean {
+  return r.match?.status === 'updated_in_source' && r.match.weak === true
+}
+
 /** Motivo de una retirada de hoja (`match.reason`); `row_removed` si no llega. */
 export function sheetCancelReason(r: Pick<ImportActivityRow, 'match'>): 'row_removed' | 'slot_gone' {
   return r.match?.reason === 'slot_gone' ? 'slot_gone' : 'row_removed'
@@ -386,6 +398,7 @@ export function activityStatus(r: ImportActivityRow): ActivityStatus {
   if (r.action === 'cancel') return 'cancel'
   if (isCalendarCancelRow(r)) return activityNeedsAction(r) ? 'cancelled_in_source' : 'cancelled_kept'
   if (isCalendarChangeRow(r)) {
+    if (r.match.weak && r.needs_action) return 'updated_weak'
     if (r.action === 'skip') return 'updated_kept'
     if (r.match.conflict && r.needs_action) return 'updated_conflict'
     if (r.action === 'replace') return 'updated_in_source'
@@ -411,6 +424,8 @@ export function activityStatus(r: ImportActivityRow): ActivityStatus {
  */
 export function activityStatusKey(r: ImportActivityRow): string {
   const status = activityStatus(r)
+  // Solo las hojas emparejan por posición: siempre texto "de la hoja".
+  if (status === 'updated_weak') return 'importer.activityStatus.updated_sheet_weak'
   if (isSheetRow(r)) {
     if (status === 'updated_in_source') return 'importer.activityStatus.updated_in_sheet'
     if (status === 'updated_conflict') return 'importer.activityStatus.updated_sheet_conflict'
@@ -463,6 +478,7 @@ const TZ_SOURCES = new Set<ImportTimezoneSource>([
   'user',
   'ics',
   'ics_calendar',
+  'gsheet',
 ])
 
 /** Clave i18n de por qué la fila tiene esa zona (`importer.tzSource.*`). */

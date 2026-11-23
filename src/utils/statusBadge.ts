@@ -103,6 +103,8 @@ const IMPORT_ACTIVITY: Record<string, BadgeStatus> = {
   cancel: 'failed',
   // F4: duplicado de un import manual que se vinculará a la hoja
   duplicate_link: 'sent',
+  // F4: fila reescrita en la hoja, pendiente de "Sustituir" o "Mantener la actual"
+  updated_weak: 'pending',
 }
 
 /** Estado de una fila de actividad del importador (`activityStatus` de `utils/importReview.ts`). */

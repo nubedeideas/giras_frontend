@@ -6,6 +6,7 @@ import {
   sheetJob,
   sheetLinkRow,
   sheetRemovedRow,
+  sheetWeakRow,
 } from '@/test/importActivities'
 import { activityRow } from '@/test/importJobs'
 import {
@@ -18,7 +19,9 @@ import {
   isSheetJob,
   isSheetLinkRow,
   isSheetRow,
+  isSheetWeakRow,
   pendingCounts,
+  timezoneSourceKey,
   sheetCancelReason,
   sheetRowNumber,
 } from '@/utils/importReview'
@@ -54,6 +57,28 @@ describe('filas de hoja (F4)', () => {
     expect(activityStatusKey(sheetChangedRow({ action: 'skip' }))).toBe(
       'importer.activityStatus.updated_kept'
     )
+  })
+
+  it('fila reescrita (emparejado débil): pendiente con "skip" hasta elegir', () => {
+    const weak = sheetWeakRow()
+    expect(isSheetWeakRow(weak)).toBe(true)
+    expect(isSheetWeakRow(sheetChangedRow())).toBe(false)
+    expect(activityNeedsAction(weak)).toBe(true)
+    expect(activityStatus(weak)).toBe('updated_weak')
+    expect(activityStatusKey(weak)).toBe('importer.activityStatus.updated_sheet_weak')
+    expect(importActivityBadge(activityStatus(weak))).toBe('pending')
+    // Mantener la actual (`skip` + `reviewed`): resuelta.
+    const kept = sheetWeakRow({ reviewed: true, needs_action: false })
+    expect(activityNeedsAction(kept)).toBe(false)
+    expect(activityStatus(kept)).toBe('updated_kept')
+    // Sustituir.
+    const replaced = sheetWeakRow({ action: 'replace', reviewed: true, needs_action: false })
+    expect(activityNeedsAction(replaced)).toBe(false)
+    expect(activityStatusKey(replaced)).toBe('importer.activityStatus.updated_in_sheet')
+  })
+
+  it('zona y fecha "de la hoja" (gsheet)', () => {
+    expect(timezoneSourceKey('gsheet')).toBe('importer.tzSource.gsheet')
   })
 
   it('ya no está en la hoja: por motivo; pide decisión hasta elegir', () => {

@@ -10,6 +10,9 @@
 // fila ya no incluye esta actividad" (`slot_gone`), con los mismos botones. Un duplicado de un import
 // manual que se vinculará a la hoja (`match.link`): Vincular (`skip`) · No vincular (`create`, se crea
 // como nueva). El contrato no permite omitir sin vincular: `skip` con `link` siempre vincula.
+// F4 §3.5.2 bis: una fila reescrita en su sitio con otro contenido (`match.weak`) usa el mismo bloque
+// con su propio texto: Sustituir (`replace`) · Mantener la actual (`skip` + `reviewed`), sin
+// preselección hasta elegir.
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
@@ -26,6 +29,7 @@ import {
   isCalendarChangeRow,
   isSheetLinkRow,
   isSheetRow,
+  isSheetWeakRow,
   sheetCancelReason,
   type ActivityTypeOption,
 } from '@/utils/importReview'
@@ -87,8 +91,17 @@ const canReplace = computed(() => !!props.row.match?.activity_uuid)
 const sheetRow = computed(() => isSheetRow(props.row))
 /** Duplicado de un import manual: se vincula a la hoja (`skip`) o se crea como nueva. */
 const showLink = computed(() => isSheetLinkRow(props.row))
-const changeTitle = computed(() =>
-  sheetRow.value ? t('importer.sheetChange.title') : t('importer.calendarChange.title')
+/** Fila reescrita en la hoja que no se parece a la actividad: sustituir o mantener. */
+const weak = computed(() => isSheetWeakRow(props.row))
+const changeTitle = computed(() => {
+  if (weak.value) return t('importer.sheetWeak.title')
+  return sheetRow.value ? t('importer.sheetChange.title') : t('importer.calendarChange.title')
+})
+const updateLabel = computed(() =>
+  weak.value ? t('importer.sheetWeak.replace') : t('importer.calendarChange.update')
+)
+const keepLabel = computed(() =>
+  weak.value ? t('importer.sheetWeak.keep') : t('importer.calendarChange.keep')
 )
 const changeConflict = computed(() =>
   sheetRow.value ? t('importer.sheetChange.conflict') : t('importer.calendarChange.conflict')
@@ -104,6 +117,12 @@ const showChange = computed(() => isCalendarChangeRow(props.row))
 const showCancel = computed(() => isCalendarCancelRow(props.row))
 /** El servidor ya no pide decisión: hay una opción elegida (con conflicto, ninguna hasta elegir). */
 const decided = computed(() => !props.row.needs_action)
+/** "Mantener" marcado: en una débil, solo cuando ya se eligió (llega con `skip` sin decidir). */
+const keepPressed = computed(() => props.row.action === 'skip' && (!weak.value || decided.value))
+
+function keepChange() {
+  patch(weak.value ? { action: 'skip', reviewed: true } : { action: 'skip' })
+}
 
 /**
  * Un campo cambiado: "antes → ahora". `match` solo trae el "antes" de `scheduled_at` y
@@ -291,6 +310,13 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
         {{ changeTitle }}
       </p>
       <p
+        v-if="weak"
+        class="text-[13px] text-pending-fg rounded-sm bg-pending-bg px-2 py-1"
+        data-test="resolver-sheet-weak"
+      >
+        {{ t('importer.sheetWeak.help') }}
+      </p>
+      <p
         v-if="row.match.conflict"
         class="text-[13px] text-pending-fg rounded-sm bg-pending-bg px-2 py-1"
         data-test="resolver-calendar-conflict"
@@ -330,17 +356,17 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
           data-test="resolver-calendar-update"
           @click="patch({ action: 'replace', reviewed: true })"
         >
-          {{ t('importer.calendarChange.update') }}
+          {{ updateLabel }}
         </button>
         <button
           type="button"
-          :class="[CHOICE, row.action === 'skip' ? PRESSED : IDLE]"
-          :aria-pressed="row.action === 'skip'"
+          :class="[CHOICE, keepPressed ? PRESSED : IDLE]"
+          :aria-pressed="keepPressed"
           :disabled="saving"
           data-test="resolver-calendar-keep"
-          @click="patch({ action: 'skip' })"
+          @click="keepChange"
         >
-          {{ t('importer.calendarChange.keep') }}
+          {{ keepLabel }}
         </button>
       </div>
     </div>

@@ -216,6 +216,20 @@ export function sheetChangedRow(
   })
 }
 
+/**
+ * Fila reescrita en su sitio con otro contenido ("Show Madrid" → "Show París", `match.weak`), sin
+ * decidir: `skip` + `needs_action` (§3.5.2 bis).
+ */
+export function sheetWeakRow(
+  overrides: Partial<ImportActivityRow> = {},
+  match: Partial<ImportActivityRow['match']> = {}
+): ImportActivityRow {
+  return sheetChangedRow(
+    { client_id: 's4', title: 'Show París', action: 'skip', needs_action: true, ...overrides },
+    { changed_fields: ['title'], weak: true, ...match }
+  )
+}
+
 /** "Ya no está en la hoja" (`cancelled_in_source`) sin decidir: `skip` + `needs_action`. */
 export function sheetRemovedRow(
   reason: 'row_removed' | 'slot_gone' = 'row_removed',
