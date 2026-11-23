@@ -127,6 +127,23 @@ describe('CreateActivityModal: zona horaria (F0 §4.3)', () => {
     store.setActiveTourByUuid('T1')
   }
 
+  it('prerrellena la fecha con initialDate (día del calendario) en la zona de la gira', async () => {
+    setZonedTour('Asia/Tokyo')
+    const bodies = captureCreate()
+    const w = mount(CreateActivityModal, {
+      props: { show: false, initialDate: '2026-12-03' },
+      global: { plugins: [i18n], stubs: { UrgentNoticeModal: true } },
+    })
+    await w.setProps({ show: true })
+    await flushPromises()
+    expect(w.get<HTMLInputElement>('input[type="date"]').element.value).toBe('2026-12-03')
+    await w.get('select').setValue('type-urgent')
+    await w.findAll('button').find((b) => b.text() === 'Crear Actividad')!.trigger('click')
+    await flushPromises()
+    // 10:00 del 3 de diciembre en Tokio = 01:00Z del mismo día.
+    expect(bodies[0].scheduled_at).toBe('2026-12-03T01:00:00.000Z')
+  })
+
   it('propone la zona de la gira activa', async () => {
     setZonedTour('America/Bogota')
     captureCreate()

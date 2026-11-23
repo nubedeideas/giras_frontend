@@ -431,8 +431,10 @@ export default {
 
   calendar: {
     title: 'Calendar',
-    addEvent: 'New Event',
+    addEvent: 'Add',
     noEvents: 'No events this day',
+    noDayActivities: 'No activities on this day',
+    allDay: 'All day',
     upcoming: 'Upcoming Events',
     today: 'Today',
     allTours: 'All Tours',

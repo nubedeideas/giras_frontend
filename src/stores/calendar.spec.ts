@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { jsonResponse, mockFetch } from '@/test/http'
-import { useCalendarStore } from './calendar'
+import { dateKeyOf, useCalendarStore } from './calendar'
 import { useActivitiesStore } from './activities'
 import { useToursStore } from './tours'
 import type { ActivityListItem } from '@/composables/useActivities'
@@ -170,5 +170,80 @@ describe('calendar store: elegir día con el detalle abierto', () => {
 
     expect(activities.selectedUuid).toBe('A1')
     expect(cal.selectedDate).toBe('2026-11-10')
+  })
+})
+
+describe('calendar store: día en la zona de la gira', () => {
+  it('agrupa por el día de la gira, no por el del navegador', () => {
+    const tours = useToursStore()
+    tours.tours = [{ ...tour(1, '2026-01-10'), timezone: 'Asia/Tokyo' } as Tour]
+    tours.activeTourId = 1
+    const activities = useActivitiesStore()
+    // 20:00Z del 2 de diciembre = 05:00 del 3 en Tokio.
+    activities.activities = [activity('A1', '2026-12-02T20:00:00Z')]
+
+    const cal = useCalendarStore()
+    cal.selectedDate = '2026-12-03'
+
+    expect(cal.activitiesForSelectedDate.map((a) => a.uuid)).toEqual(['A1'])
+    expect(dateKeyOf('2026-12-02T20:00:00Z', 'Asia/Tokyo')).toBe('2026-12-03')
+    expect(dateKeyOf('2026-12-02T20:00:00Z', 'America/Bogota')).toBe('2026-12-02')
+  })
+})
+
+describe('calendar store: abrir una actividad desde el panel', () => {
+  function setup(scheduledAt: string, timezone?: string) {
+    const tours = useToursStore()
+    tours.tours = [{ ...tour(1, '2026-01-10'), timezone } as Tour]
+    tours.activeTourId = 1
+    const activities = useActivitiesStore()
+    const act = activity('A1', scheduledAt)
+    activities.activities = [act]
+    const select = vi.spyOn(activities, 'selectActivity').mockImplementation(async (uuid) => {
+      activities.selectedUuid = uuid
+    })
+    const cal = useCalendarStore()
+    cal.currentYear = 2026
+    cal.currentMonth = 10
+    return { act, activities, cal, select }
+  }
+
+  it('marca su día y abre el detalle', () => {
+    const { act, cal, select } = setup('2026-11-12T09:00:00')
+
+    cal.openActivity(act)
+
+    expect(select).toHaveBeenCalledWith('A1')
+    expect(cal.selectedDate).toBe('2026-11-12')
+    expect([cal.currentYear, cal.currentMonth]).toEqual([2026, 10])
+  })
+
+  it('si el día cae en otro mes, la rejilla navega a ese mes (día de la gira)', () => {
+    // 23:30Z del 31 de diciembre = 1 de enero en Madrid.
+    const { act, cal } = setup('2026-12-31T23:30:00Z', 'Europe/Madrid')
+
+    cal.openActivity(act)
+
+    expect(cal.selectedDate).toBe('2027-01-01')
+    expect([cal.currentYear, cal.currentMonth]).toEqual([2027, 0])
+  })
+
+  it('después, elegir el día de la propia actividad mantiene el detalle', () => {
+    const { act, activities, cal } = setup('2026-11-12T09:00:00')
+
+    cal.openActivity(act)
+    cal.selectDate('2026-11-12')
+
+    expect(activities.selectedUuid).toBe('A1')
+    expect(cal.selectedDate).toBe('2026-11-12')
+  })
+
+  it('un fallo al cargar el detalle no deja la promesa sin capturar', async () => {
+    const { act, activities, cal } = setup('2026-11-12T09:00:00')
+    vi.spyOn(activities, 'selectActivity').mockRejectedValue(new Error('404'))
+
+    expect(() => cal.openActivity(act)).not.toThrow()
+    await Promise.resolve()
+    expect(cal.selectedDate).toBe('2026-11-12')
   })
 })

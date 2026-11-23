@@ -13,7 +13,8 @@ import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 
 // `canImport` (F2 A7): admin de la gira fuera de la demo; la pista emite `openImport` y el padre
 // cierra el formulario y abre el importador.
-const props = defineProps<{ show: boolean; canImport?: boolean }>()
+// `initialDate` (YYYY-MM-DD, día de la gira): fecha prerrellenada al abrir (Calendario).
+const props = defineProps<{ show: boolean; canImport?: boolean; initialDate?: string | null }>()
 const emit = defineEmits<{ close: []; openImport: [] }>()
 
 const api = useActivities()
@@ -70,6 +71,7 @@ watch(() => props.show, async (v) => {
   }
   if (v) {
     resetForm()
+    if (props.initialDate) form.value.date = props.initialDate
     if (typesError) error.value = tr('reminders.errors.activity_types_load')
     typesError = false
   }

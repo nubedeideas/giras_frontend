@@ -434,8 +434,10 @@ export default {
 
   calendar: {
     title: 'Calendario',
-    addEvent: 'Nuevo Evento',
+    addEvent: 'Añadir',
     noEvents: 'Sin eventos este día',
+    noDayActivities: 'No hay actividades este día',
+    allDay: 'Todo el día',
     upcoming: 'Próximos Eventos',
     today: 'Hoy',
     allTours: 'Todas las Giras',

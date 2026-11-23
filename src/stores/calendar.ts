@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { DateTime } from 'luxon'
 import type { DayCell } from '@/types'
 import type { ActivityListItem } from '@/composables/useActivities'
 import { useToursStore } from '@/stores/tours'
 import { useActivitiesStore } from '@/stores/activities'
+import { browserZone } from '@/utils/datetime'
 
 // Local YYYY-MM-DD — deliberately NOT `date.toISOString()`, which converts
 // through UTC first and shifts the date by a day in positive UTC-offset
@@ -24,12 +26,18 @@ function isToday(date: Date): boolean {
   )
 }
 
-// Matches an activity's `scheduled_at` (a full ISO datetime) to the same
-// day-key format `daysGrid` uses for its cells — both go through the same
-// local-date → toIso() conversion, so they always line up.
-function dateKeyOf(iso: string): string {
-  const d = new Date(iso)
-  return toIso(new Date(d.getFullYear(), d.getMonth(), d.getDate()))
+/** Zona IANA válida o, si no, la del navegador. */
+export function calendarZone(zone: string | null | undefined): string {
+  if (zone && DateTime.now().setZone(zone).isValid) return zone
+  return browserZone()
+}
+
+// Día (YYYY-MM-DD) de una actividad en la zona de la gira: la clave con la que `daysGrid` agrupa
+// sus celdas y la que usan `selectedDate`, el panel lateral y el alta prerrellenada. Un ISO sin
+// offset se interpreta en esa misma zona.
+export function dateKeyOf(iso: string, zone: string): string {
+  const dt = DateTime.fromISO(iso, { zone })
+  return (dt.isValid && dt.toISODate()) || ''
 }
 
 export const useCalendarStore = defineStore('calendar', () => {
@@ -51,9 +59,14 @@ export const useCalendarStore = defineStore('calendar', () => {
 
   const tourActivities = computed(() => activitiesStore.activities)
 
+  /** Zona de la gira activa (la del navegador si no tiene o no es válida). */
+  const zone = computed(() => calendarZone(toursStore.activeTour?.timezone))
+
   const activitiesForSelectedDate = computed(() => {
     if (!selectedDate.value) return []
-    return tourActivities.value.filter((a) => dateKeyOf(a.scheduled_at) === selectedDate.value)
+    return tourActivities.value.filter(
+      (a) => dateKeyOf(a.scheduled_at, zone.value) === selectedDate.value
+    )
   })
 
   const upcomingActivities = computed(() => {
@@ -72,7 +85,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     // the full list per cell (42×).
     const byDay = new Map<string, ActivityListItem[]>()
     for (const a of tourActivities.value) {
-      const key = dateKeyOf(a.scheduled_at)
+      const key = dateKeyOf(a.scheduled_at, zone.value)
       if (!byDay.has(key)) byDay.set(key, [])
       byDay.get(key)!.push(a)
     }
@@ -150,21 +163,46 @@ export const useCalendarStore = defineStore('calendar', () => {
     if (activitiesStore.selectedUuid) {
       selectedDate.value = iso
       const start = selectedActivityStart()
-      if (!start || dateKeyOf(start) !== iso) activitiesStore.clearSelection()
+      if (!start || dateKeyOf(start, zone.value) !== iso) activitiesStore.clearSelection()
       return
     }
     selectedDate.value = selectedDate.value === iso ? null : iso
   }
 
-  // Mes inicial (Paleta B §5.4.2): el de la actividad seleccionada si la hay (misma
-  // conversión a fecha local que `dateKeyOf`) y, si no, el mes de hoy. Ya no se usa el
-  // `start_date` de la gira: abrir siempre en su primer mes escondía lo actual.
+  // Mes inicial (Paleta B §5.4.2): el de la actividad seleccionada si la hay (mismo día de la
+  // gira que `dateKeyOf`) y, si no, el mes de hoy. Ya no se usa el `start_date` de la gira:
+  // abrir siempre en su primer mes escondía lo actual.
   function resetToDefaultMonth({ useSelection = true }: { useSelection?: boolean } = {}) {
     const selectedIso = useSelection ? selectedActivityStart() : null
-    const parsed = selectedIso ? new Date(selectedIso) : null
-    const target = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date()
-    currentYear.value = target.getFullYear()
-    currentMonth.value = target.getMonth()
+    const key = selectedIso ? dateKeyOf(selectedIso, zone.value) : ''
+    if (key) {
+      goToMonthOf(key)
+      return
+    }
+    const today = new Date()
+    currentYear.value = today.getFullYear()
+    currentMonth.value = today.getMonth()
+  }
+
+  /** Lleva la rejilla al mes de un día YYYY-MM-DD (no toca la selección). */
+  function goToMonthOf(iso: string) {
+    const [y, m] = iso.split('-').map(Number)
+    if (!y || !m) return
+    currentYear.value = y
+    currentMonth.value = m - 1
+  }
+
+  // Abrir una actividad desde el panel lateral: su día pasa a ser el día seleccionado (y la
+  // rejilla salta a su mes si hace falta), coherente con `selectDate`, que mantiene el detalle en
+  // el día de la propia actividad.
+  function openActivity(act: Pick<ActivityListItem, 'uuid' | 'scheduled_at'>) {
+    const key = dateKeyOf(act.scheduled_at, zone.value)
+    if (key) {
+      selectedDate.value = key
+      goToMonthOf(key)
+    }
+    // El detalle pinta el fallo de carga igual que al seleccionar desde la lista.
+    activitiesStore.selectActivity(act.uuid).catch(() => {})
   }
 
   function selectedActivityStart(): string | null {
@@ -188,6 +226,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     currentMonth,
     selectedDate,
     viewMode,
+    zone,
     filterTourId,
     daysGrid,
     activitiesForSelectedDate,
@@ -195,6 +234,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     prevMonth,
     nextMonth,
     selectDate,
+    openActivity,
     setFilterTour,
     resetToDefaultMonth,
   }
