@@ -146,9 +146,19 @@ const remindersState = computed<RemindersState | null>(() => {
   if (!hasActivities.value || activitiesTouched.value === 0 || !p) return null
   if (p.status === 'pending') return pollExpired.value ? 'later' : 'scheduling'
   if (p.status === 'failed') return 'later'
+  if (messages.value) return messagesTotal.value > 0 ? 'done' : 'none'
   return n(p.reminders_created ?? 0) > 0 ? 'done' : 'none'
 })
 const remindersCount = computed(() => n(post.value?.reminders_created ?? 0))
+/**
+ * Mensajes por persona y canal (misma unidad que la vista previa). Con ellos se pintan en lugar de
+ * los pasos; los jobs confirmados antes de que existieran siguen mostrando `reminders_created`.
+ */
+const messages = computed(() => post.value?.messages_by_channel ?? null)
+const messagesTotal = computed(() => {
+  const m = messages.value
+  return m ? n(m.whatsapp) + n(m.email) + n(m.in_app) : 0
+})
 const firstSend = computed(() => formatInstant(post.value?.first_send_at))
 
 // ─── Volver a borrador (D-P1) ─────────────────────────────────────────────────
@@ -270,6 +280,47 @@ const canSendPortal = computed(
     >
       {{ t('importer.result.schedulingLater') }}
     </p>
+    <div
+      v-else-if="remindersState === 'done' && messages"
+      class="flex flex-col gap-0.5"
+      data-test="import-result-messages"
+    >
+      <Translation
+        v-if="firstSend"
+        keypath="importer.result.messages"
+        :plural="messagesTotal"
+        scope="global"
+        tag="p"
+        class="text-[14px] text-ink"
+        data-test="import-result-messages-total"
+      >
+        <template #n>
+          {{ messagesTotal }}
+        </template>
+        <template #date>
+          <span class="font-time tnum">{{ firstSend }}</span>
+        </template>
+      </Translation>
+      <p
+        v-else
+        class="text-[14px] text-ink"
+        data-test="import-result-messages-total"
+      >
+        {{ t('importer.result.messagesNoDate', { n: messagesTotal }, messagesTotal) }}
+      </p>
+      <p
+        class="text-[14px] text-ink-2"
+        data-test="import-result-messages-channels"
+      >
+        {{
+          t('importer.result.messagesByChannel', {
+            wa: n(messages.whatsapp),
+            email: n(messages.email),
+            app: n(messages.in_app),
+          })
+        }}
+      </p>
+    </div>
     <template v-else-if="remindersState === 'done'">
       <Translation
         v-if="firstSend"
@@ -300,7 +351,7 @@ const canSendPortal = computed(
       class="text-[14px] text-ink-2"
       data-test="import-result-reminders-none"
     >
-      {{ t('importer.result.remindersNone') }}
+      {{ messages ? t('importer.result.messagesNone') : t('importer.result.remindersNone') }}
     </p>
 
     <!-- Pausa (F0) -->

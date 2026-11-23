@@ -2615,8 +2615,16 @@ export default {
       quotaTitle: 'WhatsApp y tu plan',
       quotaTotal: 'Ningún WhatsApp | Un WhatsApp | Unos {n} WhatsApp',
       quotaRemaining: 'no te queda ninguno en tu plan | te queda {n} en tu plan | te quedan {n} en tu plan',
+      quotaPending:
+        'Ya hay {n} WhatsApp programado en la gira | Ya hay {n} WhatsApp programados en la gira',
       quotaExceedsBadge: 'No caben todos',
       quotaExceeds: 'Los que no quepan en tu plan saldrán por email y en la app.',
+      outsideTypeGroups:
+        '{people} persona importada solo entra en el Equipo de la gira y no recibirá los recordatorios de: {types} | {people} personas importadas solo entran en el Equipo de la gira y no recibirán los recordatorios de: {types}',
+      daySheetTitle: 'Resumen diario',
+      daySheet: 'Al activar la gira, cada noche se enviará un resumen del día siguiente por email.',
+      daySheetWhatsapp:
+        'Al activar la gira, cada noche se enviará un resumen del día siguiente por email y por WhatsApp, que gasta cupo.',
       viewPlans: 'Ver planes',
       subscriptionCancelled:
         'La suscripción de la gira está cancelada: no saldrá ningún aviso hasta que la renueves.',
@@ -2646,6 +2654,11 @@ export default {
         '{n} recordatorio programado · primer envío {date} | {n} recordatorios programados · primer envío {date}',
       remindersNoDate: '{n} recordatorio programado | {n} recordatorios programados',
       remindersNone: 'No hay recordatorios que programar.',
+      messages:
+        '{n} mensaje programado · primer envío {date} | {n} mensajes programados · primer envío {date}',
+      messagesNoDate: '{n} mensaje programado | {n} mensajes programados',
+      messagesByChannel: 'WhatsApp {wa} · Email {email} · En la app {app}',
+      messagesNone: 'No hay mensajes programados para estas actividades.',
       scheduling: 'Programando avisos…',
       schedulingLater: 'Los avisos se programarán en unos minutos.',
       tourActivated: 'La gira ha pasado a activa.',

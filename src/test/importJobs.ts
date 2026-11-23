@@ -154,9 +154,11 @@ export function notificationsPreview(
     show_day_alert: { enabled: true, will_activate: true, days: 8, channel: 'whatsapp' },
     totals: { whatsapp: 311, email: 120, in_app: 40 },
     first_send_at: '2026-11-30T08:00:00Z',
-    quota: { remaining: 500, plan_limit: 500, exceeds: false, overflow: 0 },
+    quota: { remaining: 500, plan_limit: 500, pending_whatsapp: 0, exceeds: false, overflow: 0 },
     paused: { current: false, after_confirm: false },
     tour_will_activate: true,
+    outside_type_groups: { types: [], people: 0 },
+    day_sheet: { will_run: false, channels: [], whatsapp_ready: false },
     warnings: [],
     ...overrides,
   }

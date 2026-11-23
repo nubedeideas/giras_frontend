@@ -136,7 +136,7 @@ describe('ImportNotificationsPreview', () => {
 
   it('cupo excedido: badge pendiente, aviso y "Ver planes" sin bloquear', async () => {
     setupFetch(() =>
-      jsonResponse(full({ quota: { remaining: 3, plan_limit: 3, exceeds: true, overflow: 308 } }))
+      jsonResponse(full({ quota: { remaining: 3, plan_limit: 3, pending_whatsapp: 0, exceeds: true, overflow: 308 } }))
     )
     const w = mountPreview()
     await flushPromises()
@@ -148,6 +148,67 @@ describe('ImportNotificationsPreview', () => {
       query: { tab: 'subscription' },
     })
     expect(w.get('[data-test="import-notices-confirm"]').attributes('disabled')).toBeUndefined()
+  })
+
+  it('WhatsApp ya programados, personas fuera de los grupos por tipo y resumen diario', async () => {
+    setupFetch(() =>
+      jsonResponse(
+        full({
+          quota: { remaining: 500, plan_limit: 500, pending_whatsapp: 40, exceeds: false, overflow: 0 },
+          outside_type_groups: {
+            types: [
+              { code: 'flight', name: 'Vuelo', people: 3 },
+              { code: 'soundcheck', name: 'Prueba de sonido', people: 2 },
+            ],
+            people: 3,
+          },
+          day_sheet: { will_run: true, channels: ['email', 'whatsapp'], whatsapp_ready: true },
+          warnings: ['imported_outside_type_groups', 'day_sheet_will_run'],
+        })
+      )
+    )
+    const w = mountPreview()
+    await flushPromises()
+    expect(w.get('[data-test="import-notices-quota-pending"]').text()).toBe(
+      'Ya hay 40 WhatsApp programados en la gira'
+    )
+    expect(w.get('[data-test="import-notices-outside-types"]').text()).toBe(
+      '3 personas importadas solo entran en el Equipo de la gira y no recibirán los recordatorios de: Vuelo, Prueba de sonido'
+    )
+    expect(w.get('[data-test="import-notices-day-sheet"]').text()).toBe(
+      'Al activar la gira, cada noche se enviará un resumen del día siguiente por email y por WhatsApp, que gasta cupo.'
+    )
+  })
+
+  it('sin pendientes ni avisos nuevos no se pintan; resumen solo por email; plurales', async () => {
+    setupFetch((_c, n) =>
+      jsonResponse(
+        n === 0
+          ? full()
+          : full({
+              day_sheet: { will_run: true, channels: ['email'], whatsapp_ready: false },
+              warnings: ['day_sheet_will_run'],
+            })
+      )
+    )
+    const w = mountPreview()
+    await flushPromises()
+    expect(w.find('[data-test="import-notices-quota-pending"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-notices-outside-types"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-notices-day-sheet"]').exists()).toBe(false)
+    await w.get('[data-test="import-notices-pause"]').setValue(true)
+    await flushPromises()
+    expect(w.get('[data-test="import-notices-day-sheet"]').text()).toBe(
+      'Al activar la gira, cada noche se enviará un resumen del día siguiente por email.'
+    )
+    const t = i18n.global.t
+    expect(t('importer.notices.quotaPending', { n: 1 }, 1)).toBe('Ya hay 1 WhatsApp programado en la gira')
+    expect(t('importer.notices.outsideTypeGroups', { people: 1, types: 'Vuelo' }, 1)).toBe(
+      '1 persona importada solo entra en el Equipo de la gira y no recibirá los recordatorios de: Vuelo'
+    )
+    expect(t('importer.notices.quotaPending', { n: 2 }, { plural: 2, locale: 'en' })).toBe(
+      'There are already 2 WhatsApp messages scheduled in the tour'
+    )
   })
 
   it('la casilla de pausa vuelve a pedir la vista previa y confirma con pausa', async () => {

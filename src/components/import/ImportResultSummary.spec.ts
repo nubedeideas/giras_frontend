@@ -141,6 +141,54 @@ describe('ImportResultSummary', () => {
       expect(w.find('[data-testid="notif-pause"]').exists()).toBe(true)
     })
 
+    it('con messages_by_channel pinta mensajes por canal en lugar de pasos', () => {
+      useToursStore().tours = [tour()]
+      const w = mountWith(
+        f2Result({
+          post_import: {
+            status: 'done',
+            reminders_created: 120,
+            first_send_at: '2026-11-30T08:00:00Z',
+            messages_by_channel: { whatsapp: 300, email: 180, in_app: 40 },
+          },
+        })
+      )
+      expect(w.find('[data-test="import-result-reminders"]').exists()).toBe(false)
+      const total = w.get('[data-test="import-result-messages-total"]')
+      expect(total.text()).toContain('520 mensajes programados · primer envío')
+      expect(total.get('.font-time.tnum').text()).toContain('09:00')
+      expect(w.get('[data-test="import-result-messages-channels"]').text()).toBe(
+        'WhatsApp 300 · Email 180 · En la app 40'
+      )
+
+      const one = mountWith(
+        f2Result({
+          post_import: {
+            status: 'done',
+            reminders_created: 1,
+            first_send_at: null,
+            messages_by_channel: { whatsapp: 0, email: 1, in_app: 0 },
+          },
+        })
+      )
+      expect(one.get('[data-test="import-result-messages-total"]').text()).toBe('1 mensaje programado')
+
+      // Pasos creados pero ningún mensaje (nadie en el grupo): no se cuentan como enviados.
+      const none = mountWith(
+        f2Result({
+          post_import: {
+            status: 'done',
+            reminders_created: 6,
+            first_send_at: null,
+            messages_by_channel: { whatsapp: 0, email: 0, in_app: 0 },
+          },
+        })
+      )
+      expect(none.get('[data-test="import-result-reminders-none"]').text()).toBe(
+        'No hay mensajes programados para estas actividades.'
+      )
+    })
+
     it('sin admin no hay "Enviar enlaces del portal"', () => {
       useToursStore().tours = [tour({ current_user_is_admin: false })]
       const w = mountWith(f2Result())

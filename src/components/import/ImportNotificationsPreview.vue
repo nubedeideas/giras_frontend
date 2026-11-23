@@ -188,6 +188,26 @@ const quotaLine = computed(() => {
   return parts.join(' · ')
 })
 
+/** WhatsApp ya programados en la gira: reservan cupo antes que lo importado (`overflow` los incluye). */
+const pendingWhatsapp = computed(() => preview.value?.quota.pending_whatsapp ?? 0)
+
+/** Personas del borrador que no recibirán los recordatorios de tipos con destinos propios (R3). */
+const outsideTypes = computed(() => {
+  const o = preview.value?.outside_type_groups
+  if (!hasWarning('imported_outside_type_groups') || !o?.types.length || o.people <= 0) return ''
+  const types = o.types.map((x) => x.name).join(', ')
+  return t('importer.notices.outsideTypeGroups', { people: o.people, types }, o.people)
+})
+
+/** Resumen nocturno del día siguiente al activar la gira (WhatsApp solo con plantilla). */
+const daySheet = computed(() => {
+  const d = preview.value?.day_sheet
+  if (!hasWarning('day_sheet_will_run') || !d?.will_run) return ''
+  return d.channels.includes('whatsapp')
+    ? t('importer.notices.daySheetWhatsapp')
+    : t('importer.notices.daySheet')
+})
+
 const plansLink = { name: 'settings', query: { tab: 'subscription' } }
 
 function onConfirm() {
@@ -327,6 +347,13 @@ function onConfirm() {
             data-test="import-notices-group-empty"
           >
             {{ t('importer.notices.groupEmpty') }}
+          </p>
+          <p
+            v-if="outsideTypes"
+            class="text-[14px] text-pending-fg rounded-sm bg-pending-bg px-3 py-2"
+            data-test="import-notices-outside-types"
+          >
+            {{ outsideTypes }}
           </p>
           <p
             v-if="hasWarning('team_group_not_default')"
@@ -486,6 +513,21 @@ function onConfirm() {
             </p>
           </div>
 
+          <div
+            v-if="daySheet"
+            class="flex flex-col gap-0.5"
+          >
+            <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
+              {{ t('importer.notices.daySheetTitle') }}
+            </h2>
+            <p
+              class="text-[14px] text-ink"
+              data-test="import-notices-day-sheet"
+            >
+              {{ daySheet }}
+            </p>
+          </div>
+
           <div class="flex flex-col gap-0.5">
             <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
               {{ t('importer.notices.firstSendTitle') }}
@@ -529,6 +571,13 @@ function onConfirm() {
               data-test="import-notices-quota-line"
             >
               {{ quotaLine }}
+            </p>
+            <p
+              v-if="pendingWhatsapp > 0"
+              class="text-[13px] text-ink-2"
+              data-test="import-notices-quota-pending"
+            >
+              {{ t('importer.notices.quotaPending', { n: pendingWhatsapp }, pendingWhatsapp) }}
             </p>
             <div
               v-if="preview.quota.exceeds"

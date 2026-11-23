@@ -506,9 +506,15 @@ export interface ImportResult {
 /** Lo escribe `task_post_import` al terminar; el front sondea mientras sea `pending` (máx. 60 s). */
 export interface ImportPostImport {
   status: 'pending' | 'done' | 'failed'
+  /** Pasos (filas `Notification` de recordatorio), no mensajes por persona. */
   reminders_created: number | null
   /** ISO UTC. */
   first_send_at: string | null
+  /**
+   * Mensajes por persona programados y futuros por canal (`import_hooks.after_bulk_import`): misma
+   * unidad que la vista previa y el cupo. Falta en jobs confirmados antes de añadirse.
+   */
+  messages_by_channel?: Record<ImportNotificationChannel, number>
 }
 
 /**
@@ -730,6 +736,24 @@ export type ImportPreviewWarning =
   | 'whatsapp_template_missing'
   | 'past_activities'
   | 'subscription_cancelled'
+  | 'imported_outside_type_groups'
+  | 'day_sheet_will_run'
+
+/** Tipo con destinos propios (R3) a cuyos grupos no llegan las personas del borrador. */
+export interface ImportPreviewOutsideType {
+  code: string
+  name: string
+  /** Personas del borrador que no recibirán sus recordatorios. */
+  people: number
+}
+
+/** Day sheet nocturno (`task_generate_day_sheets`) si la gira pasa a activa al confirmar. */
+export interface ImportPreviewDaySheet {
+  will_run: boolean
+  /** Vacío si no correrá; `whatsapp` solo si `whatsapp_day_sheet` tiene SID. */
+  channels: ('email' | 'whatsapp')[]
+  whatsapp_ready: boolean
+}
 
 export interface ImportPreviewShowDayAlert {
   enabled: boolean
@@ -765,6 +789,9 @@ export interface ImportNotificationsPreview {
     /** `null` sin cupo de suscripción. */
     remaining: number | null
     plan_limit: number | null
+    /** WhatsApp ya programados y futuros de la gira, por persona; reservan cupo antes. */
+    pending_whatsapp: number
+    /** `overflow = max(pending_whatsapp + totals.whatsapp - remaining, 0)`. */
     exceeds: boolean
     overflow: number
   }
@@ -774,6 +801,9 @@ export interface ImportNotificationsPreview {
   replaced?: number
   /** Filas a crear que ya han pasado (sin recordatorios). */
   past_activities?: number
+  /** Personas del borrador fuera de los destinos propios de algún tipo (unión de personas). */
+  outside_type_groups?: { types: ImportPreviewOutsideType[]; people: number }
+  day_sheet?: ImportPreviewDaySheet
   warnings: ImportPreviewWarning[]
 }
 

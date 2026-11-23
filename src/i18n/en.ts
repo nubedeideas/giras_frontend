@@ -2599,8 +2599,16 @@ export default {
       quotaTitle: 'WhatsApp and your plan',
       quotaTotal: 'No WhatsApp messages | About 1 WhatsApp message | About {n} WhatsApp messages',
       quotaRemaining: 'none left in your plan | 1 left in your plan | {n} left in your plan',
+      quotaPending:
+        'There is already {n} WhatsApp message scheduled in the tour | There are already {n} WhatsApp messages scheduled in the tour',
       quotaExceedsBadge: "They don't all fit",
       quotaExceeds: "Those that don't fit your plan will go by email and in the app.",
+      outsideTypeGroups:
+        "{people} imported person only joins the Tour team and won't get the reminders for: {types} | {people} imported people only join the Tour team and won't get the reminders for: {types}",
+      daySheetTitle: 'Daily summary',
+      daySheet: 'Once the tour is active, a summary of the next day will be sent by email every night.',
+      daySheetWhatsapp:
+        'Once the tour is active, a summary of the next day will be sent every night by email and by WhatsApp, which uses quota.',
       viewPlans: 'See plans',
       subscriptionCancelled:
         "The tour's subscription is cancelled: no notifications will go out until you renew it.",
@@ -2630,6 +2638,11 @@ export default {
         '{n} reminder scheduled · first send {date} | {n} reminders scheduled · first send {date}',
       remindersNoDate: '{n} reminder scheduled | {n} reminders scheduled',
       remindersNone: 'There are no reminders to schedule.',
+      messages:
+        '{n} message scheduled · first send {date} | {n} messages scheduled · first send {date}',
+      messagesNoDate: '{n} message scheduled | {n} messages scheduled',
+      messagesByChannel: 'WhatsApp {wa} · Email {email} · In the app {app}',
+      messagesNone: 'There are no messages scheduled for these activities.',
       scheduling: 'Scheduling notifications…',
       schedulingLater: 'Notifications will be scheduled in a few minutes.',
       tourActivated: 'The tour is now active.',
