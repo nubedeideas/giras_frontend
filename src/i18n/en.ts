@@ -2781,6 +2781,7 @@ export default {
       inGroup: 'In the Tour team',
       inGroupLocked: 'Already in the Tour team',
       source: 'Source: {file} · {row}',
+      sourceSheet: 'Source: Google Sheet · {tab} · row {row}',
       save: 'Save',
       saveReviewed: 'Save and mark as OK',
       close: 'Close',
@@ -2797,6 +2798,9 @@ export default {
       viewNotices: 'Review notifications',
       summaryCalendar: 'New: {activities} · Updated: {replaced} · Cancelled: {cancelled}',
       reviewedOnly: 'Confirm with no changes: the calendar is marked as reviewed.',
+      // F4: activities already in the tour that will be linked to the sheet.
+      summaryLinked: '· {n} will be linked | · {n} will be linked',
+      reviewedOnlySheet: 'Confirm with no changes: the sheet is marked as reviewed.',
     },
     discard: {
       button: 'Discard',
@@ -2918,6 +2922,7 @@ export default {
       viewSchedule: 'View schedule',
       sendPortal: 'Send portal links to the crew',
       cancelled: '{n} activity cancelled | {n} activities cancelled',
+      linked: '{n} activity linked to the sheet | {n} activities linked to the sheet',
       cancelSkipped:
         "{n} couldn't be cancelled any more (deleted, cancelled or completed) | {n} couldn't be cancelled any more (deleted, cancelled or completed)",
       backToDraftPause: 'Pause notifications too',
@@ -3080,6 +3085,9 @@ export default {
       sourceContext: 'Header:',
       noSnippet: "It's an image or a scan: there's no text to show.",
       fromCalendar: 'Calendar',
+      fromSheet: 'Google Sheet · {tab} · row {row}',
+      fromSheetOnly: 'Google Sheet',
+      sheetRowN: 'row {row}',
       sourceEvent: '{file} · event {row}',
       sourceCalendar: 'Calendar:',
       uid: 'UID {uid}',
@@ -3139,6 +3147,11 @@ export default {
       cancelled_in_source: 'Cancelled in the calendar',
       cancelled_kept: 'Kept',
       cancel: 'Will be cancelled',
+      // F4: rows from a Google Sheet
+      updated_in_sheet: 'Changed in the sheet → will be updated',
+      updated_sheet_conflict: 'Changed in the sheet and in Giras',
+      removed_in_sheet: 'No longer in the sheet',
+      duplicate_link: 'Already in the tour → will be linked to the sheet',
     },
     calendar: {
       header: 'Changes from {name}: {counts}',
@@ -3165,6 +3178,28 @@ export default {
       help: 'If you cancel it, its pending notifications are cancelled too.',
       cancel: 'Cancel activity',
       keep: 'Keep',
+    },
+    // F4: review of a job from a linked Google Sheet.
+    sheet: {
+      header: 'Changes from sheet {name}: {counts}',
+      headerNoCounts: 'Changes from sheet {name}',
+      viewLink: 'View link',
+      openCell: 'Open in Google Sheets',
+    },
+    sheetChange: {
+      title: 'Changed in the sheet',
+      conflict: 'You changed it in Giras after importing it',
+    },
+    sheetCancel: {
+      row_removed: 'No longer in the sheet',
+      slot_gone: 'The row no longer includes this activity',
+    },
+    sheetLink: {
+      title: 'Already in the tour',
+      help: "When you confirm, we'll link it to the sheet: nothing is created or sent, and we'll suggest this row's changes as updates.",
+      helpCreate: "It'll be created as a new activity, separate from the one already in the tour.",
+      link: 'Link',
+      unlink: "Don't link: create as new",
     },
     duplicate: {
       skip: 'Skip',

@@ -6,6 +6,8 @@
 // (`mode="notices"`, emite `notices`: paso "Qué se va a enviar y a quién").
 // F3 §4.4: con cancelaciones del calendario, "Nuevas: N · Actualizadas: M · Canceladas: K". Un
 // borrador de calendario (`calendar`) con todo "Mantener" se confirma sin cambios: lo dice debajo.
+// F4 §4.4: `calendar` vale para cualquier fuente en vivo (también una hoja, con `sheet` para el
+// texto); "· se vincularán {n}" cuando `activities.to_link > 0` (vincular cuenta como cambio).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -23,10 +25,15 @@ const props = withDefaults(
     pending?: number | null
     /** `notices`: el botón principal abre el paso de avisos en lugar de confirmar. */
     mode?: 'confirm' | 'notices'
-    /** F3: borrador de calendario (se puede confirmar sin cambios para darlo por revisado). */
+    /**
+     * F3: borrador de una fuente en vivo (calendario o, F4, hoja de Google): se puede confirmar sin
+     * cambios para darlo por revisado.
+     */
     calendar?: boolean
+    /** F4: la fuente en vivo es una hoja de Google (texto de "confirmar sin cambios"). */
+    sheet?: boolean
   }>(),
-  { busy: false, estimate: null, pending: null, mode: 'confirm', calendar: false }
+  { busy: false, estimate: null, pending: null, mode: 'confirm', calendar: false, sheet: false }
 )
 const emit = defineEmits<{ confirm: []; discard: []; notices: [] }>()
 
@@ -35,11 +42,16 @@ const { t } = useI18n()
 const activities = computed(() => props.summary.activities ?? null)
 const hasActivities = computed(() => (activities.value?.total ?? 0) > 0)
 const toCancel = computed(() => activities.value?.to_cancel ?? 0)
-/** Altas, sustituciones y cancelaciones: todo lo que hará `confirm` con las actividades. */
+/** F4: duplicados que se vincularán a la hoja. */
+const toLink = computed(() => activities.value?.to_link ?? 0)
+/** Altas, sustituciones, cancelaciones y vínculos: todo lo que hará `confirm` con las actividades. */
 const activitiesToImport = computed(() =>
   activities.value
-    ? activities.value.to_create + activities.value.to_replace + toCancel.value
+    ? activities.value.to_create + activities.value.to_replace + toCancel.value + toLink.value
     : 0
+)
+const linkedText = computed(() =>
+  toLink.value > 0 ? ` ${t('importer.confirm.summaryLinked', { n: toLink.value }, toLink.value)}` : ''
 )
 const toImport = computed(
   () => props.summary.to_create + props.summary.to_link + activitiesToImport.value
@@ -78,7 +90,7 @@ function onPrimary() {
               replaced: activities.to_replace,
               cancelled: toCancel,
             })
-          }}
+          }}{{ linkedText }}
         </p>
         <p
           v-else-if="hasActivities && activities"
@@ -92,7 +104,7 @@ function onPrimary() {
               skipped: activities.to_skip,
               replaced: activities.to_replace,
             })
-          }}
+          }}{{ linkedText }}
         </p>
         <p
           v-else
@@ -115,7 +127,7 @@ function onPrimary() {
           class="text-[13px] text-ink-2"
           data-test="import-confirm-reviewed-only"
         >
-          {{ t('importer.confirm.reviewedOnly') }}
+          {{ sheet ? t('importer.confirm.reviewedOnlySheet') : t('importer.confirm.reviewedOnly') }}
         </p>
         <p
           v-if="reason"

@@ -196,3 +196,81 @@ describe('ImportConfirmBar · calendario (F3)', () => {
     )
   })
 })
+
+describe('ImportConfirmBar · hoja de Google (F4)', () => {
+  const activities = {
+    total: 3,
+    to_create: 1,
+    to_replace: 0,
+    to_skip: 2,
+    needs_action: 0,
+    duplicates: 2,
+    possible_duplicates: 0,
+    outside_tour: 0,
+    in_past: 0,
+    by_type: {},
+    days: 1,
+    to_cancel: 0,
+    to_link: 2,
+  }
+
+  it('"· se vincularán {n}" y los vínculos cuentan en el botón', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({ to_create: 0, to_link: 0, in_group: 0, to_skip: 0, activities }),
+        canConfirm: true,
+        calendar: true,
+        sheet: true,
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-summary-all"]').text()).toBe(
+      'Contactos nuevos: 0 · Actividades nuevas: 1 · Sustituidas: 0 · Omitidas: 2 · se vincularán 2'
+    )
+    expect(w.get('[data-test="import-confirm"]').text()).toContain('Confirmar (3)')
+    expect(w.find('[data-test="import-confirm-reviewed-only"]').exists()).toBe(false)
+    i18n.global.locale.value = 'en'
+    await nextTick()
+    expect(w.get('[data-test="import-confirm-summary-all"]').text()).toContain('· 2 will be linked')
+  })
+
+  it('con cancelaciones, el texto de vínculos va tras el de calendario', () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({
+          to_create: 0,
+          to_link: 0,
+          in_group: 0,
+          activities: { ...activities, to_create: 0, to_cancel: 1, to_link: 1 },
+        }),
+        canConfirm: true,
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-summary-calendar"]').text()).toBe(
+      'Nuevas: 0 · Actualizadas: 0 · Canceladas: 1 · se vinculará 1'
+    )
+  })
+
+  it('borrador de hoja con todo "Mantener": "se da por revisada la hoja"', () => {
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({
+          to_create: 0,
+          to_link: 0,
+          in_group: 0,
+          to_skip: 0,
+          activities: { ...activities, to_create: 0, to_link: 0 },
+        }),
+        canConfirm: true,
+        calendar: true,
+        sheet: true,
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-reviewed-only"]').text()).toBe(
+      'Confirmar sin cambios: se da por revisada la hoja.'
+    )
+    expect(w.find('[data-test="import-confirm-summary-all"]').text()).not.toContain('vincular')
+  })
+})

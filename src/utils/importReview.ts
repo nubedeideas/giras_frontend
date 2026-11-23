@@ -5,6 +5,8 @@
  * filas de actividad (por día, orden, estado, issues, zona) y formato de horas y fechas locales.
  * F3 (2026-11-23-importacion-f3-ics-ical.md §4.2): filas de calendario (cambiadas o canceladas en
  * el calendario), avisos `ics_*` y origen de la zona `ics`/`ics_calendar`.
+ * F4 (2026-11-23-importacion-f4-google-sheets.md §4.2 y §4.4): filas de una hoja de Google (origen
+ * pestaña y fila, textos de cambio y retirada de hoja, "se vinculará") y jobs de fuente en vivo.
  */
 import { DateTime } from 'luxon'
 import { ApiError } from '@/utils/apiClient'
@@ -16,6 +18,7 @@ import type {
   ImportJob,
   ImportJobStatus,
   ImportMatchCandidate,
+  ImportSourceRef,
   ImportRowAction,
   ImportTeamRow,
   ImportTimezoneSource,
@@ -309,6 +312,8 @@ export type ActivityStatus =
   | 'cancelled_in_source'
   | 'cancelled_kept'
   | 'cancel'
+  // F4: duplicado de un import manual que se vinculará a la hoja (`match.link`, `skip`)
+  | 'duplicate_link'
 
 /** La fila sale de un calendario (`.ics` subido o suscripción iCal). */
 export function isCalendarRow(r: Pick<ImportActivityRow, 'source_ref'>): boolean {
@@ -323,6 +328,38 @@ export function isCalendarChangeRow(r: Pick<ImportActivityRow, 'match'>): boolea
 /** El evento del calendario ya importado se canceló o desapareció (`cancelled_in_source`). */
 export function isCalendarCancelRow(r: Pick<ImportActivityRow, 'match'>): boolean {
   return r.match?.status === 'cancelled_in_source'
+}
+
+// ─── Hoja de Google (F4) ──────────────────────────────────────────────────────
+
+/** La fila (de actividad o de equipo) sale de una hoja de Google vinculada. */
+export function isSheetRow(r: { source_ref?: Pick<ImportSourceRef, 'kind'> | null }): boolean {
+  return r.source_ref?.kind === 'gsheet'
+}
+
+/**
+ * Duplicado de una actividad importada a mano (o manual) que, al confirmar con `skip`, se vinculará
+ * a la hoja (`match.link`). Con `create` ("No vincular") se crea como nueva.
+ */
+export function isSheetLinkRow(r: Pick<ImportActivityRow, 'match'>): boolean {
+  return r.match?.link === true && r.match.status === 'duplicate'
+}
+
+/** Número de fila de la hoja: `row_number` o, si falta, el de `row` ("Itinerario!12" → 12). */
+export function sheetRowNumber(
+  s: Pick<ImportSourceRef, 'row' | 'row_number'> | null | undefined
+): number | null {
+  if (!s) return null
+  if (typeof s.row_number === 'number' && Number.isInteger(s.row_number) && s.row_number > 0) {
+    return s.row_number
+  }
+  const m = /!(\d+)$/.exec(s.row ?? '')
+  return m ? Number(m[1]) : null
+}
+
+/** Motivo de una retirada de hoja (`match.reason`); `row_removed` si no llega. */
+export function sheetCancelReason(r: Pick<ImportActivityRow, 'match'>): 'row_removed' | 'slot_gone' {
+  return r.match?.reason === 'slot_gone' ? 'slot_gone' : 'row_removed'
 }
 
 /**
@@ -355,6 +392,7 @@ export function activityStatus(r: ImportActivityRow): ActivityStatus {
   }
   if (r.action === 'replace') return 'replace'
   const status = r.match?.status
+  if (r.action === 'skip' && isSheetLinkRow(r)) return 'duplicate_link'
   if (r.action === 'skip') {
     if (status === 'duplicate') return 'duplicate'
     if (status === 'duplicate_in_draft' || r.duplicate_of) return 'duplicate_in_draft'
@@ -367,9 +405,22 @@ export function activityStatus(r: ImportActivityRow): ActivityStatus {
   return 'new'
 }
 
-/** Clave i18n del estado de la fila (`importer.activityStatus.*`). */
+/**
+ * Clave i18n del estado de la fila (`importer.activityStatus.*`). F4: en filas de hoja, los textos
+ * de cambio y retirada son "de la hoja" (`slot_gone`: "La fila ya no incluye esta actividad").
+ */
 export function activityStatusKey(r: ImportActivityRow): string {
-  return `importer.activityStatus.${activityStatus(r)}`
+  const status = activityStatus(r)
+  if (isSheetRow(r)) {
+    if (status === 'updated_in_source') return 'importer.activityStatus.updated_in_sheet'
+    if (status === 'updated_conflict') return 'importer.activityStatus.updated_sheet_conflict'
+    if (status === 'cancelled_in_source') {
+      return sheetCancelReason(r) === 'slot_gone'
+        ? 'importer.sheetCancel.slot_gone'
+        : 'importer.activityStatus.removed_in_sheet'
+    }
+  }
+  return `importer.activityStatus.${status}`
 }
 
 const ACTIVITY_ISSUES = new Set([
@@ -584,15 +635,37 @@ export function isCalendarJob(
 }
 
 /**
+ * Job de una hoja de Google vinculada (F4): `sheet`, `source_kind="sheet_sync"` o filas de hoja.
+ */
+export function isSheetJob(
+  job: Pick<ImportJob, 'source_kind' | 'sheet' | 'draft'> | null | undefined
+): boolean {
+  if (!job) return false
+  if (job.sheet || job.source_kind === 'sheet_sync') return true
+  return (job.draft?.activities ?? []).some(isSheetRow)
+}
+
+/**
+ * Borrador de una fuente en vivo (calendario o hoja de Google, F3/F4): se puede confirmar sin
+ * cambios para dar por revisadas sus filas (el backend las deja en `skipped`/`imported`).
+ */
+export function isLiveSourceJob(
+  job: Pick<ImportJob, 'source_kind' | 'calendar' | 'sheet' | 'draft'> | null | undefined
+): boolean {
+  return isCalendarJob(job) || isSheetJob(job)
+}
+
+/**
  * `ready`, sin nada por resolver (equipo ni actividades) y con al menos una fila no omitida en
  * total. Se cuenta sobre las filas (no `summary.needs_action`) para incluir las actividades sin
  * instante, que el servidor rechazaría aunque no lleven `needs_action`. F3: un borrador de
- * calendario sin nada por resolver se puede confirmar aunque todo sea "Mantener" (`skip`).
+ * calendario sin nada por resolver se puede confirmar aunque todo sea "Mantener" (`skip`). F4: lo
+ * mismo con un borrador de hoja (y "Vincular" también es `skip`).
  */
 export function canConfirm(job: ImportJob | null | undefined): boolean {
   if (!job || job.status !== 'ready' || !job.summary) return false
   if (pendingCounts(job).total > 0) return false
-  if (isCalendarJob(job)) return true
+  if (isLiveSourceJob(job)) return true
   return (
     (job.draft?.team ?? []).some((r) => r.action !== 'skip') ||
     (job.draft?.activities ?? []).some((r) => r.action !== 'skip')

@@ -7,11 +7,18 @@
 // calendario se deciden solo en su resolutor (sin Editar ni Omitir) y una cambiada omitida se
 // recupera como "Actualizar" (`replace`). Una cancelación cuya actividad ya no existe no tiene
 // acciones: solo "La actividad ya no existe en la gira".
+// F4 §4.4: en filas de hoja el origen es "Hoja de Google · {pestaña} · fila {n}" y los textos de
+// cambio y retirada son de la hoja. Una fila "Se vinculará" (`match.link` con `skip`) no se tacha ni
+// se edita: se decide en su resolutor (Vincular · No vincular).
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportSourcePeek from '@/components/import/ImportSourcePeek.vue'
-import type { ImportActivityRow, ImportActivityRowPatch } from '@/composables/useImportJobs'
+import type {
+  ImportActivityRow,
+  ImportActivityRowPatch,
+  ImportJobSheet,
+} from '@/composables/useImportJobs'
 import {
   activityIssueKey,
   activityNeedsAction,
@@ -25,6 +32,9 @@ import {
   isCalendarChangeRow,
   isCalendarRow,
   isPairedCheckout,
+  isSheetLinkRow,
+  isSheetRow,
+  sheetRowNumber,
   timezoneSourceKey,
   zoneShortName,
   type ImportSourceDocument,
@@ -42,6 +52,8 @@ const props = withDefaults(
     sourceDocument?: ImportSourceDocument | null
     /** F3: la actividad ya no está en el feed (`detected.ical.removed`), no "cancelada". */
     removed?: boolean
+    /** F4: hoja vinculada del job ("Ver origen" con su nombre y el enlace a la celda). */
+    sheet?: ImportJobSheet | null
   }>(),
   {
     typeColor: null,
@@ -50,6 +62,7 @@ const props = withDefaults(
     selected: false,
     sourceDocument: null,
     removed: false,
+    sheet: null,
   }
 )
 const emit = defineEmits<{ patch: [patch: ImportActivityRowPatch]; edit: [row: ImportActivityRow] }>()
@@ -80,18 +93,27 @@ const cancelRow = computed(() => isCalendarCancelRow(props.row))
 const goneRow = computed(() => isCalendarCancelGone(props.row))
 /** Sin Editar ni Omitir/Recuperar: se decide en el resolutor o no hay nada que decidir. */
 const noActions = computed(() => cancelRow.value || goneRow.value)
+/** F4: duplicado que se vinculará a la hoja (o, con "No vincular", se crea como nueva). */
+const linkRow = computed(() => isSheetLinkRow(props.row))
 /**
  * Tachada si no entra (omitida) o si se va a cancelar. En una cancelada en el calendario, `skip` es
- * "Mantener": la actividad sigue y no se tacha.
+ * "Mantener": la actividad sigue y no se tacha; en una que se vinculará, la actividad se queda.
  */
 const struck = computed(
-  () => (skipped.value && !noActions.value) || props.row.action === 'cancel'
+  () => (skipped.value && !noActions.value && !linkRow.value) || props.row.action === 'cancel'
 )
 
 const sourceLabel = computed(() => {
   const s = props.row.source_ref
   if (!s) return ''
   if (isCalendarRow(props.row)) return t('importer.activities.fromCalendar')
+  if (isSheetRow(props.row)) {
+    const row = sheetRowNumber(s)
+    if (s.sheet && row) return t('importer.activities.fromSheet', { tab: s.sheet, row })
+    return s.sheet
+      ? `${t('importer.activities.fromSheetOnly')} · ${s.sheet}`
+      : t('importer.activities.fromSheetOnly')
+  }
   if (s.page) return t('importer.activities.pageN', { page: s.page })
   return s.sheet || ''
 })
@@ -261,7 +283,7 @@ const LINK_BTN =
         {{ t('importer.activities.edit') }}
       </button>
       <button
-        v-if="!noActions"
+        v-if="!noActions && !linkRow"
         type="button"
         :class="LINK_BTN"
         :disabled="saving"
@@ -284,6 +306,7 @@ const LINK_BTN =
       :source-ref="row.source_ref"
       :source-document="sourceDocument"
       :timezone="row.timezone || tourTimezone"
+      :sheet="sheet"
     />
 
     <p

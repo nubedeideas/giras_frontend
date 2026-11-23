@@ -7,6 +7,7 @@
 // defecto ajeno al Equipo de la gira (D6) y quien confirma sin contacto en la gira (D10).
 // F3: actividades canceladas por el calendario (`activities_cancelled` o `post_import.cancelled`) y,
 // en "Volver a borrador", la casilla "Pausar también los avisos" (marcada; pausa de F0 tras el PATCH).
+// F4 §4.4: actividades vinculadas a la hoja (`activities_linked`).
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Translation, useI18n } from 'vue-i18n'
@@ -71,6 +72,8 @@ const cancelled = computed(
   () => result.value.activities_cancelled ?? result.value.post_import?.cancelled ?? 0
 )
 const cancelSkipped = computed(() => n(result.value.cancel_skipped))
+/** F4: actividades que ya estaban en la gira y quedan vinculadas a la hoja. */
+const activitiesLinked = computed(() => n(result.value.activities_linked))
 
 const tour = computed(() =>
   props.job.tour ? (toursStore.tours.find((x) => x.uuid === props.job.tour) ?? null) : null
@@ -295,6 +298,13 @@ const canSendPortal = computed(
       data-test="import-result-cancelled"
     >
       {{ t('importer.result.cancelled', { n: cancelled }, cancelled) }}
+    </p>
+    <p
+      v-if="activitiesLinked > 0"
+      class="text-[15px] text-ink"
+      data-test="import-result-linked"
+    >
+      {{ t('importer.result.linked', { n: activitiesLinked }, activitiesLinked) }}
     </p>
     <ul
       v-if="n(result.already_in_tour) || n(result.skipped) || flights || cancelSkipped"

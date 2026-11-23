@@ -6,11 +6,19 @@
 // F3 §4.4: en filas de calendario (`kind === 'ics'`), "{archivo} · evento {row}", el calendario
 // (`context`, X-WR-CALNAME), el texto del evento, el UID (truncado, completo en `title`), la
 // repetición (`recurrence_id`) y la versión (`sequence` > 0).
+// F4 §4.4: en filas de una hoja de Google (`kind === 'gsheet'`), "{hoja} · {pestaña} · fila {n}",
+// el texto de la fila y "Abrir en Google Sheets" (a la celda) solo si el job trae `sheet.open_url`
+// (solo lo recibe quien lee la hoja, D-F4-7). "Abrir documento" sigue siendo la instantánea.
 import { computed, ref } from 'vue'
 import { Translation, useI18n } from 'vue-i18n'
-import type { ImportActivitySourceRef } from '@/composables/useImportJobs'
+import type { ImportActivitySourceRef, ImportJobSheet } from '@/composables/useImportJobs'
 import { useTourDocuments } from '@/composables/useTourDocuments'
-import { formatRecurrenceId, type ImportSourceDocument } from '@/utils/importReview'
+import {
+  formatRecurrenceId,
+  sheetRowNumber,
+  type ImportSourceDocument,
+} from '@/utils/importReview'
+import { sheetCellUrl } from '@/utils/sheetSubscriptions'
 
 const props = withDefaults(
   defineProps<{
@@ -18,8 +26,10 @@ const props = withDefaults(
     sourceDocument?: ImportSourceDocument | null
     /** Zona en la que se pinta la repetición de un evento de calendario. */
     timezone?: string
+    /** F4: hoja vinculada del job (nombre y `open_url`, este solo para quien la lee). */
+    sheet?: ImportJobSheet | null
   }>(),
-  { sourceDocument: null, timezone: 'Europe/Madrid' }
+  { sourceDocument: null, timezone: 'Europe/Madrid', sheet: null }
 )
 
 const { t, locale } = useI18n()
@@ -45,6 +55,12 @@ const file = computed(() => props.sourceRef.filename || t('importer.pastedText')
 const isVisual = computed(() => ['image', 'pdf_scan'].includes(props.sourceRef.kind))
 
 const isCalendar = computed(() => props.sourceRef.kind === 'ics')
+const isSheet = computed(() => props.sourceRef.kind === 'gsheet')
+const sheetRow = computed(() => sheetRowNumber(props.sourceRef))
+/** Enlace a la fila en Google Sheets; `null` si el job no trae `open_url` o falta la pestaña. */
+const cellUrl = computed(() =>
+  isSheet.value ? sheetCellUrl(props.sheet?.open_url, props.sourceRef.gid, sheetRow.value) : null
+)
 
 /** UID muy largos (Google, Outlook) se recortan; el completo va en `title`. */
 const UID_MAX = 48
@@ -59,6 +75,12 @@ const version = computed(() => props.sourceRef.sequence ?? 0)
 
 const where = computed(() => {
   const s = props.sourceRef
+  if (isSheet.value) {
+    const parts = [props.sheet?.name || s.filename || t('importer.activities.fromSheetOnly')]
+    if (s.sheet) parts.push(s.sheet)
+    if (sheetRow.value) parts.push(t('importer.activities.sheetRowN', { row: sheetRow.value }))
+    return parts.join(' · ')
+  }
   if (isCalendar.value) {
     return t('importer.activities.sourceEvent', {
       file: s.filename || t('importer.activities.fromCalendar'),
@@ -133,6 +155,16 @@ const where = computed(() => {
         {{ t('importer.activities.version', { n: version }) }}
       </p>
     </template>
+    <a
+      v-if="cellUrl"
+      :href="cellUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="self-start inline-flex items-center min-h-[44px] lg:min-h-0 font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+      data-test="import-source-sheet-open"
+    >
+      {{ t('importer.sheet.openCell') }}
+    </a>
     <button
       v-if="sourceDocument && (isVisual || !sourceRef.snippet)"
       type="button"

@@ -9,6 +9,7 @@ import type {
   ImportActivityRow,
   ImportActivityRowPatch,
   ImportCityTz,
+  ImportJobSheet,
 } from '@/composables/useImportJobs'
 import { useIsMobile } from '@/composables/useIsMobile'
 import {
@@ -34,6 +35,8 @@ const props = withDefaults(
     recalculating?: boolean
     /** F3: `activity_uuid` de las actividades que ya no están en el feed (`detected.ical.removed`). */
     removedUuids?: string[]
+    /** F4: hoja vinculada del job (para "Ver origen"). */
+    sheet?: ImportJobSheet | null
   }>(),
   {
     types: () => [],
@@ -44,6 +47,7 @@ const props = withDefaults(
     sourceDocuments: () => ({}),
     recalculating: false,
     removedUuids: () => [],
+    sheet: null,
   }
 )
 const emit = defineEmits<{
@@ -130,6 +134,7 @@ const readyOpen = computed(
           :source-documents="sourceDocuments"
           :titles="titles"
           :removed-uuids="removedUuids"
+          :sheet="sheet"
           @patch="emit('patch', $event)"
           @city="emit('city', $event)"
           @edit="emit('edit', $event)"
@@ -191,6 +196,7 @@ const readyOpen = computed(
             :source-documents="sourceDocuments"
             :titles="titles"
             :removed-uuids="removedUuids"
+            :sheet="sheet"
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
             @edit="emit('edit', $event)"

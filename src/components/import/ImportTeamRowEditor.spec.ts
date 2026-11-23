@@ -34,3 +34,23 @@ describe('ImportTeamRowEditor', () => {
     expect(w.emitted('patch')).toEqual([[{ client_id: 't1', reviewed: true }]])
   })
 })
+
+describe('ImportTeamRowEditor · hoja de Google (F4)', () => {
+  it('origen "Hoja de Google · pestaña · fila"', () => {
+    const row = teamRow({
+      source_ref: {
+        source: 'd1:Crew',
+        document_uuid: 'D1',
+        filename: 'Gira 2027.xlsx',
+        sheet: 'Crew',
+        row: 'Hoja2!7',
+        kind: 'gsheet',
+        gid: 456,
+        row_number: 7,
+      },
+    })
+    const w = mount(ImportTeamRowEditor, { props: { row, roles }, global: { plugins: [i18n] } })
+    expect(w.text()).toContain('Origen: Hoja de Google · Crew · fila 7')
+    expect(w.text()).not.toContain('Hoja2!7')
+  })
+})

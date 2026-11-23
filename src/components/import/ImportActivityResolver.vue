@@ -6,6 +6,10 @@
 // F3 §4.4: "Cambió en el calendario" (cambios antes → ahora; Actualizar · Mantener la de Giras, sin
 // preselección si también se cambió en Giras) y "Cancelada en el calendario" o "Ya no está en el
 // calendario" (Cancelar actividad · Mantener, sin editor).
+// F4 §4.4: en filas de hoja, "Cambió en la hoja" y "Ya no está en la hoja" (`row_removed`) o "La
+// fila ya no incluye esta actividad" (`slot_gone`), con los mismos botones. Un duplicado de un import
+// manual que se vinculará a la hoja (`match.link`): Vincular (`skip`) · No vincular (`create`, se crea
+// como nueva). El contrato no permite omitir sin vincular: `skip` con `link` siempre vincula.
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
@@ -20,6 +24,9 @@ import {
   formatLocalTime,
   isCalendarCancelRow,
   isCalendarChangeRow,
+  isSheetLinkRow,
+  isSheetRow,
+  sheetCancelReason,
   type ActivityTypeOption,
 } from '@/utils/importReview'
 import { zoneOptions } from '@/utils/timezones'
@@ -52,10 +59,11 @@ const skipped = computed(() => props.row.action === 'skip')
 // Posible duplicado, sustitución o duplicado seguro recuperado ("Recuperar" → `create`).
 const showDuplicate = computed(
   () =>
-    ['possible_duplicate', 'replace', 'duplicate_kept', 'duplicate_in_draft_kept'].includes(
+    !isSheetLinkRow(props.row) &&
+    (['possible_duplicate', 'replace', 'duplicate_kept', 'duplicate_in_draft_kept'].includes(
       status.value
     ) ||
-    (props.row.match?.status === 'possible_duplicate' && props.row.reviewed && !skipped.value)
+      (props.row.match?.status === 'possible_duplicate' && props.row.reviewed && !skipped.value))
 )
 const existingText = computed(() => {
   const m = props.row.match
@@ -73,6 +81,22 @@ const existingText = computed(() => {
   return t('importer.activityStatus.possible_duplicate', { title, time })
 })
 const canReplace = computed(() => !!props.row.match?.activity_uuid)
+
+// ─── Hoja de Google (F4) ──────────────────────────────────────────────────────
+
+const sheetRow = computed(() => isSheetRow(props.row))
+/** Duplicado de un import manual: se vincula a la hoja (`skip`) o se crea como nueva. */
+const showLink = computed(() => isSheetLinkRow(props.row))
+const changeTitle = computed(() =>
+  sheetRow.value ? t('importer.sheetChange.title') : t('importer.calendarChange.title')
+)
+const changeConflict = computed(() =>
+  sheetRow.value ? t('importer.sheetChange.conflict') : t('importer.calendarChange.conflict')
+)
+const cancelTitle = computed(() => {
+  if (sheetRow.value) return t(`importer.sheetCancel.${sheetCancelReason(props.row)}`)
+  return props.removed ? t('importer.calendarCancel.removed') : t('importer.calendarCancel.cancelled')
+})
 
 // ─── Calendario (F3) ──────────────────────────────────────────────────────────
 
@@ -245,6 +269,7 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
     v-if="
       showChange ||
         showCancel ||
+        showLink ||
         showDuplicate ||
         showType ||
         showDate ||
@@ -263,14 +288,14 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
       data-test="resolver-calendar-change"
     >
       <p class="text-[13px] font-semibold text-ink">
-        {{ t('importer.calendarChange.title') }}
+        {{ changeTitle }}
       </p>
       <p
         v-if="row.match.conflict"
         class="text-[13px] text-pending-fg rounded-sm bg-pending-bg px-2 py-1"
         data-test="resolver-calendar-conflict"
       >
-        {{ t('importer.calendarChange.conflict') }}
+        {{ changeConflict }}
       </p>
       <ul
         v-if="changeLines.length"
@@ -327,7 +352,7 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
       data-test="resolver-calendar-cancel"
     >
       <p class="text-[13px] font-semibold text-ink">
-        {{ removed ? t('importer.calendarCancel.removed') : t('importer.calendarCancel.cancelled') }}
+        {{ cancelTitle }}
       </p>
       <p
         class="text-[13px] text-ink-2 break-words"
@@ -367,6 +392,55 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
           @click="patch({ action: 'skip' })"
         >
           {{ t('importer.calendarCancel.keep') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Se vinculará a la hoja (F4) -->
+    <div
+      v-if="showLink"
+      class="flex flex-col gap-2"
+      data-test="resolver-sheet-link"
+    >
+      <p class="text-[13px] font-semibold text-ink">
+        {{ t('importer.sheetLink.title') }}
+      </p>
+      <p
+        class="text-[13px] text-ink-2 break-words"
+        data-test="resolver-sheet-link-activity"
+      >
+        {{ existingActivity.title }}
+        <span
+          v-if="existingActivity.when"
+          class="font-time tnum"
+        >· {{ existingActivity.when }}</span>
+      </p>
+      <p
+        class="text-[13px] text-ink-2"
+        data-test="resolver-sheet-link-help"
+      >
+        {{ skipped ? t('importer.sheetLink.help') : t('importer.sheetLink.helpCreate') }}
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          :class="[CHOICE, skipped ? PRESSED : IDLE]"
+          :aria-pressed="skipped"
+          :disabled="saving"
+          data-test="resolver-sheet-link-btn"
+          @click="patch({ action: 'skip' })"
+        >
+          {{ t('importer.sheetLink.link') }}
+        </button>
+        <button
+          type="button"
+          :class="[CHOICE, row.action === 'create' ? PRESSED : IDLE]"
+          :aria-pressed="row.action === 'create'"
+          :disabled="saving"
+          data-test="resolver-sheet-unlink"
+          @click="patch({ action: 'create', reviewed: true })"
+        >
+          {{ t('importer.sheetLink.unlink') }}
         </button>
       </div>
     </div>

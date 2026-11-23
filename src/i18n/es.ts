@@ -2801,6 +2801,7 @@ export default {
       inGroup: 'En el Equipo de la gira',
       inGroupLocked: 'Ya está en el Equipo de la gira',
       source: 'Origen: {file} · {row}',
+      sourceSheet: 'Origen: Hoja de Google · {tab} · fila {row}',
       save: 'Guardar',
       saveReviewed: 'Guardar y dar por buena',
       close: 'Cerrar',
@@ -2817,6 +2818,9 @@ export default {
       viewNotices: 'Ver avisos',
       summaryCalendar: 'Nuevas: {activities} · Actualizadas: {replaced} · Canceladas: {cancelled}',
       reviewedOnly: 'Confirmar sin cambios: se da por revisado el calendario.',
+      // F4: actividades que ya estaban en la gira y se vincularán a la hoja.
+      summaryLinked: '· se vinculará {n} | · se vincularán {n}',
+      reviewedOnlySheet: 'Confirmar sin cambios: se da por revisada la hoja.',
     },
     discard: {
       button: 'Descartar',
@@ -2938,6 +2942,7 @@ export default {
       viewSchedule: 'Ver agenda',
       sendPortal: 'Enviar enlaces del portal al crew',
       cancelled: '{n} actividad cancelada | {n} actividades canceladas',
+      linked: '{n} actividad vinculada a la hoja | {n} actividades vinculadas a la hoja',
       cancelSkipped:
         '{n} ya no se podía cancelar (estaba borrada, cancelada o terminada) | {n} ya no se podían cancelar (estaban borradas, canceladas o terminadas)',
       backToDraftPause: 'Pausar también los avisos',
@@ -3100,6 +3105,9 @@ export default {
       sourceContext: 'Cabecera:',
       noSnippet: 'Es una imagen o un escaneado: no hay texto que mostrar.',
       fromCalendar: 'Calendario',
+      fromSheet: 'Hoja de Google · {tab} · fila {row}',
+      fromSheetOnly: 'Hoja de Google',
+      sheetRowN: 'fila {row}',
       sourceEvent: '{file} · evento {row}',
       sourceCalendar: 'Calendario:',
       uid: 'UID {uid}',
@@ -3159,6 +3167,11 @@ export default {
       cancelled_in_source: 'Cancelada en el calendario',
       cancelled_kept: 'Se mantiene',
       cancel: 'Se cancelará',
+      // F4: filas de una hoja de Google
+      updated_in_sheet: 'Cambió en la hoja → se actualizará',
+      updated_sheet_conflict: 'Cambió en la hoja y en Giras',
+      removed_in_sheet: 'Ya no está en la hoja',
+      duplicate_link: 'Ya está en la gira → se vinculará a la hoja',
     },
     calendar: {
       header: 'Cambios de {name}: {counts}',
@@ -3185,6 +3198,28 @@ export default {
       help: 'Si la cancelas, también se cancelan sus avisos pendientes.',
       cancel: 'Cancelar actividad',
       keep: 'Mantener',
+    },
+    // F4: revisión de un job de una hoja de Google vinculada.
+    sheet: {
+      header: 'Cambios de la hoja {name}: {counts}',
+      headerNoCounts: 'Cambios de la hoja {name}',
+      viewLink: 'Ver vinculación',
+      openCell: 'Abrir en Google Sheets',
+    },
+    sheetChange: {
+      title: 'Cambió en la hoja',
+      conflict: 'La cambiaste en Giras después de importarla',
+    },
+    sheetCancel: {
+      row_removed: 'Ya no está en la hoja',
+      slot_gone: 'La fila ya no incluye esta actividad',
+    },
+    sheetLink: {
+      title: 'Ya está en la gira',
+      help: 'Al confirmar la vincularemos a la hoja: no se crea ni se avisa nada, y los cambios de esta fila te los propondremos como actualizaciones.',
+      helpCreate: 'Se creará como una actividad nueva, aparte de la que ya tienes en la gira.',
+      link: 'Vincular',
+      unlink: 'No vincular: crear como nueva',
     },
     duplicate: {
       skip: 'Omitir',

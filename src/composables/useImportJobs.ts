@@ -148,6 +148,11 @@ export interface ImportSourceRef {
   /** "Crew!12", "CSV!4", "L3", "p2:L7", "img1:3"... */
   row: string
   kind: ImportSourceType
+  // F4 (§3.6.3): solo en filas de una hoja de Google (`kind: 'gsheet'`), de equipo y de actividad.
+  /** `sheetId` de la pestaña. */
+  gid?: number
+  /** Fila de la hoja (1-based). */
+  row_number?: number
 }
 
 /**
@@ -166,11 +171,6 @@ export interface ImportActivitySourceRef extends ImportSourceRef {
   recurrence_id?: string | null
   /** `SEQUENCE` del evento (informativo). */
   sequence?: number
-  // F4 (§3.6.3): solo en filas de una hoja de Google (`kind: 'gsheet'`).
-  /** `sheetId` de la pestaña. */
-  gid?: number
-  /** Fila de la hoja (1-based). */
-  row_number?: number
 }
 
 /** Candidato de `match.candidates` (contrato real del backend tras la integración de F1). */
