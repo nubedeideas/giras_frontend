@@ -2,10 +2,12 @@ import { onMounted, onUnmounted, ref } from 'vue'
 
 // Mirrors Tailwind's default `lg` breakpoint (1024px), the cutover already
 // used app-wide for mobile vs desktop chrome (AppLayout.vue, MobileNav.vue).
-const QUERY = '(max-width: 1023.98px)'
+export const MOBILE_QUERY = '(max-width: 1023.98px)'
 
 export function useIsMobile() {
-  const isMobile = ref(typeof window === 'undefined' ? false : window.matchMedia(QUERY).matches)
+  const isMobile = ref(
+    typeof window === 'undefined' ? false : window.matchMedia(MOBILE_QUERY).matches
+  )
 
   let mql: MediaQueryList | null = null
   function handleChange(e: MediaQueryListEvent) {
@@ -13,7 +15,7 @@ export function useIsMobile() {
   }
 
   onMounted(() => {
-    mql = window.matchMedia(QUERY)
+    mql = window.matchMedia(MOBILE_QUERY)
     isMobile.value = mql.matches
     mql.addEventListener('change', handleChange)
   })

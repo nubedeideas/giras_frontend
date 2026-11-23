@@ -123,6 +123,8 @@ export function pickerErrorKey(code: PickerErrorCode): string | null {
       return 'sheets.errors.token_failed'
     case 'scope_missing':
       return 'sheets.errors.accessLost'
+    case 'mobile_unsupported':
+      return 'sheets.errors.mobile_unsupported'
     default:
       return 'sheets.errors.not_configured'
   }

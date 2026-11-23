@@ -85,7 +85,13 @@ describe('sheetErrorKey', () => {
 
   it('pickerErrorKey: cancelled no es error', () => {
     expect(pickerErrorKey('cancelled')).toBeNull()
-    for (const code of ['script_failed', 'token_failed', 'scope_missing', 'not_configured'] as const) {
+    for (const code of [
+      'script_failed',
+      'token_failed',
+      'scope_missing',
+      'mobile_unsupported',
+      'not_configured',
+    ] as const) {
       const key = pickerErrorKey(code)
       expect(key && te(key)).toBe(true)
     }

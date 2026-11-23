@@ -156,6 +156,19 @@ describe('SheetLinkForm', () => {
     expect(fn.mock.calls.some(([u]) => String(u).includes('/inspect/'))).toBe(false)
   })
 
+  it('mobile_unsupported: dice que vincules la hoja desde el ordenador', async () => {
+    picker.pick.mockRejectedValueOnce(new PickerError('mobile_unsupported'))
+    routes({ '/google/status/': () => jsonResponse(googleStatus(true)) })
+    const w = await mountForm()
+    await w.get('[data-test="sheet-choose-btn"]').trigger('click')
+    await flushPromises()
+    expect(w.get('[data-test="sheet-choose-error"]').text()).toBe(
+      'No hemos podido abrir el selector de Google en este dispositivo. Vincula la hoja desde el ordenador.'
+    )
+    expect(w.find('[data-test="sheet-mobile-hint"]').exists()).toBe(false)
+    expect(w.find('[data-test="sheet-choose"]').exists()).toBe(true)
+  })
+
   it('errores de inspect por código; 403 google_scope_missing vuelve a "Conectar"', async () => {
     picker.pick.mockResolvedValue({ id: 'SHEET-ID', name: 'x' })
     let n = 0

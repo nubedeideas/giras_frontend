@@ -2622,6 +2622,7 @@ export default {
     errors: {
       not_configured: "Google's picker isn't available right now.",
       script_failed: "We couldn't open the Google picker. Please try again.",
+      mobile_unsupported: "We couldn't open the Google picker on this device. Link the sheet from a computer.",
       token_failed: "We couldn't prepare access to Google. Please try again.",
       spreadsheet_mismatch: "That's not the linked sheet: choose {name}.",
       no_access: "Your Google account can't access that sheet. Ask for it to be shared with you and choose it again.",

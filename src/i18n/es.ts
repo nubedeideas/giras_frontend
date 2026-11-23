@@ -2640,6 +2640,8 @@ export default {
     errors: {
       not_configured: 'El selector de Google no está disponible ahora mismo.',
       script_failed: 'No hemos podido abrir el selector de Google. Inténtalo de nuevo.',
+      mobile_unsupported:
+        'No hemos podido abrir el selector de Google en este dispositivo. Vincula la hoja desde el ordenador.',
       token_failed: 'No hemos podido preparar el acceso a Google. Inténtalo de nuevo.',
       spreadsheet_mismatch: 'Esa no es la hoja vinculada: elige {name}.',
       no_access: 'Tu cuenta de Google no tiene acceso a esa hoja. Pide que te la compartan y vuelve a elegirla.',
