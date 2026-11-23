@@ -6,7 +6,7 @@ import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import { useIsMobile } from '@/composables/useIsMobile'
 import {
   createImportJob,
-  type ImportEntryPoint,
+  type ImportSendableEntryPoint,
   type ImportExpected,
   type ImportJob,
 } from '@/composables/useImportJobs'
@@ -22,7 +22,7 @@ import { downscaleImage, ImageDecodeError } from '@/utils/imageResize'
 const props = withDefaults(
   defineProps<{
     tourUuid: string
-    entryPoint: ImportEntryPoint
+    entryPoint: ImportSendableEntryPoint
     /** F2: qué espera la entrada; cambia la ayuda del texto pegado y se manda al backend. */
     expected?: ImportExpected
     compact?: boolean
@@ -50,7 +50,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const photoInput = ref<HTMLInputElement | null>(null)
 
 const busy = computed(() => preparing.value || submitting.value)
-const showIcsNotice = computed(() => hasIcs(files.value))
+const showIcsHint = computed(() => hasIcs(files.value))
 const canSubmit = computed(
   () => !busy.value && (files.value.length > 0 || text.value.trim().length > 0)
 )
@@ -359,12 +359,13 @@ async function submit() {
       </li>
     </ul>
 
+    <!-- F3: el .ics se importa; solo una pista neutra de que las horas salen del calendario. -->
     <p
-      v-if="showIcsNotice"
-      class="text-[13px] text-ink-2 rounded-sm bg-scheduled-bg px-3 py-2"
-      data-test="import-ics-notice"
+      v-if="showIcsHint"
+      class="text-[13px] text-ink-2"
+      data-test="import-ics-hint"
     >
-      {{ t('importer.drop.icsLater') }}
+      {{ t('importer.drop.icsHint') }}
     </p>
 
     <!-- Pegar texto -->

@@ -10,6 +10,7 @@ import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
 import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue'
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
+import IcalSubscriptionsManager from '@/components/ical/IcalSubscriptionsManager.vue'
 import GoogleConnectionCard from '@/components/settings/GoogleConnectionCard.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import ReminderTemplatesManager from '@/components/settings/reminders/ReminderTemplatesManager.vue'
@@ -45,7 +46,7 @@ const TABS = computed<{ key: SettingsTab; label: string; iconPath: string }[]>((
   },
   {
     key: 'calendars',
-    label: 'Calendarios',
+    label: t('settings.calendars.title'),
     iconPath: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
   },
   {
@@ -405,15 +406,17 @@ async function signOut() {
           <template v-else-if="activeTab === 'calendars'">
             <div class="mb-6">
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
-                Calendarios
+                {{ t('settings.calendars.title') }}
               </h2>
               <p class="text-[14px] text-ink-3 mt-1">
-                Conecta Google Calendars para sincronizar eventos automáticamente.
+                {{ t('settings.calendars.sub') }}
               </p>
             </div>
             <GoogleConnectNotice />
             <GoogleConnectionCard @disconnected="calendarsKey++" />
             <CalendarsManager :key="calendarsKey" />
+            <!-- F3 (A11): suscripciones iCal, independientes de Google. -->
+            <IcalSubscriptionsManager />
           </template>
 
           <!-- ── Actividades ─────────────────────────────────────────────────── -->

@@ -172,6 +172,18 @@ watch([() => toursStore.activeTour?.uuid, canImport], loadPendingImports, { imme
 
 const latestImport = computed(() => pendingImports.value[0] ?? null)
 
+/**
+ * F3: un borrador de una suscripción iCal (`source_kind="ical_sync"`) se anuncia como cambios del
+ * calendario, con su nombre y los eventos por revisar, en vez del nombre de archivo.
+ */
+const latestCalendar = computed(() => {
+  const job = latestImport.value
+  if (!job || (job.source_kind !== 'ical_sync' && !job.calendar)) return null
+  const cal = job.calendar
+  const n = cal ? cal.new + cal.changed + cal.cancelled : (job.activities_found ?? 0)
+  return { name: cal?.name || job.filenames[0] || t('ical.card.unnamed'), n }
+})
+
 function importFileLabel(job: ImportJobListItem): string {
   return job.filenames[0] ?? t('importer.pastedText')
 }
@@ -273,7 +285,21 @@ watch([TABS, detailSettledFor], applyRequestedTab)
             :label="t('importer.pendingBadge')"
           />
           <I18nT
-            v-if="latestImport.activities_found"
+            v-if="latestCalendar"
+            keypath="importer.pendingBannerCalendar"
+            tag="span"
+            class="min-w-0 text-[14px] text-ink break-words"
+            data-test="import-pending-calendar"
+          >
+            <template #name>
+              <span class="font-semibold">{{ latestCalendar.name }}</span>
+            </template>
+            <template #n>
+              <span class="font-time tnum">{{ latestCalendar.n }}</span>
+            </template>
+          </I18nT>
+          <I18nT
+            v-else-if="latestImport.activities_found"
             keypath="importer.pendingBannerActivities"
             :plural="latestImport.activities_found"
             tag="span"

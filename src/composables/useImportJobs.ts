@@ -4,7 +4,8 @@ import { apiClient, buildQuery } from '@/utils/apiClient'
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Contrato de /api/integrations/import-jobs/ (spec 2026-11-22-importacion-f1-equipo.md, §3.4.6,
 // §3.5, §3.7 y §5; ampliado con F2 en 2026-11-22-importacion-f2-actividades.md, §3.5.1, §3.5.8,
-// §3.6, §3.7.1, §3.11 y §5). Errores envueltos con `details.code` (`apiErrorCodes`).
+// §3.6, §3.7.1, §3.11 y §5; y con F3 en 2026-11-23-importacion-f3-ics-ical.md, §4.1 y §5).
+// Errores envueltos con `details.code` (`apiErrorCodes`).
 
 export type ImportJobStatus =
   | 'uploaded'
@@ -26,9 +27,22 @@ export const IMPORT_PROCESSING_STATUSES: readonly ImportJobStatus[] = [
   'confirming',
 ]
 
-export type ImportEntryPoint = 'tour' | 'onboarding' | 'contacts' | 'activities' | 'dashboard'
+/**
+ * `subscription` (F3) solo se lee: lo pone el backend en los jobs de una suscripción iCal. Nunca se
+ * envía (el backend responde 400 `invalid_value`), por eso no está en `IMPORT_ENTRY_POINTS`.
+ */
+export type ImportEntryPoint =
+  | 'tour'
+  | 'onboarding'
+  | 'contacts'
+  | 'activities'
+  | 'dashboard'
+  | 'subscription'
 
-export const IMPORT_ENTRY_POINTS: readonly ImportEntryPoint[] = [
+/** Entradas que el front puede enviar al crear un job (sin `subscription`). */
+export type ImportSendableEntryPoint = Exclude<ImportEntryPoint, 'subscription'>
+
+export const IMPORT_ENTRY_POINTS: readonly ImportSendableEntryPoint[] = [
   'tour',
   'onboarding',
   'contacts',
@@ -44,7 +58,10 @@ export type ImportExpected = 'team' | 'itinerary' | 'any'
 
 export const IMPORT_EXPECTED: readonly ImportExpected[] = ['team', 'itinerary', 'any']
 
-/** `source_kind` del job. F1 solo usa `file` y `text`; el resto queda para F3/F5. */
+/**
+ * `source_kind` del job. F3: `ics_file` si todo lo subido es `.ics` y `ical_sync` en los jobs de
+ * una suscripción iCal; `google_calendar` queda para F5.
+ */
 export type ImportSourceKind = 'file' | 'text' | 'ics_file' | 'ical_sync' | 'google_calendar'
 
 /** Tipo de fuente del preproceso (§3.4.2). */
@@ -71,6 +88,8 @@ export type ImportDeferredReason =
   | 'pdf_encrypted'
   | 'not_team'
   | 'file_unreadable'
+  // F3 (§3.4.4): el `.ics` supera los límites de componentes.
+  | 'ics_too_large'
 
 /** `error_code` de un job fallido o descartado por la purga (§3.5.7). */
 export type ImportJobErrorCode =
@@ -130,6 +149,13 @@ export interface ImportActivitySourceRef extends ImportSourceRef {
   page: number | null
   snippet: string
   context: string | null
+  // F3 (§4.1): solo en filas de calendario (`kind: 'ics'`).
+  /** UID del evento del calendario. */
+  uid?: string
+  /** `20261203T200000Z` o `20261203` en una repetición; null en eventos sueltos. */
+  recurrence_id?: string | null
+  /** `SEQUENCE` del evento (informativo). */
+  sequence?: number
 }
 
 /** Candidato de `match.candidates` (contrato real del backend tras la integración de F1). */
@@ -264,6 +290,9 @@ export type ImportTimezoneSource =
   | 'ai_hint'
   | 'tour'
   | 'user'
+  // F3: zona del evento (`TZID`) o, en eventos flotantes, la del calendario (`X-WR-TIMEZONE`).
+  | 'ics'
+  | 'ics_calendar'
 
 /** Zona resuelta de una ciudad del job (`assumptions.cities[city_key]`, F2 §3.5.1). */
 export interface ImportCityTz {
@@ -322,27 +351,42 @@ export type ImportActivityIssue =
   | 'ocr_uncertain'
   | 'partial_row'
   | 'possible_duplicate'
+  // F3: salida de hotel deducida del fin del evento del calendario.
+  | 'checkout_inferred'
 
 export type ImportActivityMatchStatus =
   | 'new'
   | 'duplicate'
   | 'possible_duplicate'
   | 'duplicate_in_draft'
+  // F3 (§3.6): el evento del calendario ya importado cambió o se canceló/desapareció.
+  | 'updated_in_source'
+  | 'cancelled_in_source'
 
-export type ImportActivityAction = 'create' | 'skip' | 'replace'
+/** F3: `cancel` solo en filas `cancelled_in_source` (cancela la actividad como la manual). */
+export type ImportActivityAction = 'create' | 'skip' | 'replace' | 'cancel'
 
-export type ImportActivityDateSource = 'text' | 'year_assumed' | 'day_number' | 'user'
+/** F3: `ics` = fecha y hora tomadas tal cual del calendario. */
+export type ImportActivityDateSource = 'text' | 'year_assumed' | 'day_number' | 'user' | 'ics'
+
+/** Campos que cambiaron en el calendario respecto a la actividad importada (F3). */
+export type ImportActivityChangedField = 'scheduled_at' | 'end_at' | 'title' | 'location_name'
 
 /** Coincidencia con una actividad existente de la gira (§3.5.6). */
 export interface ImportActivityMatch {
   status: ImportActivityMatchStatus
-  by: 'flight' | 'hotel' | 'type_time_title' | 'type_day' | null
+  /** F3: `uid` (mismo evento ya importado de un `.ics`) o `uid_google` (ya sincronizado por Google). */
+  by: 'flight' | 'hotel' | 'type_time_title' | 'type_day' | 'uid' | 'uid_google' | null
   activity_uuid: string | null
   activity_title: string | null
   /** ISO UTC. */
   activity_scheduled_at: string | null
   activity_type_code: string | null
   activity_external_source: string | null
+  /** F3, solo con `updated_in_source`. */
+  changed_fields?: ImportActivityChangedField[]
+  /** F3: la actividad se editó en Giras después de importarla (pide decisión). */
+  conflict?: boolean
 }
 
 export interface ImportAirport {
@@ -443,6 +487,11 @@ export interface ImportActivitySummary {
   in_past: number
   by_type: Record<string, number>
   days: number
+  // F3. Opcionales: ausentes en jobs anteriores.
+  to_cancel?: number
+  updated_in_source?: number
+  cancelled_in_source?: number
+  conflicts?: number
 }
 
 /** Resumen calculado por el serializer (§3.5.4). */
@@ -502,6 +551,11 @@ export interface ImportResult {
   tour_activated?: boolean
   notifications_paused?: boolean
   post_import?: ImportPostImport
+  // F3 (§3.7). Opcionales: ausentes en jobs sin cancelaciones o anteriores a F3.
+  activities_cancelled?: number
+  /** Filas `cancel` cuya actividad ya no se podía cancelar (borrada o ya cancelada). */
+  cancel_skipped?: number
+  cancelled_uuids?: string[]
 }
 
 /** Lo escribe `task_post_import` al terminar; el front sondea mientras sea `pending` (máx. 60 s). */
@@ -545,6 +599,15 @@ export interface ImportJobDocument {
   download_url: string
 }
 
+/** Job creado por una suscripción iCal (F3 §4.1): calendario y recuentos de la sincronización. */
+export interface ImportJobCalendar {
+  subscription_uuid: string
+  name: string
+  new: number
+  changed: number
+  cancelled: number
+}
+
 /** Elemento de GET /api/integrations/import-jobs/?tour= (ImportJobListSerializer). */
 export interface ImportJobListItem {
   uuid: string
@@ -568,6 +631,11 @@ export interface ImportJobListItem {
   finished_at: string | null
   confirmed_at: string | null
   created_by_name: string | null
+  /**
+   * F3: solo en jobs de `source_kind="ical_sync"`; `null` en el resto. Opcional hasta que lo
+   * despliegue el backend (el contrato lo pone en el listado y en el detalle).
+   */
+  calendar?: ImportJobCalendar | null
 }
 
 /** Detalle de GET /api/integrations/import-jobs/{uuid}/ (ImportJobDetailSerializer). */
@@ -661,7 +729,7 @@ export interface CreateImportJobPayload {
   tourUuid: string
   files: File[]
   text?: string
-  entryPoint: ImportEntryPoint
+  entryPoint: ImportSendableEntryPoint
   /** Se manda solo si no es `any` (F2 §4.1). */
   expected?: ImportExpected
 }

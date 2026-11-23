@@ -91,15 +91,20 @@ describe('ImportDropZone', () => {
     expect(fn).not.toHaveBeenCalled()
   })
 
-  it('acepta un PDF de hasta 15 MB sin aviso y avisa solo con .ics', async () => {
+  it('acepta un PDF de hasta 15 MB sin aviso; con .ics solo la pista neutra (F3)', async () => {
     const w = mountZone()
     await pick(w, [fakeFile('Dossier.pdf', 15 * MB, 'application/pdf')])
     expect(w.find('[data-test="import-error"]').exists()).toBe(false)
     expect(w.get('[data-test="import-file-list"]').text()).toContain('Dossier.pdf')
-    expect(w.find('[data-test="import-ics-notice"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-ics-hint"]').exists()).toBe(false)
 
     await pick(w, [fakeFile('gira.ics', 2000, 'text/calendar')])
-    expect(w.find('[data-test="import-ics-notice"]').exists()).toBe(true)
+    expect(w.find('[data-test="import-ics-notice"]').exists()).toBe(false)
+    expect(w.text()).not.toContain('llegará pronto')
+    expect(w.get('[data-test="import-ics-hint"]').text()).toBe(
+      'Las fechas y horas se toman tal cual del calendario.'
+    )
+    expect(w.find('[data-test="import-error"]').exists()).toBe(false)
   })
 
   it('las fotos pasan por downscaleImage; si no se puede decodificar, aviso de HEIC', async () => {

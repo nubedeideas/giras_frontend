@@ -16,6 +16,8 @@ const sources = import.meta.glob('/src/**/*.vue', {
 describe('entry_point y expected del importador', () => {
   it('las listas del composable coinciden con las del backend', () => {
     expect(new Set(IMPORT_ENTRY_POINTS)).toEqual(ALLOWED)
+    // F3: `subscription` solo lo pone el backend (jobs de una suscripción iCal); nunca se envía.
+    expect((IMPORT_ENTRY_POINTS as readonly string[]).includes('subscription')).toBe(false)
     expect(new Set(IMPORT_EXPECTED)).toEqual(ALLOWED_EXPECTED)
   })
 
@@ -39,5 +41,11 @@ describe('entry_point y expected del importador', () => {
       }
     }
     expect(new Set(found)).toEqual(new Set(['team', 'itinerary']))
+  })
+
+  it('ningún componente envía entry_point="subscription"', () => {
+    for (const [file, src] of Object.entries(sources)) {
+      expect(/entry[-_]?[pP]oint[^\n]*['"]subscription['"]/.test(src), file).toBe(false)
+    }
   })
 })

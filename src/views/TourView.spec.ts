@@ -287,6 +287,33 @@ describe('TourView: importar (F1)', () => {
     expect(banner.find('[data-test="import-pending-activities"] .font-time').text()).toBe('46')
   })
 
+  it('F3: un borrador de calendario iCal se anuncia como cambios del calendario', async () => {
+    setup({})
+    stubByUrl({
+      admin: true,
+      jobs: () => [
+        {
+          uuid: 'J-cal',
+          tour: 'T1',
+          status: 'ready',
+          source_kind: 'ical_sync',
+          entry_point: 'subscription',
+          filenames: ['calendario.ics'],
+          created_at: '2026-11-23T10:00:00Z',
+          activities_found: 4,
+          calendar: { subscription_uuid: 'S1', name: 'Gira 2027 (iCloud)', new: 3, changed: 1, cancelled: 1 },
+        },
+      ],
+    })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    const banner = w.get('[data-test="import-pending-banner"]')
+    expect(banner.text()).toContain('Cambios del calendario Gira 2027 (iCloud) por revisar · 5')
+    expect(banner.text()).not.toContain('calendario.ics')
+    expect(banner.find('[data-test="import-pending-calendar"] .font-time').text()).toBe('5')
+    expect(w.get('[data-test="import-pending-link"]').attributes('href')).toBe('/tour/import/J-cal')
+  })
+
   it('ignora la lista atrasada de la gira anterior al cambiar de gira', async () => {
     setup({})
     let resolveT1: (r: Response) => void = () => {}

@@ -6,7 +6,10 @@ import AppModal from '@/components/ui/AppModal.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropZone from '@/components/import/ImportDropZone.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
-import type { ImportEntryPoint, ImportExpected, ImportJob } from '@/composables/useImportJobs'
+import IcalSubscribeForm from '@/components/ical/IcalSubscribeForm.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useToursStore } from '@/stores/tours'
+import type { ImportSendableEntryPoint, ImportExpected, ImportJob } from '@/composables/useImportJobs'
 import { errorKey } from '@/utils/importReview'
 
 // `expected` (F2): `team` desde Contactos, `itinerary` desde las entradas de actividades y `any`
@@ -15,7 +18,7 @@ const props = withDefaults(
   defineProps<{
     show: boolean
     tourUuid: string
-    entryPoint?: ImportEntryPoint
+    entryPoint?: ImportSendableEntryPoint
     expected?: ImportExpected
   }>(),
   { entryPoint: 'tour', expected: 'any' }
@@ -24,6 +27,20 @@ const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
 const router = useRouter()
+const auth = useAuthStore()
+const toursStore = useToursStore()
+
+/**
+ * F3 (§4.5): "Suscribir iCal (URL)" sustituye la zona por el alta de la suscripción. No en el
+ * importador de equipo, solo para admins de la gira y fuera de la demo.
+ */
+const canSubscribeIcal = computed(
+  () =>
+    props.expected !== 'team' &&
+    !auth.isDemoMode &&
+    toursStore.tours.some((tour) => tour.uuid === props.tourUuid && tour.current_user_is_admin === true)
+)
+const showIcal = ref(false)
 
 /** Job en curso: con valor se pinta el progreso en vez de la zona de subida. */
 const jobUuid = ref<string | null>(null)
@@ -38,6 +55,12 @@ const failedText = computed(() => {
 function reset() {
   jobUuid.value = null
   failedJob.value = null
+  showIcal.value = false
+}
+
+function onIcalReview() {
+  emit('close')
+  reset()
 }
 
 // Cerrar mientras procesa no cancela nada: el job sigue y aparece en el aviso de `TourView`.
@@ -100,7 +123,18 @@ function onFailed(job: ImportJob) {
       </svg>
     </button>
 
-    <div class="pr-12 mb-4">
+    <div
+      v-if="showIcal && !jobUuid"
+      class="pr-12 mb-4"
+    >
+      <p class="text-[17px] font-bold text-ink">
+        {{ t('ical.form.title') }}
+      </p>
+    </div>
+    <div
+      v-else
+      class="pr-12 mb-4"
+    >
       <p class="text-[17px] font-bold text-ink">
         {{ t(`importer.modal.${expected}.title`) }}
       </p>
@@ -109,13 +143,31 @@ function onFailed(job: ImportJob) {
       </p>
     </div>
 
-    <ImportDropZone
-      v-if="!jobUuid"
+    <IcalSubscribeForm
+      v-if="!jobUuid && showIcal"
       :tour-uuid="tourUuid"
-      :entry-point="entryPoint"
-      :expected="expected"
-      @created="onCreated"
+      compact
+      @cancel="showIcal = false"
+      @review="onIcalReview"
     />
+
+    <template v-else-if="!jobUuid">
+      <ImportDropZone
+        :tour-uuid="tourUuid"
+        :entry-point="entryPoint"
+        :expected="expected"
+        @created="onCreated"
+      />
+      <button
+        v-if="canSubscribeIcal"
+        type="button"
+        class="mt-3 inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+        data-test="import-ical-toggle"
+        @click="showIcal = true"
+      >
+        {{ t('ical.subscribe') }}
+      </button>
+    </template>
 
     <div
       v-else-if="failedJob"

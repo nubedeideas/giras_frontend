@@ -37,6 +37,18 @@ const emit = defineEmits<{ close: [] }>()
 
 const activity = computed(() => store.selectedDetail)
 
+/** Orígenes con nombre propio (F3 §4.6); el resto se pinta tal cual. */
+const KNOWN_SOURCES = new Set(['google_calendar', 'ics', 'import_job'])
+const sourceLabel = computed(() => {
+  const src = activity.value?.external_source
+  if (!src) return ''
+  return KNOWN_SOURCES.has(src) ? t(`activities.source.${src}`) : src
+})
+const sourceIsCalendar = computed(() => {
+  const src = activity.value?.external_source
+  return src === 'google_calendar' || src === 'ics'
+})
+
 // Bloque "Destinatarios": solo para admins de la gira de la actividad (el listado de giras trae
 // `current_user_is_admin`; el backend da 403 al resto).
 const toursStore = useToursStore()
@@ -566,10 +578,13 @@ async function confirmDelete() {
               v-if="activity.external_source"
               class="flex flex-col gap-0.5 col-span-2"
             >
-              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">Fuente</span>
-              <span class="text-[13px] text-ink-3 flex items-center gap-1">
+              <span class="text-[11px] font-semibold text-ink-2 tracking-[0.5px] uppercase">{{ t('activities.source.label') }}</span>
+              <span
+                class="text-[13px] text-ink-3 flex items-center gap-1"
+                data-test="activity-source"
+              >
                 <svg
-                  v-if="activity.external_source === 'google_calendar'"
+                  v-if="sourceIsCalendar"
                   width="10"
                   height="10"
                   viewBox="0 0 24 24"
@@ -592,7 +607,7 @@ async function confirmDelete() {
                     y2="10"
                   />
                 </svg>
-                {{ activity.external_source === 'google_calendar' ? 'Google Calendar' : activity.external_source }}
+                {{ sourceLabel }}
               </span>
             </div>
           </div>

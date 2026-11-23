@@ -19,7 +19,14 @@ export type InboxKind =
   | 'billing_discrepancy'
   // F2: importación confirmada (in-app, solo admins); params
   // `{ job_uuid, created, replaced, reminders, first_send_at, paused }`. Enlaza a la revisión.
+  // F3: `cancelled` opcional (actividades canceladas desde un borrador de calendario).
   | 'import_done'
+  // F3: cambios de un calendario iCal por revisar (in-app, solo admins); params
+  // `{ job_uuid, calendar, new, changed, cancelled, source: 'ical' }`. Enlaza a la revisión.
+  | 'import_pending'
+  // F3: un calendario iCal no se puede leer y se ha pausado; params
+  // `{ subscription_uuid, calendar, error_code }`. Enlaza a Ajustes › Calendarios.
+  | 'ical_sync_failed'
 
 export type InboxSeverity = 'info' | 'warning' | 'critical'
 

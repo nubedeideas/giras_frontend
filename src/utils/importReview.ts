@@ -689,6 +689,7 @@ export function validateImportFiles(files: Pick<File, 'name' | 'type' | 'size'>[
   return null
 }
 
+/** Hay algún `.ics` entre los archivos (F3: pista neutra en la subida, ya no "llegará pronto"). */
 export function hasIcs(files: Pick<File, 'name' | 'type'>[]): boolean {
   return files.some((f) => importFileKind(f) === 'ics')
 }

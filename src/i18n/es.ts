@@ -400,6 +400,19 @@ export default {
           'Importación: {replaced} actividad actualizada | Importación: {replaced} actividades actualizadas',
         alsoReplaced:
           'También se ha actualizado {replaced} actividad. | También se han actualizado {replaced} actividades.',
+        cancelled: '· {k} canceladas',
+        titleCancelled:
+          'Importación: {cancelled} actividad cancelada | Importación: {cancelled} actividades canceladas',
+      },
+      import_pending: {
+        title: 'Cambios en {calendar}: {n} por revisar',
+        body: '{new} nuevas · {changed} cambiadas · {cancelled} canceladas',
+        fallbackCalendar: 'tu calendario',
+      },
+      ical_sync_failed: {
+        title: 'No podemos leer el calendario {calendar}',
+        titleUnnamed: 'No podemos leer tu calendario',
+        body: '{reason} Hemos pausado la sincronización tras varios intentos; puedes reanudarla en Ajustes › Calendarios.',
       },
       billing_discrepancy: {
         title: 'Discrepancias en la facturación de Twilio',
@@ -711,6 +724,10 @@ export default {
     phoneSaved: 'Teléfono guardado.',
     phoneInvalid: 'Introduce un teléfono válido con prefijo de país, por ejemplo +34 600 000 000.',
     phoneError: 'No se ha podido guardar el teléfono.',
+    calendars: {
+      title: 'Calendarios',
+      sub: 'Conecta Google Calendar o suscríbete a un calendario iCal (Apple Calendar, Outlook…).',
+    },
   },
 
   activity: {
@@ -1070,7 +1087,7 @@ export default {
           'Hostinger: alojamiento de los servidores y de la base de datos.',
           'Twilio: envío de las notificaciones por WhatsApp Business y recepción de sus estados de entrega y respuestas.',
           'Mailgun: envío de emails (notificaciones, enlaces de acceso y resúmenes), en su región de la UE.',
-          'Google: inicio de sesión, Google Calendar y Google Contacts; Google Maps para geolocalizar lugares y estimar trayectos; Google Gemini para leer los archivos, fotos y textos que importas (equipo e itinerarios) —antes de enviarlos sustituimos por marcadores los teléfonos, emails y números de documento de las hojas de cálculo, los textos y los PDF con texto; las fotos y los PDF escaneados se envían completos, sin los datos de ubicación de las fotos ni los metadatos del PDF—, y también para la importación inteligente de actividades de tu calendario y los resúmenes diarios; Google Drive para guardar las copias de seguridad cifradas; y Google Tag Manager y Google Analytics, solo si aceptas las cookies de analítica.',
+          'Google: inicio de sesión, Google Calendar y Google Contacts; Google Maps para geolocalizar lugares y estimar trayectos; Google Gemini para leer los archivos, fotos y textos que importas (equipo, itinerarios y calendarios .ics) —antes de enviarlos sustituimos por marcadores los teléfonos, emails y números de documento de las hojas de cálculo, los textos y los PDF con texto; las fotos y los PDF escaneados se envían completos, sin los datos de ubicación de las fotos ni los metadatos del PDF—, y también para la importación inteligente de actividades de tu calendario y los resúmenes diarios; Google Drive para guardar las copias de seguridad cifradas; y Google Tag Manager y Google Analytics, solo si aceptas las cookies de analítica.',
           'Cirium: consulta del estado y los horarios de los vuelos de tus actividades a partir del número de vuelo.',
           'Cobry y Viva Wallet: procesamiento de los pagos de las suscripciones.',
           'Spotify y Chartmetric: búsqueda de datos públicos del artista al crear una gira.',
@@ -2456,6 +2473,93 @@ export default {
   // Importador (F1, spec 2026-11-22-importacion-f1-equipo.md §4.6). Bloque del lote 1: entrada,
   // progreso, errores, aviso de pendientes y los textos de fila que usa la revisión compacta del
   // onboarding. El lote 2 añade aquí la revisión completa.
+  ical: {
+    subscribe: 'Suscribir iCal (URL)',
+    form: {
+      title: 'Suscribir un calendario iCal',
+      sub: 'Pega la dirección del calendario. Cada 6 horas buscaremos eventos nuevos o cambiados y te los dejaremos para revisar: nada se crea sin que lo confirmes.',
+      url: 'Dirección del calendario',
+      urlPlaceholder: 'https://… o webcal://…',
+      name: 'Nombre (opcional)',
+      namePlaceholder: 'Ej.: Calendario de la gira',
+      tour: 'Gira',
+      tourPlaceholder: 'Elige una gira',
+      tourRequired: 'Elige la gira a la que quieres suscribir el calendario.',
+      noTours: 'No administras ninguna gira abierta a la que suscribir un calendario.',
+      help: '¿Dónde encuentro la dirección?',
+      helpApple:
+        'Apple Calendar: en el calendario, Compartir calendario › marca Calendario público › copia la dirección.',
+      helpGoogle: 'Google Calendar: Configuración del calendario › Dirección secreta en formato iCal.',
+      helpOutlook:
+        'Outlook: Configuración › Calendarios compartidos › Publicar un calendario › enlace ICS.',
+      privacy:
+        'La dirección se guarda cifrada y solo la usamos para leer el calendario. Los títulos y descripciones se procesan con IA para clasificar cada evento (sin teléfonos ni emails).',
+      submit: 'Suscribir',
+      submitting: 'Suscribiendo…',
+      reading: 'Leyendo el calendario…',
+      canClose: 'Puedes cerrar: te avisaremos cuando esté listo.',
+      stillReading:
+        'Sigue leyendo en segundo plano. Te avisaremos cuando haya eventos para revisar.',
+      found: 'Hemos encontrado {n} evento para revisar | Hemos encontrado {n} eventos para revisar',
+      nothingNew: 'No hay eventos en las fechas de la gira. Te avisaremos cuando aparezcan.',
+      reviewNow: 'Revisar ahora',
+      back: 'Volver',
+      close: 'Cerrar',
+    },
+    errors: {
+      invalid_url: 'La dirección no es válida. Debe empezar por https:// o webcal://.',
+      credentials_in_url: 'Quita el usuario y la contraseña de la dirección.',
+      already_subscribed: 'Esta gira ya está suscrita a ese calendario.',
+      too_many_subscriptions: 'Esta gira ya tiene {max} calendarios suscritos.',
+      tour_closed: 'La gira está finalizada o cancelada.',
+      sync_too_soon: 'Acabamos de sincronizar. Vuelve a probar en {minutes} min.',
+      sync_disabled: 'La sincronización está en pausa. Reanúdala para sincronizar.',
+      forbidden: 'Solo un administrador de la gira puede gestionar sus calendarios.',
+      notFound: 'Esta suscripción ya no existe.',
+      connect: 'No hemos podido conectar con el calendario.',
+      gone: 'El calendario ya no está publicado o la dirección ha cambiado.',
+      tooLarge: 'El calendario es demasiado grande.',
+      notIcs: 'La dirección no devuelve un calendario.',
+      generic: 'No se ha podido completar. Inténtalo de nuevo.',
+    },
+    status: {
+      ok: 'Al día',
+      pending: 'Sincronizando',
+      error: 'Con error',
+      paused: 'En pausa',
+      ended: 'Gira terminada',
+      review: 'Cambios por revisar',
+    },
+    card: {
+      lastSync: 'Última sincronización: {date}',
+      nextSync: 'Próxima: {date}',
+      never: 'Aún no se ha sincronizado',
+      unnamed: 'Calendario sin nombre',
+      syncNow: 'Sincronizar ahora',
+      syncQueued: 'Sincronización en marcha. Te avisaremos si hay cambios para revisar.',
+      pause: 'Pausar',
+      resume: 'Reanudar',
+      delete: 'Eliminar',
+      deleteTitle: '¿Eliminar {name}?',
+      deleteConfirm:
+        'Dejaremos de leer este calendario. Las actividades ya importadas se quedan en la gira.',
+      deleting: 'Eliminando…',
+      working: 'Un momento…',
+      pendingReview: 'Cambios por revisar ({n})',
+      removalGuard:
+        'El calendario ha perdido muchos eventos de golpe: no te proponemos cancelarlos. Revísalo en el calendario.',
+    },
+    manager: {
+      title: 'Calendarios iCal',
+      empty: 'Suscribe el calendario de Apple, Outlook o cualquier dirección iCal a una gira.',
+      retry: 'Reintentar',
+      loading: 'Cargando calendarios iCal',
+    },
+    a10: {
+      hint: '¿Usas Apple Calendar u Outlook?',
+    },
+  },
+
   importer: {
     title: 'Revisar importación',
     open: 'Importar',
@@ -2479,6 +2583,7 @@ export default {
     pendingBanner: 'Tienes una importación sin revisar: {file} · {date}',
     pendingBannerActivities:
       'Tienes una importación sin revisar: {file} · {n} actividad | Tienes una importación sin revisar: {file} · {n} actividades',
+    pendingBannerCalendar: 'Cambios del calendario {name} por revisar · {n}',
     pendingBadge: 'Sin revisar',
     pendingMore: '+{n}',
     pastedText: 'Texto pegado',
@@ -2701,7 +2806,7 @@ export default {
       pasteCount: '{n} / {max}',
       privacyNote:
         'Lo que subas se guarda en Documentos de la gira (no lo ve el crew). Nada se crea hasta que lo revises.',
-      icsLater: 'Los calendarios (.ics) se guardan en Documentos; su importación llegará pronto.',
+      icsHint: 'Las fechas y horas se toman tal cual del calendario.',
       submit: 'Importar',
       limits: 'Hasta 6 archivos y 20 MB en total',
       remove: 'Quitar {file}',
@@ -2986,6 +3091,12 @@ export default {
       noResults: 'Sin resultados',
       manual: 'Añadir a mano',
       selectHint: 'Selecciona una actividad para ver el detalle',
+    },
+    source: {
+      label: 'Fuente',
+      google_calendar: 'Google Calendar',
+      ics: 'Calendario (.ics / iCal)',
+      import_job: 'Importación',
     },
   },
 }

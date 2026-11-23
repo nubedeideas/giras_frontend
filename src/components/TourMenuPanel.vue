@@ -14,6 +14,7 @@ import { tourBadge } from '@/utils/statusBadge'
 import { alertTimePatch, alertTimeToInput } from '@/utils/showDayAlert'
 import { defaultTourZone, zoneOptions } from '@/utils/timezones'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
+import IcalSubscribeModal from '@/components/ical/IcalSubscribeModal.vue'
 
 type Anchor = { top: number; left: number; bottom: number; width: number }
 
@@ -73,6 +74,13 @@ const mode = ref<Mode>('list')
 const editTarget = ref<Tour | null>(null)
 const deletingUuid = ref<string | null>(null)
 const assignCalTour = ref<Tour | null>(null)
+/** F3 (A10): gira con el modal de suscripción iCal abierto (desde "Asignar calendario"). */
+const icalTour = ref<Tour | null>(null)
+
+function openIcal(tour: Tour) {
+  assignCalTour.value = null
+  icalTour.value = tour
+}
 
 // ─── Shared form ──────────────────────────────────────────────────────────────
 
@@ -1380,6 +1388,12 @@ async function confirmDelete(uuid: string) {
     :show="assignCalTour !== null"
     :tour="assignCalTour"
     @close="assignCalTour = null"
+    @subscribe-ical="openIcal"
+  />
+  <IcalSubscribeModal
+    :show="icalTour !== null"
+    :tour-uuid="icalTour?.uuid ?? null"
+    @close="icalTour = null"
   />
 </template>
 

@@ -1,6 +1,7 @@
 import type { RouteLocationRaw, Router } from 'vue-router'
 import { DateTime } from 'luxon'
 import type { InboxItem } from '@/composables/useInbox'
+import { icalErrorKey } from '@/utils/icalSubscriptions'
 
 /** Subconjunto de `t` de vue-i18n que usan estas funciones (puras, testeables sin montar). */
 export type InboxTranslate = (
@@ -179,11 +180,22 @@ export function formatInboxItem(
       if (Number.isNaN(created)) return raw
       const replacedRaw = num(p.replaced)
       const replaced = Number.isNaN(replacedRaw) ? 0 : replacedRaw
-      // Solo sustituciones: el título las cuenta a ellas (no "0 actividades creadas").
-      const title =
-        created === 0 && replaced > 0
-          ? t('inbox.kinds.import_done.titleReplaced', { replaced }, replaced)
-          : t('inbox.kinds.import_done.title', { created }, created)
+      // F3: actividades canceladas desde un borrador de calendario (`params.cancelled`, 0 en F2).
+      const cancelledRaw = num(p.cancelled)
+      const cancelled = Number.isNaN(cancelledRaw) ? 0 : cancelledRaw
+      // Solo sustituciones (o solo cancelaciones): el título las cuenta a ellas (no "0 creadas").
+      let title: string
+      if (created === 0 && replaced === 0 && cancelled > 0) {
+        title = t('inbox.kinds.import_done.titleCancelled', { cancelled }, cancelled)
+      } else {
+        title =
+          created === 0 && replaced > 0
+            ? t('inbox.kinds.import_done.titleReplaced', { replaced }, replaced)
+            : t('inbox.kinds.import_done.title', { created }, created)
+        if (cancelled > 0) {
+          title = `${title} ${t('inbox.kinds.import_done.cancelled', { k: cancelled })}`
+        }
+      }
       const also =
         created > 0 && replaced > 0
           ? `${t('inbox.kinds.import_done.alsoReplaced', { replaced }, replaced)} `
@@ -204,6 +216,33 @@ export function formatInboxItem(
       }
     }
 
+    case 'import_pending': {
+      // F3 §3.10: `params = {job_uuid, calendar, new, changed, cancelled, source,
+      // subscription_uuid?}`. `calendar` puede venir vacío: "tu calendario".
+      const calendar = str(p.calendar) || t('inbox.kinds.import_pending.fallbackCalendar')
+      const counts = { new: num(p.new), changed: num(p.changed), cancelled: num(p.cancelled) }
+      if (Object.values(counts).some((n) => Number.isNaN(n))) return raw
+      const n = counts.new + counts.changed + counts.cancelled
+      return {
+        title: t('inbox.kinds.import_pending.title', { calendar, n }),
+        body: t('inbox.kinds.import_pending.body', counts),
+      }
+    }
+
+    case 'ical_sync_failed': {
+      // F3 §3.10: `params = {subscription_uuid, calendar, error_code}`; el motivo, traducido con la
+      // tabla de §3.8.1 (cualquier `http_5xx` → conexión). Sin nombre: "tu calendario".
+      if (!str(p.subscription_uuid) && !str(p.error_code) && !str(p.calendar)) return raw
+      const calendar = str(p.calendar)
+      const reason = t(icalErrorKey(str(p.error_code)))
+      return {
+        title: calendar
+          ? t('inbox.kinds.ical_sync_failed.title', { calendar })
+          : t('inbox.kinds.ical_sync_failed.titleUnnamed'),
+        body: t('inbox.kinds.ical_sync_failed.body', { reason }),
+      }
+    }
+
     default:
       return raw
   }
@@ -211,11 +250,14 @@ export function formatInboxItem(
 
 /** Ruta donde se resuelve el aviso, o `null` si no lleva a ningún sitio. */
 export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
-  // F2: `import_done` lleva a la revisión del job (el backend no le da un `target` propio).
-  if (item.kind === 'import_done') {
+  // F2: `import_done` lleva a la revisión del job (el backend no le da un `target` propio); F3:
+  // `import_pending` (cambios de un calendario iCal) también.
+  if (item.kind === 'import_done' || item.kind === 'import_pending') {
     const job = str(item.params?.job_uuid)
     return job ? { name: 'tour-import', params: { jobUuid: job } } : null
   }
+  // F3: un calendario que no se puede leer se arregla en Ajustes › Calendarios.
+  if (item.kind === 'ical_sync_failed') return { path: '/settings', query: { tab: 'calendars' } }
   const target = item.target
   switch (target?.type) {
     case 'activity':
@@ -263,7 +305,9 @@ export async function goToInboxTarget(
 ): Promise<boolean> {
   const location = inboxTargetLocation(item)
   if (!location) return false
-  const tourUuid = item.target?.tour_uuid
+  // `import_done`/`import_pending` llegan con `target.type="none"`: su gira es la del ítem.
+  const isImport = item.kind === 'import_done' || item.kind === 'import_pending'
+  const tourUuid = item.target?.tour_uuid || (isImport ? item.tour?.uuid : undefined)
   if (tourUuid) toursStore.setActiveTourByUuid(tourUuid)
   await router.push(location)
   return true

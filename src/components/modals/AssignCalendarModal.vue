@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useCalendarImport, type CalendarSubscription } from '@/composables/useCalendarImport'
 import { useToursStore } from '@/stores/tours'
+import { useAuthStore } from '@/stores/auth'
 import type { Tour } from '@/types'
 
 const props = defineProps<{ show: boolean; tour: Tour | null }>()
-const emit = defineEmits<{ close: [] }>()
+// `subscribeIcal` (F3, A10): el padre cierra este modal y abre `IcalSubscribeModal` con la gira.
+const emit = defineEmits<{ close: []; subscribeIcal: [tour: Tour] }>()
+
+const { t } = useI18n()
+const authStore = useAuthStore()
+
+/** Suscribir iCal: solo admins de la gira y fuera de la demo (F3 §4.6). */
+const canSubscribeIcal = computed(
+  () => props.tour?.current_user_is_admin === true && !authStore.isDemoMode
+)
 
 const calImport = useCalendarImport()
 const toursStore = useToursStore()
@@ -401,5 +412,22 @@ function formatDate(iso: string | null): string {
         </button>
       </div>
     </template>
+
+    <!-- F3 (A10): suscripción iCal para quien no usa Google Calendar. -->
+    <div
+      v-if="canSubscribeIcal && tour"
+      class="mt-4 pt-3 border-t border-line flex flex-wrap items-center gap-x-2 gap-y-1"
+      data-test="assign-cal-ical"
+    >
+      <span class="text-[14px] text-ink-2">{{ t('ical.a10.hint') }}</span>
+      <button
+        type="button"
+        class="inline-flex items-center min-h-[44px] lg:min-h-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+        data-test="assign-cal-ical-open"
+        @click="emit('subscribeIcal', tour)"
+      >
+        {{ t('ical.subscribe') }}
+      </button>
+    </div>
   </AppModal>
 </template>

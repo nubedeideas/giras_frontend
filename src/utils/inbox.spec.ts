@@ -466,3 +466,98 @@ describe('import_done (F2)', () => {
     expect(isNoticeTarget(item)).toBe(false)
   })
 })
+
+describe('import_pending, ical_sync_failed e import_done con canceladas (F3)', () => {
+  const pending = {
+    job_uuid: 'J9',
+    calendar: 'Gira 2027 (iCloud)',
+    new: 3,
+    changed: 1,
+    cancelled: 1,
+    source: 'ical',
+  }
+
+  it('import_pending: título con el total y cuerpo con los recuentos; lleva a la revisión', async () => {
+    const item = inboxItem({ kind: 'import_pending', params: pending })
+    expect(formatInboxItem(item, t)).toEqual({
+      title: 'Cambios en Gira 2027 (iCloud): 5 por revisar',
+      body: '3 nuevas · 1 cambiadas · 1 canceladas',
+    })
+    expect(inboxTargetLocation(item)).toEqual({ name: 'tour-import', params: { jobUuid: 'J9' } })
+    const router = { push: vi.fn().mockResolvedValue(undefined) }
+    const tours = { setActiveTourByUuid: vi.fn(() => true) }
+    expect(await goToInboxTarget(item, router, tours)).toBe(true)
+    expect(router.push).toHaveBeenCalledWith({ name: 'tour-import', params: { jobUuid: 'J9' } })
+    // Activa la gira del ítem (el backend manda `target.type="none"` sin gira).
+    const noTarget = inboxItem({
+      kind: 'import_pending',
+      params: pending,
+      tour: { uuid: 'T7', name: 'Gira Sur' },
+      target: { type: 'none', tour_uuid: null, activity_uuid: null, conflict_uuid: null },
+    })
+    await goToInboxTarget(noTarget, router, tours)
+    expect(tours.setActiveTourByUuid).toHaveBeenLastCalledWith('T7')
+    // Sin nombre de calendario: "tu calendario"; sin recuentos: la copia del backend.
+    expect(fmt({ kind: 'import_pending', params: { ...pending, calendar: '' } }).title).toBe(
+      'Cambios en tu calendario: 5 por revisar'
+    )
+    expect(fmt({ kind: 'import_pending', params: { job_uuid: 'J9' } })).toEqual({
+      title: 'Título',
+      body: 'Cuerpo',
+    })
+    expect(inboxTargetLocation(inboxItem({ kind: 'import_pending', params: {} }))).toBeNull()
+    i18n.global.locale.value = 'en'
+    expect(formatInboxItem(item, t).title).toBe('Changes in Gira 2027 (iCloud): 5 to review')
+  })
+
+  it('ical_sync_failed: motivo traducido (nunca el código) y destino Ajustes › Calendarios', () => {
+    const item = inboxItem({
+      kind: 'ical_sync_failed',
+      params: { subscription_uuid: 'S1', calendar: 'Gira 2027', error_code: 'http_404' },
+    })
+    const text = formatInboxItem(item, t)
+    expect(text.title).toBe('No podemos leer el calendario Gira 2027')
+    expect(text.body).toBe(
+      'El calendario ya no está publicado o la dirección ha cambiado. Hemos pausado la sincronización tras varios intentos; puedes reanudarla en Ajustes › Calendarios.'
+    )
+    expect(
+      fmt({ kind: 'ical_sync_failed', params: { subscription_uuid: 'S1', calendar: '', error_code: 'http_503' } })
+    ).toEqual({
+      title: 'No podemos leer tu calendario',
+      body: 'No hemos podido conectar con el calendario. Hemos pausado la sincronización tras varios intentos; puedes reanudarla en Ajustes › Calendarios.',
+    })
+    expect(text.body).not.toContain('http_404')
+    expect(inboxTargetLocation(item)).toEqual({ path: '/settings', query: { tab: 'calendars' } })
+    const unknown = formatInboxItem(
+      inboxItem({ kind: 'ical_sync_failed', params: { calendar: 'X', error_code: 'raro' } }),
+      t
+    )
+    expect(unknown.body).toMatch(/^No se ha podido completar\. Inténtalo de nuevo\. Hemos pausado/)
+    expect(fmt({ kind: 'ical_sync_failed', params: {} })).toEqual({ title: 'Título', body: 'Cuerpo' })
+  })
+
+  it('import_done con params.cancelled añade las canceladas al título', () => {
+    const params = {
+      job_uuid: 'J1',
+      created: 2,
+      replaced: 0,
+      cancelled: 3,
+      reminders: 0,
+      first_send_at: '',
+      paused: false,
+    }
+    expect(formatInboxItem(inboxItem({ kind: 'import_done', params }), t).title).toBe(
+      'Importación: 2 actividades creadas · 3 canceladas'
+    )
+    expect(
+      formatInboxItem(inboxItem({ kind: 'import_done', params: { ...params, cancelled: 0 } }), t).title
+    ).toBe('Importación: 2 actividades creadas')
+    // Solo canceladas: el título las cuenta a ellas.
+    expect(
+      formatInboxItem(
+        inboxItem({ kind: 'import_done', params: { ...params, created: 0, cancelled: 1 } }),
+        t
+      ).title
+    ).toBe('Importación: 1 actividad cancelada')
+  })
+})

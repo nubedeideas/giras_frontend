@@ -397,6 +397,19 @@ export default {
         titleReplaced:
           'Import: {replaced} activity updated | Import: {replaced} activities updated',
         alsoReplaced: '{replaced} activity was also updated. | {replaced} activities were also updated.',
+        cancelled: '· {k} cancelled',
+        titleCancelled:
+          'Import: {cancelled} activity cancelled | Import: {cancelled} activities cancelled',
+      },
+      import_pending: {
+        title: 'Changes in {calendar}: {n} to review',
+        body: '{new} new · {changed} changed · {cancelled} cancelled',
+        fallbackCalendar: 'your calendar',
+      },
+      ical_sync_failed: {
+        title: "We can't read the calendar {calendar}",
+        titleUnnamed: "We can't read your calendar",
+        body: "{reason} We've paused syncing after several attempts; you can resume it in Settings › Calendars.",
       },
       billing_discrepancy: {
         title: 'Twilio billing discrepancies',
@@ -707,6 +720,10 @@ export default {
     phoneSaved: 'Phone saved.',
     phoneInvalid: 'Enter a valid phone number with country code, for example +34 600 000 000.',
     phoneError: 'Could not save the phone number.',
+    calendars: {
+      title: 'Calendars',
+      sub: 'Connect Google Calendar or subscribe to an iCal calendar (Apple Calendar, Outlook…).',
+    },
   },
 
   activity: {
@@ -1066,7 +1083,7 @@ export default {
           'Hostinger: hosting of the servers and the database.',
           'Twilio: sending WhatsApp Business notifications and receiving their delivery statuses and replies.',
           'Mailgun: sending emails (notifications, sign-in links and summaries), in its EU region.',
-          'Google: sign-in, Google Calendar and Google Contacts; Google Maps to geolocate venues and estimate travel times; Google Gemini to read the files, photos and text you import (team and itineraries) — before sending them we replace phone numbers, emails and ID numbers in spreadsheets, text and text-based PDFs with placeholders; photos and scanned PDFs are sent in full, without photo location data or PDF metadata — and also for smart import of activities from your calendar and daily summaries; Google Drive to store encrypted backups; and Google Tag Manager and Google Analytics, only if you accept analytics cookies.',
+          'Google: sign-in, Google Calendar and Google Contacts; Google Maps to geolocate venues and estimate travel times; Google Gemini to read the files, photos and text you import (team, itineraries and .ics calendars) — before sending them we replace phone numbers, emails and ID numbers in spreadsheets, text and text-based PDFs with placeholders; photos and scanned PDFs are sent in full, without photo location data or PDF metadata — and also for smart import of activities from your calendar and daily summaries; Google Drive to store encrypted backups; and Google Tag Manager and Google Analytics, only if you accept analytics cookies.',
           'Cirium: checking the status and schedule of the flights in your activities from the flight number.',
           'Cobry and Viva Wallet: processing subscription payments.',
           'Spotify and Chartmetric: looking up public artist data when you create a tour.',
@@ -2442,6 +2459,90 @@ export default {
   // Importer (F1, spec 2026-11-22-importacion-f1-equipo.md §4.6). Batch 1 block: entry, progress,
   // errors, pending banner and the row texts used by the onboarding compact review. Batch 2 adds
   // the full review here.
+  ical: {
+    subscribe: 'Subscribe to iCal (URL)',
+    form: {
+      title: 'Subscribe to an iCal calendar',
+      sub: "Paste the calendar address. Every 6 hours we'll look for new or changed events and leave them for you to review: nothing is created until you confirm.",
+      url: 'Calendar address',
+      urlPlaceholder: 'https://… or webcal://…',
+      name: 'Name (optional)',
+      namePlaceholder: 'E.g. Tour calendar',
+      tour: 'Tour',
+      tourPlaceholder: 'Choose a tour',
+      tourRequired: 'Choose the tour you want to subscribe the calendar to.',
+      noTours: "You don't manage any open tour to subscribe a calendar to.",
+      help: 'Where do I find the address?',
+      helpApple:
+        'Apple Calendar: on the calendar, Share Calendar › tick Public Calendar › copy the address.',
+      helpGoogle: 'Google Calendar: calendar settings › Secret address in iCal format.',
+      helpOutlook: 'Outlook: Settings › Shared calendars › Publish a calendar › ICS link.',
+      privacy:
+        'The address is stored encrypted and only used to read the calendar. Titles and descriptions are processed with AI to classify each event (without phone numbers or emails).',
+      submit: 'Subscribe',
+      submitting: 'Subscribing…',
+      reading: 'Reading the calendar…',
+      canClose: "You can close this: we'll let you know when it's ready.",
+      stillReading: "Still reading in the background. We'll let you know when there are events to review.",
+      found: 'We found {n} event to review | We found {n} events to review',
+      nothingNew: "There are no events in the tour dates. We'll let you know when they appear.",
+      reviewNow: 'Review now',
+      back: 'Back',
+      close: 'Close',
+    },
+    errors: {
+      invalid_url: "The address isn't valid. It must start with https:// or webcal://.",
+      credentials_in_url: 'Remove the username and password from the address.',
+      already_subscribed: 'This tour is already subscribed to that calendar.',
+      too_many_subscriptions: 'This tour already has {max} subscribed calendars.',
+      tour_closed: 'The tour is finished or cancelled.',
+      sync_too_soon: 'We just synced. Try again in {minutes} min.',
+      sync_disabled: 'Syncing is paused. Resume it to sync.',
+      forbidden: "Only a tour admin can manage the tour's calendars.",
+      notFound: 'This subscription no longer exists.',
+      connect: "We couldn't connect to the calendar.",
+      gone: 'The calendar is no longer published or the address has changed.',
+      tooLarge: 'The calendar is too large.',
+      notIcs: "The address doesn't return a calendar.",
+      generic: "Couldn't complete it. Please try again.",
+    },
+    status: {
+      ok: 'Up to date',
+      pending: 'Syncing',
+      error: 'Error',
+      paused: 'Paused',
+      ended: 'Tour ended',
+      review: 'Changes to review',
+    },
+    card: {
+      lastSync: 'Last sync: {date}',
+      nextSync: 'Next: {date}',
+      never: 'Not synced yet',
+      unnamed: 'Unnamed calendar',
+      syncNow: 'Sync now',
+      syncQueued: "Sync in progress. We'll let you know if there are changes to review.",
+      pause: 'Pause',
+      resume: 'Resume',
+      delete: 'Delete',
+      deleteTitle: 'Delete {name}?',
+      deleteConfirm: "We'll stop reading this calendar. Activities already imported stay in the tour.",
+      deleting: 'Deleting…',
+      working: 'One moment…',
+      pendingReview: 'Changes to review ({n})',
+      removalGuard:
+        "The calendar lost many events at once: we won't suggest cancelling them. Check the calendar.",
+    },
+    manager: {
+      title: 'iCal calendars',
+      empty: 'Subscribe an Apple, Outlook or any iCal calendar to a tour.',
+      retry: 'Retry',
+      loading: 'Loading iCal calendars',
+    },
+    a10: {
+      hint: 'Using Apple Calendar or Outlook?',
+    },
+  },
+
   importer: {
     title: 'Review import',
     open: 'Import',
@@ -2465,6 +2566,7 @@ export default {
     pendingBanner: 'You have an import waiting for review: {file} · {date}',
     pendingBannerActivities:
       'You have an import waiting for review: {file} · {n} activity | You have an import waiting for review: {file} · {n} activities',
+    pendingBannerCalendar: 'Changes from calendar {name} to review · {n}',
     pendingBadge: 'To review',
     pendingMore: '+{n}',
     pastedText: 'Pasted text',
@@ -2685,7 +2787,7 @@ export default {
       pasteCount: '{n} / {max}',
       privacyNote:
         "What you upload is saved in the tour's Documents (the crew can't see it). Nothing is created until you review it.",
-      icsLater: 'Calendars (.ics) are saved in Documents; importing them is coming soon.',
+      icsHint: 'Dates and times are taken exactly from the calendar.',
       submit: 'Import',
       limits: 'Up to 6 files and 20 MB in total',
       remove: 'Remove {file}',
@@ -2970,6 +3072,12 @@ export default {
       noResults: 'No results',
       manual: 'Add manually',
       selectHint: 'Select an activity to see its details',
+    },
+    source: {
+      label: 'Source',
+      google_calendar: 'Google Calendar',
+      ics: 'Calendar (.ics / iCal)',
+      import_job: 'Import',
     },
   },
 }

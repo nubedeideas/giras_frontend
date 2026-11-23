@@ -6,6 +6,9 @@ import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import { importJob } from '@/test/importJobs'
 import type { ImportJob } from '@/composables/useImportJobs'
+import { useAuthStore } from '@/stores/auth'
+import { useToursStore } from '@/stores/tours'
+import { adminTour } from '@/test/icalSubscriptions'
 import ImportDropModal from './ImportDropModal.vue'
 
 const stubs = {
@@ -15,6 +18,12 @@ const stubs = {
     props: ['tourUuid', 'entryPoint', 'expected'],
     emits: ['created'],
     template: '<div data-test="zone-stub" :data-entry="entryPoint" :data-expected="expected" />',
+  },
+  IcalSubscribeForm: {
+    name: 'IcalSubscribeForm',
+    props: { tourUuid: String, compact: Boolean },
+    emits: ['cancel', 'review', 'created'],
+    template: '<div data-test="ical-form-stub" :data-tour="tourUuid" :data-compact="String(compact)" />',
   },
 }
 
@@ -95,5 +104,48 @@ describe('ImportDropModal', () => {
     expect(w.text()).toContain(
       'Sube el itinerario, el day sheet o una foto y convertiremos cada fecha en una actividad.'
     )
+  })
+
+  it('F3: "Suscribir iCal (URL)" solo admin, fuera de la demo y si no es el importador de equipo', async () => {
+    const tours = useToursStore()
+    tours.tours = [adminTour()]
+    const w = await mountModal({ expected: 'itinerary' })
+    expect(w.find('[data-test="import-ical-toggle"]').text()).toBe('Suscribir iCal (URL)')
+    w.unmount()
+
+    const team = await mountModal({ expected: 'team' })
+    expect(team.find('[data-test="import-ical-toggle"]').exists()).toBe(false)
+    team.unmount()
+
+    tours.tours = [adminTour({ current_user_is_admin: false })]
+    const member = await mountModal()
+    expect(member.find('[data-test="import-ical-toggle"]').exists()).toBe(false)
+    member.unmount()
+
+    tours.tours = [adminTour()]
+    useAuthStore().isDemoMode = true
+    const demo = await mountModal()
+    expect(demo.find('[data-test="import-ical-toggle"]').exists()).toBe(false)
+  })
+
+  it('F3: alterna entre la zona y el alta iCal; "Revisar ahora" cierra el modal', async () => {
+    useToursStore().tours = [adminTour()]
+    const w = await mountModal()
+    await w.get('[data-test="import-ical-toggle"]').trigger('click')
+    expect(w.find('[data-test="zone-stub"]').exists()).toBe(false)
+    const form = w.get('[data-test="ical-form-stub"]')
+    expect(form.attributes('data-tour')).toBe('T1')
+    expect(form.attributes('data-compact')).toBe('true')
+    expect(w.text()).toContain('Suscribir un calendario iCal')
+
+    w.findComponent({ name: 'IcalSubscribeForm' }).vm.$emit('cancel')
+    await flushPromises()
+    expect(w.find('[data-test="zone-stub"]').exists()).toBe(true)
+    expect(w.text()).toContain('Importar a la gira')
+
+    await w.get('[data-test="import-ical-toggle"]').trigger('click')
+    w.findComponent({ name: 'IcalSubscribeForm' }).vm.$emit('review', 'J9')
+    await flushPromises()
+    expect(w.emitted('close')).toHaveLength(1)
   })
 })
