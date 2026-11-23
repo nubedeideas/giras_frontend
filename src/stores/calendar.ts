@@ -143,7 +143,16 @@ export const useCalendarStore = defineStore('calendar', () => {
     }
   }
 
+  // El día es el contexto del calendario. Con el detalle de una actividad abierto, elegir un
+  // día lo fija (sin alternar) y cierra el detalle para volver a la agenda de ese día, salvo
+  // que sea el día de la propia actividad. Sin detalle, un segundo clic deselecciona el día.
   function selectDate(iso: string) {
+    if (activitiesStore.selectedUuid) {
+      selectedDate.value = iso
+      const start = selectedActivityStart()
+      if (!start || dateKeyOf(start) !== iso) activitiesStore.clearSelection()
+      return
+    }
     selectedDate.value = selectedDate.value === iso ? null : iso
   }
 

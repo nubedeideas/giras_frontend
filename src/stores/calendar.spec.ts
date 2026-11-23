@@ -110,3 +110,65 @@ describe('calendar store: mes inicial (Paleta B §5.4.2)', () => {
     expect(cal.selectedDate).toBeNull()
   })
 })
+
+describe('calendar store: elegir día con el detalle abierto', () => {
+  function setup() {
+    const activities = useActivitiesStore()
+    activities.activities = [
+      activity('A1', '2026-11-10T20:00:00'),
+      activity('A2', '2026-11-12T09:00:00'),
+    ]
+    activities.selectedUuid = 'A1'
+    return { activities, cal: useCalendarStore() }
+  }
+
+  it('otro día cierra el detalle y deja la agenda de ese día', () => {
+    const { activities, cal } = setup()
+
+    cal.selectDate('2026-11-12')
+
+    expect(activities.selectedUuid).toBeNull()
+    expect(cal.selectedDate).toBe('2026-11-12')
+    expect(cal.activitiesForSelectedDate.map((a) => a.uuid)).toEqual(['A2'])
+  })
+
+  it('el día de la propia actividad mantiene el detalle', () => {
+    const { activities, cal } = setup()
+
+    cal.selectDate('2026-11-10')
+
+    expect(activities.selectedUuid).toBe('A1')
+    expect(cal.selectedDate).toBe('2026-11-10')
+  })
+
+  it('con el detalle abierto, repetir el día no lo deselecciona', () => {
+    const { activities, cal } = setup()
+    cal.selectedDate = '2026-11-12'
+
+    cal.selectDate('2026-11-12')
+
+    expect(cal.selectedDate).toBe('2026-11-12')
+    expect(activities.selectedUuid).toBeNull()
+  })
+
+  it('sin detalle, un segundo clic en el mismo día lo deselecciona', () => {
+    const cal = useCalendarStore()
+
+    cal.selectDate('2026-11-12')
+    cal.selectDate('2026-11-12')
+
+    expect(cal.selectedDate).toBeNull()
+  })
+
+  it('cambiar de mes no cierra el detalle ni el día', () => {
+    const { activities, cal } = setup()
+    cal.selectedDate = '2026-11-10'
+
+    cal.nextMonth()
+    cal.prevMonth()
+    cal.prevMonth()
+
+    expect(activities.selectedUuid).toBe('A1')
+    expect(cal.selectedDate).toBe('2026-11-10')
+  })
+})
