@@ -324,6 +324,7 @@ export function activityStatusKey(r: ImportActivityRow): string {
 
 const ACTIVITY_ISSUES = new Set([
   'month_inferred',
+  'replace_target_changed',
   'time_missing',
   'time_unverified',
   'time_assumed',

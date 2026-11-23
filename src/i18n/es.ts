@@ -2877,6 +2877,7 @@ export default {
     },
     activityIssues: {
       month_inferred: 'Mes deducido de la fila anterior',
+      replace_target_changed: 'La actividad a sustituir ha cambiado: elige otra vez',
       time_missing: 'Sin hora',
       time_unverified: 'No encontramos esta hora en el documento',
       time_assumed: 'Hora habitual del hotel',

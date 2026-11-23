@@ -2861,6 +2861,7 @@ export default {
     },
     activityIssues: {
       month_inferred: 'Month inferred from the previous row',
+      replace_target_changed: 'The activity to replace has changed: choose again',
       time_missing: 'No time',
       time_unverified: "We couldn't find this time in the document",
       time_assumed: 'Usual hotel time',
