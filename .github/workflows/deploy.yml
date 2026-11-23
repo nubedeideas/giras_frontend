@@ -7,6 +7,8 @@ name: Deploy frontend (giras.pro)
 # Disparo manual (workflow_dispatch) y gate por variable del repo DEPLOY_FRONTEND_ENABLED,
 # igual que el backend. Variables (no secretos, se incrustan en el bundle público):
 #   VITE_API_URL, VITE_GOOGLE_CLIENT_ID
+#   Opcionales (selector de Google Sheets, F4; si faltan, la opción se oculta):
+#   VITE_GOOGLE_PICKER_API_KEY, VITE_GOOGLE_CLOUD_APP_ID
 # Secretos del environment production:
 #   VPS_HOST, VPS_PORT, VPS_USER (giras-web), VPS_SSH_KEY, VPS_KNOWN_HOSTS, DEPLOY_PATH
 #   (DEPLOY_PATH: carpeta dist absoluta, p. ej. /home/giras-web/htdocs/giras.pro/dist)
@@ -41,8 +43,9 @@ jobs:
         run: |
           test -n "${{ vars.VITE_API_URL }}" || { echo "Falta la variable VITE_API_URL"; exit 1; }
           test -n "${{ vars.VITE_GOOGLE_CLIENT_ID }}" || { echo "Falta la variable VITE_GOOGLE_CLIENT_ID"; exit 1; }
-          printf 'VITE_API_URL=%s\nVITE_GOOGLE_CLIENT_ID=%s\n' \
-            "${{ vars.VITE_API_URL }}" "${{ vars.VITE_GOOGLE_CLIENT_ID }}" > .env.production
+          printf 'VITE_API_URL=%s\nVITE_GOOGLE_CLIENT_ID=%s\nVITE_GOOGLE_PICKER_API_KEY=%s\nVITE_GOOGLE_CLOUD_APP_ID=%s\n' \
+            "${{ vars.VITE_API_URL }}" "${{ vars.VITE_GOOGLE_CLIENT_ID }}" \
+            "${{ vars.VITE_GOOGLE_PICKER_API_KEY }}" "${{ vars.VITE_GOOGLE_CLOUD_APP_ID }}" > .env.production
 
       - name: Lint
         run: pnpm exec eslint src --ext .vue,.js,.ts
