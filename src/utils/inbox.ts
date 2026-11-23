@@ -1,7 +1,7 @@
 import type { RouteLocationRaw, Router } from 'vue-router'
 import { DateTime } from 'luxon'
 import type { InboxItem } from '@/composables/useInbox'
-import { icalErrorKey } from '@/utils/icalSubscriptions'
+import { calendarCountsText, icalErrorKey } from '@/utils/icalSubscriptions'
 
 /** Subconjunto de `t` de vue-i18n que usan estas funciones (puras, testeables sin montar). */
 export type InboxTranslate = (
@@ -193,7 +193,7 @@ export function formatInboxItem(
             ? t('inbox.kinds.import_done.titleReplaced', { replaced }, replaced)
             : t('inbox.kinds.import_done.title', { created }, created)
         if (cancelled > 0) {
-          title = `${title} ${t('inbox.kinds.import_done.cancelled', { k: cancelled })}`
+          title = `${title} ${t('inbox.kinds.import_done.cancelled', { k: cancelled }, cancelled)}`
         }
       }
       const also =
@@ -223,9 +223,10 @@ export function formatInboxItem(
       const counts = { new: num(p.new), changed: num(p.changed), cancelled: num(p.cancelled) }
       if (Object.values(counts).some((n) => Number.isNaN(n))) return raw
       const n = counts.new + counts.changed + counts.cancelled
+      // Solo los recuentos mayores que 0, con plural (como el cuerpo del backend).
       return {
         title: t('inbox.kinds.import_pending.title', { calendar, n }),
-        body: t('inbox.kinds.import_pending.body', counts),
+        body: calendarCountsText(t, counts) || item.body,
       }
     }
 

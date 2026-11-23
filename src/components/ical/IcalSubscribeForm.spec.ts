@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
 import { icalApiError, icalSub } from '@/test/icalSubscriptions'
+import { useImportsStore } from '@/stores/imports'
 import IcalSubscribeForm from './IcalSubscribeForm.vue'
 
 async function mountForm(props: Record<string, unknown> = { tourUuid: 'T1' }) {
@@ -70,8 +71,9 @@ describe('IcalSubscribeForm', () => {
     )
     const w = await mountForm()
     await fill(w, 'https://localhost.example/cal.ics')
+    // Host no permitido: la dirección sí empieza por https://, el problema es que no es pública.
     expect(w.get('[data-test="ical-url-error"]').text()).toBe(
-      'La dirección no es válida. Debe empezar por https:// o webcal://.'
+      'La dirección no es válida o no es pública.'
     )
     await fill(w, 'webcal://p52-caldav.icloud.com/published/2/abc')
     expect(w.find('[data-test="ical-url-error"]').exists()).toBe(false)
@@ -84,6 +86,17 @@ describe('IcalSubscribeForm', () => {
     )
     expect(w.text()).not.toContain('already_subscribed')
     expect(w.text()).not.toContain('Mensaje del backend')
+    expect(w.emitted('created')).toBeUndefined()
+  })
+
+  it('404 al crear: la gira no existe o no la ves (no "la suscripción ya no existe")', async () => {
+    mockFetch(jsonResponse({ detail: 'No encontrado.' }, 404))
+    const w = await mountForm()
+    await fill(w, 'https://example.com/cal.ics')
+    expect(w.get('[data-test="ical-form-error"]').text()).toBe(
+      'No encontramos esa gira o ya no tienes acceso a ella.'
+    )
+    expect(w.text()).not.toContain('Esta suscripción ya no existe')
     expect(w.emitted('created')).toBeUndefined()
   })
 
@@ -145,14 +158,43 @@ describe('IcalSubscribeForm', () => {
   it('"Sin eventos nuevos" y error de lectura traducido', async () => {
     mockFetch(
       jsonResponse(icalSub({ last_status: 'pending' }), 201),
-      jsonResponse(icalSub({ last_status: 'ok', pending_job: null }))
+      jsonResponse(
+        icalSub({
+          last_status: 'ok',
+          pending_job: null,
+          stats: { events_in_window: 0, last_new: 0, last_changed: 0, last_cancelled: 0 },
+        })
+      )
     )
+    const imports = useImportsStore()
     const w = await mountForm()
     await fill(w, 'https://example.com/cal.ics')
     expect(w.get('[data-test="ical-done-text"]').text()).toBe(
       'No hay eventos en las fechas de la gira. Te avisaremos cuando aparezcan.'
     )
     expect(w.find('[data-test="ical-review"]').exists()).toBe(false)
+    // Al acabar la lectura se avisa a Mi Gira para que recargue los borradores pendientes.
+    expect(imports.version).toBe(1)
+    expect(imports.lastTour).toBe('T1')
+
+    // Eventos leídos pero sin borrador (job fallido o descartado sin nada que revisar): neutro.
+    mockFetch(
+      jsonResponse(icalSub({ last_status: 'pending' }), 201),
+      jsonResponse(
+        icalSub({
+          last_status: 'ok',
+          pending_job: null,
+          stats: { events_in_window: 4, last_new: 2, last_changed: 0, last_cancelled: 0 },
+        })
+      )
+    )
+    const n = await mountForm()
+    await fill(n, 'https://example.com/cal.ics')
+    const neutral = n.get('[data-test="ical-done-text"]')
+    expect(neutral.text()).toBe(
+      'Hemos leído el calendario, pero ahora no hay cambios para revisar. Te avisaremos cuando los haya.'
+    )
+    expect(neutral.attributes('role')).toBeUndefined()
 
     mockFetch(
       jsonResponse(icalSub({ last_status: 'pending' }), 201),

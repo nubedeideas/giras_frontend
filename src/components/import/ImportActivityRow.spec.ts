@@ -188,5 +188,42 @@ describe('ImportActivityRow', () => {
       const w = mountRow({ row: calendarActivityRow({ issues: ['checkout_inferred'] }) })
       expect(w.text()).toContain('Salida deducida del fin del evento')
     })
+
+    it('cancelación sin actividad viva: sin Recuperar ni Editar, "La actividad ya no existe"', () => {
+      const base = calendarCancelledRow()
+      // Retirada del feed (`r<n>`) cuya actividad se canceló en Giras: llega como `duplicate`.
+      const duplicate = mountRow({
+        row: calendarActivityRow({
+          action: 'skip',
+          source_ref: { ...base.source_ref, row: 'r1' },
+          match: { ...base.match, status: 'duplicate' },
+        }),
+      })
+      // Evento CANCELLED cuya actividad ya no existe: `new` por `uid`.
+      const gone = mountRow({
+        row: calendarActivityRow({
+          action: 'skip',
+          match: { ...base.match, status: 'new', by: 'uid', activity_uuid: null },
+        }),
+      })
+      for (const w of [duplicate, gone]) {
+        expect(w.get('[data-test="import-activity-gone"]').text()).toBe(
+          'La actividad ya no existe en la gira'
+        )
+        expect(w.find('[data-test="import-activity-restore"]').exists()).toBe(false)
+        expect(w.find('[data-test="import-activity-skip"]').exists()).toBe(false)
+        expect(w.find('[data-test="import-activity-edit"]').exists()).toBe(false)
+        expect(w.find('[data-test="import-activity-status"]').exists()).toBe(false)
+        expect(w.get('[data-test="import-activity-title"]').classes()).not.toContain('line-through')
+        // "Ver origen" sigue.
+        expect(w.find('[data-test="import-activity-peek"]').exists()).toBe(true)
+      }
+      // Un duplicado normal del calendario (`e<n>`) sigue pudiendo recuperarse.
+      const normal = mountRow({
+        row: calendarActivityRow({ action: 'skip', match: { ...base.match, status: 'duplicate' } }),
+      })
+      expect(normal.find('[data-test="import-activity-gone"]').exists()).toBe(false)
+      expect(normal.find('[data-test="import-activity-restore"]').exists()).toBe(true)
+    })
   })
 })

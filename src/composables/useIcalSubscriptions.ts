@@ -19,7 +19,10 @@ export type IcalSyncStatus =
   | 'tour_closed'
   | 'tour_ended'
 
-/** `last_error_code` (§3.8.1). `http_5xx` llega como `http_500`, `http_502`… */
+/**
+ * `last_error_code` (§3.8.1). Cualquier 5xx llega con el literal `http_5xx`
+ * (`ical_fetch._http_error_code`); el resto de 4xx, como `http_<código>`.
+ */
 export type IcalErrorCode =
   | 'invalid_url'
   | 'https_required'
@@ -35,6 +38,7 @@ export type IcalErrorCode =
   | 'http_403'
   | 'http_404'
   | 'http_410'
+  | 'http_5xx'
   | `http_${number}`
   | 'too_large'
   | 'ics_too_large'
@@ -57,7 +61,6 @@ export interface IcalSubscriptionStats {
   /** El feed perdió de golpe más de la mitad de sus eventos: no se proponen cancelaciones. */
   removal_guard?: boolean
   pending_review?: boolean
-  bytes?: number
 }
 
 /** `pending_job`: el último job de la sincronización mientras esté entre `uploaded` y `ready`. */
@@ -166,6 +169,8 @@ export function isIcalSyncInProgress(sub: Pick<IcalSubscription, 'last_status' |
 export interface PollOptions {
   intervalMs?: number
   timeoutMs?: number
+  /** Cada lectura correcta mientras dura el sondeo (para pintar el estado intermedio). */
+  onRead?: (sub: IcalSubscription) => void
 }
 
 export interface PollResult {
@@ -231,14 +236,17 @@ export function useIcalSubscriptions() {
     const started = Date.now()
     let sub: IcalSubscription | null = null
     for (;;) {
+      let fresh = false
       try {
         sub = await getIcalSubscription(uuid)
+        fresh = true
       } catch (e) {
         // Fallos de red o del servidor: se reintenta hasta el plazo. Un 4xx no se arregla solo.
         if (token !== pollToken) return { sub, timedOut: false, cancelled: true }
         if (e instanceof ApiError && e.status >= 400 && e.status < 500) throw e
       }
       if (token !== pollToken) return { sub, timedOut: false, cancelled: true }
+      if (fresh && sub) opts.onRead?.(sub)
       if (sub && !isIcalSyncInProgress(sub)) return { sub, timedOut: false, cancelled: false }
       if (Date.now() - started + intervalMs > timeoutMs) {
         return { sub, timedOut: true, cancelled: false }

@@ -481,8 +481,19 @@ describe('import_pending, ical_sync_failed e import_done con canceladas (F3)', (
     const item = inboxItem({ kind: 'import_pending', params: pending })
     expect(formatInboxItem(item, t)).toEqual({
       title: 'Cambios en Gira 2027 (iCloud): 5 por revisar',
-      body: '3 nuevas · 1 cambiadas · 1 canceladas',
+      body: '3 nuevas · 1 cambiada · 1 cancelada',
     })
+    // Solo los recuentos mayores que 0 (como el backend), con plural.
+    expect(fmt({ kind: 'import_pending', params: { ...pending, new: 1, changed: 0 } }).body).toBe(
+      '1 nueva · 1 cancelada'
+    )
+    expect(
+      fmt({ kind: 'import_pending', params: { ...pending, new: 0, changed: 2, cancelled: 0 } }).body
+    ).toBe('2 cambiadas')
+    // Todo a 0: la copia del backend.
+    expect(
+      fmt({ kind: 'import_pending', params: { ...pending, new: 0, changed: 0, cancelled: 0 } }).body
+    ).toBe('Cuerpo')
     expect(inboxTargetLocation(item)).toEqual({ name: 'tour-import', params: { jobUuid: 'J9' } })
     const router = { push: vi.fn().mockResolvedValue(undefined) }
     const tours = { setActiveTourByUuid: vi.fn(() => true) }
@@ -559,5 +570,12 @@ describe('import_pending, ical_sync_failed e import_done con canceladas (F3)', (
         t
       ).title
     ).toBe('Importación: 1 actividad cancelada')
+    // Plural también en el añadido: "· 1 cancelada".
+    expect(
+      formatInboxItem(
+        inboxItem({ kind: 'import_done', params: { ...params, cancelled: 1 } }),
+        t
+      ).title
+    ).toBe('Importación: 2 actividades creadas · 1 cancelada')
   })
 })

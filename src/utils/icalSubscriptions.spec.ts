@@ -4,6 +4,7 @@ import { ApiError } from '@/utils/apiClient'
 import { icalApiError, icalSub } from '@/test/icalSubscriptions'
 import type { IcalSyncStatus } from '@/composables/useIcalSubscriptions'
 import {
+  calendarCountsText,
   icalApiErrorKey,
   icalErrorKey,
   icalReviewBadge,
@@ -53,8 +54,9 @@ describe('icalErrorKey', () => {
   it('tabla de §3.8.1, con claves en ES y EN', () => {
     const cases: [string, string][] = [
       ['https_required', 'ical.errors.invalid_url'],
-      ['port_not_allowed', 'ical.errors.invalid_url'],
-      ['host_not_allowed', 'ical.errors.invalid_url'],
+      // Puerto o host no permitidos: no es un problema de "https://" sino de dirección no pública.
+      ['port_not_allowed', 'ical.errors.not_public'],
+      ['host_not_allowed', 'ical.errors.not_public'],
       ['invalid_url', 'ical.errors.invalid_url'],
       ['credentials_in_url', 'ical.errors.credentials_in_url'],
       ['dns_failed', 'ical.errors.connect'],
@@ -93,8 +95,10 @@ describe('icalApiErrorKey', () => {
       key: 'ical.errors.credentials_in_url',
     })
     expect(icalApiErrorKey(err('invalid_url', 400, { reason: 'port_not_allowed' }))).toEqual({
-      key: 'ical.errors.invalid_url',
+      key: 'ical.errors.not_public',
     })
+    expect(i18n.global.t('ical.errors.not_public')).toBe('La dirección no es válida o no es pública.')
+    expect(i18n.global.t('ical.errors.not_public')).not.toContain('https://')
     expect(icalApiErrorKey(err('invalid_url'))).toEqual({ key: 'ical.errors.invalid_url' })
     expect(icalApiErrorKey(err('already_subscribed', 409, { subscription_uuid: 'S1' }))).toEqual({
       key: 'ical.errors.already_subscribed',
@@ -115,6 +119,9 @@ describe('icalApiErrorKey', () => {
   it('por estado sin código; nunca el código crudo', () => {
     expect(icalApiErrorKey(new ApiError(403, { detail: 'x' })).key).toBe('ical.errors.forbidden')
     expect(icalApiErrorKey(new ApiError(404, null)).key).toBe('ical.errors.notFound')
+    // Al crear, el 404 es de la gira (no existe o no la ves), no de la suscripción.
+    expect(icalApiErrorKey(new ApiError(404, null), 'create').key).toBe('ical.errors.tourNotFound')
+    expect(i18n.global.te('ical.errors.tourNotFound', 'en')).toBe(true)
     expect(icalApiErrorKey(new ApiError(429, null)).key).toBe('common.tooManyRequests')
     expect(icalApiErrorKey(new ApiError(0, null)).key).toBe('importer.errors.network')
     expect(icalApiErrorKey(err('invalid_value')).key).toBe('ical.errors.generic')
@@ -148,5 +155,24 @@ describe('isValidIcalUrlInput', () => {
     expect(icalUrlProblem('webcal://user@example.com/cal.ics')).toBe('credentials_in_url')
     // Una @ en la ruta o la query no es una credencial.
     expect(icalUrlProblem('https://example.com/cal.ics?owner=a@b.com')).toBeNull()
+  })
+})
+
+describe('calendarCountsText', () => {
+  const t = (key: string, named: Record<string, number>, n: number) =>
+    i18n.global.t(key, named, n)
+
+  it('solo los recuentos mayores que 0, con plural, unidos con " · "', () => {
+    i18n.global.locale.value = 'es'
+    expect(calendarCountsText(t, { new: 3, changed: 1, cancelled: 0 })).toBe('3 nuevas · 1 cambiada')
+    expect(calendarCountsText(t, { new: 1, changed: 0, cancelled: 2 })).toBe(
+      '1 nueva · 2 canceladas'
+    )
+    expect(calendarCountsText(t, { new: 0, changed: 0, cancelled: 0 })).toBe('')
+    i18n.global.locale.value = 'en'
+    expect(calendarCountsText(t, { new: 1, changed: 2, cancelled: 1 })).toBe(
+      '1 new · 2 changed · 1 cancelled'
+    )
+    i18n.global.locale.value = 'es'
   })
 })

@@ -209,7 +209,11 @@ async function backToDraft() {
   pauseError.value = ''
   try {
     await toursStore.updateTour(uuid, { status: 'draft' })
-    if (jobUuid !== props.job.uuid) return
+    if (jobUuid !== props.job.uuid) {
+      // Otro job en pantalla: no se pinta nada, pero el botón no puede quedarse bloqueado.
+      backToDraftSaving.value = false
+      return
+    }
     revertedToDraft.value = true
   } catch {
     if (jobUuid === props.job.uuid) backToDraftError.value = t('importer.result.backToDraftError')

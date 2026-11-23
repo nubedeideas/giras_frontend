@@ -52,6 +52,7 @@ async function mountView() {
       { path: '/tour', name: 'tour', component: { template: '<div />' } },
       { path: '/settings', name: 'settings', component: { template: '<div />' } },
       { path: '/events', name: 'events', component: { template: '<div />' } },
+      { path: '/contacts', name: 'contacts', component: { template: '<div />' } },
     ],
   })
   await router.push('/tour/import/J1')
@@ -106,7 +107,8 @@ describe('ImportReviewView · calendario', () => {
     setupFetch(calendarJob([calendarChangedRow(), calendarCancelledRow()]))
     const w = await mountView()
     const header = w.get('[data-test="import-calendar-header"]')
-    expect(header.text()).toContain('Cambios de Gira 2026: 0 nuevas · 1 cambiadas · 1 canceladas')
+    expect(header.text()).toContain('Cambios de Gira 2026: 1 cambiada · 1 cancelada')
+    expect(header.text()).not.toContain('0 nuevas')
     expect(w.get('[data-test="import-calendar-link"]').attributes('href')).toBe(
       '/settings?tab=calendars'
     )
@@ -151,7 +153,7 @@ describe('ImportReviewView · calendario', () => {
     expect(w.find('[data-test="import-to-resolve"]').exists()).toBe(false)
     expect(w.get('[data-row="a6"] [data-test="import-activity-status"]').text()).toBe('Se cancelará')
     expect(w.get('[data-test="import-confirm-summary-calendar"]').text()).toBe(
-      'Se crearán 0 actividades, se actualizarán 1 y se cancelarán 1'
+      'Nuevas: 0 · Actualizadas: 1 · Canceladas: 1'
     )
     const confirm = w.get('[data-test="import-confirm"]')
     expect(confirm.attributes('data-mode')).toBe('notices')
@@ -161,5 +163,30 @@ describe('ImportReviewView · calendario', () => {
     expect(w.get('[data-test="import-notices-will-cancel"]').text()).toBe(
       'Se cancelará 1 actividad y sus avisos pendientes.'
     )
+  })
+
+  it('todo "Mantener": se confirma sin cambios (POST confirm) con su texto propio', async () => {
+    const kept = [
+      calendarChangedRow({ action: 'skip' }),
+      calendarCancelledRow({ needs_action: false }),
+    ]
+    const job = calendarJob(kept)
+    job.summary = { ...job.summary!, to_create: 0, to_link: 0, in_group: 0 }
+    const done = { ...job, status: 'done' as const, result: {} }
+    const log = setupFetch(job, (c) => {
+      if (c.method === 'POST' && c.path === `${JOB_PATH}confirm/`) return jsonResponse(done)
+      return undefined
+    })
+    const w = await mountView()
+    expect(w.get('[data-test="import-confirm-reviewed-only"]').text()).toBe(
+      'Confirmar sin cambios: se da por revisado el calendario.'
+    )
+    expect(w.find('[data-test="import-confirm-reason"]').exists()).toBe(false)
+    const confirm = w.get('[data-test="import-confirm"]')
+    expect(confirm.attributes('disabled')).toBeUndefined()
+    expect(confirm.attributes('data-mode')).toBe('confirm')
+    await confirm.trigger('click')
+    await flushPromises()
+    expect(log.some((c) => c.method === 'POST' && c.path === `${JOB_PATH}confirm/`)).toBe(true)
   })
 })

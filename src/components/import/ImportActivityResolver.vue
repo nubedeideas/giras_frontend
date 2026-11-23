@@ -81,7 +81,18 @@ const showCancel = computed(() => isCalendarCancelRow(props.row))
 /** El servidor ya no pide decisión: hay una opción elegida (con conflicto, ninguna hasta elegir). */
 const decided = computed(() => !props.row.needs_action)
 
-type ChangeLine = { field: string; label: string; before: string; after: string; time: boolean }
+/**
+ * Un campo cambiado: "antes → ahora". `match` solo trae el "antes" de `scheduled_at` y
+ * `title`; en `end_at` y `location_name` (y si falta el dato) `before` es `null` y se pinta solo
+ * el "ahora".
+ */
+type ChangeLine = {
+  field: string
+  label: string
+  before: string | null
+  after: string
+  time: boolean
+}
 
 function instantText(iso: string | null | undefined, tz: string, allDay = false): string {
   if (!iso) return ''
@@ -100,22 +111,28 @@ const changeLines = computed<ChangeLine[]>(() => {
         return {
           field,
           label,
-          before: instantText(m.activity_scheduled_at, tz),
-          after: instantText(r.scheduled_at, tz, r.all_day),
+          before: instantText(m.activity_scheduled_at, tz) || null,
+          after: instantText(r.scheduled_at, tz, r.all_day) || '—',
           time: true,
         }
       case 'end_at':
         return {
           field,
           label,
-          before: '',
-          after: instantText(r.end_at, r.destination_timezone || tz, r.all_day),
+          before: null,
+          after: instantText(r.end_at, r.destination_timezone || tz, r.all_day) || '—',
           time: true,
         }
       case 'title':
-        return { field, label, before: m.activity_title ?? '', after: r.title, time: false }
+        return {
+          field,
+          label,
+          before: m.activity_title || null,
+          after: r.title || '—',
+          time: false,
+        }
       default:
-        return { field, label, before: '', after: r.location_name || '—', time: false }
+        return { field, label, before: null, after: r.location_name || '—', time: false }
     }
   })
 })
@@ -266,10 +283,16 @@ const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
           :data-change="c.field"
         >
           <span class="font-medium text-ink">{{ c.label }}:</span>{{ ' ' }}<template
-            v-if="c.before"
+            v-if="c.before !== null"
           >
-            <span :class="c.time ? 'font-time tnum' : ''">{{ c.before }}</span>{{ ' → ' }}
-          </template><span :class="c.time ? 'font-time tnum text-ink' : 'text-ink'">{{ c.after }}</span>
+            <span
+              :class="c.time ? 'font-time tnum' : ''"
+              data-test="change-before"
+            >{{ c.before }}</span>{{ ' → ' }}
+          </template><span
+            :class="c.time ? 'font-time tnum text-ink' : 'text-ink'"
+            data-test="change-after"
+          >{{ c.after }}</span>
         </li>
       </ul>
       <div class="flex flex-wrap gap-2">

@@ -4,7 +4,8 @@
 // pegado al fondo del scroll en escritorio. Con `estimate` (D11), la estimación de WhatsApp.
 // F2 §4.3: con actividades, el resumen cuenta contactos y actividades y el botón pasa a "Ver avisos"
 // (`mode="notices"`, emite `notices`: paso "Qué se va a enviar y a quién").
-// F3 §4.4: con cancelaciones del calendario, "Se crearán N, se actualizarán M y se cancelarán K".
+// F3 §4.4: con cancelaciones del calendario, "Nuevas: N · Actualizadas: M · Canceladas: K". Un
+// borrador de calendario (`calendar`) con todo "Mantener" se confirma sin cambios: lo dice debajo.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -22,8 +23,10 @@ const props = withDefaults(
     pending?: number | null
     /** `notices`: el botón principal abre el paso de avisos en lugar de confirmar. */
     mode?: 'confirm' | 'notices'
+    /** F3: borrador de calendario (se puede confirmar sin cambios para darlo por revisado). */
+    calendar?: boolean
   }>(),
-  { busy: false, estimate: null, pending: null, mode: 'confirm' }
+  { busy: false, estimate: null, pending: null, mode: 'confirm', calendar: false }
 )
 const emit = defineEmits<{ confirm: []; discard: []; notices: [] }>()
 
@@ -48,6 +51,8 @@ const reason = computed(() => {
   if (toImport.value === 0) return t('importer.confirm.empty')
   return ''
 })
+/** Borrador de calendario que se confirma sin crear, cambiar ni cancelar nada. */
+const reviewedOnly = computed(() => props.calendar && props.canConfirm && toImport.value === 0)
 
 function onPrimary() {
   if (props.mode === 'notices') emit('notices')
@@ -105,6 +110,14 @@ function onPrimary() {
         </p>
         <ImportWhatsappEstimate :estimate="estimate" />
         <p
+          v-if="reviewedOnly"
+          id="import-confirm-reviewed-only"
+          class="text-[13px] text-ink-2"
+          data-test="import-confirm-reviewed-only"
+        >
+          {{ t('importer.confirm.reviewedOnly') }}
+        </p>
+        <p
           v-if="reason"
           id="import-confirm-reason"
           class="text-[13px] text-failed-fg"
@@ -127,7 +140,13 @@ function onPrimary() {
           type="button"
           class="flex-1 lg:flex-none justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="!canConfirm || busy"
-          :aria-describedby="reason ? 'import-confirm-reason' : undefined"
+          :aria-describedby="
+            reason
+              ? 'import-confirm-reason'
+              : reviewedOnly
+                ? 'import-confirm-reviewed-only'
+                : undefined
+          "
           :data-mode="mode"
           data-test="import-confirm"
           @click="onPrimary"

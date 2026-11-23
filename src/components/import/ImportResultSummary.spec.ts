@@ -360,5 +360,35 @@ describe('ImportResultSummary', () => {
         'No se ha podido cambiar el estado de la gira. Inténtalo de nuevo.'
       )
     })
+
+    it('si cambia el job mientras vuelve a borrador, el botón no se queda bloqueado', async () => {
+      const tours = useToursStore()
+      tours.tours = [tour()]
+      let resolve!: () => void
+      const updateTour = vi.spyOn(tours, 'updateTour').mockImplementation(
+        () => new Promise<void>((r) => (resolve = r))
+      )
+      vi.spyOn(tours, 'pauseNotifications').mockResolvedValue({
+        enable_notifications: false,
+        notifications_paused_at: null,
+        changed: true,
+        held: 0,
+      })
+      const w = mountWith(f2Result())
+      await w.get('[data-test="import-result-back-to-draft"]').trigger('click')
+      await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
+      expect(
+        w.get('[data-test="import-result-back-to-draft-confirm"]').attributes('disabled')
+      ).toBeDefined()
+      // Otro job en pantalla antes de que responda el PATCH.
+      await w.setProps({ job: { uuid: 'J2', tour: 'T1', result: f2Result(), team_group: null } })
+      resolve()
+      await flushPromises()
+      expect(
+        w.get('[data-test="import-result-back-to-draft-confirm"]').attributes('disabled')
+      ).toBeUndefined()
+      await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
+      expect(updateTour).toHaveBeenCalledTimes(2)
+    })
   })
 })

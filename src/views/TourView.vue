@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Translation as I18nT, useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
+import { useImportsStore } from '@/stores/imports'
 import { useTours, type TourFull } from '@/composables/useTours'
 import TourInsightsPanel from '@/components/tour/TourInsightsPanel.vue'
 import TourDocumentsPanel from '@/components/tour/TourDocumentsPanel.vue'
@@ -28,6 +29,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const toursStore = useToursStore()
+const importsStore = useImportsStore()
 const toursApi = useTours()
 
 type Tab = 'insights' | 'documents' | 'conflicts' | 'crew' | 'reminders' | 'notices'
@@ -169,6 +171,15 @@ async function loadPendingImports() {
 }
 
 watch([() => toursStore.activeTour?.uuid, canImport], loadPendingImports, { immediate: true })
+// F3: una suscripción iCal (o su sincronización) lanzada fuera de esta vista puede haber dejado
+// un borrador: se recarga el aviso si es de esta gira (o no se sabe de cuál).
+watch(
+  () => importsStore.version,
+  () => {
+    const tour = importsStore.lastTour
+    if (!tour || tour === toursStore.activeTour?.uuid) void loadPendingImports()
+  }
+)
 
 const latestImport = computed(() => pendingImports.value[0] ?? null)
 

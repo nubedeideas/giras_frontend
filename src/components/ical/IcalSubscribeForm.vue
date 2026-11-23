@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import { useToursStore } from '@/stores/tours'
+import { useImportsStore } from '@/stores/imports'
 import {
   createIcalSubscription,
   useIcalSubscriptions,
@@ -39,6 +40,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 const toursStore = useToursStore()
+const importsStore = useImportsStore()
 const { pollUntilSynced } = useIcalSubscriptions()
 
 const NAME_MAX = 120
@@ -96,7 +98,7 @@ async function submit() {
       name: name.value.slice(0, NAME_MAX),
     })
   } catch (e) {
-    const { key, named } = icalApiErrorKey(e)
+    const { key, named } = icalApiErrorKey(e, 'create')
     const text = named ? t(key, named) : t(key)
     if (apiErrorCodes(e).includes('invalid_url')) urlError.value = text
     else formError.value = text
@@ -129,6 +131,8 @@ async function read(sub: IcalSubscription) {
     clearCanClose()
   }
   phase.value = 'done'
+  // La primera lectura puede haber dejado un borrador: el aviso de Mi Gira se recarga.
+  importsStore.invalidate(sub.tour)
 }
 
 const readyJob = computed(() => {
@@ -137,7 +141,7 @@ const readyJob = computed(() => {
 })
 const foundCount = computed(() => (result.value ? pendingJobCount(result.value) : 0))
 
-/** Texto del final de la primera lectura: error, gira cerrada o "sin eventos". */
+/** Final de la primera lectura: error, gira cerrada, leído sin borrador o "sin eventos". */
 const doneText = computed(() => {
   const s = result.value
   if (!s || readyJob.value) return ''
@@ -145,6 +149,12 @@ const doneText = computed(() => {
   if (s.last_status === 'error') return t(icalErrorKey(s.last_error_code))
   if (s.last_status === 'tour_closed' || s.last_status === 'tour_ended') {
     return t('ical.errors.tour_closed')
+  }
+  // La lectura encontró eventos pero no dejó borrador (el job falló o se descartó por no traer
+  // nada que revisar): no es "no hay eventos".
+  const st = s.stats ?? {}
+  if ((st.last_new ?? 0) + (st.last_changed ?? 0) + (st.last_cancelled ?? 0) > 0) {
+    return t('ical.form.readNoDraft')
   }
   return t('ical.form.nothingNew')
 })

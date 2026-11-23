@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import IcalSubscribeForm from '@/components/ical/IcalSubscribeForm.vue'
 import { useToursStore } from '@/stores/tours'
+import { useImportsStore } from '@/stores/imports'
 import type { IcalSubscription } from '@/composables/useIcalSubscriptions'
 
 // Modal de alta (Ajustes › Calendarios y Mis giras › Cal). Sin gira fija, el formulario pinta el
@@ -13,6 +14,21 @@ const emit = defineEmits<{ close: []; created: [sub: IcalSubscription] }>()
 
 const { t } = useI18n()
 const toursStore = useToursStore()
+const importsStore = useImportsStore()
+
+/** Se suscribió algo: al cerrar (aunque la lectura siga en segundo plano) se recarga el aviso. */
+let createdTour: string | null = null
+
+function onCreated(sub: IcalSubscription) {
+  createdTour = sub.tour
+  emit('created', sub)
+}
+
+function close() {
+  if (createdTour) importsStore.invalidate(createdTour)
+  createdTour = null
+  emit('close')
+}
 
 const adminTours = computed(() =>
   toursStore.tours
@@ -30,14 +46,14 @@ const adminTours = computed(() =>
   <AppModal
     :show="show"
     persistent
-    @close="emit('close')"
+    @close="close"
   >
     <button
       type="button"
       class="absolute top-3 right-3 flex items-center justify-center w-[44px] h-[44px] lg:w-8 lg:h-8 rounded-sm border border-line bg-bg-2 text-ink-2 cursor-pointer hover:bg-glass-hover hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
       :aria-label="t('ical.form.close')"
       data-test="ical-modal-close"
-      @click="emit('close')"
+      @click="close"
     >
       <svg
         width="11"
@@ -66,9 +82,9 @@ const adminTours = computed(() =>
       v-if="show"
       :tour-uuid="props.tourUuid"
       :tours="adminTours"
-      @created="emit('created', $event)"
-      @cancel="emit('close')"
-      @review="emit('close')"
+      @created="onCreated"
+      @cancel="close"
+      @review="close"
     />
   </AppModal>
 </template>

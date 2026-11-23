@@ -7,12 +7,14 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { useToursStore } from '@/stores/tours'
+import { useImportsStore } from '@/stores/imports'
 import { ApiError } from '@/utils/apiClient'
 import {
   deleteIcalSubscription,
-  getIcalSubscription,
+  isIcalSyncInProgress,
   syncIcalSubscription,
   updateIcalSubscription,
+  useIcalSubscriptions,
   type IcalSubscription,
 } from '@/composables/useIcalSubscriptions'
 import {
@@ -25,6 +27,10 @@ import {
 
 // Tarjeta de una suscripción iCal (F3 §4.3): estado, última y próxima sincronización, error,
 // freno de retiradas, cambios por revisar y acciones (sincronizar, pausar/reanudar, eliminar).
+// Tras "Sincronizar ahora" o "Reanudar" sondea el detalle hasta que acaba (`pollUntilSynced`) y
+// emite cada lectura: el estado y "Cambios por revisar (n)" se ven sin recargar. "Volver a leer
+// todo el calendario" manda `full: true` (vuelve a proponer lo descartado o mantenido). Con la gira
+// terminada o cerrada no hay "Reanudar" (el backend respondería 400) y se explica por qué.
 const props = defineProps<{ sub: IcalSubscription }>()
 const emit = defineEmits<{
   changed: [sub: IcalSubscription]
@@ -35,8 +41,11 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 const toursStore = useToursStore()
+const importsStore = useImportsStore()
 
-type Action = 'sync' | 'toggle' | 'delete'
+const { pollUntilSynced } = useIcalSubscriptions()
+
+type Action = 'sync' | 'full' | 'toggle' | 'delete'
 const busy = ref<Action | null>(null)
 /** Mensajes ya traducidos. */
 const actionError = ref('')
@@ -49,6 +58,17 @@ const tourColor = computed(
   () => toursStore.tours.find((tour) => tour.uuid === props.sub.tour)?.color ?? null
 )
 const displayName = computed(() => props.sub.name || t('ical.card.unnamed'))
+
+/** Sondeando el final de una sincronización lanzada desde esta tarjeta. */
+const polling = ref(false)
+
+/** La gira terminó o se cerró: el backend pausó la suscripción y no deja reanudarla. */
+const tourEnded = computed(
+  () => props.sub.last_status === 'tour_closed' || props.sub.last_status === 'tour_ended'
+)
+const canSync = computed(
+  () => !busy.value && !polling.value && props.sub.sync_enabled && !tourEnded.value
+)
 
 const errorText = computed(() =>
   props.sub.last_status === 'error' && props.sub.last_error_code
@@ -98,26 +118,50 @@ async function run(action: Action, fn: () => Promise<void>) {
   }
 }
 
-function syncNow() {
-  return run('sync', async () => {
-    await syncIcalSubscription(props.sub.uuid)
-    notice.value = t('ical.card.syncQueued')
-    // Se refresca la tarjeta (`last_attempt_at`, estado); si falla, la cola ya tiene la petición.
-    try {
-      emit('changed', await getIcalSubscription(props.sub.uuid))
-    } catch {
-      // Sin refresco: el aviso ya dice que está en marcha.
-    }
-  })
+/** Sondea hasta que acaba la sincronización; cada lectura actualiza la tarjeta. */
+async function follow() {
+  polling.value = true
+  try {
+    const r = await pollUntilSynced(props.sub.uuid, {
+      onRead: (sub) => emit('changed', sub),
+    })
+    if (r.cancelled) return
+    // La sincronización puede haber dejado un borrador: el aviso de Mi Gira se recarga.
+    importsStore.invalidate(props.sub.tour)
+    // Terminada: el estado final ya lo dice la tarjeta. Con el plazo agotado sigue el aviso.
+    if (!r.timedOut) notice.value = ''
+  } catch (e) {
+    onError(e)
+    notice.value = ''
+  } finally {
+    polling.value = false
+  }
 }
 
-function toggle() {
-  return run('toggle', async () => {
-    emit(
-      'changed',
-      await updateIcalSubscription(props.sub.uuid, { sync_enabled: !props.sub.sync_enabled })
-    )
+/** "Sincronizar ahora" (`full: false`) o "Volver a leer todo el calendario" (`full: true`). */
+async function syncNow(full = false) {
+  let queued = false
+  await run(full ? 'full' : 'sync', async () => {
+    await syncIcalSubscription(props.sub.uuid, { full })
+    notice.value = t('ical.card.syncQueued')
+    queued = true
   })
+  if (queued) await follow()
+}
+
+async function toggle() {
+  let resumed: IcalSubscription | null = null
+  await run('toggle', async () => {
+    const sub = await updateIcalSubscription(props.sub.uuid, {
+      sync_enabled: !props.sub.sync_enabled,
+    })
+    emit('changed', sub)
+    if (sub.sync_enabled && isIcalSyncInProgress(sub)) resumed = sub
+  })
+  if (resumed) {
+    notice.value = t('ical.card.syncQueued')
+    await follow()
+  }
 }
 
 function remove() {
@@ -250,17 +294,28 @@ const actionClass =
       {{ actionError }}
     </p>
 
+    <p
+      v-if="tourEnded"
+      :id="`ical-ended-${sub.uuid}`"
+      class="text-[13px] text-ink-2"
+      data-test="ical-ended"
+    >
+      {{ t('ical.card.tourEnded') }}
+    </p>
+
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
         :class="actionClass"
-        :disabled="!!busy || !sub.sync_enabled"
+        :disabled="!canSync"
+        :aria-describedby="tourEnded ? `ical-ended-${sub.uuid}` : undefined"
         data-test="ical-sync"
-        @click="syncNow"
+        @click="syncNow()"
       >
         {{ busy === 'sync' ? t('ical.card.working') : t('ical.card.syncNow') }}
       </button>
       <button
+        v-if="!tourEnded"
         type="button"
         :class="actionClass"
         :disabled="!!busy"
@@ -284,6 +339,28 @@ const actionClass =
       >
         {{ t('ical.card.delete') }}
       </button>
+    </div>
+
+    <div
+      v-if="!tourEnded"
+      class="flex flex-col items-start gap-0.5"
+    >
+      <button
+        type="button"
+        class="inline-flex items-center min-h-[44px] lg:min-h-0 p-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive disabled:opacity-60 disabled:cursor-not-allowed"
+        :disabled="!canSync"
+        :aria-describedby="`ical-full-help-${sub.uuid}`"
+        data-test="ical-sync-full"
+        @click="syncNow(true)"
+      >
+        {{ busy === 'full' ? t('ical.card.working') : t('ical.card.syncFull') }}
+      </button>
+      <p
+        :id="`ical-full-help-${sub.uuid}`"
+        class="text-[13px] text-ink-2"
+      >
+        {{ t('ical.card.syncFullHelp') }}
+      </p>
     </div>
 
     <AppModal

@@ -49,14 +49,34 @@ export function pendingJobCount(sub: Pick<IcalSubscription, 'pending_job'>): num
   return (j.new || 0) + (j.changed || 0) + (j.cancelled || 0)
 }
 
+/** Recuentos de un calendario (job de suscripción, `pending_job`, ítem del buzón). */
+export interface CalendarCounts {
+  new: number
+  changed: number
+  cancelled: number
+}
+
+/** `t` con plural (`t(key, named, n)`): basta el de vue-i18n o `InboxTranslate`. */
+export type PluralTranslate = (key: string, named: Record<string, number>, plural: number) => string
+
+/**
+ * "3 nuevas · 1 cambiada" (`ical.counts.*`, con plural): solo los recuentos mayores que 0, como el
+ * cuerpo del aviso del backend. `""` si todos son 0.
+ */
+export function calendarCountsText(t: PluralTranslate, c: CalendarCounts): string {
+  const parts: string[] = []
+  for (const key of ['new', 'changed', 'cancelled'] as const) {
+    const n = Number(c[key]) || 0
+    if (n > 0) parts.push(t(`ical.counts.${key}`, { n }, n))
+  }
+  return parts.join(' · ')
+}
+
 // ─── Errores ──────────────────────────────────────────────────────────────────
 
-const INVALID_URL = new Set([
-  'invalid_url',
-  'https_required',
-  'port_not_allowed',
-  'host_not_allowed',
-])
+const INVALID_URL = new Set(['invalid_url', 'https_required'])
+/** Puerto o host que el backend no deja leer (privado, local, puerto raro): no es de formato. */
+const NOT_PUBLIC = new Set(['port_not_allowed', 'host_not_allowed'])
 const CONNECT = new Set([
   'dns_failed',
   'connection_failed',
@@ -77,6 +97,7 @@ export function icalErrorKey(code: string | null | undefined): string {
   const c = (code ?? '').trim()
   if (c === 'credentials_in_url') return 'ical.errors.credentials_in_url'
   if (INVALID_URL.has(c)) return 'ical.errors.invalid_url'
+  if (NOT_PUBLIC.has(c)) return 'ical.errors.not_public'
   if (GONE.has(c)) return 'ical.errors.gone'
   if (CONNECT.has(c) || /^http_5\d\d$/.test(c)) return 'ical.errors.connect'
   if (TOO_LARGE.has(c)) return 'ical.errors.tooLarge'
@@ -117,8 +138,14 @@ export function retryMinutes(e: unknown): number {
   return Math.max(1, Math.ceil(raw / 60))
 }
 
-/** Texto i18n de un error de la API de suscripciones (§3.9); nunca el código crudo. */
-export function icalApiErrorKey(e: unknown): IcalApiErrorText {
+/**
+ * Texto i18n de un error de la API de suscripciones (§3.9); nunca el código crudo. `create`: el
+ * 404 del alta es de la gira (no existe o no la ves), no de una suscripción que ya no existe.
+ */
+export function icalApiErrorKey(
+  e: unknown,
+  context: 'create' | 'manage' = 'manage'
+): IcalApiErrorText {
   const codes = apiErrorCodes(e)
   for (const code of codes) {
     switch (code) {
@@ -148,7 +175,9 @@ export function icalApiErrorKey(e: unknown): IcalApiErrorText {
   if (e instanceof ApiError) {
     if (e.status === 0) return { key: 'importer.errors.network' }
     if (e.status === 403) return { key: 'ical.errors.forbidden' }
-    if (e.status === 404) return { key: 'ical.errors.notFound' }
+    if (e.status === 404) {
+      return { key: context === 'create' ? 'ical.errors.tourNotFound' : 'ical.errors.notFound' }
+    }
     if (e.status === 429) return { key: 'common.tooManyRequests' }
   }
   return { key: 'ical.errors.generic' }

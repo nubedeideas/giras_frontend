@@ -197,6 +197,27 @@ describe('ImportActivityResolver · calendario (F3)', () => {
     expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
   })
 
+  it('fin y lugar sin "antes" en match: solo el "ahora", sin flecha; sin dato, "—"', () => {
+    const w = mountResolver(
+      calendarChangedRow({ location_name: '' }, { changed_fields: ['end_at', 'location_name'] })
+    )
+    const end = w.get('[data-change="end_at"]')
+    expect(end.text()).toBe('Fin: jue 3 dic 23:00')
+    expect(end.text()).not.toContain('→')
+    expect(end.find('[data-test="change-before"]').exists()).toBe(false)
+    expect(end.get('[data-test="change-after"]').classes()).toEqual(
+      expect.arrayContaining(['font-time', 'tnum'])
+    )
+    expect(w.get('[data-change="location_name"]').text()).toBe('Lugar: —')
+    const noEnd = mountResolver(
+      calendarChangedRow({ end_at: null }, { changed_fields: ['end_at'] })
+    )
+    expect(noEnd.get('[data-change="end_at"]').text()).toBe('Fin: —')
+    // Inicio sin hora previa en match: solo el "ahora".
+    const noBefore = mountResolver(calendarChangedRow({}, { activity_scheduled_at: null }))
+    expect(noBefore.get('[data-change="scheduled_at"]').text()).toBe('Inicio: jue 3 dic 21:00')
+  })
+
   it('con conflicto: aviso y ninguna opción preseleccionada', () => {
     const w = mountResolver(calendarChangedRow({ needs_action: true }, { conflict: true }))
     expect(w.get('[data-test="resolver-calendar-conflict"]').text()).toBe(

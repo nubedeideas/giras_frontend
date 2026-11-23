@@ -56,6 +56,7 @@ import {
   activityTypeOptions,
   apiErrorRows,
   canConfirm,
+  isCalendarJob,
   detectedActivities,
   detectedTeam,
   errorKey,
@@ -69,6 +70,7 @@ import {
   type ImportSourceDocument,
 } from '@/utils/importReview'
 import { FALLBACK_TOUR_ZONE } from '@/utils/timezones'
+import { calendarCountsText } from '@/utils/icalSubscriptions'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -259,6 +261,7 @@ const readyPadding = computed(() => {
 const pending = computed(() => pendingCounts(job.value))
 const needsAction = computed(() => pending.value.total)
 const confirmable = computed(() => canConfirm(job.value))
+const calendarJob = computed(() => isCalendarJob(job.value))
 
 const teamRows = computed(() => job.value?.draft?.team ?? [])
 const activityRows = computed(() => job.value?.draft?.activities ?? [])
@@ -343,6 +346,15 @@ const warnings = computed(() =>
 /** F3: job de una suscripción iCal (calendario y recuentos de la sincronización). */
 const calendar = computed(() => job.value?.calendar ?? null)
 const calendarLink = { name: 'settings', query: { tab: 'calendars' } }
+/** "Cambios de {calendario}: 3 nuevas · 1 cambiada" (solo los recuentos mayores que 0). */
+const calendarHeader = computed(() => {
+  const c = calendar.value
+  if (!c) return ''
+  const counts = calendarCountsText((key, named, n) => t(key, named, n), c)
+  return counts
+    ? t('importer.calendar.header', { name: c.name, counts })
+    : t('importer.calendar.headerNoCounts', { name: c.name })
+})
 const removedUuids = computed(() => removedActivityUuids(job.value))
 const toCancel = computed(() => summary.value?.activities?.to_cancel ?? 0)
 
@@ -785,16 +797,7 @@ function onProcessed(j: ImportJob) {
               class="flex flex-wrap items-center gap-x-2 text-[14px] text-ink"
               data-test="import-calendar-header"
             >
-              <span>
-                {{
-                  t('importer.calendar.header', {
-                    name: calendar.name,
-                    new: calendar.new,
-                    changed: calendar.changed,
-                    cancelled: calendar.cancelled,
-                  })
-                }}
-              </span>
+              <span>{{ calendarHeader }}</span>
               <RouterLink
                 :to="calendarLink"
                 class="inline-flex items-center min-h-[44px] lg:min-h-0 font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
@@ -1033,6 +1036,7 @@ function onProcessed(j: ImportJob) {
             :estimate="whatsappEstimate"
             :pending="needsAction"
             :mode="confirmMode"
+            :calendar="calendarJob"
             @confirm="confirm()"
             @notices="openNotices"
             @discard="openDiscard"

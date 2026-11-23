@@ -13,6 +13,8 @@ import {
   activityStatusKey,
   canConfirm,
   formatRecurrenceId,
+  isCalendarCancelGone,
+  isCalendarJob,
   isCalendarRow,
   pendingCounts,
   removedActivityUuids,
@@ -72,9 +74,62 @@ describe('filas de calendario (F3)', () => {
     job = activityJob([calendarCancelledRow({ action: 'cancel', needs_action: false })])
     expect(pendingCounts(job).activities).toBe(0)
     expect(canConfirm(job)).toBe(true)
-    // "Mantener" en la única fila: no queda nada que confirmar.
+    // "Mantener" en la única fila de un borrador de calendario: se confirma sin cambios (da por
+    // revisado el calendario y desbloquea la suscripción).
     job = activityJob([calendarCancelledRow({ needs_action: false })])
-    expect(canConfirm(job)).toBe(false)
+    expect(isCalendarJob(job)).toBe(true)
+    expect(canConfirm(job)).toBe(true)
+  })
+
+  it('canConfirm: todo "Mantener" solo vale en borradores de calendario', () => {
+    const keepAll = [
+      calendarChangedRow({ action: 'skip' }),
+      calendarCancelledRow({ needs_action: false }),
+    ]
+    // Job de suscripción (`calendar`) sin filas .ics: también es de calendario.
+    const sub = activityJob([activityRow({ action: 'skip' })], {
+      source_kind: 'ical_sync',
+      calendar: { subscription_uuid: 'S1', name: 'Gira', new: 0, changed: 1, cancelled: 1 },
+    })
+    expect(isCalendarJob(sub)).toBe(true)
+    expect(canConfirm(sub)).toBe(true)
+    expect(canConfirm(activityJob(keepAll))).toBe(true)
+    // Con algo por resolver, no.
+    expect(canConfirm(activityJob([...keepAll, calendarCancelledRow({ client_id: 'a7' })]))).toBe(
+      false
+    )
+    // Un borrador de archivo con todo omitido sigue sin poder confirmarse.
+    const file = activityJob([activityRow({ action: 'skip' })])
+    expect(isCalendarJob(file)).toBe(false)
+    expect(canConfirm(file)).toBe(false)
+    expect(isCalendarJob(null)).toBe(false)
+  })
+
+  it('isCalendarCancelGone: cancelación sin actividad viva (r<n> o new por uid)', () => {
+    const gone = calendarActivityRow({
+      action: 'skip',
+      source_ref: { ...calendarActivityRow().source_ref, row: 'r2' },
+      match: { ...calendarActivityRow().match, status: 'new', by: 'uid' },
+    })
+    expect(isCalendarCancelGone(gone)).toBe(true)
+    // Retirada cuya actividad se canceló en Giras: llega como `duplicate`.
+    expect(
+      isCalendarCancelGone({
+        ...gone,
+        match: { ...gone.match, status: 'duplicate', activity_uuid: 'ACT-2' },
+      })
+    ).toBe(true)
+    // Evento CANCELLED (`e<n>`) sin actividad: `new` por `uid`.
+    expect(
+      isCalendarCancelGone(
+        calendarActivityRow({ match: { ...calendarActivityRow().match, status: 'new', by: 'uid' } })
+      )
+    ).toBe(true)
+    // La cancelación viva, una fila nueva normal y una de archivo, no.
+    expect(isCalendarCancelGone(calendarCancelledRow({ source_ref: gone.source_ref }))).toBe(false)
+    expect(isCalendarCancelGone(calendarActivityRow())).toBe(false)
+    const fileRow = activityRow({ match: { ...activityRow().match, by: 'uid' } })
+    expect(isCalendarCancelGone(fileRow)).toBe(false)
   })
 
   it('issue checkout_inferred y zonas ics/ics_calendar con texto propio', () => {

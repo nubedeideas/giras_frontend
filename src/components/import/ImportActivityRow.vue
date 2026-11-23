@@ -5,7 +5,8 @@
 // issues y acciones Ver origen · Editar · Omitir/Recuperar. El slot por defecto recibe el resolutor
 // o el editor desplegado. F3: en filas de calendario el origen es "Calendario"; las canceladas en el
 // calendario se deciden solo en su resolutor (sin Editar ni Omitir) y una cambiada omitida se
-// recupera como "Actualizar" (`replace`).
+// recupera como "Actualizar" (`replace`). Una cancelación cuya actividad ya no existe no tiene
+// acciones: solo "La actividad ya no existe en la gira".
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
@@ -19,6 +20,7 @@ import {
   activityTime,
   confidenceTone,
   formatLocalTime,
+  isCalendarCancelGone,
   isCalendarCancelRow,
   isCalendarChangeRow,
   isCalendarRow,
@@ -74,12 +76,16 @@ const zoneTitle = computed(() => {
 })
 
 const cancelRow = computed(() => isCalendarCancelRow(props.row))
+/** Cancelación sin actividad que cancelar: ni se crea ni se cancela nada. */
+const goneRow = computed(() => isCalendarCancelGone(props.row))
+/** Sin Editar ni Omitir/Recuperar: se decide en el resolutor o no hay nada que decidir. */
+const noActions = computed(() => cancelRow.value || goneRow.value)
 /**
  * Tachada si no entra (omitida) o si se va a cancelar. En una cancelada en el calendario, `skip` es
  * "Mantener": la actividad sigue y no se tacha.
  */
 const struck = computed(
-  () => (skipped.value && !cancelRow.value) || props.row.action === 'cancel'
+  () => (skipped.value && !noActions.value) || props.row.action === 'cancel'
 )
 
 const sourceLabel = computed(() => {
@@ -99,7 +105,7 @@ const checkoutOf = computed(() =>
 )
 
 const issueTexts = computed(() => {
-  if (skipped.value) return []
+  if (skipped.value || goneRow.value) return []
   const out: { key: string; text: string }[] = []
   for (const code of props.row.issues) {
     const key = activityIssueKey(code)
@@ -197,14 +203,14 @@ const LINK_BTN =
 
       <div class="flex flex-col items-end gap-1 shrink-0">
         <StatusBadge
-          v-if="!skipped && !cancelRow"
+          v-if="!skipped && !noActions"
           size="sm"
           :status="importConfidenceBadge(row.confidence)"
           :label="t(`importer.confidence.${confidenceTone(row.confidence)}`)"
           data-test="import-activity-confidence"
         />
         <StatusBadge
-          v-if="status !== 'new'"
+          v-if="status !== 'new' && !goneRow"
           size="sm"
           :status="importActivityBadge(status)"
           :label="statusText"
@@ -212,6 +218,14 @@ const LINK_BTN =
         />
       </div>
     </div>
+
+    <p
+      v-if="goneRow"
+      class="mt-1 pl-[64px] text-[13px] text-ink-2"
+      data-test="import-activity-gone"
+    >
+      {{ t('importer.calendarCancel.gone') }}
+    </p>
 
     <ul
       v-if="issueTexts.length"
@@ -237,7 +251,7 @@ const LINK_BTN =
         {{ peekOpen ? t('importer.activities.hideSource') : t('importer.activities.viewSource') }}
       </button>
       <button
-        v-if="!skipped && !cancelRow"
+        v-if="!skipped && !noActions"
         type="button"
         :class="LINK_BTN"
         :disabled="saving"
@@ -247,7 +261,7 @@ const LINK_BTN =
         {{ t('importer.activities.edit') }}
       </button>
       <button
-        v-if="!cancelRow"
+        v-if="!noActions"
         type="button"
         :class="LINK_BTN"
         :disabled="saving"

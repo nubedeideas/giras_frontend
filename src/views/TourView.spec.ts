@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
+import { useImportsStore } from '@/stores/imports'
 import { jsonResponse } from '@/test/http'
 import TourView from './TourView.vue'
 
@@ -338,6 +339,39 @@ describe('TourView: importar (F1)', () => {
     )
     await flushPromises()
     expect(w.find('[data-test="import-pending-banner"]').exists()).toBe(false)
+  })
+
+  it('F3: recarga el aviso cuando una suscripción iCal deja un borrador fuera de esta vista', async () => {
+    setup({})
+    let jobs: unknown[] = []
+    const fn = stubByUrl({ admin: true, jobs: () => jobs })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    expect(w.find('[data-test="import-pending-banner"]').exists()).toBe(false)
+    const listCalls = () =>
+      fn.mock.calls.filter(([u]) => String(u).includes('/integrations/import-jobs/')).length
+    expect(listCalls()).toBe(1)
+
+    // Otra gira: no se recarga.
+    useImportsStore().invalidate('T9')
+    await flushPromises()
+    expect(listCalls()).toBe(1)
+
+    jobs = [
+      {
+        uuid: 'J-cal',
+        tour: 'T1',
+        status: 'ready',
+        source_kind: 'ical_sync',
+        filenames: [],
+        created_at: '2026-11-23T10:00:00Z',
+        calendar: { subscription_uuid: 'S1', name: 'iCloud', new: 2, changed: 0, cancelled: 0 },
+      },
+    ]
+    useImportsStore().invalidate('T1')
+    await flushPromises()
+    expect(listCalls()).toBe(2)
+    expect(w.get('[data-test="import-pending-banner"]').text()).toContain('iCloud')
   })
 
   describe('entradas del lote 3', () => {

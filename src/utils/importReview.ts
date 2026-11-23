@@ -326,6 +326,20 @@ export function isCalendarCancelRow(r: Pick<ImportActivityRow, 'match'>): boolea
 }
 
 /**
+ * Fila de cancelación del calendario cuya actividad ya no existe o ya está cancelada: el backend
+ * la deja en `new` (por `uid`, sin actividad) o `duplicate` y nunca la crea ni la cancela, así que
+ * "Editar" y "Recuperar" no harían nada. Se reconoce por su `source_ref.row` (`r<n>`: retirada
+ * del feed) o por `new` con `by="uid"` (un evento `CANCELLED` sin actividad viva); `raw.cancel`
+ * no llega al front. Limitación: un evento `CANCELLED` (`e<n>`) cuya actividad se canceló en
+ * Giras llega como `duplicate` normal y no se distingue.
+ */
+export function isCalendarCancelGone(r: Pick<ImportActivityRow, 'source_ref' | 'match'>): boolean {
+  if (!isCalendarRow(r) || isCalendarCancelRow(r)) return false
+  if (/^r\d+$/.test(r.source_ref?.row ?? '')) return true
+  return r.match?.status === 'new' && r.match?.by === 'uid'
+}
+
+/**
  * Estado de la fila. Un duplicado seguro (`duplicate`, `duplicate_in_draft`) que el usuario recupera
  * (`create`) conserva su insignia (`*_kept`) y el resolutor de duplicado. F3: "Cambió en el
  * calendario" (con conflicto, por decidir hasta elegir) y "Cancelada en el calendario" (por decidir
@@ -557,13 +571,28 @@ export function warningKey(code: string | null | undefined): string | null {
 // ─── Confirmar ────────────────────────────────────────────────────────────────
 
 /**
+ * Borrador de calendario: job de una suscripción (`calendar` o `source_kind="ical_sync"`) o con
+ * filas de un `.ics`. Confirmarlo con todo "Mantener" no crea nada pero da por revisados sus
+ * eventos (el backend los deja en `skipped`/`imported` y la suscripción deja de estar bloqueada).
+ */
+export function isCalendarJob(
+  job: Pick<ImportJob, 'source_kind' | 'calendar' | 'draft'> | null | undefined
+): boolean {
+  if (!job) return false
+  if (job.calendar || job.source_kind === 'ical_sync') return true
+  return (job.draft?.activities ?? []).some(isCalendarRow)
+}
+
+/**
  * `ready`, sin nada por resolver (equipo ni actividades) y con al menos una fila no omitida en
  * total. Se cuenta sobre las filas (no `summary.needs_action`) para incluir las actividades sin
- * instante, que el servidor rechazaría aunque no lleven `needs_action`.
+ * instante, que el servidor rechazaría aunque no lleven `needs_action`. F3: un borrador de
+ * calendario sin nada por resolver se puede confirmar aunque todo sea "Mantener" (`skip`).
  */
 export function canConfirm(job: ImportJob | null | undefined): boolean {
   if (!job || job.status !== 'ready' || !job.summary) return false
   if (pendingCounts(job).total > 0) return false
+  if (isCalendarJob(job)) return true
   return (
     (job.draft?.team ?? []).some((r) => r.action !== 'skip') ||
     (job.draft?.activities ?? []).some((r) => r.action !== 'skip')

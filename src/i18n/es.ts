@@ -400,13 +400,12 @@ export default {
           'Importación: {replaced} actividad actualizada | Importación: {replaced} actividades actualizadas',
         alsoReplaced:
           'También se ha actualizado {replaced} actividad. | También se han actualizado {replaced} actividades.',
-        cancelled: '· {k} canceladas',
+        cancelled: '· {k} cancelada | · {k} canceladas',
         titleCancelled:
           'Importación: {cancelled} actividad cancelada | Importación: {cancelled} actividades canceladas',
       },
       import_pending: {
         title: 'Cambios en {calendar}: {n} por revisar',
-        body: '{new} nuevas · {changed} cambiadas · {cancelled} canceladas',
         fallbackCalendar: 'tu calendario',
       },
       ical_sync_failed: {
@@ -2475,6 +2474,12 @@ export default {
   // onboarding. El lote 2 añade aquí la revisión completa.
   ical: {
     subscribe: 'Suscribir iCal (URL)',
+    // Recuentos de actividades de un calendario: solo los mayores que 0, unidos con " · ".
+    counts: {
+      new: '{n} nueva | {n} nuevas',
+      changed: '{n} cambiada | {n} cambiadas',
+      cancelled: '{n} cancelada | {n} canceladas',
+    },
     form: {
       title: 'Suscribir un calendario iCal',
       sub: 'Pega la dirección del calendario. Cada 6 horas buscaremos eventos nuevos o cambiados y te los dejaremos para revisar: nada se crea sin que lo confirmes.',
@@ -2502,12 +2507,15 @@ export default {
         'Sigue leyendo en segundo plano. Te avisaremos cuando haya eventos para revisar.',
       found: 'Hemos encontrado {n} evento para revisar | Hemos encontrado {n} eventos para revisar',
       nothingNew: 'No hay eventos en las fechas de la gira. Te avisaremos cuando aparezcan.',
+      readNoDraft:
+        'Hemos leído el calendario, pero ahora no hay cambios para revisar. Te avisaremos cuando los haya.',
       reviewNow: 'Revisar ahora',
       back: 'Volver',
       close: 'Cerrar',
     },
     errors: {
       invalid_url: 'La dirección no es válida. Debe empezar por https:// o webcal://.',
+      not_public: 'La dirección no es válida o no es pública.',
       credentials_in_url: 'Quita el usuario y la contraseña de la dirección.',
       already_subscribed: 'Esta gira ya está suscrita a ese calendario.',
       too_many_subscriptions: 'Esta gira ya tiene {max} calendarios suscritos.',
@@ -2516,6 +2524,7 @@ export default {
       sync_disabled: 'La sincronización está en pausa. Reanúdala para sincronizar.',
       forbidden: 'Solo un administrador de la gira puede gestionar sus calendarios.',
       notFound: 'Esta suscripción ya no existe.',
+      tourNotFound: 'No encontramos esa gira o ya no tienes acceso a ella.',
       connect: 'No hemos podido conectar con el calendario.',
       gone: 'El calendario ya no está publicado o la dirección ha cambiado.',
       tooLarge: 'El calendario es demasiado grande.',
@@ -2546,6 +2555,10 @@ export default {
       deleting: 'Eliminando…',
       working: 'Un momento…',
       pendingReview: 'Cambios por revisar ({n})',
+      syncFull: 'Volver a leer todo el calendario',
+      syncFullHelp: 'Vuelve a proponer lo que descartaste o mantuviste.',
+      tourEnded:
+        'La gira ha terminado o está cerrada: este calendario ya no se sincroniza y no se puede reanudar.',
       removalGuard:
         'El calendario ha perdido muchos eventos de golpe: no te proponemos cancelarlos. Revísalo en el calendario.',
     },
@@ -2658,8 +2671,8 @@ export default {
       summaryAll:
         'Contactos nuevos: {contacts} · Actividades nuevas: {activities} · Sustituidas: {replaced} · Omitidas: {skipped}',
       viewNotices: 'Ver avisos',
-      summaryCalendar:
-        'Se crearán {activities} actividades, se actualizarán {replaced} y se cancelarán {cancelled}',
+      summaryCalendar: 'Nuevas: {activities} · Actualizadas: {replaced} · Canceladas: {cancelled}',
+      reviewedOnly: 'Confirmar sin cambios: se da por revisado el calendario.',
     },
     discard: {
       button: 'Descartar',
@@ -3004,7 +3017,8 @@ export default {
       cancel: 'Se cancelará',
     },
     calendar: {
-      header: 'Cambios de {name}: {new} nuevas · {changed} cambiadas · {cancelled} canceladas',
+      header: 'Cambios de {name}: {counts}',
+      headerNoCounts: 'Cambios de {name}',
       viewSubscription: 'Ver suscripción',
     },
     calendarChange: {
@@ -3023,6 +3037,7 @@ export default {
       title: 'Cancelaciones',
       removed: 'Ya no está en el calendario',
       cancelled: 'Cancelada en el calendario',
+      gone: 'La actividad ya no existe en la gira',
       help: 'Si la cancelas, también se cancelan sus avisos pendientes.',
       cancel: 'Cancelar actividad',
       keep: 'Mantener',

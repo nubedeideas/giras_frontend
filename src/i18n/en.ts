@@ -397,13 +397,12 @@ export default {
         titleReplaced:
           'Import: {replaced} activity updated | Import: {replaced} activities updated',
         alsoReplaced: '{replaced} activity was also updated. | {replaced} activities were also updated.',
-        cancelled: '· {k} cancelled',
+        cancelled: '· {k} cancelled | · {k} cancelled',
         titleCancelled:
           'Import: {cancelled} activity cancelled | Import: {cancelled} activities cancelled',
       },
       import_pending: {
         title: 'Changes in {calendar}: {n} to review',
-        body: '{new} new · {changed} changed · {cancelled} cancelled',
         fallbackCalendar: 'your calendar',
       },
       ical_sync_failed: {
@@ -2461,6 +2460,12 @@ export default {
   // the full review here.
   ical: {
     subscribe: 'Subscribe to iCal (URL)',
+    // Activity counts from a calendar: only those above 0, joined with " · ".
+    counts: {
+      new: '{n} new | {n} new',
+      changed: '{n} changed | {n} changed',
+      cancelled: '{n} cancelled | {n} cancelled',
+    },
     form: {
       title: 'Subscribe to an iCal calendar',
       sub: "Paste the calendar address. Every 6 hours we'll look for new or changed events and leave them for you to review: nothing is created until you confirm.",
@@ -2486,12 +2491,15 @@ export default {
       stillReading: "Still reading in the background. We'll let you know when there are events to review.",
       found: 'We found {n} event to review | We found {n} events to review',
       nothingNew: "There are no events in the tour dates. We'll let you know when they appear.",
+      readNoDraft:
+        "We've read the calendar, but there are no changes to review right now. We'll let you know when there are.",
       reviewNow: 'Review now',
       back: 'Back',
       close: 'Close',
     },
     errors: {
       invalid_url: "The address isn't valid. It must start with https:// or webcal://.",
+      not_public: "The address isn't valid or isn't public.",
       credentials_in_url: 'Remove the username and password from the address.',
       already_subscribed: 'This tour is already subscribed to that calendar.',
       too_many_subscriptions: 'This tour already has {max} subscribed calendars.',
@@ -2500,6 +2508,7 @@ export default {
       sync_disabled: 'Syncing is paused. Resume it to sync.',
       forbidden: "Only a tour admin can manage the tour's calendars.",
       notFound: 'This subscription no longer exists.',
+      tourNotFound: "We can't find that tour or you no longer have access to it.",
       connect: "We couldn't connect to the calendar.",
       gone: 'The calendar is no longer published or the address has changed.',
       tooLarge: 'The calendar is too large.',
@@ -2529,6 +2538,10 @@ export default {
       deleting: 'Deleting…',
       working: 'One moment…',
       pendingReview: 'Changes to review ({n})',
+      syncFull: 'Read the whole calendar again',
+      syncFullHelp: 'Suggests again what you discarded or kept.',
+      tourEnded:
+        "The tour has ended or is closed: this calendar no longer syncs and can't be resumed.",
       removalGuard:
         "The calendar lost many events at once: we won't suggest cancelling them. Check the calendar.",
     },
@@ -2639,7 +2652,8 @@ export default {
       summaryAll:
         'New contacts: {contacts} · New activities: {activities} · Replaced: {replaced} · Skipped: {skipped}',
       viewNotices: 'Review notifications',
-      summaryCalendar: '{activities} activities will be created, {replaced} updated and {cancelled} cancelled',
+      summaryCalendar: 'New: {activities} · Updated: {replaced} · Cancelled: {cancelled}',
+      reviewedOnly: 'Confirm with no changes: the calendar is marked as reviewed.',
     },
     discard: {
       button: 'Discard',
@@ -2984,7 +2998,8 @@ export default {
       cancel: 'Will be cancelled',
     },
     calendar: {
-      header: 'Changes from {name}: {new} new · {changed} changed · {cancelled} cancelled',
+      header: 'Changes from {name}: {counts}',
+      headerNoCounts: 'Changes from {name}',
       viewSubscription: 'View subscription',
     },
     calendarChange: {
@@ -3003,6 +3018,7 @@ export default {
       title: 'Cancellations',
       removed: 'No longer in the calendar',
       cancelled: 'Cancelled in the calendar',
+      gone: 'The activity no longer exists in the tour',
       help: 'If you cancel it, its pending notifications are cancelled too.',
       cancel: 'Cancel activity',
       keep: 'Keep',

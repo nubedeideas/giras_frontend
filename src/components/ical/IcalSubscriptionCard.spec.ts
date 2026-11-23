@@ -7,9 +7,10 @@ import { useToursStore } from '@/stores/tours'
 import { callAt, jsonResponse, mockFetch } from '@/test/http'
 import { adminTour, icalApiError, icalSub } from '@/test/icalSubscriptions'
 import type { IcalSubscription } from '@/composables/useIcalSubscriptions'
+import { useImportsStore } from '@/stores/imports'
 import IcalSubscriptionCard from './IcalSubscriptionCard.vue'
 
-async function mountCard(sub: IcalSubscription) {
+async function mountCard(sub: IcalSubscription, opts: { follow?: boolean } = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -19,10 +20,15 @@ async function mountCard(sub: IcalSubscription) {
   })
   await router.push('/settings')
   await router.isReady()
-  return mount(IcalSubscriptionCard, {
-    props: { sub },
+  // `follow`: el padre pasa a la tarjeta cada `changed` (como hace el gestor).
+  const w = mount(IcalSubscriptionCard, {
+    props: {
+      sub,
+      ...(opts.follow ? { onChanged: (next: IcalSubscription) => w.setProps({ sub: next }) } : {}),
+    },
     global: { plugins: [i18n, router] },
   })
+  return w
 }
 
 beforeEach(() => {
@@ -82,7 +88,7 @@ describe('IcalSubscriptionCard', () => {
     expect(link.attributes('href')).toBe('/tour/import/J3')
   })
 
-  it('sincronizar ahora: 202 y refresco; 429 con los minutos', async () => {
+  it('sincronizar ahora: 202 y sondeo hasta el final; 429 con los minutos', async () => {
     const fn = mockFetch(
       jsonResponse({ status: 'queued' }, 202),
       jsonResponse(icalSub({ last_attempt_at: '2026-11-23T11:00:00Z' })),
@@ -93,14 +99,107 @@ describe('IcalSubscriptionCard', () => {
     await flushPromises()
     expect(callAt(fn, 0).url).toContain('/ical-subscriptions/S1/sync/')
     expect(callAt(fn, 0).init.method).toBe('POST')
+    // Sincronización normal: sin `full`.
+    expect(JSON.parse(String(callAt(fn, 0).init.body))).toEqual({})
+    expect(callAt(fn, 1).url).toContain('/ical-subscriptions/S1/')
     expect(w.emitted('changed')?.[0][0]).toMatchObject({ last_attempt_at: '2026-11-23T11:00:00Z' })
-    expect(w.get('[data-test="ical-notice"]').text()).toContain('Sincronización en marcha')
+    // Ya ha terminado: sin "en marcha".
+    expect(w.find('[data-test="ical-notice"]').exists()).toBe(false)
 
     await w.get('[data-test="ical-sync"]').trigger('click')
     await flushPromises()
     expect(w.get('[data-test="ical-action-error"]').text()).toBe(
       'Acabamos de sincronizar. Vuelve a probar en 4 min.'
     )
+  })
+
+  it('tras sincronizar sondea cada 3 s: "Sincronizando" → "Cambios por revisar (n)" sin recargar', async () => {
+    vi.useFakeTimers()
+    try {
+      const job = {
+        uuid: 'J4',
+        status: 'ready' as const,
+        created_at: '',
+        new: 2,
+        changed: 1,
+        cancelled: 0,
+      }
+      const processing = { ...job, status: 'extracting' as const }
+      const fn = mockFetch(
+        jsonResponse({ status: 'queued' }, 202),
+        jsonResponse(icalSub({ last_status: 'pending' })),
+        jsonResponse(icalSub({ last_status: 'ok', pending_job: processing })),
+        jsonResponse(icalSub({ last_status: 'ok', pending_job: job }))
+      )
+      const imports = useImportsStore()
+      const w = await mountCard(icalSub(), { follow: true })
+      await w.get('[data-test="ical-sync"]').trigger('click')
+      await flushPromises()
+      expect(w.get('[data-test="ical-status"]').text()).toBe('Sincronizando')
+      expect(w.get('[data-test="ical-notice"]').text()).toContain('Sincronización en marcha')
+      expect(w.get('[data-test="ical-sync"]').attributes('disabled')).toBeDefined()
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+      expect(fn).toHaveBeenCalledTimes(3)
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+      expect(fn).toHaveBeenCalledTimes(4)
+      expect(w.get('[data-test="ical-review-link"]').text()).toBe('Cambios por revisar (3)')
+      expect(w.get('[data-test="ical-status"]').text()).toBe('Al día')
+      expect(w.find('[data-test="ical-notice"]').exists()).toBe(false)
+      expect(w.get('[data-test="ical-sync"]').attributes('disabled')).toBeUndefined()
+      expect(w.emitted('changed')).toHaveLength(3)
+      // Mi Gira recarga su aviso de borradores pendientes.
+      expect(imports.version).toBe(1)
+      expect(imports.lastTour).toBe('T1')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('"Volver a leer todo el calendario" manda full: true, con su ayuda', async () => {
+    const fn = mockFetch(jsonResponse({ status: 'queued' }, 202), jsonResponse(icalSub()))
+    const w = await mountCard(icalSub())
+    expect(w.text()).toContain('Vuelve a proponer lo que descartaste o mantuviste.')
+    const full = w.get('[data-test="ical-sync-full"]')
+    expect(full.text()).toBe('Volver a leer todo el calendario')
+    await full.trigger('click')
+    await flushPromises()
+    expect(callAt(fn, 0).url).toContain('/ical-subscriptions/S1/sync/')
+    expect(JSON.parse(String(callAt(fn, 0).init.body))).toEqual({ full: true })
+  })
+
+  it('gira terminada o cerrada: sin "Reanudar" y explica por qué no se sincroniza', async () => {
+    for (const last_status of ['tour_ended', 'tour_closed'] as const) {
+      const fn = mockFetch()
+      const w = await mountCard(icalSub({ last_status, sync_enabled: false }))
+      expect(w.get('[data-test="ical-status"]').text()).toBe('Gira terminada')
+      expect(w.find('[data-test="ical-toggle"]').exists()).toBe(false)
+      expect(w.find('[data-test="ical-sync-full"]').exists()).toBe(false)
+      const sync = w.get('[data-test="ical-sync"]')
+      expect(sync.attributes('disabled')).toBeDefined()
+      const ended = w.get('[data-test="ical-ended"]')
+      expect(ended.text()).toContain('La gira ha terminado o está cerrada')
+      expect(sync.attributes('aria-describedby')).toBe(ended.attributes('id'))
+      expect(w.find('[data-test="ical-delete"]').exists()).toBe(true)
+      expect(fn).not.toHaveBeenCalled()
+      w.unmount()
+    }
+  })
+
+  it('reanudar: si queda "Sincronizando", sondea hasta el final', async () => {
+    const fn = mockFetch(
+      jsonResponse(icalSub({ sync_enabled: true, last_status: 'pending' })),
+      jsonResponse(icalSub({ sync_enabled: true, last_status: 'ok' }))
+    )
+    const w = await mountCard(icalSub({ sync_enabled: false, last_status: 'paused' }))
+    await w.get('[data-test="ical-toggle"]').trigger('click')
+    await flushPromises()
+    expect(callAt(fn, 0).init.method).toBe('PATCH')
+    expect(callAt(fn, 1).init.method ?? 'GET').toBe('GET')
+    const changed = w.emitted('changed')!.map((e) => (e[0] as IcalSubscription).last_status)
+    expect(changed).toEqual(['pending', 'ok'])
+    expect(w.find('[data-test="ical-notice"]').exists()).toBe(false)
   })
 
   it('pausar y reanudar con PATCH sync_enabled', async () => {

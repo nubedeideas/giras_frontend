@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import i18n from '@/i18n'
 import type { ImportSummary } from '@/composables/useImportJobs'
 import ImportConfirmBar from './ImportConfirmBar.vue'
@@ -111,7 +112,7 @@ describe('ImportConfirmBar', () => {
 })
 
 describe('ImportConfirmBar · calendario (F3)', () => {
-  it('con cancelaciones: "Se crearán N, se actualizarán M y se cancelarán K" y cuentan en el botón', () => {
+  it('con cancelaciones: "Nuevas: N · Actualizadas: M · Canceladas: K" y cuentan en el botón', async () => {
     const activities = {
       total: 4,
       to_create: 2,
@@ -135,7 +136,7 @@ describe('ImportConfirmBar · calendario (F3)', () => {
       global: { plugins: [i18n] },
     })
     expect(w.get('[data-test="import-confirm-summary-calendar"]').text()).toBe(
-      'Se crearán 2 actividades, se actualizarán 1 y se cancelarán 1'
+      'Nuevas: 2 · Actualizadas: 1 · Canceladas: 1'
     )
     expect(w.find('[data-test="import-confirm-summary-all"]').exists()).toBe(false)
     expect(w.get('[data-test="import-confirm"]').text()).toContain('Revisar avisos (4)')
@@ -146,5 +147,52 @@ describe('ImportConfirmBar · calendario (F3)', () => {
     })
     expect(none.find('[data-test="import-confirm-summary-calendar"]').exists()).toBe(false)
     expect(none.find('[data-test="import-confirm-summary-all"]').exists()).toBe(true)
+
+    i18n.global.locale.value = 'en'
+    await nextTick()
+    expect(w.get('[data-test="import-confirm-summary-calendar"]').text()).toBe(
+      'New: 2 · Updated: 1 · Cancelled: 1'
+    )
+  })
+
+  it('borrador de calendario con todo "Mantener": se confirma sin cambios y lo dice', async () => {
+    const activities = {
+      total: 2,
+      to_create: 0,
+      to_replace: 0,
+      to_skip: 2,
+      needs_action: 0,
+      duplicates: 0,
+      possible_duplicates: 0,
+      outside_tour: 0,
+      in_past: 0,
+      by_type: {},
+      days: 1,
+      to_cancel: 0,
+    }
+    const empty = summary({ to_create: 0, to_link: 0, in_group: 0, to_skip: 0, activities })
+    const w = mount(ImportConfirmBar, {
+      props: { summary: empty, canConfirm: true, calendar: true },
+      global: { plugins: [i18n] },
+    })
+    const hint = w.get('[data-test="import-confirm-reviewed-only"]')
+    expect(hint.text()).toBe('Confirmar sin cambios: se da por revisado el calendario.')
+    expect(hint.classes()).not.toContain('text-failed-fg')
+    expect(w.find('[data-test="import-confirm-reason"]').exists()).toBe(false)
+    const btn = w.get('[data-test="import-confirm"]')
+    expect(btn.attributes('disabled')).toBeUndefined()
+    expect(btn.attributes('aria-describedby')).toBe('import-confirm-reviewed-only')
+    await btn.trigger('click')
+    expect(w.emitted('confirm')).toHaveLength(1)
+
+    // Sin `calendar` (borrador de archivo todo omitido) sigue el motivo de bloqueo.
+    const file = mount(ImportConfirmBar, {
+      props: { summary: empty, canConfirm: false },
+      global: { plugins: [i18n] },
+    })
+    expect(file.find('[data-test="import-confirm-reviewed-only"]').exists()).toBe(false)
+    expect(file.get('[data-test="import-confirm-reason"]').text()).toBe(
+      'Has omitido todas las filas: no hay nada que confirmar.'
+    )
   })
 })
