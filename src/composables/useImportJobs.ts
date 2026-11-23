@@ -306,6 +306,8 @@ export type ImportWarningCode =
   | 'activity_rows_truncated'
   | 'block_truncated'
   | 'date_order_mixed'
+  // F5a (§3.3.3): el orden elegido (usuario u hoja) contradice las fechas de una fuente.
+  | 'date_order_contradicted'
   // F3 (§3.4.4)
   | 'ics_outside_window'
   | 'ics_series_truncated'
@@ -319,9 +321,44 @@ export interface ImportWarning {
   source?: string
   /** F3: eventos afectados (`ics_outside_window`, `ics_series_truncated`, `ics_cancelled_ignored`). */
   count?: number
+  /** F5a `date_order_contradicted`: orden elegido y el que dicen las fechas de `source`. */
+  chosen?: ImportDateOrder
+  detected?: ImportDateOrder
 }
 
 export type ImportDateOrder = 'dmy' | 'mdy' | 'ymd'
+
+/**
+ * F5a (§3.3.1): de dónde sale el orden de las fechas de una fuente, de más a menos fuerte.
+ * `locale` y `language` marcan las fechas ambiguas como dudosas (`date_ambiguous_dmy`).
+ */
+export type ImportDateOrderSource =
+  | 'user'
+  | 'subscription'
+  | 'detected'
+  | 'tour'
+  | 'inferred'
+  | 'locale'
+  | 'language'
+
+/** Ajuste guardado de la gira (`Tour.date_order`) o de la hoja (`SheetSubscription.date_order`). */
+export type DateOrderSetting = 'auto' | 'dmy' | 'mdy'
+
+/** F5a: orden de una fuente (`assumptions.date_orders[source]`, clave = `source_ref.source`). */
+export interface ImportSourceDateOrder {
+  order: ImportDateOrder
+  source: ImportDateOrderSource
+  /** La fuente trae pistas de los dos órdenes, o lo elegido contradice sus fechas. */
+  conflict: boolean
+  /** Archivo y hoja ("Vuelos.xlsx · Hoja1"); en `sheet_sync`, el título de la pestaña. */
+  label: string
+}
+
+/** F5a: lo guardado para la casilla "Recordar" (`scope` `subscription` en jobs `sheet_sync`). */
+export interface ImportDateOrderSaved {
+  scope: 'tour' | 'subscription' | null
+  value: DateOrderSetting
+}
 
 export type ImportTimezoneSource =
   | 'iata'
@@ -359,8 +396,16 @@ export interface ImportAssumptions {
   year?: number
   year_source?: 'tour' | 'user'
   date_order?: ImportDateOrder
-  date_order_source?: 'detected' | 'language' | 'user'
+  /** El de la fuente si todas coinciden; si no, el de la que tiene más fechas numéricas. */
+  date_order_source?: ImportDateOrderSource
+  /** F5a: alguna fuente en conflicto. */
   date_order_conflict?: boolean
+  /** F5a (§3.3.4): solo las fuentes con alguna fecha numérica. */
+  date_orders?: Record<string, ImportSourceDateOrder>
+  /** F5a: las fuentes no usan todas el mismo orden. */
+  date_order_mixed?: boolean
+  /** F5a: ajuste guardado en la gira o en la hoja vinculada (solo lectura). */
+  date_order_saved?: ImportDateOrderSaved
   default_timezone?: string
   default_timezone_source?: 'tour' | 'user'
   /** `YYYY-MM-DD` del "Día 1" o null. */
@@ -814,7 +859,15 @@ export type ImportRowPatch = ImportTeamRowPatch | ImportActivityRowPatch
 export interface ImportAssumptionsPatch {
   default_region?: string
   year?: number
+  /** Todas las fuentes pasan a `user`. */
   date_order?: ImportDateOrder
+  /** F5a: solo esas fuentes a `user` (400 `unknown_source` si no están en `date_orders`). */
+  date_orders?: Record<string, ImportDateOrder>
+  /**
+   * F5a: `true` guarda el orden (`dmy`/`mdy`) en la gira o, en jobs `sheet_sync`, en la hoja;
+   * `false` lo vuelve a `auto`. 400 `date_order_mixed` o `invalid_value` (con `ymd`).
+   */
+  remember_date_order?: boolean
   default_timezone?: string
   day_one_date?: string | null
   hotel_checkin_time?: string

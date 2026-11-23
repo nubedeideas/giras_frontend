@@ -250,3 +250,70 @@ describe('IcalSubscriptionCard', () => {
     expect(w.emitted('stale')).toHaveLength(1)
   })
 })
+
+describe('IcalSubscriptionCard: creador que ya no es admin (F5a)', () => {
+  const paused = () =>
+    icalSub({
+      last_status: 'error',
+      last_error_code: 'owner_not_admin',
+      sync_enabled: false,
+      owner: { name: 'Ana', is_me: false, is_admin: false },
+    })
+
+  it('explica el motivo, sin código crudo, y solo ofrece "Hacerme responsable" y "Eliminar"', async () => {
+    const w = await mountCard(paused())
+    const box = w.get('[data-test="ical-owner-not-admin"]')
+    expect(box.text()).toContain('Quien añadió este calendario ya no es administrador de la gira')
+    expect(w.text()).not.toContain('owner_not_admin')
+    expect(w.find('[data-test="ical-error"]').exists()).toBe(false)
+    expect(w.get('[data-test="ical-take-over"]').text()).toBe('Hacerme responsable')
+    expect(w.find('[data-test="ical-sync"]').exists()).toBe(false)
+    expect(w.find('[data-test="ical-toggle"]').exists()).toBe(false)
+    expect(w.find('[data-test="ical-sync-full"]').exists()).toBe(false)
+    expect(w.find('[data-test="ical-delete"]').exists()).toBe(true)
+  })
+
+  it('"Hacerme responsable": POST take-over, emite changed, sondea y refresca la campana', async () => {
+    const taken = icalSub({
+      last_status: 'pending',
+      last_error_code: '',
+      sync_enabled: true,
+      owner: { name: 'Yo', is_me: true, is_admin: true },
+    })
+    const calls: string[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input, init) => {
+        const url = String(input)
+        const method = init?.method ?? 'GET'
+        calls.push(`${method} ${new URL(url).pathname}`)
+        if (method === 'POST' && url.includes('/ical-subscriptions/S1/take-over/')) {
+          return jsonResponse(taken)
+        }
+        if (url.includes('/ical-subscriptions/S1/')) return jsonResponse({ ...taken, last_status: 'ok' })
+        if (url.includes('/unread-count/')) return jsonResponse({ unread: 0, latest_occurred_at: null })
+        return jsonResponse({}, 404)
+      })
+    )
+    const w = await mountCard(paused(), { follow: true })
+    await w.get('[data-test="ical-take-over"]').trigger('click')
+    await flushPromises()
+    expect(calls).toContain('POST /api/integrations/ical-subscriptions/S1/take-over/')
+    expect(calls.some((c) => c.endsWith('/unread-count/'))).toBe(true)
+    expect(calls).toContain('GET /api/integrations/ical-subscriptions/S1/')
+    const changed = w.emitted('changed') as [IcalSubscription][]
+    expect(changed[0][0].owner?.is_me).toBe(true)
+    expect(w.find('[data-test="ical-owner-not-admin"]').exists()).toBe(false)
+    expect(w.find('[data-test="ical-toggle"]').exists()).toBe(true)
+  })
+
+  it('error del take-over traducido', async () => {
+    mockFetch(jsonResponse({ detail: 'x' }, 403))
+    const w = await mountCard(paused())
+    await w.get('[data-test="ical-take-over"]').trigger('click')
+    await flushPromises()
+    const err = w.get('[data-test="ical-action-error"]').text()
+    expect(err.length).toBeGreaterThan(0)
+    expect(w.get('[data-test="ical-take-over"]').attributes('disabled')).toBeUndefined()
+  })
+})

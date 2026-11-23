@@ -5,8 +5,11 @@ import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
 /**
  * Gira sin actividades (F2 A5): con `canImport` (admin fuera de la demo), "Importar agenda" es la
- * acción principal y "Añadir a mano" y Google Calendar quedan como secundarias; sin él, "Añadir a
- * mano" pasa a principal.
+ * acción principal y "Añadir a mano" queda como secundaria; sin él, "Añadir a mano" pasa a
+ * principal.
+ *
+ * F5a (P-F5-4): "Conectar Google Calendar" (`connectCalendar` → `ImportCalActivitiesModal`) está
+ * oculto hasta F5b, que lo sustituye por la fuente Google del importador. El evento se mantiene.
  */
 defineProps<{ canImport?: boolean }>()
 const emit = defineEmits<{ add: []; connectCalendar: []; import: [] }>()
@@ -92,13 +95,6 @@ const { t } = useI18n()
       >
         {{ t('dashboard.empty.manual') }}
       </BtnPrimary>
-      <BtnSecondary
-        class="justify-center"
-        data-testid="empty-calendar"
-        @click="emit('connectCalendar')"
-      >
-        {{ t('dashboard.empty.connectCalendar') }}
-      </BtnSecondary>
     </div>
   </section>
 </template>

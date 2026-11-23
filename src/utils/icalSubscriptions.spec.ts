@@ -83,6 +83,7 @@ describe('icalErrorKey', () => {
       expect(i18n.global.te(key, 'en')).toBe(true)
     }
     expect(icalErrorKey(null)).toBe('ical.errors.generic')
+    expect(icalErrorKey('owner_not_admin')).toBe('ical.ownerNotAdmin.card')
   })
 })
 

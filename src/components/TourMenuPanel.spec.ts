@@ -195,3 +195,97 @@ describe('TourMenuPanel: zona horaria y avisos en pausa (F0)', () => {
     expect(posted[0].timezone).toBe('Europe/Lisbon')
   })
 })
+
+describe('TourMenuPanel: orden de las fechas (F5a)', () => {
+  function fetchWith(detail: Record<string, unknown>) {
+    const fn = vi.fn<typeof fetch>((input, init) => {
+      const url = String(input)
+      if (init?.method === 'PATCH') {
+        const body = JSON.parse(String(init.body))
+        return Promise.resolve(jsonResponse({ ...full('B', null), ...detail, ...body }))
+      }
+      if (url.endsWith('/tours/B/')) return Promise.resolve(jsonResponse({ ...full('B', null), ...detail }))
+      return Promise.resolve(jsonResponse(empty))
+    })
+    vi.stubGlobal('fetch', fn)
+    return fn
+  }
+
+  async function editB() {
+    const w = mountPanel()
+    await editButtons(w)[1].trigger('click')
+    await flushPromises()
+    return w
+  }
+
+  it('admin: select con el valor de la gira, ayuda y PATCH date_order; el store se actualiza', async () => {
+    const fn = fetchWith({ date_order: 'auto' })
+    useToursStore().tours[1].current_user_is_admin = true
+    const w = await editB()
+    const select = w.get<HTMLSelectElement>('[data-testid="tour-form-date-order"]')
+    expect(select.element.value).toBe('auto')
+    expect(w.text()).toContain('Fechas en tus documentos')
+    expect(w.text()).toContain('Solo se usa cuando una fecha como 03/04 se puede leer de dos formas')
+    expect(select.findAll('option').map((o) => o.text())).toEqual([
+      'Automático',
+      'Día/mes (03/04 = 3 de abril)',
+      'Mes/día (03/04 = 4 de marzo)',
+    ])
+    await select.setValue('mdy')
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('common.save'))!.trigger('click')
+    await flushPromises()
+    const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect(JSON.parse(String(patch![1]!.body)).date_order).toBe('mdy')
+    expect(useToursStore().tours.find((tr) => tr.uuid === 'B')!.date_order).toBe('mdy')
+  })
+
+  it('400 con details.date_order: mensaje traducido, sin el texto del backend', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>((input, init) => {
+        if (init?.method === 'PATCH') {
+          return Promise.resolve(
+            jsonResponse(
+              {
+                success: false,
+                error: {
+                  message: 'Validation error',
+                  status_code: 400,
+                  details: { date_order: ['"xyz" is not a valid choice.'] },
+                },
+              },
+              400
+            )
+          )
+        }
+        if (String(input).endsWith('/tours/B/')) {
+          return Promise.resolve(jsonResponse({ ...full('B', null), date_order: 'dmy' }))
+        }
+        return Promise.resolve(jsonResponse(empty))
+      })
+    )
+    useToursStore().tours[1].current_user_is_admin = true
+    const w = await editB()
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('common.save'))!.trigger('click')
+    await flushPromises()
+    expect(w.text()).toContain('Ese formato de fechas no es válido. Elige otro.')
+    expect(w.text()).not.toContain('not a valid choice')
+  })
+
+  it('sin ser admin, o si el detalle no lo trae, no se muestra ni se manda', async () => {
+    let fn = fetchWith({ date_order: 'dmy' })
+    useToursStore().tours[1].current_user_is_admin = false
+    let w = await editB()
+    expect(w.find('[data-testid="tour-form-date-order"]').exists()).toBe(false)
+    w.unmount()
+
+    fn = fetchWith({})
+    useToursStore().tours[1].current_user_is_admin = true
+    w = await editB()
+    expect(w.find('[data-testid="tour-form-date-order"]').exists()).toBe(false)
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('common.save'))!.trigger('click')
+    await flushPromises()
+    const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect('date_order' in JSON.parse(String(patch![1]!.body))).toBe(false)
+  })
+})

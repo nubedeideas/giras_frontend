@@ -300,3 +300,53 @@ describe('SheetSubscriptionCard', () => {
     expect(w.emitted('stale')).toHaveLength(1)
   })
 })
+
+describe('SheetSubscriptionCard: orden de las fechas (F5a)', () => {
+  it('select con el valor de la hoja; cambiarlo manda PATCH date_order y emite changed', async () => {
+    const fn = routes({
+      ...statusOk,
+      'PATCH /integrations/sheet-subscriptions/': (init) =>
+        jsonResponse(sheetSub({ ...JSON.parse(String(init?.body)) })),
+    })
+    const w = await mountCard(sheetSub({ date_order: 'dmy' }))
+    const select = w.get<HTMLSelectElement>('[data-test="sheet-date-order-select"]')
+    expect(w.get('[data-test="sheet-date-order"]').text()).toContain('Fechas de esta hoja')
+    expect(select.element.value).toBe('dmy')
+    expect(select.findAll('option').map((o) => o.text())).toEqual([
+      'Automático',
+      'Día/mes (03/04 = 3 de abril)',
+      'Mes/día (03/04 = 4 de marzo)',
+    ])
+    await select.setValue('mdy')
+    await flushPromises()
+    const patch = callsTo(fn, 'PATCH', '/integrations/sheet-subscriptions/')
+    expect(patch).toHaveLength(1)
+    expect(JSON.parse(String(patch[0][1]!.body))).toEqual({ date_order: 'mdy' })
+    const changed = w.emitted('changed') as [SheetSubscription][]
+    expect(changed[changed.length - 1][0].date_order).toBe('mdy')
+    expect(w.get('[data-test="sheet-notice"]').text()).toBe('Guardado')
+  })
+
+  it('si el PATCH falla, el select vuelve a su valor y se ve el error', async () => {
+    routes({
+      ...statusOk,
+      'PATCH /integrations/sheet-subscriptions/': () =>
+        jsonResponse({ success: false, error: { message: 'x', status_code: 400, details: { code: ['invalid_value'] } } }, 400),
+    })
+    const w = await mountCard(sheetSub())
+    const select = () => w.get<HTMLSelectElement>('[data-test="sheet-date-order-select"]')
+    // Sin `date_order` (backend anterior a F5a): Automático.
+    expect(select().element.value).toBe('auto')
+    await select().setValue('dmy')
+    await flushPromises()
+    expect(select().element.value).toBe('auto')
+    expect(w.find('[data-test="sheet-action-error"]').exists()).toBe(true)
+    expect(w.get('[data-test="sheet-action-error"]').text()).not.toContain('invalid_value')
+  })
+
+  it('con la gira terminada no se ofrece', async () => {
+    routes(statusOk)
+    const w = await mountCard(sheetSub({ last_status: 'tour_ended', sync_enabled: false }))
+    expect(w.find('[data-test="sheet-date-order"]').exists()).toBe(false)
+  })
+})

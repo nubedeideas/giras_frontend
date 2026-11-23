@@ -249,6 +249,15 @@ export function formatInboxItem(
       // F3 §3.10: `params = {subscription_uuid, calendar, error_code}`; el motivo, traducido con la
       // tabla de §3.8.1 (cualquier `http_5xx` → conexión). Sin nombre: "tu calendario".
       if (!str(p.subscription_uuid) && !str(p.error_code) && !str(p.calendar)) return raw
+      // F5a: no es un fallo de lectura; otro administrador tiene que hacerse responsable.
+      if (str(p.error_code) === 'owner_not_admin') {
+        return {
+          title: tour
+            ? t('inbox.kinds.ical_sync_failed.ownerNotAdmin', { tour })
+            : t('inbox.kinds.ical_sync_failed.ownerNotAdminNoTour'),
+          body: t('inbox.kinds.ical_sync_failed.ownerNotAdminBody'),
+        }
+      }
       const calendar = str(p.calendar)
       const reason = t(icalErrorKey(str(p.error_code)))
       return {

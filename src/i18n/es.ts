@@ -88,8 +88,9 @@ export default {
     },
     empty: {
       title: 'Esta gira todavía no tiene actividades',
-      body: 'Sube el itinerario o el day sheet, añádelas a mano o tráelas de Google Calendar.',
-      bodyManual: 'Añade la primera a mano o tráelas de Google Calendar.',
+      // F5a: sin Google Calendar hasta F5b (P-F5-4).
+      body: 'Sube el itinerario o el day sheet, o añádelas a mano.',
+      bodyManual: 'Añade la primera a mano.',
       add: 'Añadir actividad',
       import: 'Importar agenda',
       manual: 'Añadir a mano',
@@ -419,6 +420,10 @@ export default {
         title: 'No podemos leer el calendario {calendar}',
         titleUnnamed: 'No podemos leer tu calendario',
         body: '{reason} Hemos pausado la sincronización tras varios intentos; puedes reanudarla en Ajustes › Calendarios.',
+        // F5a: quien añadió el calendario ya no es administrador de la gira.
+        ownerNotAdmin: 'Un calendario de {tour} se ha pausado: quien lo añadió ya no es administrador',
+        ownerNotAdminNoTour: 'Un calendario se ha pausado: quien lo añadió ya no es administrador',
+        ownerNotAdminBody: 'Otro administrador de la gira puede hacerse responsable en Ajustes › Calendarios y hojas.',
       },
       billing_discrepancy: {
         title: 'Discrepancias en la facturación de Twilio',
@@ -2587,6 +2592,14 @@ export default {
     a10: {
       hint: '¿Usas Apple Calendar u Outlook?',
     },
+    // ─── F5a: el creador del calendario ya no es administrador ───
+    ownerNotAdmin: {
+      card: 'Quien añadió este calendario ya no es administrador de la gira',
+      cardHelp: 'La sincronización está en pausa. Hazte responsable para que se sincronice con tu cuenta.',
+      takeOver: 'Hacerme responsable',
+      taking: 'Un momento…',
+      done: 'Ahora eres responsable de este calendario. Lo sincronizamos enseguida.',
+    },
   },
 
   sheets: {
@@ -2716,6 +2729,20 @@ export default {
       retry: 'Reintentar',
       loading: 'Cargando hojas de Google',
     },
+  },
+
+  // ─── F5a: cómo leer fechas ambiguas (03/04) en la gira y en las hojas vinculadas ───
+  dateOrderSetting: {
+    tourLabel: 'Fechas en tus documentos',
+    sheetLabel: 'Fechas de esta hoja',
+    auto: 'Automático',
+    dmy: 'Día/mes (03/04 = 3 de abril)',
+    mdy: 'Mes/día (03/04 = 4 de marzo)',
+    help: 'Solo se usa cuando una fecha como 03/04 se puede leer de dos formas',
+    sheetHelp: 'Solo se usa cuando una fecha como 03/04 se puede leer de dos formas. Vale desde la próxima lectura.',
+    saving: 'Guardando…',
+    saved: 'Guardado',
+    invalid: 'Ese formato de fechas no es válido. Elige otro.',
   },
 
   importer: {
@@ -3092,6 +3119,34 @@ export default {
       applyCity: 'Aplicar a todas las de {city}',
       recalculating: 'Recalculando…',
     },
+    // ─── F5a: orden de las fechas por documento y "Recordar" ───
+    dateOrder: {
+      source: {
+        user: 'lo has elegido tú',
+        subscription: 'de esta hoja',
+        detected: 'del documento',
+        tour: 'de la gira',
+        inferred: 'deducido',
+        locale: 'dudoso',
+        language: 'dudoso',
+      },
+      sourceText: '({source})',
+      bySource: 'Orden de las fechas por documento',
+      perSource: '{document}: {order}',
+      perSourceLabel: 'Orden de las fechas de {document}',
+      orderNames: {
+        dmy: 'día/mes',
+        mdy: 'mes/día',
+        ymd: 'año-mes-día',
+      },
+      rememberTour: 'Recordar para esta gira',
+      rememberSheet: 'Recordar para esta hoja',
+      rememberDisabledMixed: 'Tus documentos usan órdenes distintos',
+      rememberDisabledYmd: 'Las fechas aaaa-mm-dd no son ambiguas: no hace falta recordarlo',
+      contradicted: 'Algunas fechas de {document} no encajan con {order}',
+      tourChanged: 'La gira ahora lee las fechas como {order}',
+      applyHere: 'Aplicar a esta revisión',
+    },
     activities: {
       title: 'Actividades',
       noDate: 'Sin fecha',
@@ -3296,6 +3351,9 @@ export default {
       unknown_city: 'Ciudad desconocida.',
       date_required: 'Pon una fecha u omite la fila.',
       activity_gone: 'La actividad a sustituir ya no existe.',
+      // F5a: PATCH del orden de las fechas.
+      unknown_source: 'Ese documento ya no está en la revisión.',
+      date_order_mixed: 'Tus documentos usan órdenes distintos.',
       unresolvedRow: 'Resuelve u omite esta fila para poder confirmar.',
       saveRegion: 'No se ha cambiado el prefijo. Inténtalo de nuevo.',
       loadRoles: 'No se han podido cargar los roles.',

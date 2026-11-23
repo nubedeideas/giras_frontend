@@ -71,6 +71,8 @@ function mapTour(
     owner_email: data.owner_email,
     current_user_is_admin: isAdmin,
     timezone: raw.timezone || previous?.timezone || 'Europe/Madrid',
+    // F5a: el listado no lo trae; se conserva lo último leído del detalle o del PATCH.
+    date_order: full.date_order ?? previous?.date_order,
     enable_notifications: enableNotifications,
     notifications_paused_at: enableNotifications ? null : pausedAt,
     default_calendar_id: full.default_calendar ?? null,

@@ -5,8 +5,12 @@ import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 /**
- * Cómo añadir actividades (A1-A4 de la spec F2 §4.6): Google Calendar, a mano y, con `canImport`
- * (admin de la gira fuera de la demo), "Archivo o foto", que abre el importador.
+ * Cómo añadir actividades (A1-A4 de la spec F2 §4.6): a mano y, con `canImport` (admin de la gira
+ * fuera de la demo), "Archivo o foto", que abre el importador.
+ *
+ * F5a (P-F5-4): la opción "Google Calendar" (`openImportCal` → `ImportCalActivitiesModal`) está
+ * oculta hasta F5b, que la sustituye por la fuente Google del importador. El evento se mantiene
+ * para que las vistas no cambien hasta entonces.
  */
 const props = defineProps<{ show: boolean; canImport?: boolean }>()
 const emit = defineEmits<{ close: []; openCreate: []; openImportCal: []; openImport: [] }>()
@@ -25,7 +29,6 @@ watch(
 
 const options = computed(() => {
   const list: { key: Choice; title: string; sub: string }[] = [
-    { key: 'cal', title: t('activities.add.google'), sub: t('activities.add.googleSub') },
     { key: 'manual', title: t('activities.add.manual'), sub: t('activities.add.manualSub') },
   ]
   if (props.canImport) {
@@ -148,7 +151,7 @@ function confirm() {
     <!-- Opciones: apiladas en móvil, 2 o 3 columnas desde `sm` -->
     <div
       class="grid grid-cols-1 gap-2 mb-5"
-      :class="canImport ? 'sm:grid-cols-3' : 'sm:grid-cols-2'"
+      :class="canImport ? 'sm:grid-cols-2' : 'sm:grid-cols-1'"
       role="radiogroup"
       :aria-label="t('activities.add.title')"
     >

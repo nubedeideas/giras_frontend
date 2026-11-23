@@ -46,6 +46,8 @@ export type IcalErrorCode =
   | 'ics_too_large'
   | 'not_ics'
   | 'ics_unreadable'
+  // F5a (§3.5): quien añadió el calendario ya no es admin de la gira (o no existe): pausada.
+  | 'owner_not_admin'
 
 /** `details.reason` del 400 `invalid_url` al crear (validación sin red de `normalize_ical_url`). */
 export type IcalUrlReason =
@@ -98,6 +100,16 @@ export interface IcalSubscription {
   pending_job: IcalSubscriptionPendingJob | null
   created_by_name: string | null
   created_at: string
+  /** F5a: quien añadió el calendario. Opcional hasta que lo despliegue el backend. */
+  owner?: IcalSubscriptionOwner
+}
+
+/** F5a: `owner` del serializer (quien sincroniza el calendario). */
+export interface IcalSubscriptionOwner {
+  /** `null` si la cuenta ya no existe. */
+  name: string | null
+  is_me: boolean
+  is_admin: boolean
 }
 
 export interface CreateIcalSubscriptionPayload {
@@ -157,6 +169,14 @@ export function syncIcalSubscription(
   opts: { full?: boolean } = {}
 ): Promise<IcalSyncResponse> {
   return apiClient.post<IcalSyncResponse>(`${BASE}${uuid}/sync/`, opts.full ? { full: true } : {})
+}
+
+/**
+ * F5a "Hacerme responsable": quien pulsa (admin de la gira) pasa a ser el dueño, se reanuda y se
+ * encola una sincronización. 200 con la suscripción (`owner.is_me=true`); 403/404 como el resto.
+ */
+export function takeOverIcalSubscription(uuid: string): Promise<IcalSubscription> {
+  return apiClient.post<IcalSubscription>(`${BASE}${uuid}/take-over/`, {})
 }
 
 /** La sincronización (o el job que ha creado) sigue en marcha. */
@@ -272,6 +292,7 @@ export function useIcalSubscriptions() {
     deleteIcalSubscription: (uuid: string) => track(() => deleteIcalSubscription(uuid)),
     syncIcalSubscription: (uuid: string, opts?: { full?: boolean }) =>
       track(() => syncIcalSubscription(uuid, opts)),
+    takeOverIcalSubscription: (uuid: string) => track(() => takeOverIcalSubscription(uuid)),
     pollUntilSynced,
     stop,
   }

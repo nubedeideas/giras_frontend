@@ -217,6 +217,9 @@ describe('errorKey / importErrorKey', () => {
   it('traduce los códigos conocidos y nunca devuelve el código crudo', () => {
     expect(errorKey('ai_unavailable')).toBe('importer.errors.ai_unavailable')
     expect(errorKey('expired')).toBe('importer.errors.expired')
+    // F5a: PATCH del orden de las fechas.
+    expect(errorKey('unknown_source')).toBe('importer.errors.unknown_source')
+    expect(errorKey('date_order_mixed')).toBe('importer.errors.date_order_mixed')
     expect(errorKey('invalid_document_format')).toBe('importer.errors.invalidFile')
     expect(errorKey('codigo_nuevo')).toBe('importer.errors.generic')
     expect(errorKey('')).toBe('importer.errors.generic')

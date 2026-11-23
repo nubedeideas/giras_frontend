@@ -81,7 +81,11 @@ const endTime = computed(() => {
   return r.end_time || (r.end_at ? formatLocalTime(r.end_at, r.destination_timezone || r.timezone) : '')
 })
 
-const otherZone = computed(() => !!props.row.timezone && props.row.timezone !== props.tourTimezone)
+// F5a (D-F5-9): una fila de día completo no tiene hora, así que su zona no se muestra aunque
+// difiera (p. ej. UTC de un `.ics` con `X-WR-TIMEZONE`): vale la de la gira.
+const otherZone = computed(
+  () => !props.row.all_day && !!props.row.timezone && props.row.timezone !== props.tourTimezone
+)
 const zoneLabel = computed(() => zoneShortName(props.row.timezone, props.row.scheduled_at, locale.value))
 const zoneTitle = computed(() => {
   const key = timezoneSourceKey(props.row.timezone_source)

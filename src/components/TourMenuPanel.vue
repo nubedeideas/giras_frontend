@@ -6,6 +6,7 @@ import { useToursStore } from '@/stores/tours'
 import { useTours as useToursApi } from '@/composables/useTours'
 import { useNotificationGroups, type NotificationGroupListItem } from '@/composables/useNotificationGroups'
 import type { Tour, TourStatus } from '@/types'
+import type { DateOrderSetting } from '@/composables/useImportJobs'
 import { searchSpotifyArtists, formatFollowers } from '@/composables/useSpotifySearch'
 import type { SpotifyArtist } from '@/composables/useSpotifySearch'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -13,6 +14,7 @@ import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { tourBadge } from '@/utils/statusBadge'
 import { alertTimePatch, alertTimeToInput } from '@/utils/showDayAlert'
 import { defaultTourZone, zoneOptions } from '@/utils/timezones'
+import { ApiError } from '@/utils/apiClient'
 import AssignCalendarModal from '@/components/modals/AssignCalendarModal.vue'
 import IcalSubscribeModal from '@/components/ical/IcalSubscribeModal.vue'
 
@@ -107,6 +109,14 @@ const form = reactive({
 })
 
 const timezoneOptions = computed(() => zoneOptions(form.timezone))
+
+// F5a: orden de las fechas de los documentos importados (solo admin, solo edición). Sale del
+// detalle de la gira: si esa carga falla o el backend aún no lo trae, no se muestra ni se manda.
+const DATE_ORDERS: DateOrderSetting[] = ['auto', 'dmy', 'mdy']
+const dateOrder = reactive({ loaded: false, value: 'auto' as DateOrderSetting })
+const showDateOrder = computed(
+  () => mode.value === 'edit' && !!editTarget.value?.current_user_is_admin && dateOrder.loaded
+)
 
 const formError = ref('')
 const saving = ref(false)
@@ -274,6 +284,7 @@ async function openEdit(tour: Tour) {
     defaultTime: '',
     available: true,
   })
+  Object.assign(dateOrder, { loaded: false, value: 'auto' })
 
   // Si mientras llega la respuesta se abre otra gira (o se vuelve a la lista), se descarta:
   // si no, el formulario de la otra gira se rellenaría con estos datos.
@@ -292,6 +303,9 @@ async function openEdit(tour: Tour) {
       defaultTime: full.show_day_alert_default_time ?? '',
       available: full.show_day_alert_available ?? true,
     })
+    if (full.date_order && DATE_ORDERS.includes(full.date_order)) {
+      Object.assign(dateOrder, { loaded: true, value: full.date_order })
+    }
     Object.assign(form, {
       description: full.description ?? '',
       genre: full.genre ?? '',
@@ -405,6 +419,7 @@ async function submitEdit() {
         ...(showDayAlert.loaded
           ? { show_day_alert_enabled: showDayAlert.enabled, ...showDayTimePatch }
           : {}),
+        ...(showDateOrder.value ? { date_order: dateOrder.value } : {}),
       },
       form.color,
     )
@@ -421,7 +436,12 @@ async function submitEdit() {
     }
     backToList()
   } catch (e) {
-    formError.value = e instanceof Error ? e.message : 'Error al guardar gira'
+    // F5a: un `date_order` rechazado llega como error del campo (`details.date_order`).
+    if (e instanceof ApiError && e.status === 400 && e.fieldErrors && 'date_order' in e.fieldErrors) {
+      formError.value = t('dateOrderSetting.invalid')
+    } else {
+      formError.value = e instanceof Error ? e.message : 'Error al guardar gira'
+    }
   } finally {
     saving.value = false
   }
@@ -1147,6 +1167,35 @@ async function confirmDelete(uuid: string) {
               </select>
               <p class="text-[12px] text-ink-2 mt-1">
                 {{ t('modal.timezoneHelp') }}
+              </p>
+            </div>
+
+            <!-- F5a: orden de las fechas de los documentos (edición, solo admin) -->
+            <div v-if="showDateOrder">
+              <label
+                for="tour-form-date-order"
+                class="text-[11px] font-bold text-ink-2 tracking-[0.5px] uppercase block mb-1"
+              >{{ t('dateOrderSetting.tourLabel') }}</label>
+              <select
+                id="tour-form-date-order"
+                v-model="dateOrder.value"
+                data-testid="tour-form-date-order"
+                aria-describedby="tour-form-date-order-help"
+                class="w-full min-h-[44px] lg:min-h-0 bg-glass border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus:border-acid cursor-pointer transition-colors"
+              >
+                <option
+                  v-for="o in DATE_ORDERS"
+                  :key="o"
+                  :value="o"
+                >
+                  {{ t(`dateOrderSetting.${o}`) }}
+                </option>
+              </select>
+              <p
+                id="tour-form-date-order-help"
+                class="text-[12px] text-ink-2 mt-1"
+              >
+                {{ t('dateOrderSetting.help') }}
               </p>
             </div>
 

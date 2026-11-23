@@ -8,18 +8,15 @@ beforeEach(() => {
 })
 
 describe('DashboardEmptyTour (F2 A5)', () => {
-  it('admin: "Importar agenda" principal, "Añadir a mano" y Google Calendar', async () => {
+  it('admin: "Importar agenda" principal y "Añadir a mano"', async () => {
     const w = mount(DashboardEmptyTour, { props: { canImport: true }, global: { plugins: [i18n] } })
-    expect(w.text()).toContain(
-      'Sube el itinerario o el day sheet, añádelas a mano o tráelas de Google Calendar.'
-    )
+    expect(w.text()).toContain('Sube el itinerario o el day sheet, o añádelas a mano.')
     const imp = w.get('[data-testid="empty-import"]')
     expect(imp.text()).toBe('Importar agenda')
     expect(imp.classes()).toContain('bg-acid')
     const add = w.get('[data-testid="empty-add"]')
     expect(add.text()).toBe('Añadir a mano')
     expect(add.classes()).not.toContain('bg-acid')
-    expect(w.get('[data-testid="empty-calendar"]').text()).toBe('Conectar Google Calendar')
     await imp.trigger('click')
     await add.trigger('click')
     expect(w.emitted('import')).toHaveLength(1)
@@ -33,5 +30,13 @@ describe('DashboardEmptyTour (F2 A5)', () => {
     expect(add.text()).toBe('Añadir a mano')
     expect(add.classes()).toContain('bg-acid')
     expect(w.text()).not.toContain('Sube el itinerario')
+  })
+
+  it('F5a (P-F5-4): "Conectar Google Calendar" no se pinta hasta F5b', () => {
+    for (const canImport of [false, true]) {
+      const w = mount(DashboardEmptyTour, { props: { canImport }, global: { plugins: [i18n] } })
+      expect(w.find('[data-testid="empty-calendar"]').exists()).toBe(false)
+      expect(w.text()).not.toContain('Google Calendar')
+    }
   })
 })
