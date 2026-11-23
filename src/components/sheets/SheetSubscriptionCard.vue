@@ -23,6 +23,7 @@ import {
   useSheetSubscriptions,
   type SheetSubscription,
 } from '@/composables/useSheetSubscriptions'
+import type { DateOrderSetting } from '@/composables/useImportJobs'
 import {
   SHEET_ACCESS_ERRORS,
   pickerErrorKey,
@@ -61,7 +62,7 @@ onMounted(() => {
   void googleStore.load()
 })
 
-type Action = 'sync' | 'full' | 'toggle' | 'delete' | 'account'
+type Action = 'sync' | 'full' | 'toggle' | 'delete' | 'account' | 'order'
 const busy = ref<Action | null>(null)
 /** Mensajes ya traducidos. */
 const actionError = ref('')
@@ -215,6 +216,22 @@ async function toggle() {
     notice.value = t('sheets.card.syncQueued')
     await follow()
   }
+}
+
+// F5a: orden de las fechas ambiguas de esta hoja. Si el PATCH falla, el select vuelve a su valor
+// (con solo `:value` Vue no tocaría el DOM): se rehace al terminar.
+const DATE_ORDERS: DateOrderSetting[] = ['auto', 'dmy', 'mdy']
+const orderVersion = ref(0)
+
+async function setDateOrder(e: Event) {
+  const value = (e.target as HTMLSelectElement).value as DateOrderSetting
+  if (!DATE_ORDERS.includes(value) || value === (props.sub.date_order ?? 'auto')) return
+  await run('order', async () => {
+    const sub = await updateSheetSubscription(props.sub.uuid, { date_order: value })
+    emit('changed', sub)
+    notice.value = t('dateOrderSetting.saved')
+  })
+  orderVersion.value++
 }
 
 function remove() {
@@ -417,6 +434,41 @@ const linkClass =
           }}
         </BtnSecondary>
       </template>
+    </div>
+
+    <div
+      v-if="!tourEnded"
+      :key="`order-${orderVersion}`"
+      class="flex flex-col gap-1"
+      data-test="sheet-date-order"
+    >
+      <label
+        :for="`sheet-date-order-${sub.uuid}`"
+        class="text-[13px] font-medium text-ink-2"
+      >{{ t('dateOrderSetting.sheetLabel') }}</label>
+      <select
+        :id="`sheet-date-order-${sub.uuid}`"
+        class="w-full sm:w-auto sm:min-w-[260px] min-h-[44px] lg:min-h-[36px] rounded-sm border border-line-2 bg-bg-3 px-2 text-[15px] lg:text-[14px] text-ink cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive disabled:opacity-60 disabled:cursor-not-allowed"
+        :value="sub.date_order ?? 'auto'"
+        :disabled="!!busy"
+        :aria-describedby="`sheet-date-order-help-${sub.uuid}`"
+        data-test="sheet-date-order-select"
+        @change="setDateOrder"
+      >
+        <option
+          v-for="o in DATE_ORDERS"
+          :key="o"
+          :value="o"
+        >
+          {{ t(`dateOrderSetting.${o}`) }}
+        </option>
+      </select>
+      <p
+        :id="`sheet-date-order-help-${sub.uuid}`"
+        class="text-[13px] text-ink-2"
+      >
+        {{ busy === 'order' ? t('dateOrderSetting.saving') : t('dateOrderSetting.sheetHelp') }}
+      </p>
     </div>
 
     <p

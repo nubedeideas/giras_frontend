@@ -296,7 +296,7 @@ describe('DashboardView', () => {
     expect(calls('/notifications/')).toHaveLength(0)
   })
 
-  it('gira sin actividades: CTA que abre crear actividad e importar de Calendar', async () => {
+  it('gira sin actividades: CTA que abre crear actividad (sin Google Calendar hasta F5b)', async () => {
     setupFetch({ '/events/activities/': () => jsonResponse(page([])) })
     setupStores()
     const w = await mountView()
@@ -304,8 +304,7 @@ describe('DashboardView', () => {
     expect(w.find('[data-testid="dashboard-pending"]').exists()).toBe(false)
     await w.find('[data-testid="empty-add"]').trigger('click')
     expect(w.find('[data-testid="create-modal"]').attributes('data-show')).toBe('true')
-    await w.find('[data-testid="empty-calendar"]').trigger('click')
-    expect(w.find('[data-testid="import-modal"]').attributes('data-show')).toBe('true')
+    expect(w.find('[data-testid="empty-calendar"]').exists()).toBe(false)
   })
 
   it('F2 A5: gira vacía con admin abre el importador (dashboard · itinerary)', async () => {

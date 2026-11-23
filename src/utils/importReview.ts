@@ -772,6 +772,9 @@ const ERROR_CODES = new Set([
   'unknown_city',
   'date_required',
   'activity_gone',
+  // PATCH draft/ del orden de las fechas (F5a §3.3.5)
+  'unknown_source',
+  'date_order_mixed',
 ])
 
 /** Errores de validación del archivo (`apps/core/validators.py`, `validate_tour_document_file`). */

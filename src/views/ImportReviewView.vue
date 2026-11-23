@@ -472,7 +472,15 @@ function patchAssumptions(patch: ImportAssumptionsPatch) {
   assumptionsError.value = ''
   void enqueue(jobUuid.value, { assumptions: patch }, (e) => {
     assumptionsError.value = rowErrorText(e)
-  }).finally(() => (assumptionsSaving.value = false))
+  })
+    .then((ok) => {
+      // F5a "Recordar para esta gira": la gira del store queda con el orden guardado (el listado
+      // no lo trae), para que el aviso "La gira ahora lee las fechas como…" no salte después.
+      if (!ok || patch.remember_date_order === undefined) return
+      const saved = job.value?.draft?.assumptions?.date_order_saved
+      if (saved?.scope === 'tour' && jobTour.value) jobTour.value.date_order = saved.value
+    })
+    .finally(() => (assumptionsSaving.value = false))
 }
 
 /** "Aplicar a todas las de {ciudad}" del resolutor: la zona de la ciudad en los supuestos. */
@@ -1006,6 +1014,9 @@ function onProcessed(j: ImportJob) {
                 :show-day-one="showDayOne"
                 :show-hotels="showHotels"
                 :error="assumptionsError"
+                :sheet-job="sheetJob"
+                :warnings="job?.draft?.warnings ?? []"
+                :live-order="jobTour?.date_order ?? null"
                 @patch="patchAssumptions"
               />
               <p

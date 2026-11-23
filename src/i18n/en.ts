@@ -86,8 +86,9 @@ export default {
     },
     empty: {
       title: 'This tour has no activities yet',
-      body: 'Upload the itinerary or day sheet, add them manually or bring them from Google Calendar.',
-      bodyManual: 'Add the first one manually or bring them from Google Calendar.',
+      // F5a: no Google Calendar until F5b (P-F5-4).
+      body: 'Upload the itinerary or day sheet, or add them manually.',
+      bodyManual: 'Add the first one manually.',
       add: 'Add activity',
       import: 'Import schedule',
       manual: 'Add manually',
@@ -416,6 +417,10 @@ export default {
         title: "We can't read the calendar {calendar}",
         titleUnnamed: "We can't read your calendar",
         body: "{reason} We've paused syncing after several attempts; you can resume it in Settings › Calendars.",
+        // F5a: whoever added the calendar is no longer a tour admin.
+        ownerNotAdmin: 'A calendar in {tour} was paused: whoever added it is no longer an admin',
+        ownerNotAdminNoTour: 'A calendar was paused: whoever added it is no longer an admin',
+        ownerNotAdminBody: 'Another tour admin can take it over in Settings › Calendars and sheets.',
       },
       billing_discrepancy: {
         title: 'Twilio billing discrepancies',
@@ -2570,6 +2575,14 @@ export default {
     a10: {
       hint: 'Using Apple Calendar or Outlook?',
     },
+    // ─── F5a: the calendar's creator is no longer an admin ───
+    ownerNotAdmin: {
+      card: 'Whoever added this calendar is no longer a tour admin',
+      cardHelp: 'Syncing is paused. Take it over so it syncs with your account.',
+      takeOver: 'Take over',
+      taking: 'One moment…',
+      done: "You're now in charge of this calendar. We'll sync it shortly.",
+    },
   },
 
   sheets: {
@@ -2697,6 +2710,20 @@ export default {
       retry: 'Retry',
       loading: 'Loading Google Sheets',
     },
+  },
+
+  // ─── F5a: how to read ambiguous dates (03/04) for the tour and linked sheets ───
+  dateOrderSetting: {
+    tourLabel: 'Dates in your documents',
+    sheetLabel: 'Dates in this sheet',
+    auto: 'Automatic',
+    dmy: 'Day/month (03/04 = 3 April)',
+    mdy: 'Month/day (03/04 = March 4)',
+    help: 'Only used when a date like 03/04 can be read two ways',
+    sheetHelp: 'Only used when a date like 03/04 can be read two ways. Applies from the next read.',
+    saving: 'Saving…',
+    saved: 'Saved',
+    invalid: "That date format isn't valid. Choose another one.",
   },
 
   importer: {
@@ -3071,6 +3098,34 @@ export default {
       applyCity: 'Apply to all in {city}',
       recalculating: 'Recalculating…',
     },
+    // ─── F5a: date order per document and "Remember" ───
+    dateOrder: {
+      source: {
+        user: 'your choice',
+        subscription: 'from this sheet',
+        detected: 'from the document',
+        tour: 'from the tour',
+        inferred: 'inferred',
+        locale: 'uncertain',
+        language: 'uncertain',
+      },
+      sourceText: '({source})',
+      bySource: 'Date order per document',
+      perSource: '{document}: {order}',
+      perSourceLabel: 'Date order in {document}',
+      orderNames: {
+        dmy: 'day/month',
+        mdy: 'month/day',
+        ymd: 'year-month-day',
+      },
+      rememberTour: 'Remember for this tour',
+      rememberSheet: 'Remember for this sheet',
+      rememberDisabledMixed: 'Your documents use different orders',
+      rememberDisabledYmd: "yyyy-mm-dd dates aren't ambiguous: no need to remember it",
+      contradicted: "Some dates in {document} don't fit {order}",
+      tourChanged: 'The tour now reads dates as {order}',
+      applyHere: 'Apply to this review',
+    },
     activities: {
       title: 'Activities',
       noDate: 'No date',
@@ -3275,6 +3330,9 @@ export default {
       unknown_city: 'Unknown city.',
       date_required: 'Add a date or skip the row.',
       activity_gone: 'The activity to replace no longer exists.',
+      // F5a: date order PATCH.
+      unknown_source: 'That document is no longer in the review.',
+      date_order_mixed: 'Your documents use different orders.',
       unresolvedRow: 'Resolve or skip this row to confirm.',
       saveRegion: "The prefix wasn't changed. Try again.",
       loadRoles: "Couldn't load the roles.",

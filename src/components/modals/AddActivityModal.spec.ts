@@ -15,11 +15,11 @@ beforeEach(() => {
 })
 
 describe('AddActivityModal (F2 A1-A4)', () => {
-  it('sin canImport: Google Calendar y Manual, textos por i18n', () => {
+  it('sin canImport: solo Manual, textos por i18n', () => {
     const w = mountModal()
     expect(w.text()).toContain('Añadir actividad')
     expect(w.text()).toContain('Elige cómo quieres añadir la actividad')
-    expect(w.find('[data-test="add-activity-cal"]').exists()).toBe(true)
+    expect(w.find('[data-test="add-activity-cal"]').exists()).toBe(false)
     expect(w.find('[data-test="add-activity-manual"]').text()).toContain('Crear con el formulario')
     expect(w.find('[data-test="add-activity-file"]').exists()).toBe(false)
   })
@@ -39,14 +39,20 @@ describe('AddActivityModal (F2 A1-A4)', () => {
     expect(w.emitted('openCreate')).toBeUndefined()
   })
 
-  it('Manual y Google siguen emitiendo openCreate y openImportCal', async () => {
+  it('Manual sigue emitiendo openCreate', async () => {
     const w = mountModal({ canImport: true })
     await w.get('[data-test="add-activity-manual"]').trigger('click')
     await w.get('[data-test="add-activity-continue"]').trigger('click')
     expect(w.emitted('openCreate')).toHaveLength(1)
-    await w.get('[data-test="add-activity-cal"]').trigger('click')
-    await w.get('[data-test="add-activity-continue"]').trigger('click')
-    expect(w.emitted('openImportCal')).toHaveLength(1)
+  })
+
+  it('F5a (P-F5-4): la opción Google Calendar no se pinta hasta F5b', () => {
+    for (const canImport of [false, true]) {
+      const w = mountModal({ canImport })
+      expect(w.find('[data-test="add-activity-cal"]').exists()).toBe(false)
+      expect(w.text()).not.toContain(i18n.global.t('activities.add.google'))
+      expect(w.findAll('[role="radio"]')).toHaveLength(canImport ? 2 : 1)
+    }
   })
 
   it('en inglés y con el botón de cerrar a 44 px en móvil', () => {

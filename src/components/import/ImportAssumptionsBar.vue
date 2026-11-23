@@ -3,14 +3,20 @@
 // formatos), zona por defecto, zona de cada ciudad, "Día 1" (solo con días numerados) y horas de
 // hotel (solo si hay hoteles). Cada cambio emite un PATCH de `assumptions`; el servidor recalcula
 // todas las filas sin IA ni llamadas externas y la vista sustituye el job.
+// F5a (§4.1): el orden de las fechas va por documento (`date_orders`), con su origen en texto
+// secundario, un select por documento si no coinciden, la casilla "Recordar para esta gira/hoja",
+// el aviso de fechas que contradicen lo elegido y "Aplicar a esta revisión" si la gira cambia.
 import { computed, ref, watch } from 'vue'
 import { DateTime } from 'luxon'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import type {
+  DateOrderSetting,
   ImportAssumptions,
   ImportAssumptionsPatch,
   ImportDateOrder,
+  ImportDateOrderSource,
+  ImportWarning,
 } from '@/composables/useImportJobs'
 import { formatDayLabel, timezoneSourceKey } from '@/utils/importReview'
 import { zoneOptions } from '@/utils/timezones'
@@ -25,8 +31,26 @@ const props = withDefaults(
     showHotels?: boolean
     /** Mensaje ya traducido si el último cambio no se ha guardado. */
     error?: string
+    /** F5a: job de una hoja vinculada ("Recordar para esta hoja"). */
+    sheetJob?: boolean
+    /** F5a: avisos del borrador (`date_order_contradicted`). */
+    warnings?: ImportWarning[]
+    /**
+     * F5a: orden guardado ahora mismo en la gira (si el front lo conoce). Si ha cambiado desde que
+     * se leyó el job, la barra ofrece "Aplicar a esta revisión".
+     */
+    liveOrder?: DateOrderSetting | null
   }>(),
-  { saving: false, baseYear: null, showDayOne: false, showHotels: false, error: '' }
+  {
+    saving: false,
+    baseYear: null,
+    showDayOne: false,
+    showHotels: false,
+    error: '',
+    sheetJob: false,
+    warnings: () => [],
+    liveOrder: null,
+  }
 )
 const emit = defineEmits<{ patch: [patch: ImportAssumptionsPatch] }>()
 
@@ -54,6 +78,103 @@ const yearOptions = computed(() => {
 const ORDERS: ImportDateOrder[] = ['dmy', 'mdy', 'ymd']
 const dateOrder = computed<ImportDateOrder>(() => props.assumptions.date_order ?? 'dmy')
 const conflict = computed(() => !!props.assumptions.date_order_conflict)
+
+// ─── F5a: orden por documento ────────────────────────────────────────────────
+
+const ORDER_SOURCES: ImportDateOrderSource[] = [
+  'user',
+  'subscription',
+  'detected',
+  'tour',
+  'inferred',
+  'locale',
+  'language',
+]
+
+/** "(del documento)"; vacío si el backend manda un origen que no conocemos. */
+function orderSourceText(source: string | null | undefined): string {
+  if (!source || !ORDER_SOURCES.includes(source as ImportDateOrderSource)) return ''
+  return t('importer.dateOrder.sourceText', { source: t(`importer.dateOrder.source.${source}`) })
+}
+
+function orderName(order: string | null | undefined): string {
+  return order && ORDERS.includes(order as ImportDateOrder)
+    ? t(`importer.dateOrder.orderNames.${order}`)
+    : ''
+}
+
+const sources = computed(() =>
+  Object.entries(props.assumptions.date_orders ?? {})
+    .map(([key, v]) => ({ key, ...v }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+)
+/** Un select por documento solo si sus órdenes no coinciden. */
+const mixed = computed(() => !!props.assumptions.date_order_mixed && sources.value.length > 1)
+const mainSourceText = computed(() => orderSourceText(props.assumptions.date_order_source))
+
+function onSourceOrder(key: string, e: Event) {
+  const value = (e.target as HTMLSelectElement).value as ImportDateOrder
+  const current = props.assumptions.date_orders?.[key]
+  if (!ORDERS.includes(value) || !current) return
+  if (value !== current.order || current.conflict) emit('patch', { date_orders: { [key]: value } })
+}
+
+/** "Recordar": solo si el backend manda `date_order_saved` (F5a). */
+const saved = computed(() => props.assumptions.date_order_saved ?? null)
+const rememberScope = computed(
+  () => saved.value?.scope ?? (props.sheetJob ? 'subscription' : 'tour')
+)
+const rememberLabel = computed(() =>
+  rememberScope.value === 'subscription'
+    ? t('importer.dateOrder.rememberSheet')
+    : t('importer.dateOrder.rememberTour')
+)
+const rememberChecked = computed(
+  () => !!saved.value && saved.value.value !== 'auto' && saved.value.value === dateOrder.value
+)
+const rememberBlocked = computed(() => {
+  if (mixed.value) return t('importer.dateOrder.rememberDisabledMixed')
+  if (dateOrder.value === 'ymd') return t('importer.dateOrder.rememberDisabledYmd')
+  return ''
+})
+
+function onRemember(e: Event) {
+  const checked = (e.target as HTMLInputElement).checked
+  if (checked) emit('patch', { date_order: dateOrder.value, remember_date_order: true })
+  else emit('patch', { remember_date_order: false })
+}
+
+/** Fuentes cuyo orden choca con sus fechas (conflicto o `date_order_contradicted`). */
+const contradictions = computed(() => {
+  const orders = props.assumptions.date_orders ?? {}
+  const seen = new Set<string>()
+  const list: { key: string; text: string }[] = []
+  const add = (key: string, order: string | null | undefined) => {
+    const doc = orders[key]?.label
+    const name = orderName(order ?? orders[key]?.order)
+    if (!doc || !name || seen.has(key)) return
+    seen.add(key)
+    list.push({ key, text: t('importer.dateOrder.contradicted', { document: doc, order: name }) })
+  }
+  for (const w of props.warnings) {
+    if (w.code === 'date_order_contradicted' && w.source) add(w.source, w.chosen)
+  }
+  for (const s of sources.value) if (s.conflict) add(s.key, s.order)
+  return list
+})
+
+/** La gira se ha cambiado (p. ej. desde el menú de giras) después de leer este job. */
+const tourChangedTo = computed<ImportDateOrder | null>(() => {
+  const live = props.liveOrder
+  if (rememberScope.value !== 'tour' || !saved.value) return null
+  if (live !== 'dmy' && live !== 'mdy') return null
+  if (live === saved.value.value || (live === dateOrder.value && !mixed.value)) return null
+  return live
+})
+
+function applyTourOrder() {
+  if (tourChangedTo.value) emit('patch', { date_order: tourChangedTo.value })
+}
 
 const defaultZone = computed(() => props.assumptions.default_timezone ?? '')
 const zones = computed(() => zoneOptions(defaultZone.value))
@@ -172,24 +293,74 @@ const INPUT =
         </option>
       </select>
 
-      <select
-        :class="CHIP"
-        :value="dateOrder"
-        :disabled="saving"
-        :aria-label="t('importer.assumptions.dateOrderLabel')"
-        data-test="assumption-date-order"
-        @change="onOrder"
+      <span
+        v-if="!mixed"
+        class="inline-flex flex-wrap items-center gap-x-1.5"
       >
-        <option
-          v-for="o in ORDERS"
-          :key="o"
-          :value="o"
+        <select
+          :class="CHIP"
+          :value="dateOrder"
+          :disabled="saving"
+          :aria-label="t('importer.assumptions.dateOrderLabel')"
+          data-test="assumption-date-order"
+          @change="onOrder"
         >
-          {{ t('importer.assumptions.dateOrder', { order: t(`importer.assumptions.orders.${o}`) }) }}
-        </option>
-      </select>
+          <option
+            v-for="o in ORDERS"
+            :key="o"
+            :value="o"
+          >
+            {{ t('importer.assumptions.dateOrder', { order: t(`importer.assumptions.orders.${o}`) }) }}
+          </option>
+        </select>
+        <span
+          v-if="mainSourceText"
+          class="text-[13px] text-ink-2"
+          data-test="assumption-date-order-source"
+        >{{ mainSourceText }}</span>
+      </span>
+      <span
+        v-else
+        class="inline-flex flex-wrap items-center gap-2 max-w-full"
+        role="group"
+        :aria-label="t('importer.dateOrder.bySource')"
+        data-test="assumption-date-orders"
+      >
+        <span
+          v-for="src in sources"
+          :key="src.key"
+          class="inline-flex flex-wrap items-center gap-x-1.5 max-w-full"
+          :data-source="src.key"
+        >
+          <select
+            :class="[CHIP, 'max-w-full truncate']"
+            :value="src.order"
+            :disabled="saving"
+            :aria-label="t('importer.dateOrder.perSourceLabel', { document: src.label })"
+            data-test="assumption-source-order"
+            @change="onSourceOrder(src.key, $event)"
+          >
+            <option
+              v-for="o in ORDERS"
+              :key="o"
+              :value="o"
+            >
+              {{
+                t('importer.dateOrder.perSource', {
+                  document: src.label,
+                  order: t(`importer.assumptions.orders.${o}`),
+                })
+              }}
+            </option>
+          </select>
+          <span
+            v-if="orderSourceText(src.source)"
+            class="text-[13px] text-ink-2"
+          >{{ orderSourceText(src.source) }}</span>
+        </span>
+      </span>
       <StatusBadge
-        v-if="conflict"
+        v-if="conflict && !contradictions.length"
         size="sm"
         status="pending"
         :label="t('importer.assumptions.dateOrderConflict')"
@@ -280,6 +451,78 @@ const INPUT =
             @change="onHotel('out', $event)"
           >
         </label>
+      </div>
+    </div>
+
+    <div
+      v-if="saved || contradictions.length || tourChangedTo"
+      :key="`o-${version}`"
+      class="flex flex-col gap-1.5"
+      data-test="assumption-date-order-extra"
+    >
+      <div
+        v-if="saved"
+        class="flex flex-wrap items-center gap-x-3 gap-y-0.5"
+      >
+        <label
+          class="inline-flex items-center gap-2 min-h-[44px] lg:min-h-0 text-[14px] lg:text-[13px] font-medium text-ink"
+          :class="saving || rememberBlocked ? 'cursor-not-allowed' : 'cursor-pointer'"
+        >
+          <input
+            type="checkbox"
+            class="w-4 h-4 accent-[var(--olive)]"
+            :checked="rememberChecked"
+            :disabled="saving || !!rememberBlocked"
+            :aria-describedby="rememberBlocked ? 'assumption-remember-why' : undefined"
+            data-test="assumption-remember"
+            @change="onRemember"
+          >
+          {{ rememberLabel }}
+        </label>
+        <span
+          v-if="rememberBlocked"
+          id="assumption-remember-why"
+          class="text-[13px] text-ink-2"
+          data-test="assumption-remember-why"
+        >{{ rememberBlocked }}</span>
+      </div>
+
+      <ul
+        v-if="contradictions.length"
+        class="flex flex-wrap gap-1.5"
+        data-test="assumption-contradictions"
+      >
+        <li
+          v-for="c in contradictions"
+          :key="c.key"
+        >
+          <StatusBadge
+            size="sm"
+            status="pending"
+            :label="c.text"
+            data-test="assumption-contradiction"
+          />
+        </li>
+      </ul>
+
+      <div
+        v-if="tourChangedTo"
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm bg-bg-2 border border-line px-3 py-2"
+        role="status"
+        data-test="assumption-tour-changed"
+      >
+        <span class="text-[14px] lg:text-[13px] text-ink">
+          {{ t('importer.dateOrder.tourChanged', { order: orderName(tourChangedTo) }) }}
+        </span>
+        <button
+          type="button"
+          class="min-h-[44px] lg:min-h-0 px-1 text-[14px] lg:text-[13px] font-semibold text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="saving"
+          data-test="assumption-apply-tour-order"
+          @click="applyTourOrder"
+        >
+          {{ t('importer.dateOrder.applyHere') }}
+        </button>
       </div>
     </div>
 

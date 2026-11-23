@@ -145,6 +145,11 @@ export interface Tour {
   current_user_is_admin?: boolean
   /** Zona IANA de la gira (respaldo `Europe/Madrid` si el backend no la trae). */
   timezone: string
+  /**
+   * F5a: cómo leer fechas ambiguas como 03/04 en los documentos importados. Solo viene en el
+   * detalle y en la respuesta del PATCH (no en el listado): `undefined` = aún no se sabe.
+   */
+  date_order?: 'auto' | 'dmy' | 'mdy'
   /** Avisos activos; false = en pausa (`pause-notifications/`). Respaldo `true`. */
   enable_notifications: boolean
   /** ISO desde que están en pausa, o null. */

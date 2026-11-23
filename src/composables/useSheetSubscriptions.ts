@@ -1,6 +1,10 @@
 import { getCurrentInstance, onBeforeUnmount, ref } from 'vue'
 import { apiClient, ApiError, buildQuery } from '@/utils/apiClient'
-import { IMPORT_PROCESSING_STATUSES, type ImportJobStatus } from '@/composables/useImportJobs'
+import {
+  IMPORT_PROCESSING_STATUSES,
+  type DateOrderSetting,
+  type ImportJobStatus,
+} from '@/composables/useImportJobs'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Contrato de /api/integrations/sheet-subscriptions/ (spec 2026-11-23-importacion-f4-google-sheets.md,
@@ -102,6 +106,11 @@ export interface SheetSubscription {
   stats: SheetSubscriptionStats
   pending_job: SheetSubscriptionPendingJob | null
   created_at: string
+  /**
+   * F5a: orden de las fechas ambiguas de esta hoja (`auto` = el de la gira o el deducido).
+   * Opcional hasta que lo despliegue el backend.
+   */
+  date_order?: DateOrderSetting
 }
 
 /** Pestaña de la respuesta de `inspect`. */
@@ -148,6 +157,8 @@ export interface UpdateSheetSubscriptionPayload {
   name?: string
   sync_enabled?: boolean
   tabs?: SheetTabInput[]
+  /** F5a: 400 `invalid_value` fuera de `auto|dmy|mdy`. */
+  date_order?: DateOrderSetting
 }
 
 export interface SheetSyncResponse {

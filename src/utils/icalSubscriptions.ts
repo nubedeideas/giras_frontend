@@ -104,6 +104,8 @@ export function icalErrorKey(code: string | null | undefined): string {
   if (NOT_ICS.has(c)) return 'ical.errors.notIcs'
   if (c === 'sync_failed') return 'ical.errors.syncFailed'
   if (c === 'url_unreadable') return 'ical.errors.urlUnreadable'
+  // F5a: pausada porque quien la añadió ya no es administrador de la gira.
+  if (c === 'owner_not_admin') return 'ical.ownerNotAdmin.card'
   // Otros `http_4xx` que el backend no enumera: la dirección no sirve el calendario.
   if (/^http_4\d\d$/.test(c)) return 'ical.errors.gone'
   return 'ical.errors.generic'

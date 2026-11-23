@@ -1,5 +1,6 @@
 import { apiClient } from '@/utils/apiClient'
 import type { TourStatus } from '@/types'
+import type { DateOrderSetting } from '@/composables/useImportJobs'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,11 @@ export interface TourFull extends TourListItem {
   can_manage_crew?: boolean
   /** Solo en GET /api/tours/{uuid}/: YYYY-MM-DD en que caducan los enlaces del crew, o null. */
   crew_portal_expires_on?: string | null
+  /**
+   * F5a: orden de las fechas ambiguas de los documentos importados (`auto` por defecto). En el
+   * detalle y en el PATCH, no en el listado. Opcional hasta que lo despliegue el backend.
+   */
+  date_order?: DateOrderSetting
 }
 
 /**
@@ -134,6 +140,8 @@ export interface UpdateTourPayload {
   crew_portal_days?: number
   /** IANA; una zona no válida da 400 en el campo. */
   timezone?: string
+  /** F5a: `auto|dmy|mdy`; otro valor da 400 en el campo. */
+  date_order?: DateOrderSetting
 }
 
 /**

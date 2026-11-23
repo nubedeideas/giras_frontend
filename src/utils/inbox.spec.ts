@@ -547,6 +547,26 @@ describe('import_pending, ical_sync_failed e import_done con canceladas (F3)', (
     expect(fmt({ kind: 'ical_sync_failed', params: {} })).toEqual({ title: 'Título', body: 'Cuerpo' })
   })
 
+  it('F5a: ical_sync_failed con owner_not_admin: texto propio con la gira y destino Calendarios', () => {
+    const item = inboxItem({
+      kind: 'ical_sync_failed',
+      tour: { uuid: 'T1', name: 'Gira 2027' },
+      params: { subscription_uuid: 'S1', calendar: 'Promotor', error_code: 'owner_not_admin' },
+    })
+    expect(formatInboxItem(item, t)).toEqual({
+      title: 'Un calendario de Gira 2027 se ha pausado: quien lo añadió ya no es administrador',
+      body: 'Otro administrador de la gira puede hacerse responsable en Ajustes › Calendarios y hojas.',
+    })
+    expect(inboxTargetLocation(item)).toEqual({ path: '/settings', query: { tab: 'calendars' } })
+    expect(
+      fmt({ kind: 'ical_sync_failed', tour: null, params: { error_code: 'owner_not_admin' } }).title
+    ).toBe('Un calendario se ha pausado: quien lo añadió ya no es administrador')
+    i18n.global.locale.value = 'en'
+    expect(formatInboxItem(item, t).title).toBe(
+      'A calendar in Gira 2027 was paused: whoever added it is no longer an admin'
+    )
+  })
+
   it('F4: import_pending de una hoja (source=gsheet): textos de hoja y "ya no están"', async () => {
     const sheetParams = {
       job_uuid: 'J7',

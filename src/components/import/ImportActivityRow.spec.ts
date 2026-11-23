@@ -145,6 +145,20 @@ describe('ImportActivityRow', () => {
       )
     })
 
+    it('F5a: una fila de día completo no muestra la zona (UTC del calendario) aunque difiera', () => {
+      const w = mountRow({
+        row: calendarActivityRow({
+          all_day: true,
+          start_time: null,
+          timezone: 'UTC',
+          timezone_source: 'ics_calendar',
+        }),
+      })
+      expect(w.find('[data-test="import-activity-zone"]').exists()).toBe(false)
+      expect(w.text()).not.toContain('UTC')
+      expect(w.get('[data-test="import-activity-time"]').text()).toBe('Todo el día')
+    })
+
     it('cambió en el calendario: insignia scheduled; omitida se recupera con replace', async () => {
       let w = mountRow({ row: calendarChangedRow() })
       const badge = w.get('[data-test="import-activity-status"]')
