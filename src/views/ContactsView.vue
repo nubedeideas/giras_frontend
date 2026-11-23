@@ -15,6 +15,7 @@ import TourSelectPrompt from '@/components/tour/TourSelectPrompt.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
+import { useImportReturn } from '@/composables/useImportReturn'
 
 const { t } = useI18n()
 const store = useContactsStore()
@@ -55,6 +56,21 @@ const showTeamImport = ref(false)
 const canImport = computed(
   () => toursStore.activeTour?.current_user_is_admin === true && !auth.isDemoMode
 )
+// F4: vuelta de "Conectar Google Sheets" desde el importador de equipo (`?import=sheets`).
+const importSheets = ref(false)
+useImportReturn({
+  ready: () => canImport.value && !!toursStore.activeTour?.uuid,
+  onSheets: () => {
+    importSheets.value = true
+    showTeamImport.value = true
+  },
+})
+
+function closeTeamImport() {
+  showTeamImport.value = false
+  importSheets.value = false
+}
+
 const tourEmpty = computed(
   () =>
     !!toursStore.activeTour?.uuid &&
@@ -497,7 +513,8 @@ const groupedContacts = computed(() => {
       :tour-uuid="toursStore.activeTour.uuid"
       entry-point="contacts"
       expected="team"
-      @close="showTeamImport = false"
+      :start-with-sheets="importSheets"
+      @close="closeTeamImport"
     />
   </div>
 </template>

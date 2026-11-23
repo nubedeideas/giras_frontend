@@ -14,6 +14,7 @@ import DashboardInboxBlock from '@/components/dashboard/DashboardInboxBlock.vue'
 import DashboardPlanBlock from '@/components/dashboard/DashboardPlanBlock.vue'
 import DashboardEmptyTour from '@/components/dashboard/DashboardEmptyTour.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
+import { useImportReturn } from '@/composables/useImportReturn'
 import NotificationsPauseToggle from '@/components/tour/NotificationsPauseToggle.vue'
 import { useToursStore } from '@/stores/tours'
 import { useAuthStore } from '@/stores/auth'
@@ -134,6 +135,21 @@ const showImportCal = ref(false)
 // Importar agenda (F2 A3-A5, A7): solo admins de la gira fuera de la demo.
 const canImport = computed(() => tour.value?.current_user_is_admin === true && !auth.isDemoMode)
 const showImport = ref(false)
+
+// F4: vuelta de "Conectar Google Sheets" desde el modal Importar (`?import=sheets`).
+const importSheets = ref(false)
+useImportReturn({
+  ready: () => canImport.value && !!tourUuid.value,
+  onSheets: () => {
+    importSheets.value = true
+    showImport.value = true
+  },
+})
+
+function closeImport() {
+  showImport.value = false
+  importSheets.value = false
+}
 
 function openImportFromCreate() {
   showCreate.value = false
@@ -280,7 +296,8 @@ function openImportFromCreate() {
       :tour-uuid="tourUuid"
       entry-point="dashboard"
       expected="itinerary"
-      @close="showImport = false"
+      :start-with-sheets="importSheets"
+      @close="closeImport"
     />
     <ImportCalActivitiesModal
       :show="showImportCal"

@@ -18,6 +18,7 @@ import { DateTime } from 'luxon'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
+import { useImportReturn } from '@/composables/useImportReturn'
 import {
   listImportJobs,
   type ImportExpected,
@@ -149,8 +150,12 @@ const showImport = ref(false)
  */
 const importExpected = ref<ImportExpected>('any')
 
-function openImport(expected: ImportExpected) {
+/** F4: el modal se abre directamente en "Vincular Google Sheets" (vuelta del OAuth). */
+const importSheets = ref(false)
+
+function openImport(expected: ImportExpected, sheets = false) {
   importExpected.value = expected
+  importSheets.value = sheets
   showImport.value = true
 }
 const pendingImports = ref<ImportJobListItem[]>([])
@@ -183,13 +188,22 @@ watch(
 
 const latestImport = computed(() => pendingImports.value[0] ?? null)
 
+/** F4: borrador de una hoja de Google vinculada: su nombre y las filas por revisar. */
+const latestSheet = computed(() => {
+  const job = latestImport.value
+  if (!job || (job.source_kind !== 'sheet_sync' && !job.sheet)) return null
+  const sheet = job.sheet
+  const n = sheet ? sheet.new + sheet.changed + sheet.removed : (job.activities_found ?? 0)
+  return { name: sheet?.name || job.filenames[0] || t('sheets.card.unnamed'), n }
+})
+
 /**
  * F3: un borrador de una suscripción iCal (`source_kind="ical_sync"`) se anuncia como cambios del
  * calendario, con su nombre y los eventos por revisar, en vez del nombre de archivo.
  */
 const latestCalendar = computed(() => {
   const job = latestImport.value
-  if (!job || (job.source_kind !== 'ical_sync' && !job.calendar)) return null
+  if (!job || latestSheet.value || (job.source_kind !== 'ical_sync' && !job.calendar)) return null
   const cal = job.calendar
   const n = cal ? cal.new + cal.changed + cal.cancelled : (job.activities_found ?? 0)
   return { name: cal?.name || job.filenames[0] || t('ical.card.unnamed'), n }
@@ -207,6 +221,7 @@ function importDate(iso: string): string {
 
 function closeImport() {
   showImport.value = false
+  importSheets.value = false
   // Un job cerrado a medias puede haber terminado ya: se refresca el aviso.
   void loadPendingImports()
 }
@@ -251,6 +266,8 @@ watch(
     if (tab === undefined && notice === undefined && importParam === undefined) return
     pendingNotice.value = typeof notice === 'string' && notice ? notice : null
     pendingImport.value = importParam === 'team'
+    // `import=sheets` (vuelta del OAuth de Google Sheets) lo gestiona `useImportReturn`.
+    if (importParam === 'sheets' && tab === undefined && notice === undefined) return
     // Un `notice` sin `tab` también lleva a la pestaña de avisos; un `import` solo, a ninguna.
     requestedTab.value =
       typeof tab === 'string' ? tab : tab === undefined && notice !== undefined ? 'notices' : ''
@@ -259,6 +276,16 @@ watch(
   { immediate: true }
 )
 watch([TABS, detailSettledFor], applyRequestedTab)
+
+// F4 (§4.5): vuelta de "Conectar Google Sheets" (`?import=sheets&tour=<uuid>`): activa la gira y,
+// con el detalle cargado y permiso de importar, reabre el modal en el formulario de la hoja.
+useImportReturn({
+  ready: () =>
+    canImport.value &&
+    !!toursStore.activeTour?.uuid &&
+    detailSettledFor.value === toursStore.activeTour.uuid,
+  onSheets: () => openImport('any', true),
+})
 </script>
 
 <template>
@@ -296,7 +323,21 @@ watch([TABS, detailSettledFor], applyRequestedTab)
             :label="t('importer.pendingBadge')"
           />
           <I18nT
-            v-if="latestCalendar"
+            v-if="latestSheet"
+            keypath="importer.pendingBannerSheet"
+            tag="span"
+            class="min-w-0 text-[14px] text-ink break-words"
+            data-test="import-pending-sheet"
+          >
+            <template #name>
+              <span class="font-semibold">{{ latestSheet.name }}</span>
+            </template>
+            <template #n>
+              <span class="font-time tnum">{{ latestSheet.n }}</span>
+            </template>
+          </I18nT>
+          <I18nT
+            v-else-if="latestCalendar"
             keypath="importer.pendingBannerCalendar"
             tag="span"
             class="min-w-0 text-[14px] text-ink break-words"
@@ -440,6 +481,7 @@ watch([TABS, detailSettledFor], applyRequestedTab)
       :tour-uuid="toursStore.activeTour.uuid"
       entry-point="tour"
       :expected="importExpected"
+      :start-with-sheets="importSheets"
       @close="closeImport"
     />
   </div>

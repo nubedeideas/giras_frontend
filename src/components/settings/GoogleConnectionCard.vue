@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { useAuthStore } from '@/stores/auth'
 import { useGoogleStore } from '@/stores/google'
 import { googleIntegrationApi } from '@/composables/useGoogleIntegration'
+import { isPickerConfigured } from '@/composables/useGooglePicker'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
@@ -21,8 +22,17 @@ const googleStore = useGoogleStore()
 
 const status = computed(() => googleStore.status)
 const features = computed(
-  () => status.value?.features ?? { calendar: false, calendar_write: false, contacts: false }
+  () =>
+    status.value?.features ?? {
+      calendar: false,
+      calendar_write: false,
+      contacts: false,
+      sheets: false,
+    }
 )
+
+/** F4: Google Sheets solo se ofrece con el selector de Google configurado en el build. */
+const sheetsAvailable = isPickerConfigured()
 
 const connectedSince = computed(() => {
   const iso = status.value?.connected_at
@@ -35,6 +45,10 @@ const scopes = computed(() => [
   { key: 'calendarRead', granted: features.value.calendar },
   { key: 'calendarWrite', granted: features.value.calendar_write },
   { key: 'contactsRead', granted: features.value.contacts },
+  // F4: la fila de hojas solo si la función está disponible o el permiso ya está concedido.
+  ...(sheetsAvailable || features.value.sheets
+    ? [{ key: 'sheetsRead', granted: features.value.sheets === true }]
+    : []),
 ])
 
 // ─── Desconectar ──────────────────────────────────────────────────────────────
@@ -193,6 +207,11 @@ onMounted(() => {
         <GoogleConnectCta
           v-if="!features.contacts"
           purpose="contacts"
+          :return-to="RETURN_TO"
+        />
+        <GoogleConnectCta
+          v-if="sheetsAvailable && !features.sheets"
+          purpose="sheets"
           :return-to="RETURN_TO"
         />
       </div>

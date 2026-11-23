@@ -547,6 +547,61 @@ describe('import_pending, ical_sync_failed e import_done con canceladas (F3)', (
     expect(fmt({ kind: 'ical_sync_failed', params: {} })).toEqual({ title: 'Título', body: 'Cuerpo' })
   })
 
+  it('F4: import_pending de una hoja (source=gsheet): textos de hoja y "ya no están"', async () => {
+    const sheetParams = {
+      job_uuid: 'J7',
+      calendar: 'Gira 2027',
+      new: 3,
+      changed: 0,
+      cancelled: 2,
+      source: 'gsheet',
+      subscription_uuid: 'G1',
+    }
+    const item = inboxItem({ kind: 'import_pending', params: sheetParams })
+    expect(formatInboxItem(item, t)).toEqual({
+      title: 'Cambios en la hoja Gira 2027: 5 por revisar',
+      body: '3 nuevas · 2 ya no están',
+    })
+    expect(fmt({ kind: 'import_pending', params: { ...sheetParams, calendar: '' } }).title).toBe(
+      'Cambios en tu hoja: 5 por revisar'
+    )
+    expect(
+      fmt({ kind: 'import_pending', params: { ...sheetParams, new: 0, changed: 0, cancelled: 1 } })
+        .body
+    ).toBe('1 ya no está')
+    expect(inboxTargetLocation(item)).toEqual({ name: 'tour-import', params: { jobUuid: 'J7' } })
+    i18n.global.locale.value = 'en'
+    expect(formatInboxItem(item, t)).toEqual({
+      title: 'Changes in sheet Gira 2027: 5 to review',
+      body: '3 new · 2 gone',
+    })
+  })
+
+  it('F4: sheet_sync_failed: motivo traducido y destino Ajustes › Calendarios y hojas', async () => {
+    const item = inboxItem({
+      kind: 'sheet_sync_failed',
+      params: { subscription_uuid: 'G1', sheet: 'Gira 2027', error_code: 'no_access' },
+    })
+    const text = formatInboxItem(item, t)
+    expect(text.title).toBe('No podemos leer la hoja Gira 2027')
+    expect(text.body).toBe(
+      'Ya no podemos leer la hoja: vuelve a elegirla en el selector. Hemos pausado la lectura. Revisa la vinculación en Ajustes › Calendarios y hojas.'
+    )
+    expect(text.body).not.toContain('no_access')
+    const unnamed = fmt({
+      kind: 'sheet_sync_failed',
+      params: { subscription_uuid: 'G1', sheet: '', error_code: 'raro' },
+    })
+    expect(unnamed.title).toBe('No podemos leer una hoja de Google')
+    expect(unnamed.body).toMatch(/^No hemos podido leer la hoja\. Hemos pausado la lectura\./)
+    expect(fmt({ kind: 'sheet_sync_failed', params: {} })).toEqual({ title: 'Título', body: 'Cuerpo' })
+    expect(inboxTargetLocation(item)).toEqual({ path: '/settings', query: { tab: 'calendars' } })
+    const router = { push: vi.fn().mockResolvedValue(undefined) }
+    const tours = { setActiveTourByUuid: vi.fn(() => true) }
+    expect(await goToInboxTarget(item, router, tours)).toBe(true)
+    expect(router.push).toHaveBeenCalledWith({ path: '/settings', query: { tab: 'calendars' } })
+  })
+
   it('import_done con params.cancelled añade las canceladas al título', () => {
     const params = {
       job_uuid: 'J1',

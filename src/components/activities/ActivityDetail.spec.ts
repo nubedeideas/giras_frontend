@@ -76,6 +76,9 @@ describe('ActivityDetail › origen (F3)', () => {
     expect((await mountWith('google_calendar')).get('[data-test="activity-source"]').text()).toBe(
       'Google Calendar'
     )
+    expect((await mountWith('gsheet')).get('[data-test="activity-source"]').text()).toBe(
+      'Hoja de Google'
+    )
     expect((await mountWith('otro')).get('[data-test="activity-source"]').text()).toBe('otro')
     expect((await mountWith('')).find('[data-test="activity-source"]').exists()).toBe(false)
   })

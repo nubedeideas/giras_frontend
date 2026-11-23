@@ -37,8 +37,8 @@ const emit = defineEmits<{ close: [] }>()
 
 const activity = computed(() => store.selectedDetail)
 
-/** Orígenes con nombre propio (F3 §4.6); el resto se pinta tal cual. */
-const KNOWN_SOURCES = new Set(['google_calendar', 'ics', 'import_job'])
+/** Orígenes con nombre propio (F3 §4.6, F4 `gsheet`); el resto se pinta tal cual. */
+const KNOWN_SOURCES = new Set(['google_calendar', 'ics', 'import_job', 'gsheet'])
 const sourceLabel = computed(() => {
   const src = activity.value?.external_source
   if (!src) return ''

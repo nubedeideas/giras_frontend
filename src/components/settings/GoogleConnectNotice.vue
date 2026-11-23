@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import type { GooglePurpose } from '@/utils/googleOAuth'
+import { isGooglePurpose, type GooglePurpose } from '@/utils/googleOAuth'
 
 /**
  * Aviso del resultado de una conexión con Google, a partir de la query que deja el callback
@@ -34,7 +34,7 @@ const outcome = computed<Outcome | null>(() => {
 
 const queryPurpose = computed<GooglePurpose | null>(() => {
   const p = q('purpose')
-  return p === 'calendar' || p === 'contacts' ? p : null
+  return isGooglePurpose(p) ? p : null
 })
 
 const visible = computed(

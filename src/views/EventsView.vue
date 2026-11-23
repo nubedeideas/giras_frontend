@@ -15,6 +15,7 @@ import AddActivityModal from '@/components/modals/AddActivityModal.vue'
 import CreateActivityModal from '@/components/modals/CreateActivityModal.vue'
 import ImportCalActivitiesModal from '@/components/modals/ImportCalActivitiesModal.vue'
 import ImportDropModal from '@/components/import/ImportDropModal.vue'
+import { useImportReturn } from '@/composables/useImportReturn'
 
 const store = useActivitiesStore()
 const toursStore = useToursStore()
@@ -32,6 +33,21 @@ const showImport = ref(false)
 const canImport = computed(
   () => toursStore.activeTour?.current_user_is_admin === true && !auth.isDemoMode
 )
+
+// F4: vuelta de "Conectar Google Sheets" desde el modal Importar (`?import=sheets`).
+const importSheets = ref(false)
+useImportReturn({
+  ready: () => canImport.value && !!toursStore.activeTour?.uuid,
+  onSheets: () => {
+    importSheets.value = true
+    showImport.value = true
+  },
+})
+
+function closeImport() {
+  showImport.value = false
+  importSheets.value = false
+}
 
 function openImportFromCreate() {
   showCreate.value = false
@@ -192,7 +208,8 @@ watch(
       :tour-uuid="toursStore.activeTour.uuid"
       entry-point="activities"
       expected="itinerary"
-      @close="showImport = false"
+      :start-with-sheets="importSheets"
+      @close="closeImport"
     />
     <ImportCalActivitiesModal
       :show="showImportCal"

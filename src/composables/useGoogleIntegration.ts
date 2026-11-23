@@ -23,7 +23,8 @@ export interface GoogleStatus {
   /** Cuenta de Google conectada; '' si no hay. */
   account_email: string
   granted_scopes: string[]
-  features: { calendar: boolean; calendar_write: boolean; contacts: boolean }
+  /** F4: `sheets` = permiso `drive.file` (leer las hojas que el usuario elige en el selector). */
+  features: { calendar: boolean; calendar_write: boolean; contacts: boolean; sheets: boolean }
   connected_at: string | null
 }
 
@@ -51,6 +52,8 @@ export interface GoogleDisconnectResult {
   revoked_in_google: boolean
   calendars_deactivated: number
   contacts_deactivated: number
+  /** F4: hojas de Google pausadas (las que leía este usuario). */
+  sheets_paused?: number
 }
 
 /** 403 de las vistas de Calendar y Contactos cuando falta el permiso o la conexión. */
@@ -66,7 +69,7 @@ export const EMPTY_GOOGLE_STATUS: GoogleStatus = {
   connected: false,
   account_email: '',
   granted_scopes: [],
-  features: { calendar: false, calendar_write: false, contacts: false },
+  features: { calendar: false, calendar_write: false, contacts: false, sheets: false },
   connected_at: null,
 }
 

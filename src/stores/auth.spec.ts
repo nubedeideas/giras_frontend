@@ -8,7 +8,7 @@ const STATUS = {
   connected: true,
   account_email: 'a@b.es',
   granted_scopes: [],
-  features: { calendar: true, calendar_write: true, contacts: true },
+  features: { calendar: true, calendar_write: true, contacts: true, sheets: false },
   connected_at: null,
 }
 

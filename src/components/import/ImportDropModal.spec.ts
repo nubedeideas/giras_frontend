@@ -11,6 +11,12 @@ import { useToursStore } from '@/stores/tours'
 import { adminTour } from '@/test/icalSubscriptions'
 import ImportDropModal from './ImportDropModal.vue'
 
+const cfg = vi.hoisted(() => ({ configured: true }))
+vi.mock('@/composables/useGooglePicker', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/composables/useGooglePicker')>()
+  return { ...actual, isPickerConfigured: () => cfg.configured }
+})
+
 const stubs = {
   transition: false,
   ImportDropZone: {
@@ -24,6 +30,13 @@ const stubs = {
     props: { tourUuid: String, compact: Boolean },
     emits: ['cancel', 'review', 'created'],
     template: '<div data-test="ical-form-stub" :data-tour="tourUuid" :data-compact="String(compact)" />',
+  },
+  SheetLinkForm: {
+    name: 'SheetLinkForm',
+    props: { tourUuid: String, compact: Boolean, returnTo: String },
+    emits: ['cancel', 'review', 'created'],
+    template:
+      '<div data-test="sheet-form-stub" :data-tour="tourUuid" :data-compact="String(compact)" :data-return="returnTo" />',
   },
 }
 
@@ -56,6 +69,7 @@ beforeEach(() => {
   localStorage.setItem('gs_access_token', 'access')
   setActivePinia(createPinia())
   i18n.global.locale.value = 'es'
+  cfg.configured = true
 })
 
 afterEach(() => {
@@ -145,6 +159,59 @@ describe('ImportDropModal', () => {
 
     await w.get('[data-test="import-ical-toggle"]').trigger('click')
     w.findComponent({ name: 'IcalSubscribeForm' }).vm.$emit('review', 'J9')
+    await flushPromises()
+    expect(w.emitted('close')).toHaveLength(1)
+  })
+
+  it('F4: "Vincular Google Sheets" solo admin, fuera de la demo y con el selector; también en equipo', async () => {
+    const tours = useToursStore()
+    tours.tours = [adminTour()]
+    const team = await mountModal({ expected: 'team' })
+    expect(team.get('[data-test="import-sheets-toggle"]').text()).toBe('Vincular Google Sheets')
+    team.unmount()
+
+    cfg.configured = false
+    const noCfg = await mountModal()
+    expect(noCfg.find('[data-test="import-sheets-toggle"]').exists()).toBe(false)
+    noCfg.unmount()
+    cfg.configured = true
+
+    tours.tours = [adminTour({ current_user_is_admin: false })]
+    const member = await mountModal()
+    expect(member.find('[data-test="import-sheets-toggle"]').exists()).toBe(false)
+    member.unmount()
+
+    tours.tours = [adminTour()]
+    useAuthStore().isDemoMode = true
+    const demo = await mountModal()
+    expect(demo.find('[data-test="import-sheets-toggle"]').exists()).toBe(false)
+  })
+
+  it('F4: alterna con la zona y con iCal; returnTo con ?import=sheets y la gira', async () => {
+    useToursStore().tours = [adminTour()]
+    const w = await mountModal()
+    await w.get('[data-test="import-sheets-toggle"]').trigger('click')
+    expect(w.find('[data-test="zone-stub"]').exists()).toBe(false)
+    const form = w.get('[data-test="sheet-form-stub"]')
+    expect(form.attributes('data-tour')).toBe('T1')
+    expect(form.attributes('data-compact')).toBe('true')
+    expect(form.attributes('data-return')).toBe('/tour?import=sheets&tour=T1')
+    expect(w.text()).toContain('Vincular una hoja de Google')
+
+    w.findComponent({ name: 'SheetLinkForm' }).vm.$emit('cancel')
+    await flushPromises()
+    expect(w.find('[data-test="zone-stub"]').exists()).toBe(true)
+
+    await w.get('[data-test="import-ical-toggle"]').trigger('click')
+    expect(w.find('[data-test="sheet-form-stub"]').exists()).toBe(false)
+    expect(w.find('[data-test="ical-form-stub"]').exists()).toBe(true)
+  })
+
+  it('F4: startWithSheets abre directamente el formulario de la hoja', async () => {
+    useToursStore().tours = [adminTour()]
+    const w = await mountModal({ startWithSheets: true })
+    expect(w.find('[data-test="sheet-form-stub"]').exists()).toBe(true)
+    w.findComponent({ name: 'SheetLinkForm' }).vm.$emit('review', 'J9')
     await flushPromises()
     expect(w.emitted('close')).toHaveLength(1)
   })

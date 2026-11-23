@@ -7,7 +7,13 @@
  * - `giras.onboarding.resume`: paso del asistente al que volver tras conectar Google desde él.
  */
 
-export type GooglePurpose = 'calendar' | 'contacts'
+export type GooglePurpose = 'calendar' | 'contacts' | 'sheets'
+
+export const GOOGLE_PURPOSES: readonly GooglePurpose[] = ['calendar', 'contacts', 'sheets']
+
+export function isGooglePurpose(v: unknown): v is GooglePurpose {
+  return typeof v === 'string' && (GOOGLE_PURPOSES as readonly string[]).includes(v)
+}
 
 export interface GoogleOAuthPending {
   kind: 'login' | 'connect'
@@ -68,8 +74,7 @@ export function takePending(now = Date.now()): GoogleOAuthPending | null {
   if (data.kind !== 'login' && data.kind !== 'connect') return null
   if (typeof data.state !== 'string' || !data.state) return null
   if (typeof data.createdAt !== 'number' || now - data.createdAt > PENDING_MAX_AGE_MS) return null
-  const purpose =
-    data.purpose === 'calendar' || data.purpose === 'contacts' ? data.purpose : undefined
+  const purpose = isGooglePurpose(data.purpose) ? data.purpose : undefined
   return {
     kind: data.kind,
     state: data.state,

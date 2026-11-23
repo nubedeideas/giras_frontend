@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import ImportDropZone from '@/components/import/ImportDropZone.vue'
 import ImportProgress from '@/components/import/ImportProgress.vue'
 import IcalSubscribeForm from '@/components/ical/IcalSubscribeForm.vue'
+import SheetLinkForm from '@/components/sheets/SheetLinkForm.vue'
+import { isPickerConfigured } from '@/composables/useGooglePicker'
+import { sheetsReturnTo } from '@/composables/useImportReturn'
 import { useAuthStore } from '@/stores/auth'
 import { useToursStore } from '@/stores/tours'
 import type { ImportSendableEntryPoint, ImportExpected, ImportJob } from '@/composables/useImportJobs'
@@ -20,13 +23,16 @@ const props = withDefaults(
     tourUuid: string
     entryPoint?: ImportSendableEntryPoint
     expected?: ImportExpected
+    /** F4: abrir directamente en "Vincular Google Sheets" (vuelta del OAuth, `?import=sheets`). */
+    startWithSheets?: boolean
   }>(),
-  { entryPoint: 'tour', expected: 'any' }
+  { entryPoint: 'tour', expected: 'any', startWithSheets: false }
 )
 const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const toursStore = useToursStore()
 
@@ -42,6 +48,19 @@ const canSubscribeIcal = computed(
 )
 const showIcal = ref(false)
 
+const isTourAdmin = computed(() =>
+  toursStore.tours.some((tour) => tour.uuid === props.tourUuid && tour.current_user_is_admin === true)
+)
+/**
+ * F4 (§4.5): "Vincular Google Sheets" sustituye la zona por el alta de la hoja. Solo admins de la
+ * gira, fuera de la demo y con el selector de Google configurado; también en el importador de
+ * equipo (una hoja de equipo viva tiene sentido).
+ */
+const canLinkSheets = computed(() => isPickerConfigured() && !auth.isDemoMode && isTourAdmin.value)
+const showSheets = ref(props.show && props.startWithSheets)
+/** Vuelta de "Conectar Google Sheets": esta misma vista, que reabre el formulario. */
+const sheetsReturn = computed(() => sheetsReturnTo(route.fullPath, props.tourUuid))
+
 /** Job en curso: con valor se pinta el progreso en vez de la zona de subida. */
 const jobUuid = ref<string | null>(null)
 const failedJob = ref<ImportJob | null>(null)
@@ -56,6 +75,7 @@ function reset() {
   jobUuid.value = null
   failedJob.value = null
   showIcal.value = false
+  showSheets.value = false
 }
 
 function onIcalReview() {
@@ -63,11 +83,22 @@ function onIcalReview() {
   reset()
 }
 
+function openIcal() {
+  showSheets.value = false
+  showIcal.value = true
+}
+
+function openSheets() {
+  showIcal.value = false
+  showSheets.value = true
+}
+
 // Cerrar mientras procesa no cancela nada: el job sigue y aparece en el aviso de `TourView`.
 watch(
   () => props.show,
   (open) => {
     if (!open) reset()
+    else if (props.startWithSheets) showSheets.value = true
   }
 )
 
@@ -132,6 +163,14 @@ function onFailed(job: ImportJob) {
       </p>
     </div>
     <div
+      v-else-if="showSheets && canLinkSheets && !jobUuid"
+      class="pr-12 mb-4"
+    >
+      <p class="text-[17px] font-bold text-ink">
+        {{ t('sheets.form.title') }}
+      </p>
+    </div>
+    <div
       v-else
       class="pr-12 mb-4"
     >
@@ -151,6 +190,15 @@ function onFailed(job: ImportJob) {
       @review="onIcalReview"
     />
 
+    <SheetLinkForm
+      v-else-if="!jobUuid && showSheets && canLinkSheets"
+      :tour-uuid="tourUuid"
+      :return-to="sheetsReturn"
+      compact
+      @cancel="showSheets = false"
+      @review="onIcalReview"
+    />
+
     <template v-else-if="!jobUuid">
       <ImportDropZone
         :tour-uuid="tourUuid"
@@ -158,15 +206,29 @@ function onFailed(job: ImportJob) {
         :expected="expected"
         @created="onCreated"
       />
-      <button
-        v-if="canSubscribeIcal"
-        type="button"
-        class="mt-3 inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
-        data-test="import-ical-toggle"
-        @click="showIcal = true"
+      <div
+        v-if="canSubscribeIcal || canLinkSheets"
+        class="mt-3 flex flex-wrap items-center gap-x-5"
       >
-        {{ t('ical.subscribe') }}
-      </button>
+        <button
+          v-if="canSubscribeIcal"
+          type="button"
+          class="inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+          data-test="import-ical-toggle"
+          @click="openIcal"
+        >
+          {{ t('ical.subscribe') }}
+        </button>
+        <button
+          v-if="canLinkSheets"
+          type="button"
+          class="inline-flex items-center gap-1.5 min-h-[44px] lg:min-h-0 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+          data-test="import-sheets-toggle"
+          @click="openSheets"
+        >
+          {{ t('sheets.link') }}
+        </button>
+      </div>
     </template>
 
     <div

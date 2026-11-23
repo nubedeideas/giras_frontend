@@ -27,6 +27,10 @@ export type InboxKind =
   // F3: un calendario iCal no se puede leer y se ha pausado; params
   // `{ subscription_uuid, calendar, error_code }`. Enlaza a Ajustes › Calendarios.
   | 'ical_sync_failed'
+  // F4: una hoja de Google no se puede leer y se ha pausado; params
+  // `{ subscription_uuid, sheet, error_code }`. Enlaza a Ajustes › Calendarios y hojas. Las hojas
+  // usan además `import_pending` con `source: 'gsheet'` (`calendar` = nombre de la hoja).
+  | 'sheet_sync_failed'
 
 export type InboxSeverity = 'info' | 'warning' | 'critical'
 

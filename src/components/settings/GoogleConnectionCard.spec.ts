@@ -5,10 +5,21 @@ import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import GoogleConnectionCard from './GoogleConnectionCard.vue'
 
+const cfg = vi.hoisted(() => ({ configured: false }))
+vi.mock('@/composables/useGooglePicker', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/composables/useGooglePicker')>()
+  return { ...actual, isPickerConfigured: () => cfg.configured }
+})
+
 const redirectTo = vi.hoisted(() => vi.fn())
 vi.mock('@/utils/navigation', () => ({ redirectTo }))
 
-function status(features: { calendar: boolean; calendar_write: boolean; contacts: boolean }) {
+function status(features: {
+  calendar: boolean
+  calendar_write: boolean
+  contacts: boolean
+  sheets?: boolean
+}) {
   const connected = features.calendar || features.contacts
   return {
     connected,
@@ -48,6 +59,7 @@ beforeEach(() => {
   setActivePinia(createPinia())
   i18n.global.locale.value = 'es'
   redirectTo.mockReset()
+  cfg.configured = false
 })
 
 afterEach(() => {
@@ -136,6 +148,53 @@ describe('GoogleConnectionCard', () => {
       return_to: '/settings?tab=calendars',
     })
     expect(redirectTo).toHaveBeenCalledWith('https://accounts.google.com/x')
+  })
+
+  it('F4: con el selector configurado, fila "Leer las hojas que eliges" y "Conectar Google Sheets"', async () => {
+    cfg.configured = true
+    const fn = setupFetch(CAL)
+    const w = mountCard()
+    await flushPromises()
+    expect(w.get('[data-testid="google-scope-sheetsRead"]').text()).toContain(
+      'Leer las hojas que eliges'
+    )
+    expect(w.get('[data-testid="google-scope-sheetsRead"]').attributes('data-granted')).toBe('false')
+    await w.get('[data-testid="google-connect-sheets"]').trigger('click')
+    await flushPromises()
+    const call = fn.mock.calls.find(([u]) => String(u).endsWith('/authorize/'))
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      purpose: 'sheets',
+      return_to: '/settings?tab=calendars',
+    })
+  })
+
+  it('F4: con el permiso concedido, la fila marcada y sin CTA; sin selector, ni fila ni CTA', async () => {
+    cfg.configured = true
+    setupFetch(status({ calendar: true, calendar_write: true, contacts: true, sheets: true }))
+    const w = mountCard()
+    await flushPromises()
+    expect(w.get('[data-testid="google-scope-sheetsRead"]').attributes('data-granted')).toBe('true')
+    expect(w.find('[data-testid="google-connect-sheets"]').exists()).toBe(false)
+    w.unmount()
+
+    cfg.configured = false
+    setActivePinia(createPinia())
+    setupFetch(CAL)
+    const w2 = mountCard()
+    await flushPromises()
+    expect(w2.find('[data-testid="google-scope-sheetsRead"]').exists()).toBe(false)
+    expect(w2.find('[data-testid="google-connect-sheets"]').exists()).toBe(false)
+  })
+
+  it('el texto de desconectar menciona calendarios y hojas', async () => {
+    setupFetch(CAL)
+    const w = mountCard()
+    await flushPromises()
+    await w.get('[data-testid="google-disconnect"]').trigger('click')
+    await flushPromises()
+    expect(w.get('[data-testid="google-disconnect-confirm-body"]').text()).toContain(
+      'Tus calendarios y hojas dejarán de sincronizarse.'
+    )
   })
 
   it('si el estado no carga: error y Reintentar', async () => {

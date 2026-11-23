@@ -11,6 +11,7 @@ import RolesManager from '@/components/settings/RolesManager.vue'
 import ActivityTypesManager from '@/components/settings/ActivityTypesManager.vue'
 import CalendarsManager from '@/components/settings/CalendarsManager.vue'
 import IcalSubscriptionsManager from '@/components/ical/IcalSubscriptionsManager.vue'
+import SheetSubscriptionsManager from '@/components/sheets/SheetSubscriptionsManager.vue'
 import GoogleConnectionCard from '@/components/settings/GoogleConnectionCard.vue'
 import GoogleConnectNotice from '@/components/settings/GoogleConnectNotice.vue'
 import ReminderTemplatesManager from '@/components/settings/reminders/ReminderTemplatesManager.vue'
@@ -91,8 +92,19 @@ const TABS = computed<{ key: SettingsTab; label: string; iconPath: string }[]>((
   },
 ])
 
-// Se incrementa al desconectar Google para que CalendarsManager recargue (calendarios desactivados).
+// Se incrementa al desconectar Google para que CalendarsManager recargue (calendarios desactivados)
+// y las hojas de Google muestren su pausa (`google_disconnected`).
 const calendarsKey = ref(0)
+
+// F4: vuelta del OAuth de "Conectar Google Sheets" desde Ajustes (`?sheets=new`): reabre el alta de
+// la hoja y quita el parámetro (los de `google_connect` se quedan para el aviso).
+const sheetsNew = ref(route.query.sheets === 'new')
+if (sheetsNew.value) void router.replace({ query: { ...route.query, sheets: undefined } })
+
+function onGoogleDisconnected() {
+  sheetsNew.value = false
+  calendarsKey.value++
+}
 
 const activeTab = computed<SettingsTab>({
   get: () => (route.query.tab as SettingsTab | undefined) ?? 'general',
@@ -413,10 +425,15 @@ async function signOut() {
               </p>
             </div>
             <GoogleConnectNotice />
-            <GoogleConnectionCard @disconnected="calendarsKey++" />
+            <GoogleConnectionCard @disconnected="onGoogleDisconnected" />
             <CalendarsManager :key="calendarsKey" />
             <!-- F3 (A11): suscripciones iCal, independientes de Google. -->
             <IcalSubscriptionsManager />
+            <!-- F4: hojas de Google vinculadas. -->
+            <SheetSubscriptionsManager
+              :key="`sheets-${calendarsKey}`"
+              :open-new="sheetsNew"
+            />
           </template>
 
           <!-- ── Actividades ─────────────────────────────────────────────────── -->

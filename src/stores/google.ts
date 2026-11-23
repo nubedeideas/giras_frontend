@@ -24,6 +24,7 @@ export const useGoogleStore = defineStore('google', () => {
   const connected = computed(() => status.value?.connected ?? false)
   const calendarConnected = computed(() => status.value?.features.calendar ?? false)
   const contactsConnected = computed(() => status.value?.features.contacts ?? false)
+  const sheetsConnected = computed(() => status.value?.features.sheets ?? false)
 
   /**
    * `true` solo si sabemos que falta el permiso (estado cargado y sin él). Si el estado no se ha
@@ -78,6 +79,7 @@ export const useGoogleStore = defineStore('google', () => {
     connected,
     calendarConnected,
     contactsConnected,
+    sheetsConnected,
     knownMissing,
     setStatus,
     load,

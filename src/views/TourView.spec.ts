@@ -315,6 +315,41 @@ describe('TourView: importar (F1)', () => {
     expect(w.get('[data-test="import-pending-link"]').attributes('href')).toBe('/tour/import/J-cal')
   })
 
+  it('F4: un borrador de hoja de Google se anuncia como cambios de la hoja', async () => {
+    setup({})
+    stubByUrl({
+      admin: true,
+      jobs: () => [
+        {
+          uuid: 'J-sheet',
+          tour: 'T1',
+          status: 'ready',
+          source_kind: 'sheet_sync',
+          entry_point: 'subscription',
+          filenames: ['gira-2027-20261123-1000.xlsx'],
+          created_at: '2026-11-23T10:00:00Z',
+          activities_found: 4,
+          calendar: null,
+          sheet: {
+            subscription_uuid: 'G1',
+            name: 'Gira 2027',
+            new: 3,
+            changed: 1,
+            removed: 2,
+            open_url: null,
+          },
+        },
+      ],
+    })
+    const w = await mountWithImportRoute()
+    await flushPromises()
+    const banner = w.get('[data-test="import-pending-banner"]')
+    expect(banner.text()).toContain('Cambios de la hoja Gira 2027 por revisar · 6')
+    expect(banner.text()).not.toContain('.xlsx')
+    expect(banner.find('[data-test="import-pending-sheet"] .font-time').text()).toBe('6')
+    expect(banner.find('[data-test="import-pending-calendar"]').exists()).toBe(false)
+  })
+
   it('ignora la lista atrasada de la gira anterior al cambiar de gira', async () => {
     setup({})
     let resolveT1: (r: Response) => void = () => {}
@@ -390,9 +425,9 @@ describe('TourView: importar (F1)', () => {
           '<div data-testid="crew-panel" :data-can-import="String(canImport)"><button data-testid="crew-import" @click="$emit(\'importTeam\')" /></div>',
       },
       ImportDropModal: {
-        props: ['show', 'entryPoint', 'tourUuid', 'expected'],
+        props: ['show', 'entryPoint', 'tourUuid', 'expected', 'startWithSheets'],
         template:
-          '<div data-testid="import-modal" :data-show="String(show)" :data-entry="entryPoint" :data-expected="expected" />',
+          '<div data-testid="import-modal" :data-show="String(show)" :data-entry="entryPoint" :data-expected="expected" :data-sheets="String(startWithSheets)" />',
       },
     }
 
@@ -512,6 +547,29 @@ describe('TourView: importar (F1)', () => {
       expect(modal(w).exists()).toBe(false)
       expect(w.replace).toHaveBeenCalledTimes(1)
       expect(w.router.currentRoute.value.query).toEqual({})
+    })
+
+    it('F4: ?import=sheets&tour=T1 (vuelta del OAuth) reabre el modal en la hoja y limpia la query', async () => {
+      setup({})
+      stubByUrl({ admin: true })
+      const w = await mountEntry({ import: 'sheets', tour: 'T1', google_connect: 'ok' })
+      await flushPromises()
+      expect(modal(w).attributes('data-show')).toBe('true')
+      expect(modal(w).attributes('data-sheets')).toBe('true')
+      expect(modal(w).attributes('data-expected')).toBe('any')
+      const q = w.router.currentRoute.value.query
+      expect(q.import).toBeUndefined()
+      expect(q.tour).toBeUndefined()
+      expect(q.google_connect).toBe('ok')
+    })
+
+    it('F4: ?import=sheets sin permiso de importar no abre nada', async () => {
+      setup({})
+      stubByUrl({ admin: false })
+      const w = await mountEntry({ import: 'sheets', tour: 'T1' })
+      await flushPromises()
+      expect(modal(w).exists()).toBe(false)
+      expect(w.router.currentRoute.value.query.import).toBeUndefined()
     })
 
     it('otro valor de import se ignora y se limpia', async () => {

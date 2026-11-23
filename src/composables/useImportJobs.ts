@@ -4,7 +4,8 @@ import { apiClient, buildQuery } from '@/utils/apiClient'
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Contrato de /api/integrations/import-jobs/ (spec 2026-11-22-importacion-f1-equipo.md, §3.4.6,
 // §3.5, §3.7 y §5; ampliado con F2 en 2026-11-22-importacion-f2-actividades.md, §3.5.1, §3.5.8,
-// §3.6, §3.7.1, §3.11 y §5; y con F3 en 2026-11-23-importacion-f3-ics-ical.md, §4.1 y §5).
+// §3.6, §3.7.1, §3.11 y §5; con F3 en 2026-11-23-importacion-f3-ics-ical.md, §4.1 y §5; y con F4
+// en 2026-11-23-importacion-f4-google-sheets.md, §3.6.4, §4.1 y §5).
 // Errores envueltos con `details.code` (`apiErrorCodes`).
 
 export type ImportJobStatus =
@@ -60,9 +61,16 @@ export const IMPORT_EXPECTED: readonly ImportExpected[] = ['team', 'itinerary', 
 
 /**
  * `source_kind` del job. F3: `ics_file` si todo lo subido es `.ics` y `ical_sync` en los jobs de
- * una suscripción iCal; `google_calendar` queda para F5.
+ * una suscripción iCal; F4: `sheet_sync` en los de una hoja de Google vinculada; `google_calendar`
+ * queda para F5.
  */
-export type ImportSourceKind = 'file' | 'text' | 'ics_file' | 'ical_sync' | 'google_calendar'
+export type ImportSourceKind =
+  | 'file'
+  | 'text'
+  | 'ics_file'
+  | 'ical_sync'
+  | 'sheet_sync'
+  | 'google_calendar'
 
 /** Tipo de fuente del preproceso (§3.4.2). */
 export type ImportSourceType =
@@ -73,6 +81,8 @@ export type ImportSourceType =
   | 'pdf_text'
   | 'pdf_scan'
   | 'ics'
+  // F4: filas de una hoja de Google vinculada (jobs `sheet_sync`).
+  | 'gsheet'
 
 export type ImportDocKind = 'team' | 'itinerary' | 'mixed' | 'calendar' | 'unknown'
 
@@ -156,6 +166,11 @@ export interface ImportActivitySourceRef extends ImportSourceRef {
   recurrence_id?: string | null
   /** `SEQUENCE` del evento (informativo). */
   sequence?: number
+  // F4 (§3.6.3): solo en filas de una hoja de Google (`kind: 'gsheet'`).
+  /** `sheetId` de la pestaña. */
+  gid?: number
+  /** Fila de la hoja (1-based). */
+  row_number?: number
 }
 
 /** Candidato de `match.candidates` (contrato real del backend tras la integración de F1). */
@@ -402,8 +417,19 @@ export type ImportActivityChangedField = 'scheduled_at' | 'end_at' | 'title' | '
 /** Coincidencia con una actividad existente de la gira (§3.5.6). */
 export interface ImportActivityMatch {
   status: ImportActivityMatchStatus
-  /** F3: `uid` (mismo evento ya importado de un `.ics`) o `uid_google` (ya sincronizado por Google). */
-  by: 'flight' | 'hotel' | 'type_time_title' | 'type_day' | 'uid' | 'uid_google' | null
+  /**
+   * F3: `uid` (mismo evento ya importado de un `.ics`) o `uid_google` (ya sincronizado por Google).
+   * F4: `sheet_row` (la misma fila de la hoja ya importada).
+   */
+  by:
+    | 'flight'
+    | 'hotel'
+    | 'type_time_title'
+    | 'type_day'
+    | 'uid'
+    | 'uid_google'
+    | 'sheet_row'
+    | null
   activity_uuid: string | null
   activity_title: string | null
   /** ISO UTC. */
@@ -414,6 +440,13 @@ export interface ImportActivityMatch {
   changed_fields?: ImportActivityChangedField[]
   /** F3: la actividad se editó en Giras después de importarla (pide decisión). */
   conflict?: boolean
+  /** F4: duplicado de un import manual que, al confirmar, se vinculará a la hoja. */
+  link?: boolean
+  /**
+   * F4, solo con `cancelled_in_source` de una hoja: la fila ya no está (`row_removed`) o la fila
+   * sigue pero ya no da esta actividad (`slot_gone`).
+   */
+  reason?: 'row_removed' | 'slot_gone'
 }
 
 export interface ImportAirport {
@@ -516,6 +549,8 @@ export interface ImportActivitySummary {
   days: number
   // F3. Opcionales: ausentes en jobs anteriores.
   to_cancel?: number
+  /** F4: duplicados que se vincularán a la hoja al confirmar. */
+  to_link?: number
   updated_in_source?: number
   cancelled_in_source?: number
   conflicts?: number
@@ -583,6 +618,9 @@ export interface ImportResult {
   /** Filas `cancel` cuya actividad ya no se podía cancelar (borrada o ya cancelada). */
   cancel_skipped?: number
   cancelled_uuids?: string[]
+  // F4 (§3.6.4). Opcionales: solo en jobs de una hoja que vinculan actividades existentes.
+  activities_linked?: number
+  linked_uuids?: string[]
 }
 
 /** Lo escribe `task_post_import` al terminar; el front sondea mientras sea `pending` (máx. 60 s). */
@@ -637,6 +675,20 @@ export interface ImportJobCalendar {
   cancelled: number
 }
 
+/**
+ * Job creado por una hoja de Google vinculada (F4 §3.6.4): nombre y recuentos de la lectura.
+ * `open_url` solo para quien lee la hoja (el ID da acceso en hojas compartidas por enlace).
+ */
+export interface ImportJobSheet {
+  subscription_uuid: string
+  name: string
+  new: number
+  changed: number
+  /** Filas que ya no están en la hoja (propuestas de cancelación). */
+  removed: number
+  open_url: string | null
+}
+
 /** Elemento de GET /api/integrations/import-jobs/?tour= (ImportJobListSerializer). */
 export interface ImportJobListItem {
   uuid: string
@@ -665,6 +717,11 @@ export interface ImportJobListItem {
    * despliegue el backend (el contrato lo pone en el listado y en el detalle).
    */
   calendar?: ImportJobCalendar | null
+  /**
+   * F4: solo en jobs de `source_kind="sheet_sync"`; `null` en el resto. Opcional hasta que lo
+   * despliegue el backend.
+   */
+  sheet?: ImportJobSheet | null
 }
 
 /** Detalle de GET /api/integrations/import-jobs/{uuid}/ (ImportJobDetailSerializer). */

@@ -2,6 +2,7 @@ import type { RouteLocationRaw, Router } from 'vue-router'
 import { DateTime } from 'luxon'
 import type { InboxItem } from '@/composables/useInbox'
 import { calendarCountsText, icalErrorKey } from '@/utils/icalSubscriptions'
+import { sheetCountsText, sheetErrorKey } from '@/utils/sheetSubscriptions'
 
 /** Subconjunto de `t` de vue-i18n que usan estas funciones (puras, testeables sin montar). */
 export type InboxTranslate = (
@@ -217,6 +218,20 @@ export function formatInboxItem(
     }
 
     case 'import_pending': {
+      // F4: `source="gsheet"` → textos de hoja; `calendar` lleva el nombre de la hoja y
+      // `cancelled` las filas que ya no están.
+      if (str(p.source) === 'gsheet') {
+        const sheet = str(p.calendar)
+        const c = { new: num(p.new), changed: num(p.changed), removed: num(p.cancelled) }
+        if (Object.values(c).some((n) => Number.isNaN(n))) return raw
+        const n = c.new + c.changed + c.removed
+        return {
+          title: sheet
+            ? t('inbox.kinds.import_pending.titleSheet', { sheet, n })
+            : t('inbox.kinds.import_pending.titleSheetUnnamed', { n }),
+          body: sheetCountsText(t, c) || item.body,
+        }
+      }
       // F3 §3.10: `params = {job_uuid, calendar, new, changed, cancelled, source,
       // subscription_uuid?}`. `calendar` puede venir vacío: "tu calendario".
       const calendar = str(p.calendar) || t('inbox.kinds.import_pending.fallbackCalendar')
@@ -244,6 +259,19 @@ export function formatInboxItem(
       }
     }
 
+    case 'sheet_sync_failed': {
+      // F4: `params = {subscription_uuid, sheet, error_code}`; `sheet` puede venir vacío.
+      if (!str(p.subscription_uuid) && !str(p.error_code) && !str(p.sheet)) return raw
+      const sheet = str(p.sheet)
+      const reason = t(sheetErrorKey(str(p.error_code)))
+      return {
+        title: sheet
+          ? t('inbox.kinds.sheet_sync_failed.title', { sheet })
+          : t('inbox.kinds.sheet_sync_failed.titleUnnamed'),
+        body: t('inbox.kinds.sheet_sync_failed.body', { reason }),
+      }
+    }
+
     default:
       return raw
   }
@@ -257,8 +285,11 @@ export function inboxTargetLocation(item: InboxItem): RouteLocationRaw | null {
     const job = str(item.params?.job_uuid)
     return job ? { name: 'tour-import', params: { jobUuid: job } } : null
   }
-  // F3: un calendario que no se puede leer se arregla en Ajustes › Calendarios.
-  if (item.kind === 'ical_sync_failed') return { path: '/settings', query: { tab: 'calendars' } }
+  // F3/F4: un calendario o una hoja que no se pueden leer se arreglan en Ajustes › Calendarios y
+  // hojas.
+  if (item.kind === 'ical_sync_failed' || item.kind === 'sheet_sync_failed') {
+    return { path: '/settings', query: { tab: 'calendars' } }
+  }
   const target = item.target
   switch (target?.type) {
     case 'activity':
