@@ -4,6 +4,7 @@
 // pegado al fondo del scroll en escritorio. Con `estimate` (D11), la estimación de WhatsApp.
 // F2 §4.3: con actividades, el resumen cuenta contactos y actividades y el botón pasa a "Ver avisos"
 // (`mode="notices"`, emite `notices`: paso "Qué se va a enviar y a quién").
+// F3 §4.4: con cancelaciones del calendario, "Se crearán N, se actualizarán M y se cancelarán K".
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -30,8 +31,12 @@ const { t } = useI18n()
 
 const activities = computed(() => props.summary.activities ?? null)
 const hasActivities = computed(() => (activities.value?.total ?? 0) > 0)
+const toCancel = computed(() => activities.value?.to_cancel ?? 0)
+/** Altas, sustituciones y cancelaciones: todo lo que hará `confirm` con las actividades. */
 const activitiesToImport = computed(() =>
-  activities.value ? activities.value.to_create + activities.value.to_replace : 0
+  activities.value
+    ? activities.value.to_create + activities.value.to_replace + toCancel.value
+    : 0
 )
 const toImport = computed(
   () => props.summary.to_create + props.summary.to_link + activitiesToImport.value
@@ -58,7 +63,20 @@ function onPrimary() {
     <div class="max-w-5xl mx-auto flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4">
       <div class="flex-1 min-w-0">
         <p
-          v-if="hasActivities && activities"
+          v-if="hasActivities && activities && toCancel > 0"
+          class="hidden lg:block text-[14px] text-ink"
+          data-test="import-confirm-summary-calendar"
+        >
+          {{
+            t('importer.confirm.summaryCalendar', {
+              activities: activities.to_create,
+              replaced: activities.to_replace,
+              cancelled: toCancel,
+            })
+          }}
+        </p>
+        <p
+          v-else-if="hasActivities && activities"
           class="hidden lg:block text-[14px] text-ink"
           data-test="import-confirm-summary-all"
         >

@@ -2587,6 +2587,7 @@ export default {
       pdf_encrypted: '{file}: the PDF is password-protected. Remove the password and try again.',
       not_team: "{file}: we couldn't find a list of people.",
       file_unreadable: "{file}: we couldn't open the file.",
+      ics_too_large: '{file}: the calendar is too large to import.',
       pages: {
         calendar_coming_soon: '{file}, pages {pages}: calendar; importing it is coming soon.',
         itinerary_coming_soon: '{file}, pages {pages}: itinerary; importing activities is coming soon.',
@@ -2638,6 +2639,7 @@ export default {
       summaryAll:
         'New contacts: {contacts} · New activities: {activities} · Replaced: {replaced} · Skipped: {skipped}',
       viewNotices: 'Review notifications',
+      summaryCalendar: '{activities} activities will be created, {replaced} updated and {cancelled} cancelled',
     },
     discard: {
       button: 'Discard',
@@ -2717,6 +2719,8 @@ export default {
       pause: 'Pause notifications for now',
       pauseHelp: 'Activities and reminders are created, but nothing is sent until you resume.',
       alreadyPaused: "This tour's notifications are already paused.",
+      willCancel:
+        '{n} activity and its pending notifications will be cancelled. | {n} activities and their pending notifications will be cancelled.',
       willActivate: 'The tour will become active.',
       back: 'Back',
       confirmActivate: 'Confirm and activate',
@@ -2750,12 +2754,20 @@ export default {
       tourActivated: 'The tour is now active.',
       backToDraft: 'Back to draft',
       backToDraftConfirm:
-        'The tour will go back to draft. Reminders stay scheduled; pause notifications so nothing is sent.',
+        'The tour will go back to draft. Reminders stay scheduled unless you pause notifications.',
       backToDraftCancel: 'Cancel',
       backToDraftError: "The tour's status couldn't be changed. Try again.",
       isDraft: 'The tour is in draft.',
       viewSchedule: 'View schedule',
       sendPortal: 'Send portal links to the crew',
+      cancelled: '{n} activity cancelled | {n} activities cancelled',
+      cancelSkipped:
+        "{n} couldn't be cancelled any more (deleted, cancelled or completed) | {n} couldn't be cancelled any more (deleted, cancelled or completed)",
+      backToDraftPause: 'Pause notifications too',
+      backToDraftPauseHelp: "Nothing will be sent until you resume them.",
+      backToDraftPauseError:
+        "The tour is in draft, but notifications couldn't be paused. Pause them with the switch.",
+      notificationsPaused: 'Notifications paused',
     },
     warnings: {
       no_team_found: "We couldn't find any people in what you uploaded.",
@@ -2769,6 +2781,12 @@ export default {
       block_truncated:
         'Part of the document was very dense and some activities may be missing. Check the end of each day.',
       date_order_mixed: 'Dates come in two formats: check the order',
+      ics_outside_window:
+        "{count} event outside the tour dates wasn't imported. | {count} events outside the tour dates weren't imported.",
+      ics_series_truncated: 'Some repeating series had too many dates: we read the first ones.',
+      ics_cancelled_ignored:
+        "{count} cancelled event wasn't in the tour. | {count} cancelled events weren't in the tour.",
+      ics_classification_unavailable: "We couldn't classify the events: check each one's type.",
     },
     drop: {
       title: 'Drop your Excel, CSV, PDF or photos here, or several at once',
@@ -2904,6 +2922,12 @@ export default {
       sourceRow: '{file}, {row}',
       sourceContext: 'Header:',
       noSnippet: "It's an image or a scan: there's no text to show.",
+      fromCalendar: 'Calendar',
+      sourceEvent: '{file} · event {row}',
+      sourceCalendar: 'Calendar:',
+      uid: 'UID {uid}',
+      recurrence: 'Occurrence of {date}',
+      version: 'Version {n}',
       pageN: 'page {page}',
       pending: 'To resolve ({n})',
       ready: 'Ready ({n})',
@@ -2952,6 +2976,36 @@ export default {
       skipped: 'Skipped',
       duplicate_kept: 'Already in the tour',
       duplicate_in_draft_kept: 'Repeated in the import',
+      updated_in_source: 'Changed in the calendar → will be updated',
+      updated_conflict: 'Changed in the calendar and in Giras',
+      updated_kept: 'Keeping the Giras one',
+      cancelled_in_source: 'Cancelled in the calendar',
+      cancelled_kept: 'Kept',
+      cancel: 'Will be cancelled',
+    },
+    calendar: {
+      header: 'Changes from {name}: {new} new · {changed} changed · {cancelled} cancelled',
+      viewSubscription: 'View subscription',
+    },
+    calendarChange: {
+      title: 'Changed in the calendar',
+      conflict: 'You changed it in Giras after importing it',
+      fields: {
+        scheduled_at: 'Start',
+        end_at: 'End',
+        title: 'Title',
+        location_name: 'Place',
+      },
+      update: 'Update',
+      keep: 'Keep the Giras one',
+    },
+    calendarCancel: {
+      title: 'Cancellations',
+      removed: 'No longer in the calendar',
+      cancelled: 'Cancelled in the calendar',
+      help: 'If you cancel it, its pending notifications are cancelled too.',
+      cancel: 'Cancel activity',
+      keep: 'Keep',
     },
     duplicate: {
       skip: 'Skip',
@@ -2979,6 +3033,7 @@ export default {
       ocr_uncertain: 'Check what was read from the image',
       partial_row: 'Incomplete row',
       in_past: 'Already past: no reminders',
+      checkout_inferred: 'Check-out taken from the event end',
     },
     tzSource: {
       iata: 'From the airport',
@@ -2989,6 +3044,8 @@ export default {
       ai_hint: 'Suggested',
       tour: 'Tour time zone',
       user: 'Chosen by you',
+      ics: 'From the calendar',
+      ics_calendar: 'Calendar time zone',
     },
     contactsTab: {
       label: 'Sheet or photo',

@@ -94,6 +94,13 @@ const IMPORT_ACTIVITY: Record<string, BadgeStatus> = {
   skipped: 'off',
   duplicate_kept: 'pending',
   duplicate_in_draft_kept: 'pending',
+  // F3: filas de calendario
+  updated_in_source: 'scheduled',
+  updated_conflict: 'pending',
+  updated_kept: 'off',
+  cancelled_in_source: 'pending',
+  cancelled_kept: 'off',
+  cancel: 'failed',
 }
 
 /** Estado de una fila de actividad del importador (`activityStatus` de `utils/importReview.ts`). */

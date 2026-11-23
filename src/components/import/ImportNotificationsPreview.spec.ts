@@ -300,3 +300,22 @@ describe('ImportNotificationsPreview', () => {
     expect(w2.emitted('notReady')).toHaveLength(1)
   })
 })
+
+describe('ImportNotificationsPreview · cancelaciones (F3)', () => {
+  it('bloque "Cancelaciones" solo con toCancel > 0', async () => {
+    setupFetch(() => jsonResponse(full()))
+    const w = mountPreview({ toCancel: 2 })
+    await flushPromises()
+    const block = w.get('[data-test="import-notices-cancel"]')
+    expect(block.text()).toContain('Cancelaciones')
+    expect(w.get('[data-test="import-notices-will-cancel"]').text()).toBe(
+      'Se cancelarán 2 actividades y sus avisos pendientes.'
+    )
+    const none = mountPreview()
+    await flushPromises()
+    expect(none.find('[data-test="import-notices-cancel"]').exists()).toBe(false)
+    expect(
+      i18n.global.t('importer.notices.willCancel', { n: 1 }, { locale: 'en', plural: 1 })
+    ).toBe('1 activity and its pending notifications will be cancelled.')
+  })
+})

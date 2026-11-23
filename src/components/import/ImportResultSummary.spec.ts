@@ -245,16 +245,99 @@ describe('ImportResultSummary', () => {
       const updateTour = vi.spyOn(tours, 'updateTour').mockImplementation(async () => {
         tours.tours = [tour({ status: 'draft' })]
       })
+      const pause = vi.spyOn(tours, 'pauseNotifications').mockImplementation(async () => {
+        tours.tours = [tour({ status: 'draft', enable_notifications: false })]
+        return { enable_notifications: false, notifications_paused_at: null, changed: true, held: 0 }
+      })
       const w = mountWith(f2Result())
       await w.get('[data-test="import-result-back-to-draft"]').trigger('click')
       expect(updateTour).not.toHaveBeenCalled()
       const modal = w.get('[data-test="import-result-back-to-draft-modal"]')
       expect(modal.text()).toContain('Los recordatorios siguen programados')
+      // F3 (decisión de Oscar): "Pausar también los avisos", marcada por defecto.
+      const box = w.get<HTMLInputElement>('[data-test="import-result-back-to-draft-pause"]')
+      expect(box.element.checked).toBe(true)
+      expect(modal.text()).toContain('Pausar también los avisos')
       await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
       await flushPromises()
       expect(updateTour).toHaveBeenCalledWith('T1', { status: 'draft' })
-      expect(w.get('[data-test="import-result-tour-state"]').text()).toBe('La gira está en borrador.')
+      expect(pause).toHaveBeenCalledWith('T1')
+      expect(updateTour.mock.invocationCallOrder[0]).toBeLessThan(pause.mock.invocationCallOrder[0])
+      const state = w.get('[data-test="import-result-tour-state"]')
+      expect(state.text()).toContain('La gira está en borrador.')
+      expect(w.get('[data-test="import-result-paused"]').text()).toBe('Avisos en pausa')
       expect(w.find('[data-test="import-result-back-to-draft"]').exists()).toBe(false)
+    })
+
+    it('"Volver a borrador" sin la casilla no pausa; si la pausa falla, se dice aparte', async () => {
+      const tours = useToursStore()
+      tours.tours = [tour()]
+      vi.spyOn(tours, 'updateTour').mockResolvedValue()
+      const pause = vi.spyOn(tours, 'pauseNotifications').mockRejectedValue(new Error('boom'))
+      let w = mountWith(f2Result())
+      await w.get('[data-test="import-result-back-to-draft"]').trigger('click')
+      await w.get('[data-test="import-result-back-to-draft-pause"]').setValue(false)
+      await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
+      await flushPromises()
+      expect(pause).not.toHaveBeenCalled()
+      expect(w.get('[data-test="import-result-tour-state"]').text()).toBe('La gira está en borrador.')
+      expect(w.find('[data-test="import-result-paused"]').exists()).toBe(false)
+
+      w = mountWith(f2Result())
+      await w.get('[data-test="import-result-back-to-draft"]').trigger('click')
+      await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
+      await flushPromises()
+      expect(pause).toHaveBeenCalledTimes(1)
+      expect(w.get('[data-test="import-result-tour-state"]').text()).toContain('La gira está en borrador.')
+      expect(w.get('[data-test="import-result-pause-error"]').text()).toBe(
+        'La gira está en borrador, pero no se han podido pausar los avisos. Páusalos con el interruptor.'
+      )
+      expect(w.find('[data-test="import-result-back-to-draft-modal"]').exists()).toBe(false)
+    })
+
+    it('con los avisos ya en pausa no hay casilla y no se vuelve a pausar', async () => {
+      const tours = useToursStore()
+      tours.tours = [tour({ enable_notifications: false })]
+      vi.spyOn(tours, 'updateTour').mockResolvedValue()
+      const pause = vi.spyOn(tours, 'pauseNotifications')
+      const w = mountWith(f2Result())
+      await w.get('[data-test="import-result-back-to-draft"]').trigger('click')
+      expect(w.find('[data-test="import-result-back-to-draft-pause"]').exists()).toBe(false)
+      await w.get('[data-test="import-result-back-to-draft-confirm"]').trigger('click')
+      await flushPromises()
+      expect(pause).not.toHaveBeenCalled()
+      expect(w.get('[data-test="import-result-paused"]').text()).toBe('Avisos en pausa')
+    })
+
+    it('F3: actividades canceladas por el calendario y las que ya no se podían cancelar', () => {
+      useToursStore().tours = [tour()]
+      const w = mountWith(
+        f2Result({
+          activities_created: 0,
+          activities_replaced: 0,
+          activities_cancelled: 2,
+          cancel_skipped: 1,
+          cancelled_uuids: ['A1', 'A2'],
+        })
+      )
+      expect(w.get('[data-test="import-result-cancelled"]').text()).toBe('2 actividades canceladas')
+      expect(w.get('[data-test="import-result-cancel-skipped"]').text()).toContain(
+        '1 ya no se podía cancelar'
+      )
+      // Solo cancela: "Ver agenda" sigue disponible.
+      expect(w.find('[data-test="import-result-schedule"]').exists()).toBe(true)
+
+      // Sin `activities_cancelled`, el recuento de post_import.
+      const fromPost = mountWith(
+        f2Result({
+          post_import: { status: 'done', reminders_created: 0, first_send_at: null, cancelled: 1 },
+        })
+      )
+      expect(fromPost.get('[data-test="import-result-cancelled"]').text()).toBe('1 actividad cancelada')
+      expect(mountWith(f2Result()).find('[data-test="import-result-cancelled"]').exists()).toBe(false)
+      expect(
+        i18n.global.t('importer.result.cancelled', { n: 3 }, { locale: 'en', plural: 3 })
+      ).toBe('3 activities cancelled')
     })
 
     it('recién confirmada con la gira aún en draft en el store: se fía de tour_activated', () => {

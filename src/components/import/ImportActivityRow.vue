@@ -3,7 +3,9 @@
 // el día"), punto del color del tipo (solo punto), título, tipo, zona abreviada si no es la de la
 // gira (con su origen en `title`), página u hoja de origen, confianza y estado con `StatusBadge`,
 // issues y acciones Ver origen · Editar · Omitir/Recuperar. El slot por defecto recibe el resolutor
-// o el editor desplegado.
+// o el editor desplegado. F3: en filas de calendario el origen es "Calendario"; las canceladas en el
+// calendario se deciden solo en su resolutor (sin Editar ni Omitir) y una cambiada omitida se
+// recupera como "Actualizar" (`replace`).
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
@@ -17,6 +19,9 @@ import {
   activityTime,
   confidenceTone,
   formatLocalTime,
+  isCalendarCancelRow,
+  isCalendarChangeRow,
+  isCalendarRow,
   isPairedCheckout,
   timezoneSourceKey,
   zoneShortName,
@@ -33,8 +38,17 @@ const props = withDefaults(
     error?: string
     selected?: boolean
     sourceDocument?: ImportSourceDocument | null
+    /** F3: la actividad ya no está en el feed (`detected.ical.removed`), no "cancelada". */
+    removed?: boolean
   }>(),
-  { typeColor: null, saving: false, error: '', selected: false, sourceDocument: null }
+  {
+    typeColor: null,
+    saving: false,
+    error: '',
+    selected: false,
+    sourceDocument: null,
+    removed: false,
+  }
 )
 const emit = defineEmits<{ patch: [patch: ImportActivityRowPatch]; edit: [row: ImportActivityRow] }>()
 
@@ -59,9 +73,19 @@ const zoneTitle = computed(() => {
   return key ? `${props.row.timezone} · ${t(key)}` : props.row.timezone
 })
 
+const cancelRow = computed(() => isCalendarCancelRow(props.row))
+/**
+ * Tachada si no entra (omitida) o si se va a cancelar. En una cancelada en el calendario, `skip` es
+ * "Mantener": la actividad sigue y no se tacha.
+ */
+const struck = computed(
+  () => (skipped.value && !cancelRow.value) || props.row.action === 'cancel'
+)
+
 const sourceLabel = computed(() => {
   const s = props.row.source_ref
   if (!s) return ''
+  if (isCalendarRow(props.row)) return t('importer.activities.fromCalendar')
   if (s.page) return t('importer.activities.pageN', { page: s.page })
   return s.sheet || ''
 })
@@ -86,17 +110,24 @@ const issueTexts = computed(() => {
 })
 
 // El posible duplicado se pregunta entero en el resolutor; aquí, la etiqueta corta.
-const statusText = computed(() =>
-  status.value === 'possible_duplicate'
-    ? t('importer.activities.possibleDuplicateShort')
-    : t(activityStatusKey(props.row))
-)
+const statusText = computed(() => {
+  if (status.value === 'possible_duplicate') return t('importer.activities.possibleDuplicateShort')
+  if (status.value === 'cancelled_in_source' && props.removed) {
+    return t('importer.calendarCancel.removed')
+  }
+  return t(activityStatusKey(props.row))
+})
 
-/** Recuperar una fila omitida la vuelve a `create` (el servidor recalcula `needs_action`). */
+/**
+ * Recuperar una fila omitida la vuelve a `create` (el servidor recalcula `needs_action`); una
+ * cambiada en el calendario, a `replace` ("Actualizar").
+ */
 function toggleSkip() {
   const id = props.row.client_id
   if (!skipped.value) emit('patch', { client_id: id, action: 'skip' })
-  else emit('patch', { client_id: id, action: 'create' })
+  else if (isCalendarChangeRow(props.row) && props.row.match.activity_uuid) {
+    emit('patch', { client_id: id, action: 'replace', reviewed: true })
+  } else emit('patch', { client_id: id, action: 'create' })
 }
 
 const LINK_BTN =
@@ -117,7 +148,7 @@ const LINK_BTN =
     <div class="flex items-start gap-3">
       <div
         class="w-[52px] shrink-0 pt-0.5 font-time tnum text-[14px] leading-tight"
-        :class="skipped ? 'text-ink-2' : 'text-ink'"
+        :class="struck ? 'text-ink-2' : 'text-ink'"
         data-test="import-activity-time"
       >
         <template v-if="row.all_day">
@@ -143,7 +174,7 @@ const LINK_BTN =
           />
           <span
             class="text-[15px] font-semibold truncate"
-            :class="skipped ? 'text-ink-2 line-through' : 'text-ink'"
+            :class="struck ? 'text-ink-2 line-through' : 'text-ink'"
             data-test="import-activity-title"
           >{{ row.title }}</span>
         </p>
@@ -166,7 +197,7 @@ const LINK_BTN =
 
       <div class="flex flex-col items-end gap-1 shrink-0">
         <StatusBadge
-          v-if="!skipped"
+          v-if="!skipped && !cancelRow"
           size="sm"
           :status="importConfidenceBadge(row.confidence)"
           :label="t(`importer.confidence.${confidenceTone(row.confidence)}`)"
@@ -206,7 +237,7 @@ const LINK_BTN =
         {{ peekOpen ? t('importer.activities.hideSource') : t('importer.activities.viewSource') }}
       </button>
       <button
-        v-if="!skipped"
+        v-if="!skipped && !cancelRow"
         type="button"
         :class="LINK_BTN"
         :disabled="saving"
@@ -216,6 +247,7 @@ const LINK_BTN =
         {{ t('importer.activities.edit') }}
       </button>
       <button
+        v-if="!cancelRow"
         type="button"
         :class="LINK_BTN"
         :disabled="saving"
@@ -237,6 +269,7 @@ const LINK_BTN =
       class="mt-2"
       :source-ref="row.source_ref"
       :source-document="sourceDocument"
+      :timezone="row.timezone || tourTimezone"
     />
 
     <p

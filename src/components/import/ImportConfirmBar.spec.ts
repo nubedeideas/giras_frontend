@@ -109,3 +109,42 @@ describe('ImportConfirmBar', () => {
     expect(w.emitted('confirm')).toBeUndefined()
   })
 })
+
+describe('ImportConfirmBar · calendario (F3)', () => {
+  it('con cancelaciones: "Se crearán N, se actualizarán M y se cancelarán K" y cuentan en el botón', () => {
+    const activities = {
+      total: 4,
+      to_create: 2,
+      to_replace: 1,
+      to_skip: 0,
+      needs_action: 0,
+      duplicates: 0,
+      possible_duplicates: 0,
+      outside_tour: 0,
+      in_past: 0,
+      by_type: {},
+      days: 2,
+      to_cancel: 1,
+    }
+    const w = mount(ImportConfirmBar, {
+      props: {
+        summary: summary({ to_create: 0, to_link: 0, in_group: 0, activities }),
+        canConfirm: true,
+        mode: 'notices',
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-summary-calendar"]').text()).toBe(
+      'Se crearán 2 actividades, se actualizarán 1 y se cancelarán 1'
+    )
+    expect(w.find('[data-test="import-confirm-summary-all"]').exists()).toBe(false)
+    expect(w.get('[data-test="import-confirm"]').text()).toContain('Revisar avisos (4)')
+
+    const none = mount(ImportConfirmBar, {
+      props: { summary: summary({ activities: { ...activities, to_cancel: 0 } }), canConfirm: true },
+      global: { plugins: [i18n] },
+    })
+    expect(none.find('[data-test="import-confirm-summary-calendar"]').exists()).toBe(false)
+    expect(none.find('[data-test="import-confirm-summary-all"]').exists()).toBe(true)
+  })
+})

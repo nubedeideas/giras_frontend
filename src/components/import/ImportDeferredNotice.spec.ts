@@ -62,3 +62,30 @@ describe('ImportDeferredNotice', () => {
     expect(w.find('[data-test="import-deferred"]').exists()).toBe(false)
   })
 })
+
+describe('ImportDeferredNotice · calendario (F3)', () => {
+  it('.ics demasiado grande', () => {
+    const w = mount(ImportDeferredNotice, {
+      props: {
+        job: {
+          detected: {
+            sources: [
+              src({
+                filename: 'gira.ics',
+                kind: 'ics',
+                doc_kind: 'calendar',
+                processed: false,
+                deferred: true,
+                deferred_reason: 'ics_too_large',
+              }),
+            ],
+          },
+        },
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-deferred-line"]').text()).toBe(
+      'gira.ics: el calendario es demasiado grande para importarlo.'
+    )
+  })
+})

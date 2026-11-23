@@ -2604,6 +2604,7 @@ export default {
       pdf_encrypted: '{file}: el PDF está protegido con contraseña. Quítasela e inténtalo de nuevo.',
       not_team: '{file}: no hemos encontrado una lista de personas.',
       file_unreadable: '{file}: no hemos podido abrir el archivo.',
+      ics_too_large: '{file}: el calendario es demasiado grande para importarlo.',
       pages: {
         calendar_coming_soon: '{file}, páginas {pages}: calendario; su importación llegará pronto.',
         itinerary_coming_soon: '{file}, páginas {pages}: itinerario; la importación de actividades llegará pronto.',
@@ -2657,6 +2658,8 @@ export default {
       summaryAll:
         'Contactos nuevos: {contacts} · Actividades nuevas: {activities} · Sustituidas: {replaced} · Omitidas: {skipped}',
       viewNotices: 'Ver avisos',
+      summaryCalendar:
+        'Se crearán {activities} actividades, se actualizarán {replaced} y se cancelarán {cancelled}',
     },
     discard: {
       button: 'Descartar',
@@ -2736,6 +2739,8 @@ export default {
       pause: 'Pausar avisos por ahora',
       pauseHelp: 'Se crean las actividades y los recordatorios, pero no sale nada hasta que reanudes.',
       alreadyPaused: 'Los avisos de esta gira ya están en pausa.',
+      willCancel:
+        'Se cancelará {n} actividad y sus avisos pendientes. | Se cancelarán {n} actividades y sus avisos pendientes.',
       willActivate: 'La gira pasará a activa.',
       back: 'Volver',
       confirmActivate: 'Confirmar y activar',
@@ -2769,12 +2774,20 @@ export default {
       tourActivated: 'La gira ha pasado a activa.',
       backToDraft: 'Volver a borrador',
       backToDraftConfirm:
-        'La gira volverá a borrador. Los recordatorios siguen programados; para que no salga nada, pausa los avisos.',
+        'La gira volverá a borrador. Los recordatorios siguen programados salvo que pauses los avisos.',
       backToDraftCancel: 'Cancelar',
       backToDraftError: 'No se ha podido cambiar el estado de la gira. Inténtalo de nuevo.',
       isDraft: 'La gira está en borrador.',
       viewSchedule: 'Ver agenda',
       sendPortal: 'Enviar enlaces del portal al crew',
+      cancelled: '{n} actividad cancelada | {n} actividades canceladas',
+      cancelSkipped:
+        '{n} ya no se podía cancelar (estaba borrada, cancelada o terminada) | {n} ya no se podían cancelar (estaban borradas, canceladas o terminadas)',
+      backToDraftPause: 'Pausar también los avisos',
+      backToDraftPauseHelp: 'No saldrá ningún aviso hasta que los reanudes.',
+      backToDraftPauseError:
+        'La gira está en borrador, pero no se han podido pausar los avisos. Páusalos con el interruptor.',
+      notificationsPaused: 'Avisos en pausa',
     },
     warnings: {
       no_team_found: 'No hemos encontrado personas en lo que has subido.',
@@ -2788,6 +2801,12 @@ export default {
       block_truncated:
         'Una parte del documento era muy densa y puede faltar alguna actividad. Revisa el final de cada día.',
       date_order_mixed: 'Hay fechas en dos formatos: revisa el orden',
+      ics_outside_window:
+        '{count} evento fuera de las fechas de la gira no se ha importado. | {count} eventos fuera de las fechas de la gira no se han importado.',
+      ics_series_truncated: 'Alguna serie repetida tenía demasiadas fechas: hemos leído las primeras.',
+      ics_cancelled_ignored:
+        '{count} evento cancelado no estaba en la gira. | {count} eventos cancelados no estaban en la gira.',
+      ics_classification_unavailable: 'No hemos podido clasificar los eventos: revisa el tipo de cada uno.',
     },
     drop: {
       title: 'Arrastra aquí tu Excel, CSV, PDF o fotos, o varios a la vez',
@@ -2923,6 +2942,12 @@ export default {
       sourceRow: '{file}, {row}',
       sourceContext: 'Cabecera:',
       noSnippet: 'Es una imagen o un escaneado: no hay texto que mostrar.',
+      fromCalendar: 'Calendario',
+      sourceEvent: '{file} · evento {row}',
+      sourceCalendar: 'Calendario:',
+      uid: 'UID {uid}',
+      recurrence: 'Repetición del {date}',
+      version: 'Versión {n}',
       pageN: 'página {page}',
       pending: 'Por resolver ({n})',
       ready: 'Listas ({n})',
@@ -2971,6 +2996,36 @@ export default {
       skipped: 'Omitida',
       duplicate_kept: 'Ya está en la gira',
       duplicate_in_draft_kept: 'Repetida en lo importado',
+      updated_in_source: 'Cambió en el calendario → se actualizará',
+      updated_conflict: 'Cambió en el calendario y en Giras',
+      updated_kept: 'Se mantiene la de Giras',
+      cancelled_in_source: 'Cancelada en el calendario',
+      cancelled_kept: 'Se mantiene',
+      cancel: 'Se cancelará',
+    },
+    calendar: {
+      header: 'Cambios de {name}: {new} nuevas · {changed} cambiadas · {cancelled} canceladas',
+      viewSubscription: 'Ver suscripción',
+    },
+    calendarChange: {
+      title: 'Cambió en el calendario',
+      conflict: 'La cambiaste en Giras después de importarla',
+      fields: {
+        scheduled_at: 'Inicio',
+        end_at: 'Fin',
+        title: 'Título',
+        location_name: 'Lugar',
+      },
+      update: 'Actualizar',
+      keep: 'Mantener la de Giras',
+    },
+    calendarCancel: {
+      title: 'Cancelaciones',
+      removed: 'Ya no está en el calendario',
+      cancelled: 'Cancelada en el calendario',
+      help: 'Si la cancelas, también se cancelan sus avisos pendientes.',
+      cancel: 'Cancelar actividad',
+      keep: 'Mantener',
     },
     duplicate: {
       skip: 'Omitir',
@@ -2998,6 +3053,7 @@ export default {
       ocr_uncertain: 'Revisa lo leído en la imagen',
       partial_row: 'Fila incompleta',
       in_past: 'Ya ha pasado: no tendrá recordatorios',
+      checkout_inferred: 'Salida deducida del fin del evento',
     },
     tzSource: {
       iata: 'Por el aeropuerto',
@@ -3008,6 +3064,8 @@ export default {
       ai_hint: 'Sugerida',
       tour: 'Zona de la gira',
       user: 'Elegida por ti',
+      ics: 'Del calendario',
+      ics_calendar: 'Zona del calendario',
     },
     contactsTab: {
       label: 'Hoja o foto',

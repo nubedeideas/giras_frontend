@@ -3,6 +3,9 @@
 // igualmente · Sustituir), tipo dudoso, fecha que falta o fuera de la gira, sin hora (hora o "Todo
 // el día"), zona heredada (de la fila o "Aplicar a todas las de {ciudad}" → supuestos) y "Dar por
 // buena". Cada decisión emite un PATCH; la vista lo encola.
+// F3 §4.4: "Cambió en el calendario" (cambios antes → ahora; Actualizar · Mantener la de Giras, sin
+// preselección si también se cambió en Giras) y "Cancelada en el calendario" o "Ya no está en el
+// calendario" (Cancelar actividad · Mantener, sin editor).
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
@@ -15,6 +18,8 @@ import {
   activityStatus,
   formatLocalDate,
   formatLocalTime,
+  isCalendarCancelRow,
+  isCalendarChangeRow,
   type ActivityTypeOption,
 } from '@/utils/importReview'
 import { zoneOptions } from '@/utils/timezones'
@@ -27,8 +32,10 @@ const props = withDefaults(
     saving?: boolean
     /** Título de la fila de la que esta es repetida (`duplicate_of`), si se conoce. */
     duplicateOfTitle?: string | null
+    /** F3: la actividad ya no está en el feed (`detected.ical.removed`), no "cancelada". */
+    removed?: boolean
   }>(),
-  { types: () => [], cities: () => ({}), saving: false, duplicateOfTitle: null }
+  { types: () => [], cities: () => ({}), saving: false, duplicateOfTitle: null, removed: false }
 )
 const emit = defineEmits<{
   patch: [patch: ImportActivityRowPatch]
@@ -67,10 +74,65 @@ const existingText = computed(() => {
 })
 const canReplace = computed(() => !!props.row.match?.activity_uuid)
 
-const showType = computed(() => !skipped.value && issues.value.has('type_uncertain'))
+// ─── Calendario (F3) ──────────────────────────────────────────────────────────
+
+const showChange = computed(() => isCalendarChangeRow(props.row))
+const showCancel = computed(() => isCalendarCancelRow(props.row))
+/** El servidor ya no pide decisión: hay una opción elegida (con conflicto, ninguna hasta elegir). */
+const decided = computed(() => !props.row.needs_action)
+
+type ChangeLine = { field: string; label: string; before: string; after: string; time: boolean }
+
+function instantText(iso: string | null | undefined, tz: string, allDay = false): string {
+  if (!iso) return ''
+  const date = formatLocalDate(iso, tz, locale.value)
+  return allDay ? date : `${date} ${formatLocalTime(iso, tz)}`.trim()
+}
+
+const changeLines = computed<ChangeLine[]>(() => {
+  const r = props.row
+  const m = r.match
+  const tz = r.timezone
+  return (m?.changed_fields ?? []).map((field) => {
+    const label = t(`importer.calendarChange.fields.${field}`)
+    switch (field) {
+      case 'scheduled_at':
+        return {
+          field,
+          label,
+          before: instantText(m.activity_scheduled_at, tz),
+          after: instantText(r.scheduled_at, tz, r.all_day),
+          time: true,
+        }
+      case 'end_at':
+        return {
+          field,
+          label,
+          before: '',
+          after: instantText(r.end_at, r.destination_timezone || tz, r.all_day),
+          time: true,
+        }
+      case 'title':
+        return { field, label, before: m.activity_title ?? '', after: r.title, time: false }
+      default:
+        return { field, label, before: '', after: r.location_name || '—', time: false }
+    }
+  })
+})
+
+const existingActivity = computed(() => {
+  const m = props.row.match
+  const when = instantText(m?.activity_scheduled_at, props.row.timezone)
+  return { title: m?.activity_title || props.row.title, when }
+})
+
+const showType = computed(
+  () => !skipped.value && !showCancel.value && issues.value.has('type_uncertain')
+)
 const showDate = computed(
   () =>
     !skipped.value &&
+    !showCancel.value &&
     (!props.row.date ||
       [
         'outside_tour',
@@ -83,10 +145,13 @@ const showDate = computed(
 const showTime = computed(
   () =>
     !skipped.value &&
+    !showCancel.value &&
     !props.row.all_day &&
     (!props.row.start_time || issues.value.has('time_missing') || issues.value.has('time_unverified'))
 )
-const showZone = computed(() => !skipped.value && issues.value.has('timezone_inherited'))
+const showZone = computed(
+  () => !skipped.value && !showCancel.value && issues.value.has('timezone_inherited')
+)
 
 const cityKnown = computed(() => !!props.row.city_key && props.row.city_key in props.cities)
 const cityLabel = computed(() => {
@@ -103,7 +168,9 @@ const showReviewed = computed(
     !skipped.value &&
     props.row.needs_action &&
     !props.row.reviewed &&
-    status.value !== 'possible_duplicate'
+    status.value !== 'possible_duplicate' &&
+    !showChange.value &&
+    !showCancel.value
 )
 const canReview = computed(() => !!props.row.date && !!props.row.scheduled_at)
 
@@ -152,15 +219,135 @@ const CHOICE =
 const INPUT =
   'min-h-[44px] lg:min-h-[32px] rounded-sm border border-line-2 bg-bg-3 px-2 text-[15px] lg:text-[13px] text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive disabled:opacity-50'
 const LABEL = 'flex flex-col gap-1 text-[13px] font-medium text-ink-2'
+const PRESSED = 'border-olive bg-glass-active text-ink'
+const IDLE = 'border-line-2 bg-bg-3 text-ink hover:bg-glass-hover'
 </script>
 
 <template>
   <div
-    v-if="showDuplicate || showType || showDate || showTime || showZone || showReviewed"
+    v-if="
+      showChange ||
+        showCancel ||
+        showDuplicate ||
+        showType ||
+        showDate ||
+        showTime ||
+        showZone ||
+        showReviewed
+    "
     class="flex flex-col gap-3 rounded-sm border px-3 py-2.5"
     :class="pending ? 'border-failed-fg bg-bg-3' : 'border-line bg-bg-2'"
     data-test="import-activity-resolver"
   >
+    <!-- Cambió en el calendario (F3) -->
+    <div
+      v-if="showChange"
+      class="flex flex-col gap-2"
+      data-test="resolver-calendar-change"
+    >
+      <p class="text-[13px] font-semibold text-ink">
+        {{ t('importer.calendarChange.title') }}
+      </p>
+      <p
+        v-if="row.match.conflict"
+        class="text-[13px] text-pending-fg rounded-sm bg-pending-bg px-2 py-1"
+        data-test="resolver-calendar-conflict"
+      >
+        {{ t('importer.calendarChange.conflict') }}
+      </p>
+      <ul
+        v-if="changeLines.length"
+        class="flex flex-col gap-0.5 text-[13px] text-ink-2"
+      >
+        <li
+          v-for="c in changeLines"
+          :key="c.field"
+          class="break-words"
+          :data-change="c.field"
+        >
+          <span class="font-medium text-ink">{{ c.label }}:</span>{{ ' ' }}<template
+            v-if="c.before"
+          >
+            <span :class="c.time ? 'font-time tnum' : ''">{{ c.before }}</span>{{ ' → ' }}
+          </template><span :class="c.time ? 'font-time tnum text-ink' : 'text-ink'">{{ c.after }}</span>
+        </li>
+      </ul>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-if="canReplace"
+          type="button"
+          :class="[CHOICE, decided && row.action === 'replace' ? PRESSED : IDLE]"
+          :aria-pressed="decided && row.action === 'replace'"
+          :disabled="saving"
+          data-test="resolver-calendar-update"
+          @click="patch({ action: 'replace', reviewed: true })"
+        >
+          {{ t('importer.calendarChange.update') }}
+        </button>
+        <button
+          type="button"
+          :class="[CHOICE, row.action === 'skip' ? PRESSED : IDLE]"
+          :aria-pressed="row.action === 'skip'"
+          :disabled="saving"
+          data-test="resolver-calendar-keep"
+          @click="patch({ action: 'skip' })"
+        >
+          {{ t('importer.calendarChange.keep') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Cancelada en el calendario o ya no está (F3) -->
+    <div
+      v-if="showCancel"
+      class="flex flex-col gap-2"
+      data-test="resolver-calendar-cancel"
+    >
+      <p class="text-[13px] font-semibold text-ink">
+        {{ removed ? t('importer.calendarCancel.removed') : t('importer.calendarCancel.cancelled') }}
+      </p>
+      <p
+        class="text-[13px] text-ink-2 break-words"
+        data-test="resolver-calendar-cancel-activity"
+      >
+        {{ existingActivity.title }}
+        <span
+          v-if="existingActivity.when"
+          class="font-time tnum"
+        >· {{ existingActivity.when }}</span>
+      </p>
+      <p class="text-[13px] text-ink-2">
+        {{ t('importer.calendarCancel.help') }}
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          :class="[
+            CHOICE,
+            row.action === 'cancel'
+              ? 'border-failed-fg bg-failed-bg text-failed-fg'
+              : IDLE,
+          ]"
+          :aria-pressed="row.action === 'cancel'"
+          :disabled="saving"
+          data-test="resolver-calendar-cancel-activity-btn"
+          @click="patch({ action: 'cancel', reviewed: true })"
+        >
+          {{ t('importer.calendarCancel.cancel') }}
+        </button>
+        <button
+          type="button"
+          :class="[CHOICE, decided && row.action === 'skip' ? PRESSED : IDLE]"
+          :aria-pressed="decided && row.action === 'skip'"
+          :disabled="saving"
+          data-test="resolver-calendar-cancel-keep"
+          @click="patch({ action: 'skip' })"
+        >
+          {{ t('importer.calendarCancel.keep') }}
+        </button>
+      </div>
+    </div>
+
     <!-- Posible duplicado -->
     <div
       v-if="showDuplicate"

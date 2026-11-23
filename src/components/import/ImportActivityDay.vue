@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Un día del bloque Actividades (F2 §4.3): cabecera con la fecha local (`font-time tnum`), la
 // ciudad y el recuento, y sus filas. Bajo cada fila, el editor desplegado (slot `expanded`, en
-// escritorio) o el resolutor si le queda algo por decidir.
+// escritorio) o el resolutor si le queda algo por decidir. F3: las filas cambiadas o canceladas en
+// el calendario llevan siempre su resolutor (se puede cambiar de opción).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImportActivityResolver from '@/components/import/ImportActivityResolver.vue'
@@ -15,6 +16,8 @@ import {
   activityNeedsAction,
   activityStatus,
   formatDayLabel,
+  isCalendarCancelRow,
+  isCalendarChangeRow,
   type ActivityTypeOption,
   type ImportSourceDocument,
 } from '@/utils/importReview'
@@ -33,6 +36,8 @@ const props = withDefaults(
     sourceDocuments?: Record<string, ImportSourceDocument>
     /** Título por `client_id` de todas las filas (para "Parece repetida de {title}"). */
     titles?: Record<string, string>
+    /** F3: `activity_uuid` de las actividades que ya no están en el feed. */
+    removedUuids?: string[]
   }>(),
   {
     types: () => [],
@@ -41,6 +46,7 @@ const props = withDefaults(
     selectedId: null,
     sourceDocuments: () => ({}),
     titles: () => ({}),
+    removedUuids: () => [],
   }
 )
 const emit = defineEmits<{
@@ -83,8 +89,17 @@ function hasResolver(r: Row): boolean {
     s === 'replace' ||
     s === 'duplicate_kept' ||
     s === 'duplicate_in_draft_kept' ||
-    (s === 'new' && r.match?.status === 'possible_duplicate')
+    (s === 'new' && r.match?.status === 'possible_duplicate') ||
+    isCalendarChangeRow(r) ||
+    isCalendarCancelRow(r)
   )
+}
+
+const removedSet = computed(() => new Set(props.removedUuids))
+
+function isRemoved(r: Row): boolean {
+  const uuid = r.match?.activity_uuid
+  return isCalendarCancelRow(r) && !!uuid && removedSet.value.has(uuid)
 }
 
 function sourceDocument(r: Row): ImportSourceDocument | null {
@@ -129,6 +144,7 @@ function sourceDocument(r: Row): ImportSourceDocument | null {
         :error="rowErrors[r.client_id]"
         :selected="selectedId === r.client_id"
         :source-document="sourceDocument(r)"
+        :removed="isRemoved(r)"
         @patch="emit('patch', $event)"
         @edit="emit('edit', $event)"
       >
@@ -150,6 +166,7 @@ function sourceDocument(r: Row): ImportSourceDocument | null {
             :cities="cities"
             :saving="saving.has(r.client_id)"
             :duplicate-of-title="(r.duplicate_of && titles[r.duplicate_of]) || null"
+            :removed="isRemoved(r)"
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
           />

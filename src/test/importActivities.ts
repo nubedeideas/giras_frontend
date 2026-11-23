@@ -10,6 +10,7 @@ export function activitySummary(rows: ImportActivityRow[]): ImportActivitySummar
     to_create: rows.filter((r) => r.action === 'create').length,
     to_replace: rows.filter((r) => r.action === 'replace').length,
     to_skip: rows.filter((r) => r.action === 'skip').length,
+    to_cancel: rows.filter((r) => r.action === 'cancel').length,
     needs_action: rows.filter(activityNeedsAction).length,
     duplicates: rows.filter((r) => r.match.status === 'duplicate').length,
     possible_duplicates: rows.filter((r) => r.match.status === 'possible_duplicate').length,
@@ -66,4 +67,83 @@ export function activityJob(
     team_group: null,
     ...overrides,
   }
+}
+
+/** Fila de calendario (F3 §3.5.2): `source_ref.kind = 'ics'`, fecha y hora del fichero. */
+export function calendarActivityRow(overrides: Partial<ImportActivityRow> = {}): ImportActivityRow {
+  const base = activityRow()
+  return {
+    ...base,
+    client_id: 'a5',
+    source_ref: {
+      source: 'd1',
+      document_uuid: 'D1',
+      filename: 'gira.ics',
+      sheet: null,
+      row: 'e12',
+      page: null,
+      kind: 'ics',
+      snippet: 'SUMMARY:Show Madrid\nDTSTART;TZID=Europe/Madrid:20261203T210000',
+      context: 'Gira 2026',
+      uid: 'abc-123@icloud.com',
+      recurrence_id: null,
+      sequence: 0,
+    },
+    activity_type_code: 'show',
+    type_name: 'Show',
+    title: 'Show Madrid',
+    date_text: 'DTSTART 2026-12-03 21:00 (Europe/Madrid)',
+    date_source: 'ics',
+    start_time: '21:00',
+    end_time: '23:00',
+    timezone_source: 'ics',
+    scheduled_at: '2026-12-03T20:00:00Z',
+    end_at: '2026-12-03T22:00:00Z',
+    location_name: 'WiZink Center',
+    destination_name: '',
+    metadata: {},
+    ...overrides,
+  }
+}
+
+/** Fila "Cambió en el calendario" (`updated_in_source`): antes a las 20:00, ahora a las 21:00. */
+export function calendarChangedRow(
+  overrides: Partial<ImportActivityRow> = {},
+  match: Partial<ImportActivityRow['match']> = {}
+): ImportActivityRow {
+  return calendarActivityRow({
+    action: 'replace',
+    match: {
+      status: 'updated_in_source',
+      by: 'uid',
+      activity_uuid: 'ACT-1',
+      activity_title: 'Show Madrid',
+      activity_scheduled_at: '2026-12-03T19:00:00Z',
+      activity_type_code: 'show',
+      activity_external_source: 'ics',
+      changed_fields: ['scheduled_at'],
+      conflict: false,
+      ...match,
+    },
+    ...overrides,
+  })
+}
+
+/** Fila "Cancelada en el calendario" (`cancelled_in_source`) sin decidir: `skip` + `needs_action`. */
+export function calendarCancelledRow(overrides: Partial<ImportActivityRow> = {}): ImportActivityRow {
+  return calendarActivityRow({
+    client_id: 'a6',
+    action: 'skip',
+    needs_action: true,
+    match: {
+      status: 'cancelled_in_source',
+      by: 'uid',
+      activity_uuid: 'ACT-2',
+      activity_title: 'Prueba de sonido',
+      activity_scheduled_at: '2026-12-03T15:00:00Z',
+      activity_type_code: 'soundcheck',
+      activity_external_source: 'ics',
+    },
+    ...overrides,
+  })
 }

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { activityRow } from '@/test/importJobs'
 import ImportActivityDay from './ImportActivityDay.vue'
+import { calendarCancelledRow, calendarChangedRow } from '@/test/importActivities'
 
 beforeEach(() => {
   i18n.global.locale.value = 'es'
@@ -77,5 +78,32 @@ describe('ImportActivityDay', () => {
     })
     expect(w.get('[data-test="resolver-duplicate"]').text()).toContain('Parece repetida de Vuelo IB3456')
     expect(w.find('[data-test="resolver-dup-replace"]').exists()).toBe(false)
+  })
+})
+
+describe('ImportActivityDay · calendario (F3)', () => {
+  it('las filas cambiadas o canceladas llevan siempre su resolutor; retirada del feed por uuid', () => {
+    const w = mount(ImportActivityDay, {
+      props: {
+        date: '2026-12-03',
+        rows: [
+          calendarChangedRow(),
+          calendarCancelledRow({ needs_action: false }),
+          calendarCancelledRow({ client_id: 'a7', match: { ...calendarCancelledRow().match, activity_uuid: 'ACT-9' } }),
+        ],
+        tourTimezone: 'Europe/Madrid',
+        saving: new Set<string>(),
+        removedUuids: ['ACT-2'],
+      },
+      global: { plugins: [i18n] },
+    })
+    expect(w.find('[data-row="a5"] [data-test="resolver-calendar-change"]').exists()).toBe(true)
+    // "Mantener" ya elegido: el resolutor sigue para poder cambiar de opción.
+    expect(w.get('[data-row="a6"] [data-test="resolver-calendar-cancel"]').text()).toContain(
+      'Ya no está en el calendario'
+    )
+    expect(w.get('[data-row="a7"] [data-test="resolver-calendar-cancel"]').text()).toContain(
+      'Cancelada en el calendario'
+    )
   })
 })

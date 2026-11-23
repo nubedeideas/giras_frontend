@@ -3,6 +3,8 @@
  * fases, orden y estado de las filas, si se puede confirmar, fuentes diferidas, claves i18n de
  * error y la validación previa de la subida. F2 (2026-11-22-importacion-f2-actividades.md §4.2):
  * filas de actividad (por día, orden, estado, issues, zona) y formato de horas y fechas locales.
+ * F3 (2026-11-23-importacion-f3-ics-ical.md §4.2): filas de calendario (cambiadas o canceladas en
+ * el calendario), avisos `ics_*` y origen de la zona `ics`/`ics_calendar`.
  */
 import { DateTime } from 'luxon'
 import { ApiError } from '@/utils/apiClient'
@@ -239,6 +241,9 @@ export function activityTypeOptions(
  * `unresolved_rows` aunque su confianza no baje de 0,70.
  */
 export function activityNeedsAction(r: ImportActivityRow): boolean {
+  // F3: "Cancelada en el calendario" llega con `skip` ("Mantener") y `needs_action` hasta que el
+  // usuario elige: omitida no basta para darla por resuelta.
+  if (r.match?.status === 'cancelled_in_source') return r.action !== 'cancel' && r.needs_action
   if (r.action === 'skip') return false
   return r.needs_action || !r.scheduled_at
 }
@@ -297,12 +302,43 @@ export type ActivityStatus =
   | 'skipped'
   | 'duplicate_kept'
   | 'duplicate_in_draft_kept'
+  // F3: filas de calendario ya importadas
+  | 'updated_in_source'
+  | 'updated_conflict'
+  | 'updated_kept'
+  | 'cancelled_in_source'
+  | 'cancelled_kept'
+  | 'cancel'
+
+/** La fila sale de un calendario (`.ics` subido o suscripción iCal). */
+export function isCalendarRow(r: Pick<ImportActivityRow, 'source_ref'>): boolean {
+  return r.source_ref?.kind === 'ics'
+}
+
+/** El evento del calendario ya importado cambió (`updated_in_source`). */
+export function isCalendarChangeRow(r: Pick<ImportActivityRow, 'match'>): boolean {
+  return r.match?.status === 'updated_in_source'
+}
+
+/** El evento del calendario ya importado se canceló o desapareció (`cancelled_in_source`). */
+export function isCalendarCancelRow(r: Pick<ImportActivityRow, 'match'>): boolean {
+  return r.match?.status === 'cancelled_in_source'
+}
 
 /**
  * Estado de la fila. Un duplicado seguro (`duplicate`, `duplicate_in_draft`) que el usuario recupera
- * (`create`) conserva su insignia (`*_kept`) y el resolutor de duplicado.
+ * (`create`) conserva su insignia (`*_kept`) y el resolutor de duplicado. F3: "Cambió en el
+ * calendario" (con conflicto, por decidir hasta elegir) y "Cancelada en el calendario" (por decidir
+ * hasta elegir "Cancelar actividad" o "Mantener").
  */
 export function activityStatus(r: ImportActivityRow): ActivityStatus {
+  if (r.action === 'cancel') return 'cancel'
+  if (isCalendarCancelRow(r)) return activityNeedsAction(r) ? 'cancelled_in_source' : 'cancelled_kept'
+  if (isCalendarChangeRow(r)) {
+    if (r.action === 'skip') return 'updated_kept'
+    if (r.match.conflict && r.needs_action) return 'updated_conflict'
+    if (r.action === 'replace') return 'updated_in_source'
+  }
   if (r.action === 'replace') return 'replace'
   const status = r.match?.status
   if (r.action === 'skip') {
@@ -340,6 +376,7 @@ const ACTIVITY_ISSUES = new Set([
   'ocr_uncertain',
   'partial_row',
   'in_past',
+  'checkout_inferred',
 ])
 
 /**
@@ -359,6 +396,8 @@ const TZ_SOURCES = new Set<ImportTimezoneSource>([
   'ai_hint',
   'tour',
   'user',
+  'ics',
+  'ics_calendar',
 ])
 
 /** Clave i18n de por qué la fila tiene esa zona (`importer.tzSource.*`). */
@@ -464,6 +503,55 @@ export function pendingCounts(job: ImportJob | null | undefined): {
   const team = (job?.draft?.team ?? []).filter((r) => r.needs_action).length
   const activities = (job?.draft?.activities ?? []).filter(activityNeedsAction).length
   return { team, activities, total: team + activities }
+}
+
+// ─── Calendario (F3) ──────────────────────────────────────────────────────────
+
+/** `activity_uuid` de las actividades que ya no están en el feed (`detected.ical.removed`). */
+export function removedActivityUuids(job: Pick<ImportJob, 'detected'> | null | undefined): string[] {
+  const d = job?.detected
+  const removed = d && 'ical' in d ? (d.ical?.removed ?? []) : []
+  return removed.map((x) => x.activity_uuid).filter(Boolean)
+}
+
+/**
+ * `20261203T200000Z` (UTC), `20261203T200000` (local) o `20261203` (día) de `RECURRENCE-ID` como
+ * fecha legible ("mié 3 dic 21:00"); en `tz` si es UTC. `""` si no se entiende.
+ */
+export function formatRecurrenceId(value: string | null | undefined, tz: string, locale = 'es'): string {
+  if (!value) return ''
+  const v = value.trim()
+  const utc = v.endsWith('Z')
+  const raw = utc ? v.slice(0, -1) : v
+  const withTime = raw.includes('T')
+  let dt = withTime
+    ? DateTime.fromFormat(raw, "yyyyMMdd'T'HHmmss", { zone: utc ? 'utc' : tz })
+    : DateTime.fromFormat(raw, 'yyyyMMdd', { zone: tz })
+  if (!dt.isValid) return ''
+  if (utc) dt = dt.setZone(tz)
+  return dt.setLocale(locale).toFormat(withTime ? 'ccc d LLL HH:mm' : 'ccc d LLL')
+}
+
+const WARNING_CODES = new Set([
+  'no_team_found',
+  'rows_truncated',
+  'sheet_truncated',
+  'pdf_pages_truncated',
+  'too_large_truncated',
+  'no_content_found',
+  'no_activities_found',
+  'activity_rows_truncated',
+  'block_truncated',
+  'date_order_mixed',
+  'ics_outside_window',
+  'ics_series_truncated',
+  'ics_cancelled_ignored',
+  'ics_classification_unavailable',
+])
+
+/** Clave i18n de un aviso del borrador (`importer.warnings.*`) o `null` si no tiene texto propio. */
+export function warningKey(code: string | null | undefined): string | null {
+  return code && WARNING_CODES.has(code) ? `importer.warnings.${code}` : null
 }
 
 // ─── Confirmar ────────────────────────────────────────────────────────────────

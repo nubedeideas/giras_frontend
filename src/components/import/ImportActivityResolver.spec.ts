@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { activityRow } from '@/test/importJobs'
-import { activityJob } from '@/test/importActivities'
+import {
+  activityJob,
+  calendarCancelledRow,
+  calendarChangedRow,
+} from '@/test/importActivities'
 import type { ImportActivityRow } from '@/composables/useImportJobs'
 import ImportActivityResolver from './ImportActivityResolver.vue'
 
@@ -156,5 +160,85 @@ describe('ImportActivityResolver', () => {
     expect(w.get('[data-test="resolver-duplicate"]').text()).toContain(
       'Parece repetida de otra fila de lo importado'
     )
+  })
+})
+
+describe('ImportActivityResolver · calendario (F3)', () => {
+  it('cambió en el calendario: cambios antes → ahora en font-time y "Actualizar" elegido', async () => {
+    const w = mountResolver(
+      calendarChangedRow(
+        {},
+        { changed_fields: ['scheduled_at', 'title', 'location_name'], activity_title: 'Show MAD' }
+      )
+    )
+    const block = w.get('[data-test="resolver-calendar-change"]')
+    expect(block.text()).toContain('Cambió en el calendario')
+    expect(w.find('[data-test="resolver-calendar-conflict"]').exists()).toBe(false)
+    const start = w.get('[data-change="scheduled_at"]')
+    expect(start.text()).toContain('Inicio:')
+    expect(start.text()).toContain('jue 3 dic 20:00')
+    expect(start.text()).toContain('→')
+    expect(start.text()).toContain('jue 3 dic 21:00')
+    expect(start.findAll('.font-time.tnum')).toHaveLength(2)
+    expect(w.get('[data-change="title"]').text()).toBe('Título: Show MAD → Show Madrid')
+    expect(w.get('[data-change="location_name"]').text()).toBe('Lugar: WiZink Center')
+    const update = w.get('[data-test="resolver-calendar-update"]')
+    expect(update.text()).toBe('Actualizar')
+    expect(update.attributes('aria-pressed')).toBe('true')
+    expect(w.get('[data-test="resolver-calendar-keep"]').text()).toBe('Mantener la de Giras')
+    await w.get('[data-test="resolver-calendar-keep"]').trigger('click')
+    await update.trigger('click')
+    expect(w.emitted('patch')).toEqual([
+      [{ client_id: 'a5', action: 'skip' }],
+      [{ client_id: 'a5', action: 'replace', reviewed: true }],
+    ])
+    // Sin "Dar por buena" ni duplicado: lo decide su bloque.
+    expect(w.find('[data-test="resolver-reviewed"]').exists()).toBe(false)
+    expect(w.find('[data-test="resolver-duplicate"]').exists()).toBe(false)
+  })
+
+  it('con conflicto: aviso y ninguna opción preseleccionada', () => {
+    const w = mountResolver(calendarChangedRow({ needs_action: true }, { conflict: true }))
+    expect(w.get('[data-test="resolver-calendar-conflict"]').text()).toBe(
+      'La cambiaste en Giras después de importarla'
+    )
+    expect(w.get('[data-test="resolver-calendar-update"]').attributes('aria-pressed')).toBe('false')
+    expect(w.get('[data-test="resolver-calendar-keep"]').attributes('aria-pressed')).toBe('false')
+    expect(w.get('[data-test="import-activity-resolver"]').classes()).toContain('border-failed-fg')
+    expect(w.find('[data-test="resolver-reviewed"]').exists()).toBe(false)
+  })
+
+  it('cancelada en el calendario: emite cancel (revisada) o skip, sin editor', async () => {
+    const w = mountResolver(calendarCancelledRow())
+    const block = w.get('[data-test="resolver-calendar-cancel"]')
+    expect(block.text()).toContain('Cancelada en el calendario')
+    expect(w.get('[data-test="resolver-calendar-cancel-activity"]').text()).toContain('Prueba de sonido')
+    expect(
+      w.get('[data-test="resolver-calendar-cancel-activity"] .font-time').text()
+    ).toContain('jue 3 dic 16:00')
+    // Ninguna elegida mientras pide decisión ("Mantener" es el skip por defecto del servidor).
+    expect(w.get('[data-test="resolver-calendar-cancel-keep"]').attributes('aria-pressed')).toBe('false')
+    expect(w.find('[data-test="resolver-type"]').exists()).toBe(false)
+    expect(w.find('[data-test="resolver-date"]').exists()).toBe(false)
+    expect(w.find('[data-test="resolver-reviewed"]').exists()).toBe(false)
+    await w.get('[data-test="resolver-calendar-cancel-activity-btn"]').trigger('click')
+    await w.get('[data-test="resolver-calendar-cancel-keep"]').trigger('click')
+    expect(w.emitted('patch')).toEqual([
+      [{ client_id: 'a6', action: 'cancel', reviewed: true }],
+      [{ client_id: 'a6', action: 'skip' }],
+    ])
+  })
+
+  it('retirada del feed: "Ya no está en el calendario"; elegida, se marca', () => {
+    let w = mountResolver(calendarCancelledRow(), { removed: true })
+    expect(w.get('[data-test="resolver-calendar-cancel"]').text()).toContain(
+      'Ya no está en el calendario'
+    )
+    w = mountResolver(calendarCancelledRow({ action: 'cancel', needs_action: false }))
+    expect(
+      w.get('[data-test="resolver-calendar-cancel-activity-btn"]').attributes('aria-pressed')
+    ).toBe('true')
+    w = mountResolver(calendarCancelledRow({ needs_action: false }))
+    expect(w.get('[data-test="resolver-calendar-cancel-keep"]').attributes('aria-pressed')).toBe('true')
   })
 })

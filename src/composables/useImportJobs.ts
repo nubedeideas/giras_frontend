@@ -253,10 +253,30 @@ export interface ImportDetectedSource {
   activities_found?: number
 }
 
+/** Evento ya importado que desapareció del feed (F3 §3.8.2): su fila propone cancelarlo. */
+export interface ImportDetectedIcalRemoved {
+  key: string
+  activity_uuid: string
+  summary: string
+}
+
+/** `detected.ical` de un job de suscripción (F3 §3.8.2). Solo en `source_kind="ical_sync"`. */
+export interface ImportDetectedIcal {
+  subscription_uuid: string
+  name: string
+  keys?: string[]
+  removed?: ImportDetectedIcalRemoved[]
+  new?: number
+  changed?: number
+  cancelled?: number
+}
+
 export interface ImportDetected {
   sources: ImportDetectedSource[]
   /** F2: lo que pidió la entrada al crear el job (`any` por defecto). Ausente en jobs de F1. */
   expected?: ImportExpected
+  /** F3: solo en jobs de una suscripción iCal. */
+  ical?: ImportDetectedIcal
 }
 
 export type ImportWarningCode =
@@ -271,12 +291,19 @@ export type ImportWarningCode =
   | 'activity_rows_truncated'
   | 'block_truncated'
   | 'date_order_mixed'
+  // F3 (§3.4.4)
+  | 'ics_outside_window'
+  | 'ics_series_truncated'
+  | 'ics_cancelled_ignored'
+  | 'ics_classification_unavailable'
 
 /** Aviso de `draft.warnings[]` (§3.5.2): código con parámetros opcionales. */
 export interface ImportWarning {
   code: ImportWarningCode
   limit?: number
   source?: string
+  /** F3: eventos afectados (`ics_outside_window`, `ics_series_truncated`, `ics_cancelled_ignored`). */
+  count?: number
 }
 
 export type ImportDateOrder = 'dmy' | 'mdy' | 'ymd'
@@ -570,6 +597,8 @@ export interface ImportPostImport {
    * unidad que la vista previa y el cupo. Falta en jobs confirmados antes de añadirse.
    */
   messages_by_channel?: Record<ImportNotificationChannel, number>
+  /** F3: actividades canceladas por el calendario (`after_bulk_import(cancelled_ids=…)`). */
+  cancelled?: number
 }
 
 /**

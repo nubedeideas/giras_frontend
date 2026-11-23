@@ -32,6 +32,8 @@ const props = withDefaults(
     sourceDocuments?: Record<string, ImportSourceDocument>
     /** Un PATCH de supuestos en curso: la lista se bloquea con "Recalculando…". */
     recalculating?: boolean
+    /** F3: `activity_uuid` de las actividades que ya no están en el feed (`detected.ical.removed`). */
+    removedUuids?: string[]
   }>(),
   {
     types: () => [],
@@ -41,6 +43,7 @@ const props = withDefaults(
     selectedId: null,
     sourceDocuments: () => ({}),
     recalculating: false,
+    removedUuids: () => [],
   }
 )
 const emit = defineEmits<{
@@ -126,6 +129,7 @@ const readyOpen = computed(
           :selected-id="selectedId"
           :source-documents="sourceDocuments"
           :titles="titles"
+          :removed-uuids="removedUuids"
           @patch="emit('patch', $event)"
           @city="emit('city', $event)"
           @edit="emit('edit', $event)"
@@ -186,6 +190,7 @@ const readyOpen = computed(
             :selected-id="selectedId"
             :source-documents="sourceDocuments"
             :titles="titles"
+            :removed-uuids="removedUuids"
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
             @edit="emit('edit', $event)"

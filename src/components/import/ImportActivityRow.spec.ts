@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { activityRow } from '@/test/importJobs'
+import {
+  calendarActivityRow,
+  calendarCancelledRow,
+  calendarChangedRow,
+} from '@/test/importActivities'
 import ImportActivityRow from './ImportActivityRow.vue'
 
 beforeEach(() => {
@@ -121,5 +126,67 @@ describe('ImportActivityRow', () => {
     expect(w.find('[data-test="import-source-peek"]').exists()).toBe(false)
     await w.get('[data-test="import-activity-peek"]').trigger('click')
     expect(w.get('[data-test="import-source-snippet"]').text()).toContain('IB3456 MAD-BCN')
+  })
+
+  describe('filas de calendario (F3)', () => {
+    it('"Calendario" como origen y "Del calendario" como origen de la zona', () => {
+      const w = mountRow({
+        row: calendarActivityRow({ timezone: 'America/Mexico_City', timezone_source: 'ics' }),
+      })
+      expect(w.text()).toContain('Calendario')
+      expect(w.text()).not.toContain('p3:L14')
+      expect(w.get('[data-test="import-activity-zone"]').attributes('title')).toBe(
+        'America/Mexico_City · Del calendario'
+      )
+    })
+
+    it('cambió en el calendario: insignia scheduled; omitida se recupera con replace', async () => {
+      let w = mountRow({ row: calendarChangedRow() })
+      const badge = w.get('[data-test="import-activity-status"]')
+      expect(badge.attributes('data-status')).toBe('scheduled')
+      expect(badge.text()).toBe('Cambió en el calendario → se actualizará')
+      w = mountRow({ row: calendarChangedRow({ needs_action: true }, { conflict: true }) })
+      expect(w.get('[data-test="import-activity-status"]').attributes('data-status')).toBe('pending')
+      expect(w.get('[data-test="import-activity-status"]').text()).toBe(
+        'Cambió en el calendario y en Giras'
+      )
+      w = mountRow({ row: calendarChangedRow({ action: 'skip' }) })
+      await w.get('[data-test="import-activity-restore"]').trigger('click')
+      expect(w.emitted('patch')![0][0]).toEqual({ client_id: 'a5', action: 'replace', reviewed: true })
+    })
+
+    it('cancelada en el calendario: pendiente, sin Editar ni Omitir y sin tachar', () => {
+      const w = mountRow({ row: calendarCancelledRow() })
+      expect(w.get('li').attributes('data-needs-action')).toBe('true')
+      const badge = w.get('[data-test="import-activity-status"]')
+      expect(badge.attributes('data-status')).toBe('pending')
+      expect(badge.text()).toBe('Cancelada en el calendario')
+      expect(w.find('[data-test="import-activity-edit"]').exists()).toBe(false)
+      expect(w.find('[data-test="import-activity-skip"]').exists()).toBe(false)
+      expect(w.find('[data-test="import-activity-restore"]').exists()).toBe(false)
+      expect(w.get('[data-test="import-activity-title"]').classes()).not.toContain('line-through')
+      expect(w.find('[data-test="import-activity-confidence"]').exists()).toBe(false)
+      // Retirada del feed: "Ya no está en el calendario".
+      const removed = mountRow({ row: calendarCancelledRow(), removed: true })
+      expect(removed.get('[data-test="import-activity-status"]').text()).toBe(
+        'Ya no está en el calendario'
+      )
+    })
+
+    it('"Se cancelará": insignia failed y título tachado', () => {
+      const w = mountRow({
+        row: calendarCancelledRow({ action: 'cancel', needs_action: false, reviewed: true }),
+      })
+      const badge = w.get('[data-test="import-activity-status"]')
+      expect(badge.attributes('data-status')).toBe('failed')
+      expect(badge.text()).toBe('Se cancelará')
+      expect(w.get('[data-test="import-activity-title"]').classes()).toContain('line-through')
+      expect(w.get('li').attributes('data-needs-action')).toBe('false')
+    })
+
+    it('issue checkout_inferred traducido', () => {
+      const w = mountRow({ row: calendarActivityRow({ issues: ['checkout_inferred'] }) })
+      expect(w.text()).toContain('Salida deducida del fin del evento')
+    })
   })
 })

@@ -3,18 +3,26 @@
 // que se usó como contexto y el texto original de la fila (`snippet`, sin enmascarar). En fotos y
 // PDF escaneados no hay texto: botón "Abrir documento" y página. `download_url` exige JWT (en una
 // pestaña nueva da 401): el documento se descarga con `apiClient`, como en Documentos de Mi Gira.
+// F3 §4.4: en filas de calendario (`kind === 'ics'`), "{archivo} · evento {row}", el calendario
+// (`context`, X-WR-CALNAME), el texto del evento, el UID (truncado, completo en `title`), la
+// repetición (`recurrence_id`) y la versión (`sequence` > 0).
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { Translation, useI18n } from 'vue-i18n'
 import type { ImportActivitySourceRef } from '@/composables/useImportJobs'
 import { useTourDocuments } from '@/composables/useTourDocuments'
-import type { ImportSourceDocument } from '@/utils/importReview'
+import { formatRecurrenceId, type ImportSourceDocument } from '@/utils/importReview'
 
 const props = withDefaults(
-  defineProps<{ sourceRef: ImportActivitySourceRef; sourceDocument?: ImportSourceDocument | null }>(),
-  { sourceDocument: null }
+  defineProps<{
+    sourceRef: ImportActivitySourceRef
+    sourceDocument?: ImportSourceDocument | null
+    /** Zona en la que se pinta la repetición de un evento de calendario. */
+    timezone?: string
+  }>(),
+  { sourceDocument: null, timezone: 'Europe/Madrid' }
 )
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const downloading = ref(false)
 const downloadError = ref(false)
@@ -36,8 +44,27 @@ async function openDocument() {
 const file = computed(() => props.sourceRef.filename || t('importer.pastedText'))
 const isVisual = computed(() => ['image', 'pdf_scan'].includes(props.sourceRef.kind))
 
+const isCalendar = computed(() => props.sourceRef.kind === 'ics')
+
+/** UID muy largos (Google, Outlook) se recortan; el completo va en `title`. */
+const UID_MAX = 48
+const uid = computed(() => props.sourceRef.uid ?? '')
+const uidShort = computed(() =>
+  uid.value.length > UID_MAX ? `${uid.value.slice(0, UID_MAX)}…` : uid.value
+)
+const recurrence = computed(() =>
+  formatRecurrenceId(props.sourceRef.recurrence_id, props.timezone, locale.value)
+)
+const version = computed(() => props.sourceRef.sequence ?? 0)
+
 const where = computed(() => {
   const s = props.sourceRef
+  if (isCalendar.value) {
+    return t('importer.activities.sourceEvent', {
+      file: s.filename || t('importer.activities.fromCalendar'),
+      row: s.row,
+    })
+  }
   if (s.page) return t('importer.activities.sourcePage', { file: file.value, page: s.page })
   return t('importer.activities.sourceRow', { file: file.value, row: s.sheet ? `${s.sheet} · ${s.row}` : s.row })
 })
@@ -59,7 +86,9 @@ const where = computed(() => {
       class="text-ink-2 break-words"
       data-test="import-source-context"
     >
-      <span class="font-medium">{{ t('importer.activities.sourceContext') }}</span>
+      <span class="font-medium">{{
+        isCalendar ? t('importer.activities.sourceCalendar') : t('importer.activities.sourceContext')
+      }}</span>
       {{ sourceRef.context }}
     </p>
     <p
@@ -75,6 +104,35 @@ const where = computed(() => {
     >
       {{ t('importer.activities.noSnippet') }}
     </p>
+    <template v-if="isCalendar">
+      <p
+        v-if="uid"
+        class="text-ink-2 break-all"
+        :title="uid"
+        data-test="import-source-uid"
+      >
+        {{ t('importer.activities.uid', { uid: uidShort }) }}
+      </p>
+      <Translation
+        v-if="recurrence"
+        keypath="importer.activities.recurrence"
+        scope="global"
+        tag="p"
+        class="text-ink-2"
+        data-test="import-source-recurrence"
+      >
+        <template #date>
+          <span class="font-time tnum">{{ recurrence }}</span>
+        </template>
+      </Translation>
+      <p
+        v-if="version > 0"
+        class="text-ink-2"
+        data-test="import-source-version"
+      >
+        {{ t('importer.activities.version', { n: version }) }}
+      </p>
+    </template>
     <button
       v-if="sourceDocument && (isVisual || !sourceRef.snippet)"
       type="button"

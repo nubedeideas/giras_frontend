@@ -4,6 +4,8 @@
 // ahora" (con protección frente a respuestas atrasadas) y pinta destinatarios, recordatorios por
 // tipo, reglas, alerta del día de show, primer envío y WhatsApp frente al cupo (D-P3: sin bloquear,
 // con "Ver planes"). Confirmar lo hace la vista: aquí solo se emite `confirm(pause)`.
+// F3 §4.4: bloque "Cancelaciones" si el borrador cancela actividades del calendario
+// (`summary.activities.to_cancel`, lo pasa la vista: la vista previa no lo trae).
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Translation, useI18n } from 'vue-i18n'
@@ -32,8 +34,10 @@ const props = withDefaults(
     busy?: boolean
     /** Error de `confirm` ya traducido. */
     confirmError?: string
+    /** F3: actividades que se cancelarán al confirmar (`summary.activities.to_cancel`). */
+    toCancel?: number
   }>(),
-  { timezone: null, busy: false, confirmError: '' }
+  { timezone: null, busy: false, confirmError: '', toCancel: 0 }
 )
 const emit = defineEmits<{ back: []; confirm: [pause: boolean]; notReady: [] }>()
 
@@ -361,6 +365,23 @@ function onConfirm() {
             data-test="import-notices-team-not-default"
           >
             {{ t('importer.notices.teamNotDefault', { group: recipients?.group?.name ?? '' }) }}
+          </p>
+        </section>
+
+        <!-- Cancelaciones del calendario (F3) -->
+        <section
+          v-if="toCancel > 0"
+          class="flex flex-col gap-2 rounded-lg border border-line bg-bg-3 p-4"
+          data-test="import-notices-cancel"
+        >
+          <h2 class="text-[11px] font-bold text-ink-2 tracking-[1px] uppercase">
+            {{ t('importer.calendarCancel.title') }}
+          </h2>
+          <p
+            class="text-[14px] text-failed-fg rounded-sm bg-failed-bg px-3 py-2"
+            data-test="import-notices-will-cancel"
+          >
+            {{ t('importer.notices.willCancel', { n: toCancel }, toCancel) }}
           </p>
         </section>
 

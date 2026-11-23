@@ -7,6 +7,8 @@
 // que entra al grupo) la barra lleva al paso `?step=notices` ("Qué se va a enviar y a quién",
 // ImportNotificationsPreview), que confirma con `{pause_notifications, activate_tour: true}`.
 // Los PATCH van en cola secuencial; cada respuesta sustituye al job entero.
+// F3 §4.4: cabecera "Cambios de {calendario}" en jobs de suscripción, avisos `ics_*` con recuento,
+// filas que ya no están en el feed (`detected.ical.removed`) y cancelaciones en el paso de avisos.
 import { computed, onMounted, ref, watch } from 'vue'
 import { DateTime } from 'luxon'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
@@ -62,6 +64,8 @@ import {
   isHotelRow,
   needsResolver,
   pendingCounts,
+  removedActivityUuids,
+  warningKey,
   type ImportSourceDocument,
 } from '@/utils/importReview'
 import { FALLBACK_TOUR_ZONE } from '@/utils/timezones'
@@ -279,7 +283,7 @@ const blocks = computed<('team' | 'activities')[]>(() => {
 const confirmMode = computed<'confirm' | 'notices'>(() => {
   const a = summary.value?.activities
   const activitiesIn = a
-    ? a.to_create + a.to_replace
+    ? a.to_create + a.to_replace + (a.to_cancel ?? 0)
     : activityRows.value.filter((r) => r.action !== 'skip').length
   return activitiesIn > 0 || (summary.value?.in_group ?? 0) > 0 ? 'notices' : 'confirm'
 })
@@ -325,12 +329,22 @@ const detectedItems = computed(() => [
   })),
 ])
 
+/** Avisos del borrador con texto propio (uno desconocido no se pinta en crudo); F3 con `count`. */
 const warnings = computed(() =>
-  (job.value?.draft?.warnings ?? []).map((w, i) => ({
-    key: `${i}-${w.code}`,
-    text: t(`importer.warnings.${w.code}`, { limit: w.limit ?? '' }),
-  }))
+  (job.value?.draft?.warnings ?? []).flatMap((w, i) => {
+    const key = warningKey(w.code)
+    if (!key) return []
+    const params = { limit: w.limit ?? '', count: w.count ?? 0, source: w.source ?? '' }
+    const text = w.count !== undefined ? t(key, params, w.count) : t(key, params)
+    return [{ key: `${i}-${w.code}`, text }]
+  })
 )
+
+/** F3: job de una suscripción iCal (calendario y recuentos de la sincronización). */
+const calendar = computed(() => job.value?.calendar ?? null)
+const calendarLink = { name: 'settings', query: { tab: 'calendars' } }
+const removedUuids = computed(() => removedActivityUuids(job.value))
+const toCancel = computed(() => summary.value?.activities?.to_cancel ?? 0)
 
 const groupLine = computed(() => {
   const g = job.value?.team_group
@@ -558,7 +572,9 @@ async function confirm(opts: ImportConfirmOptions = {}) {
 /** Tras `confirm`: contactos, catálogo de recordatorios, gira (estado y pausa) y actividades. */
 function refreshAfterConfirm(j: ImportJob, hadTeam: boolean) {
   const r = j.result as Partial<ImportResult>
-  const activities = (r.activities_created ?? 0) + (r.activities_replaced ?? 0)
+  // F3: las cancelaciones del calendario también cambian la agenda (y cancelan sus avisos).
+  const activities =
+    (r.activities_created ?? 0) + (r.activities_replaced ?? 0) + (r.activities_cancelled ?? 0)
   // Cambian los contactos de la gira y los destinatarios del Equipo de la gira.
   if (hadTeam || activities === 0) void contactsStore.fetchContacts()
   void reminderCatalog.invalidate(j.tour)
@@ -749,6 +765,7 @@ function onProcessed(j: ImportJob) {
           :timezone="tourTimezone"
           :busy="confirming"
           :confirm-error="confirmError"
+          :to-cancel="toCancel"
           @back="onNoticesBack"
           @confirm="onNoticesConfirm"
           @not-ready="onNoticesNotReady"
@@ -763,6 +780,29 @@ function onProcessed(j: ImportJob) {
             <h1 class="text-[20px] font-bold text-ink">
               {{ t('importer.title') }}
             </h1>
+            <p
+              v-if="calendar"
+              class="flex flex-wrap items-center gap-x-2 text-[14px] text-ink"
+              data-test="import-calendar-header"
+            >
+              <span>
+                {{
+                  t('importer.calendar.header', {
+                    name: calendar.name,
+                    new: calendar.new,
+                    changed: calendar.changed,
+                    cancelled: calendar.cancelled,
+                  })
+                }}
+              </span>
+              <RouterLink
+                :to="calendarLink"
+                class="inline-flex items-center min-h-[44px] lg:min-h-0 font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+                data-test="import-calendar-link"
+              >
+                {{ t('importer.calendar.viewSubscription') }}
+              </RouterLink>
+            </p>
             <p
               v-if="detectedItems.length"
               class="text-[14px] text-ink-2"
@@ -949,6 +989,7 @@ function onProcessed(j: ImportJob) {
                 :selected-id="isMobile ? null : selectedId"
                 :source-documents="sourceDocuments"
                 :recalculating="assumptionsSaving"
+                :removed-uuids="removedUuids"
                 @patch="patchRow"
                 @city="onCityZone"
                 @edit="onEdit"
