@@ -39,6 +39,8 @@ export type IcalErrorCode =
   | 'http_404'
   | 'http_410'
   | 'http_5xx'
+  | 'sync_failed'
+  | 'url_unreadable'
   | `http_${number}`
   | 'too_large'
   | 'ics_too_large'

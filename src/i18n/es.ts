@@ -2529,6 +2529,8 @@ export default {
       gone: 'El calendario ya no está publicado o la dirección ha cambiado.',
       tooLarge: 'El calendario es demasiado grande.',
       notIcs: 'La dirección no devuelve un calendario.',
+      syncFailed: 'La sincronización ha fallado por un error interno. Lo reintentaremos.',
+      urlUnreadable: 'No podemos leer la dirección guardada. Vuelve a crear la suscripción.',
       generic: 'No se ha podido completar. Inténtalo de nuevo.',
     },
     status: {

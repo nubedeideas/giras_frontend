@@ -2513,6 +2513,8 @@ export default {
       gone: 'The calendar is no longer published or the address has changed.',
       tooLarge: 'The calendar is too large.',
       notIcs: "The address doesn't return a calendar.",
+      syncFailed: 'Sync failed because of an internal error. We will retry.',
+      urlUnreadable: 'We cannot read the saved address. Create the subscription again.',
       generic: "Couldn't complete it. Please try again.",
     },
     status: {
