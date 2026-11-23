@@ -2,6 +2,8 @@
 // Bloque Actividades de la revisión (F2 §4.3): primero "Por resolver (n)" y después "Listas (n)",
 // las dos agrupadas por día (`ImportActivityDay`). En móvil las listas van plegadas mientras quede
 // algo por resolver. Mientras se recalculan los supuestos, la lista queda bloqueada.
+// F5a §4.2: en móvil la vista une las filas por resolver de equipo y actividades en una sola lista;
+// con `section` se pinta solo una de las dos partes (`pending` sin su cabecera, `ready` plegada).
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImportActivityDay from '@/components/import/ImportActivityDay.vue'
@@ -37,6 +39,8 @@ const props = withDefaults(
     removedUuids?: string[]
     /** F4: hoja vinculada del job (para "Ver origen"). */
     sheet?: ImportJobSheet | null
+    /** F5a: `pending` = solo "Por resolver" (sin cabecera); `ready` = solo "Listas". */
+    section?: 'all' | 'pending' | 'ready'
   }>(),
   {
     types: () => [],
@@ -48,12 +52,14 @@ const props = withDefaults(
     recalculating: false,
     removedUuids: () => [],
     sheet: null,
+    section: 'all',
   }
 )
 const emit = defineEmits<{
   patch: [patch: ImportActivityRowPatch]
   city: [payload: { key: string; timezone: string }]
   edit: [row: ImportActivityRow]
+  omit: [row: ImportActivityRow]
 }>()
 defineSlots<{ expanded?: (props: { row: ImportActivityRow }) => unknown }>()
 
@@ -65,6 +71,14 @@ const pendingRows = computed(() => props.rows.filter(activityNeedsAction))
 const readyRows = computed(() =>
   props.onlyPending ? [] : props.rows.filter((r) => !activityNeedsAction(r))
 )
+const showPending = computed(() => props.section !== 'ready' && pendingRows.value.length > 0)
+const showReady = computed(() => props.section !== 'pending' && readyRows.value.length > 0)
+/** Sin filas que pintar: en la parte "Por resolver" no se dice nada (la vista ya lo cuenta). */
+const showEmpty = computed(() => {
+  if (props.section === 'pending') return false
+  if (props.section === 'ready') return !props.rows.length
+  return !props.rows.length || (props.onlyPending && !pendingRows.value.length)
+})
 const pendingDays = computed(() => groupActivitiesByDay(pendingRows.value, props.tourTimezone))
 const readyDays = computed(() => groupActivitiesByDay(readyRows.value, props.tourTimezone))
 
@@ -104,7 +118,7 @@ const readyOpen = computed(
       :inert="recalculating || undefined"
     >
       <p
-        v-if="!rows.length || (onlyPending && !pendingRows.length)"
+        v-if="showEmpty"
         class="text-[14px] text-ink-2 py-4"
         data-test="import-activities-empty"
       >
@@ -113,11 +127,14 @@ const readyOpen = computed(
 
       <!-- Por resolver -->
       <div
-        v-if="pendingRows.length"
+        v-if="showPending"
         class="flex flex-col gap-3"
         data-test="import-activities-pending"
       >
-        <p class="text-[14px] font-semibold text-failed-fg">
+        <p
+          v-if="section !== 'pending'"
+          class="text-[14px] font-semibold text-failed-fg"
+        >
           {{ t('importer.activities.pending', { n: pendingRows.length }) }}
         </p>
         <ImportActivityDay
@@ -138,6 +155,7 @@ const readyOpen = computed(
           @patch="emit('patch', $event)"
           @city="emit('city', $event)"
           @edit="emit('edit', $event)"
+          @omit="emit('omit', $event)"
         >
           <template
             v-if="$slots.expanded"
@@ -153,7 +171,7 @@ const readyOpen = computed(
 
       <!-- Listas -->
       <div
-        v-if="readyRows.length"
+        v-if="showReady"
         class="flex flex-col gap-3"
         data-test="import-activities-ready"
       >
@@ -200,6 +218,7 @@ const readyOpen = computed(
             @patch="emit('patch', $event)"
             @city="emit('city', $event)"
             @edit="emit('edit', $event)"
+            @omit="emit('omit', $event)"
           >
             <template
               v-if="$slots.expanded"

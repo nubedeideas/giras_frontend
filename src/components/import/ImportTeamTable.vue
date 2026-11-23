@@ -3,10 +3,14 @@
 // rol, estado, confianza, "en el grupo" y omitir; la fila elegida se despliega con el slot
 // `expanded` (editor de la vista). Móvil y `compact` (onboarding): tarjetas, primero
 // "Por resolver (n)" y luego "Listas (n)", plegadas mientras quede algo por resolver.
+// F5a §4.2: las tarjetas se deslizan para omitir o recuperar (`ImportSwipeItem`, mismo camino que el
+// botón; omitir emite además `omit` para el "Deshacer" de la vista). Con `section` se pinta solo
+// "Por resolver" (sin cabecera: la vista la une con la de actividades) o solo "Listas".
 import { computed, ref, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportMatchResolver from '@/components/import/ImportMatchResolver.vue'
+import ImportSwipeItem from '@/components/import/ImportSwipeItem.vue'
 import type { ContactRole } from '@/composables/useContactRoles'
 import type { ImportJob, ImportRowPatch, ImportTeamRow } from '@/composables/useImportJobs'
 import { useIsMobile } from '@/composables/useIsMobile'
@@ -33,10 +37,23 @@ const props = withDefaults(
     onlyPending?: boolean
     /** Fila desplegada con el slot `expanded` (escritorio). */
     selectedId?: string | null
+    /** F5a (tarjetas): `pending` = solo "Por resolver" sin cabecera; `ready` = solo "Listas". */
+    section?: 'all' | 'pending' | 'ready'
   }>(),
-  { compact: false, roles: () => [], rowErrors: () => ({}), onlyPending: false, selectedId: null }
+  {
+    compact: false,
+    roles: () => [],
+    rowErrors: () => ({}),
+    onlyPending: false,
+    selectedId: null,
+    section: 'all',
+  }
 )
-const emit = defineEmits<{ patch: [patch: ImportRowPatch]; edit: [row: ImportTeamRow] }>()
+const emit = defineEmits<{
+  patch: [patch: ImportRowPatch]
+  edit: [row: ImportTeamRow]
+  omit: [row: ImportTeamRow]
+}>()
 defineSlots<{ expanded?: (props: { row: ImportTeamRow }) => unknown }>()
 
 const { t } = useI18n()
@@ -54,6 +71,17 @@ const readyRows = computed(() => rows.value.filter((r) => !r.needs_action))
 // Plegadas mientras quede algo por resolver; el usuario puede abrirlas.
 const readyOpenChoice = ref<boolean | null>(null)
 const readyOpen = computed(() => readyOpenChoice.value ?? pendingRows.value.length === 0)
+
+/** Partes de las tarjetas que se pintan según `section`. */
+const cardSections = computed(() => {
+  const all = ['pending', 'ready'] as const
+  return props.section === 'all' ? all : all.filter((s) => s === props.section)
+})
+/** Sin filas que pintar: en la parte "Por resolver" no se dice nada (la vista ya lo cuenta). */
+const showEmpty = computed(() => {
+  if (props.section === 'pending' && cards.value) return false
+  return !rows.value.length
+})
 
 const rolesByUuid = computed(() => new Map(props.roles.map((r) => [r.uuid, r])))
 
@@ -78,6 +106,7 @@ function isSkipped(r: ImportTeamRow): boolean {
 }
 
 function toggleSkip(r: ImportTeamRow) {
+  if (!isSkipped(r)) emit('omit', r)
   emit('patch', { client_id: r.client_id, action: isSkipped(r) ? restoreAction(r) : 'skip' })
 }
 
@@ -129,7 +158,7 @@ const SOFT_BTN =
     data-test="import-team-table"
   >
     <p
-      v-if="!rows.length"
+      v-if="showEmpty"
       class="text-[14px] text-ink-2 py-4"
       data-test="import-team-empty"
     >
@@ -139,19 +168,19 @@ const SOFT_BTN =
     <!-- ─── Tarjetas (móvil y compacto) ─────────────────────────────────────── -->
     <template v-else-if="cards">
       <template
-        v-for="section in (['pending', 'ready'] as const)"
-        :key="section"
+        v-for="part in cardSections"
+        :key="part"
       >
-        <template v-if="section === 'pending' ? pendingRows.length : readyRows.length">
+        <template v-if="part === 'pending' ? pendingRows.length : readyRows.length">
           <p
-            v-if="section === 'pending'"
+            v-if="part === 'pending' && section !== 'pending'"
             class="text-[14px] font-semibold text-ink"
             data-test="import-section-pending"
           >
             {{ t('importer.team.pending', { n: pendingRows.length }) }}
           </p>
           <button
-            v-else
+            v-else-if="part === 'ready'"
             type="button"
             class="flex items-center justify-between gap-2 min-h-[44px] lg:min-h-[36px] text-left text-[14px] font-semibold text-ink bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
             :aria-expanded="readyOpen"
@@ -177,16 +206,21 @@ const SOFT_BTN =
           </button>
 
           <ul
-            v-if="section === 'pending' || readyOpen"
+            v-if="part === 'pending' || readyOpen"
             class="flex flex-col gap-2"
           >
-            <li
-              v-for="r in section === 'pending' ? pendingRows : readyRows"
+            <ImportSwipeItem
+              v-for="r in part === 'pending' ? pendingRows : readyRows"
               :key="r.client_id"
-              class="rounded border bg-bg-3 px-3 py-2.5"
-              :class="r.needs_action ? 'border-failed-fg' : 'border-line'"
+              :skipped="isSkipped(r)"
+              :disabled="isSaving(r)"
+              :content-class="[
+                'rounded border bg-bg-3 px-3 py-2.5',
+                r.needs_action ? 'border-failed-fg' : 'border-line',
+              ]"
               :data-row="r.client_id"
               :data-needs-action="r.needs_action ? 'true' : 'false'"
+              @swipe="toggleSkip(r)"
             >
               <div class="flex items-start gap-2">
                 <div class="flex-1 min-w-0">
@@ -289,6 +323,11 @@ const SOFT_BTN =
                   :class="LINK_BTN"
                   :disabled="isSaving(r)"
                   :data-test="isSkipped(r) ? 'import-row-restore' : 'import-row-skip'"
+                  :aria-label="
+                    t(isSkipped(r) ? 'importer.mobile.restoreLabel' : 'importer.mobile.skipLabel', {
+                      title: rowDisplayName(r),
+                    })
+                  "
                   @click="toggleSkip(r)"
                 >
                   {{ isSkipped(r) ? t('importer.team.restore') : t('importer.team.skip') }}
@@ -308,7 +347,7 @@ const SOFT_BTN =
               >
                 {{ rowErrors[r.client_id] }}
               </p>
-            </li>
+            </ImportSwipeItem>
           </ul>
         </template>
       </template>

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { importJob, teamRow } from '@/test/importJobs'
@@ -165,5 +165,44 @@ describe('ImportTeamTable (móvil y compacto)', () => {
     expect(w.get('[data-test="import-row-link"]').text()).toContain('Es Juan Pérez')
     await w.get('[data-test="import-row-other"]').trigger('click')
     expect(w.emitted('patch')).toEqual([[{ client_id: 't1', action: 'create', reviewed: true }]])
+  })
+})
+
+describe('ImportTeamTable (F5a: secciones y deslizar)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('section="pending": solo las tarjetas por resolver, sin cabecera ni "Listas"', () => {
+    stubMatchMedia(true)
+    const w = mountTable({ section: 'pending' })
+    expect(w.find('[data-test="import-section-pending"]').exists()).toBe(false)
+    expect(w.find('[data-test="import-section-ready"]').exists()).toBe(false)
+    expect(w.findAll('[data-row]').map((r) => r.attributes('data-row'))).toEqual(['t3'])
+  })
+
+  it('section="ready": solo "Listas", plegadas mientras quede algo por resolver', async () => {
+    stubMatchMedia(true)
+    const w = mountTable({ section: 'ready' })
+    expect(w.find('[data-test="import-section-pending"]').exists()).toBe(false)
+    expect(w.findAll('[data-row]')).toHaveLength(0)
+    await w.get('[data-test="import-section-ready"]').trigger('click')
+    expect(w.findAll('[data-row]').map((r) => r.attributes('data-row'))).toEqual(['t1', 't2', 't4'])
+  })
+
+  it('deslizar una tarjeta a la izquierda omite como el botón (omit + patch)', async () => {
+    stubMatchMedia(true)
+    vi.stubGlobal('innerWidth', 375)
+    const w = mountTable({ section: 'pending' })
+    const el = w.get('[data-row="t3"] [data-test="import-swipe-content"]')
+    await el.trigger('pointerdown', { pointerType: 'touch', clientX: 300, clientY: 100 })
+    await el.trigger('pointermove', { pointerType: 'touch', clientX: 200, clientY: 101 })
+    await el.trigger('pointermove', { pointerType: 'touch', clientX: 60, clientY: 101 })
+    await el.trigger('pointerup', { pointerType: 'touch', clientX: 60, clientY: 101 })
+    expect(w.emitted('omit')?.[0]?.[0]).toMatchObject({ client_id: 't3' })
+    expect(w.emitted('patch')).toEqual([[{ client_id: 't3', action: 'skip' }]])
+    expect(w.get('[data-row="t3"] [data-test="import-row-skip"]').attributes('aria-label')).toBe(
+      'Omitir: Marta'
+    )
   })
 })

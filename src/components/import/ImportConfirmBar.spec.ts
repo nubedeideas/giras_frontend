@@ -295,3 +295,39 @@ describe('ImportConfirmBar · hoja de Google (F4)', () => {
     expect(w.find('[data-test="import-confirm-summary-all"]').text()).not.toContain('vincular')
   })
 })
+
+describe('ImportConfirmBar (F5a, móvil)', () => {
+  it('"Te quedan {n} por resolver" se puede tocar y emite goPending; el motivo queda para escritorio', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: { summary: summary({ needs_action: 2 }), canConfirm: false, pending: 3 },
+      global: { plugins: [i18n] },
+    })
+    const btn = w.get('[data-test="import-confirm-pending-left"]')
+    expect(btn.text()).toContain('Te quedan 3 por resolver')
+    expect(btn.classes()).toContain('lg:hidden')
+    expect(w.get('[data-test="import-confirm-reason"]').classes()).toEqual(
+      expect.arrayContaining(['hidden', 'lg:block'])
+    )
+    await btn.trigger('click')
+    expect(w.emitted('goPending')).toHaveLength(1)
+  })
+
+  it('singular, y sin filas por resolver no aparece', async () => {
+    const w = mount(ImportConfirmBar, {
+      props: { summary: summary(), canConfirm: false, pending: 1 },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-pending-left"]').text()).toContain('Te queda 1 por resolver')
+    await w.setProps({ canConfirm: true, pending: 0 })
+    expect(w.find('[data-test="import-confirm-pending-left"]').exists()).toBe(false)
+  })
+
+  it('slot notice dentro de la barra fija', () => {
+    const w = mount(ImportConfirmBar, {
+      props: { summary: summary(), canConfirm: true },
+      slots: { notice: '<div data-test="slot-notice" />' },
+      global: { plugins: [i18n] },
+    })
+    expect(w.get('[data-test="import-confirm-bar"]').find('[data-test="slot-notice"]').exists()).toBe(true)
+  })
+})

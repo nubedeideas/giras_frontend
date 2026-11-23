@@ -11,7 +11,10 @@
 // filas que ya no están en el feed (`detected.ical.removed`) y cancelaciones en el paso de avisos.
 // F4 §4.4: cabecera "Cambios de la hoja {nombre}" + "Ver vinculación" en jobs de una hoja de Google;
 // el job se confirma sin cambios como uno de calendario y "Ver origen" recibe la hoja (`open_url`).
-import { computed, onMounted, ref, watch } from 'vue'
+// F5a §4.2: en móvil, "Por resolver ({n})" une arriba las filas por resolver de equipo y actividades
+// (con "Siguiente") y debajo quedan los bloques con sus "Listas" plegadas; omitir una fila (botón o
+// gesto) deja 5 s "Omitida: {título} · Deshacer" en la barra fija, que la recupera con otro PATCH.
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { DateTime } from 'luxon'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -68,6 +71,7 @@ import {
   isHotelRow,
   needsResolver,
   pendingCounts,
+  rowDisplayName,
   removedActivityUuids,
   warningKey,
   type ImportSourceDocument,
@@ -110,6 +114,7 @@ async function load() {
   discardError.value = ''
   discardOpen.value = false
   pushedNotices = false
+  clearUndo()
   try {
     const j = await getImportJob(uuid)
     if (id !== request) return
@@ -390,6 +395,47 @@ const groupLine = computed(() => {
   return t('importer.group.exists', { n }, n)
 })
 
+// ─── Móvil: "Por resolver" unificado (F5a §4.2) ──────────────────────────────
+
+/** Bloques con filas por resolver, en el orden de `blocks` (equipo primero si `expected=team`). */
+const pendingBlocks = computed(() =>
+  blocks.value.filter((b) => (b === 'team' ? pending.value.team : pending.value.activities) > 0)
+)
+const showMobilePending = computed(() => isMobile.value && needsAction.value > 0)
+/** En móvil los bloques solo pintan sus "Listas": lo pendiente va arriba, unido. */
+const blockSection = computed<'all' | 'ready'>(() => (isMobile.value ? 'ready' : 'all'))
+
+const scroller = ref<HTMLElement | null>(null)
+const pendingSection = ref<HTMLElement | null>(null)
+const pendingHeader = ref<HTMLElement | null>(null)
+
+/**
+ * Lleva a la siguiente fila por resolver por debajo de la cabecera fija (o a la primera, con
+ * `fromStart` o al llegar al final) y le pasa el foco.
+ */
+function goNextPending(fromStart = false) {
+  const root = pendingSection.value
+  if (!root) return
+  const items = Array.from(root.querySelectorAll<HTMLElement>('[data-needs-action="true"]'))
+  if (!items.length) return
+  const edge = pendingHeader.value?.getBoundingClientRect().bottom ?? 0
+  const target = fromStart
+    ? items[0]
+    : (items.find((el) => el.getBoundingClientRect().top > edge + 16) ?? items[0])
+  const reduced =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const top = target.getBoundingClientRect().top - edge - 8
+  scroller.value?.scrollBy?.({ top, behavior: reduced ? 'auto' : 'smooth' })
+  target.focus({ preventScroll: true })
+}
+
+/** "Te quedan {n} por resolver" de la barra: a la primera. */
+function onGoPending() {
+  onlyPending.value = false
+  goNextPending(true)
+}
+
 const groupNotDefault = computed(() => {
   const g = job.value?.team_group
   return g && !g.is_default && g.default_group_name ? g.default_group_name : ''
@@ -511,6 +557,8 @@ function rowErrorText(e: unknown): string {
 
 function patchRow(patch: ImportRowPatch, opts: { closeEditor?: boolean } = {}): Promise<boolean> {
   const id = patch.client_id
+  const omitted = patch.action === 'skip' && undoCandidate?.clientId === id ? undoCandidate : null
+  if (omitted) undoCandidate = null
   saving.value.add(id)
   return enqueue(jobUuid.value, { rows: [patch] }, (e) => {
     // `details.rows` dice a qué filas se refiere el error; la editada siempre se marca.
@@ -519,6 +567,7 @@ function patchRow(patch: ImportRowPatch, opts: { closeEditor?: boolean } = {}): 
     rowErrors.value = { ...rowErrors.value, ...marked }
   }).then((ok) => {
     saving.value.delete(id)
+    if (ok && omitted) showUndo(omitted)
     if (ok) {
       if (id in rowErrors.value) {
         const rest = { ...rowErrors.value }
@@ -530,6 +579,62 @@ function patchRow(patch: ImportRowPatch, opts: { closeEditor?: boolean } = {}): 
     return ok
   })
 }
+
+// ─── Omitir y "Deshacer" (F5a §4.2) ───────────────────────────────────────────
+
+const UNDO_MS = 5000
+
+interface UndoEntry {
+  clientId: string
+  title: string
+  /** PATCH que devuelve la fila a como estaba antes de omitirla. */
+  revert: ImportRowPatch
+}
+
+const undo = ref<UndoEntry | null>(null)
+/** La fila que la tarjeta acaba de omitir: el aviso sale cuando su PATCH ha ido bien. */
+let undoCandidate: UndoEntry | null = null
+let undoTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearUndo() {
+  if (undoTimer) clearTimeout(undoTimer)
+  undoTimer = null
+  undo.value = null
+  undoCandidate = null
+}
+
+function isActivityRow(row: ImportTeamRow | ImportActivityRow): row is ImportActivityRow {
+  return 'activity_type_code' in row
+}
+
+/** Omitir con el botón o el gesto de una tarjeta (no la "Mantener" de un resolutor). */
+function onOmit(row: ImportTeamRow | ImportActivityRow) {
+  const revert = {
+    client_id: row.client_id,
+    action: row.action,
+    ...(row.reviewed ? { reviewed: true } : {}),
+  } as ImportRowPatch
+  const title = isActivityRow(row) ? row.title : rowDisplayName(row)
+  undoCandidate = { clientId: row.client_id, title, revert }
+}
+
+function showUndo(entry: UndoEntry) {
+  if (undoTimer) clearTimeout(undoTimer)
+  undo.value = entry
+  undoTimer = setTimeout(() => {
+    undoTimer = null
+    undo.value = null
+  }, UNDO_MS)
+}
+
+function onUndo() {
+  const entry = undo.value
+  if (!entry) return
+  clearUndo()
+  void patchRow(entry.revert)
+}
+
+onBeforeUnmount(clearUndo)
 
 // ─── Editor ───────────────────────────────────────────────────────────────────
 
@@ -678,7 +783,10 @@ function onProcessed(j: ImportJob) {
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto bg-bg">
+  <div
+    ref="scroller"
+    class="h-full overflow-y-auto bg-bg"
+  >
     <div
       class="max-w-5xl mx-auto px-4 sm:px-6 py-5 lg:py-6"
       :class="readyPadding"
@@ -868,7 +976,7 @@ function onProcessed(j: ImportJob) {
 
           <!-- N cosas por resolver (equipo + actividades) -->
           <div
-            v-if="needsAction > 0"
+            v-if="needsAction > 0 && !isMobile"
             class="flex flex-wrap items-center gap-2"
           >
             <span
@@ -887,6 +995,71 @@ function onProcessed(j: ImportJob) {
               {{ onlyPending ? t('importer.filterAll') : t('importer.filterPending') }}
             </button>
           </div>
+
+          <!-- Móvil: "Por resolver" de equipo y actividades en una sola lista (F5a §4.2) -->
+          <section
+            v-if="showMobilePending"
+            ref="pendingSection"
+            class="flex flex-col gap-3"
+            data-test="import-mobile-pending"
+          >
+            <div
+              ref="pendingHeader"
+              class="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-1 flex items-center justify-between gap-2 border-b border-line bg-bg"
+            >
+              <h2
+                class="text-[15px] font-semibold text-failed-fg"
+                data-test="import-mobile-to-resolve"
+              >
+                {{ t('importer.mobile.toResolve', { n: needsAction }) }}
+              </h2>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 min-h-[44px] px-3 text-[14px] font-medium text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+                data-test="import-mobile-next"
+                @click="goNextPending()"
+              >
+                {{ t('importer.mobile.next') }}
+                <span aria-hidden="true">↓</span>
+              </button>
+            </div>
+            <template
+              v-for="block in pendingBlocks"
+              :key="`pending-${block}`"
+            >
+              <ImportTeamTable
+                v-if="block === 'team'"
+                section="pending"
+                :job="job"
+                :roles="roles"
+                :saving="saving"
+                :row-errors="rowErrors"
+                :selected-id="null"
+                @patch="patchRow"
+                @edit="onEdit"
+                @omit="onOmit"
+              />
+              <ImportActivityList
+                v-else
+                section="pending"
+                :rows="activityRows"
+                :tour-timezone="tourTimezone"
+                :types="typeOptions"
+                :cities="assumptions?.cities ?? {}"
+                :saving="saving"
+                :row-errors="rowErrors"
+                :selected-id="null"
+                :source-documents="sourceDocuments"
+                :recalculating="assumptionsSaving"
+                :removed-uuids="removedUuids"
+                :sheet="sheet"
+                @patch="patchRow"
+                @city="onCityZone"
+                @edit="onEdit"
+                @omit="onOmit"
+              />
+            </template>
+          </section>
 
           <template
             v-for="block in blocks"
@@ -963,8 +1136,10 @@ function onProcessed(j: ImportJob) {
                   :row-errors="rowErrors"
                   :only-pending="onlyPending"
                   :selected-id="isMobile ? null : selectedId"
+                  :section="blockSection"
                   @patch="patchRow"
                   @edit="onEdit"
+                  @omit="onOmit"
                 >
                   <template #expanded="{ row }">
                     <div class="flex flex-col gap-3">
@@ -1028,9 +1203,11 @@ function onProcessed(j: ImportJob) {
                 :recalculating="assumptionsSaving"
                 :removed-uuids="removedUuids"
                 :sheet="sheet"
+                :section="blockSection"
                 @patch="patchRow"
                 @city="onCityZone"
                 @edit="onEdit"
+                @omit="onOmit"
               >
                 <template #expanded="{ row }">
                   <ImportActivityEditor
@@ -1076,7 +1253,35 @@ function onProcessed(j: ImportJob) {
             @confirm="confirm()"
             @notices="openNotices"
             @discard="openDiscard"
-          />
+            @go-pending="onGoPending"
+          >
+            <template #notice>
+              <div
+                class="max-w-5xl mx-auto"
+                role="status"
+                aria-live="polite"
+                data-test="import-undo-region"
+              >
+                <div
+                  v-if="undo"
+                  class="mb-2 flex items-center justify-between gap-3 rounded-sm border border-line bg-bg-2 pl-3"
+                  data-test="import-undo"
+                >
+                  <span class="min-w-0 truncate text-[14px] text-ink">
+                    {{ t('importer.mobile.skipped', { title: undo.title }) }}
+                  </span>
+                  <button
+                    type="button"
+                    class="shrink-0 min-h-[44px] lg:min-h-[36px] px-3 text-[14px] font-semibold text-olive hover:text-olive-strong bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+                    data-test="import-undo-action"
+                    @click="onUndo"
+                  >
+                    {{ t('importer.mobile.undo') }}
+                  </button>
+                </div>
+              </div>
+            </template>
+          </ImportConfirmBar>
         </div>
       </template>
     </div>

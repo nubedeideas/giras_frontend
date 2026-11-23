@@ -59,6 +59,7 @@ const emit = defineEmits<{
   patch: [patch: ImportActivityRowPatch]
   city: [payload: { key: string; timezone: string }]
   edit: [row: Row]
+  omit: [row: Row]
 }>()
 defineSlots<{ expanded?: (props: { row: Row }) => unknown }>()
 
@@ -155,6 +156,7 @@ function sourceDocument(r: Row): ImportSourceDocument | null {
         :sheet="sheet"
         @patch="emit('patch', $event)"
         @edit="emit('edit', $event)"
+        @omit="emit('omit', $event)"
       >
         <div
           v-if="selectedId === r.client_id && $slots.expanded"
