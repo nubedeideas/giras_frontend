@@ -113,3 +113,14 @@ export function importActivityBadge(status: string): BadgeStatus {
     ? IMPORT_ACTIVITY[status]
     : 'off'
 }
+
+/**
+ * F5a §4.3: estado de un enlace del portal del crew (`CrewLinkRow.state`). Listo → `sent`; sin
+ * enlace todavía → `off`; revocado → `failed`; el resto (caducado, portal apagado, no disponible,
+ * fuera del crew) → `off`.
+ */
+export function crewLinkBadge(state: string): BadgeStatus {
+  if (state === 'active') return 'sent'
+  if (state === 'revoked') return 'failed'
+  return 'off'
+}

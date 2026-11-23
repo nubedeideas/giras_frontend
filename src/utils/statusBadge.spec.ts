@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  crewLinkBadge,
   activityBadge,
   importActivityBadge,
   importConfidenceBadge,
@@ -106,5 +107,15 @@ describe('importActivityBadge', () => {
     ['otro', 'off'],
   ])('%s → %s', (status, badge) => {
     expect(importActivityBadge(status)).toBe(badge)
+  })
+})
+
+describe('crewLinkBadge', () => {
+  it('listo → sent, revocado → failed, el resto → off', () => {
+    expect(crewLinkBadge('active')).toBe('sent')
+    expect(crewLinkBadge('revoked')).toBe('failed')
+    for (const s of ['none', 'expired', 'disabled', 'unavailable', 'not_crew', 'otro']) {
+      expect(crewLinkBadge(s)).toBe('off')
+    }
   })
 })

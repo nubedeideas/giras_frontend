@@ -5,7 +5,7 @@ import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
 import { activityRow, importJob, notificationsPreview, teamRow } from '@/test/importJobs'
-import { activityJob } from '@/test/importActivities'
+import { activityJob, calendarCancelledRow } from '@/test/importActivities'
 import { stubMatchMedia } from '@/test/reminders'
 import { useActivitiesStore } from '@/stores/activities'
 import { useContactsStore } from '@/stores/contacts'
@@ -48,7 +48,7 @@ function setupFetch(job: ImportJob, extra: Handler = () => undefined) {
 
 let router: Router
 
-async function mountView() {
+async function mountView(attachTo?: HTMLElement) {
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -60,7 +60,7 @@ async function mountView() {
   })
   await router.push('/tour/import/J1')
   await router.isReady()
-  const w = mount(ImportReviewView, { global: { plugins: [i18n, router] } })
+  const w = mount(ImportReviewView, { global: { plugins: [i18n, router] }, attachTo })
   await flushPromises()
   return w
 }
@@ -297,5 +297,124 @@ describe('ImportReviewView · actividades', () => {
     expect(w.find('[data-test="import-activity-expanded"]').exists()).toBe(false)
     expect(document.body.querySelector('[data-test="import-activity-editor"]')).not.toBeNull()
     w.unmount()
+  })
+})
+
+describe('ImportReviewView · móvil (F5a)', () => {
+  /** Equipo y actividades con una fila por resolver en cada bloque; `expected=team`. */
+  function mixedJob(activities = [activityRow({ client_id: 'a1' }), activityRow({ client_id: 'a2', title: 'Show en La Riviera', needs_action: true })]) {
+    const base = activityJob(activities)
+    return {
+      ...base,
+      expected: 'team' as const,
+      detected: { sources: [], expected: 'team' as const },
+      draft: {
+        ...base.draft!,
+        team: [
+          teamRow({ client_id: 't1' }),
+          teamRow({ client_id: 't2', display_name: 'Marta', needs_action: true, confidence: 0.5 }),
+        ],
+      },
+    }
+  }
+
+  it('"Por resolver (n)" une equipo y actividades arriba; debajo, las "Listas" plegadas', async () => {
+    stubMatchMedia(true)
+    setupFetch(mixedJob())
+    const w = await mountView()
+    const section = w.get('[data-test="import-mobile-pending"]')
+    expect(section.get('[data-test="import-mobile-to-resolve"]').text()).toBe('Por resolver (2)')
+    // Equipo primero con `expected=team`; solo las filas por resolver.
+    expect(section.findAll('[data-row]').map((r) => r.attributes('data-row'))).toEqual(['t2', 'a2'])
+    // Sin la línea de escritorio "N cosas por resolver · Solo por resolver".
+    expect(w.find('[data-test="import-to-resolve"]').exists()).toBe(false)
+    // Los bloques solo llevan sus "Listas", plegadas.
+    const team = w.get('[data-test="import-block-team"]')
+    expect(team.find('[data-row]').exists()).toBe(false)
+    expect(team.get('[data-test="import-section-ready"]').attributes('aria-expanded')).toBe('false')
+    const acts = w.get('[data-test="import-block-activities"]')
+    expect(acts.find('[data-test="import-activities-pending"]').exists()).toBe(false)
+    expect(acts.get('[data-test="import-activities-ready-toggle"]').text()).toBe('Listas (1)')
+    w.unmount()
+  })
+
+  it('"Siguiente" y "Te quedan n por resolver" llevan el foco a una fila por resolver', async () => {
+    stubMatchMedia(true)
+    setupFetch(mixedJob())
+    const w = await mountView(document.body)
+    await w.get('[data-test="import-mobile-next"]').trigger('click')
+    expect((document.activeElement as HTMLElement | null)?.dataset.row).toBe('t2')
+    await w.get('[data-test="import-confirm-pending-left"]').trigger('click')
+    expect((document.activeElement as HTMLElement | null)?.dataset.row).toBe('t2')
+    w.unmount()
+  })
+
+  it('omitir deja "Omitida: {título} · Deshacer" 5 s; Deshacer la devuelve con otro PATCH', async () => {
+    stubMatchMedia(true)
+    const job = mixedJob()
+    const skipped = mixedJob([
+      activityRow({ client_id: 'a1' }),
+      activityRow({ client_id: 'a2', title: 'Show en La Riviera', action: 'skip' }),
+    ])
+    const log = setupFetch(job, (call) => {
+      if (call.path !== `${JOB_PATH}draft/` || call.method !== 'PATCH') return undefined
+      const rows = (call.body?.rows ?? []) as { action?: string }[]
+      return jsonResponse(rows[0]?.action === 'skip' ? skipped : job)
+    })
+    const w = await mountView()
+    try {
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      const patches = () => log.filter((c) => c.method === 'PATCH').map((c) => c.body)
+      expect(patches()).toEqual([{ rows: [{ client_id: 'a2', action: 'skip' }] }])
+      const undo = w.get('[data-test="import-undo"]')
+      expect(undo.text()).toContain('Omitida: Show en La Riviera')
+      expect(w.get('[data-test="import-undo-region"]').attributes('role')).toBe('status')
+      await w.get('[data-test="import-undo-action"]').trigger('click')
+      await flushPromises()
+      expect(patches()[1]).toEqual({ rows: [{ client_id: 'a2', action: 'create' }] })
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(false)
+
+      // Otra vez, sin deshacer: a los 5 s desaparece.
+      await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+      await flushPromises()
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(true)
+      await new Promise((r) => setTimeout(r, 5100))
+      expect(w.find('[data-test="import-undo"]').exists()).toBe(false)
+    } finally {
+      w.unmount()
+    }
+  }, 10_000)
+
+  it('el "Mantener" de un resolutor no ofrece Deshacer; un PATCH fallido tampoco', async () => {
+    stubMatchMedia(true)
+    const job = mixedJob()
+    setupFetch(job, (call) =>
+      call.path === `${JOB_PATH}draft/` && call.method === 'PATCH'
+        ? jsonResponse({ detail: 'x' }, 500)
+        : undefined
+    )
+    const w = await mountView()
+    await w.get('[data-row="a2"] [data-test="import-activity-skip"]').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="import-undo"]').exists()).toBe(false)
+    expect(w.find('[data-row="a2"] [data-test="import-activity-error"]').exists()).toBe(true)
+    w.unmount()
+
+    // "Mantener" una cancelación del calendario manda `skip`, pero no es omitir.
+    const job2 = mixedJob([activityRow({ client_id: 'a1' }), calendarCancelledRow()])
+    const log = setupFetch(job2, (call) =>
+      call.path === `${JOB_PATH}draft/` && call.method === 'PATCH' ? jsonResponse(job2) : undefined
+    )
+    const w2 = await mountView()
+    // Sin gesto ni botón Omitir en la cancelación.
+    expect(w2.find('[data-row="a6"] [data-test="import-activity-skip"]').exists()).toBe(false)
+    await w2.get('[data-row="a6"] [data-test="resolver-calendar-cancel-keep"]').trigger('click')
+    await flushPromises()
+    expect(log.filter((c) => c.method === 'PATCH').map((c) => c.body)).toEqual([
+      { rows: [{ client_id: 'a6', action: 'skip' }] },
+    ])
+    expect(w2.find('[data-test="import-undo"]').exists()).toBe(false)
+    w2.unmount()
   })
 })

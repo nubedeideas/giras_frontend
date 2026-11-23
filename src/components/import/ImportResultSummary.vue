@@ -8,6 +8,8 @@
 // F3: actividades canceladas por el calendario (`activities_cancelled` o `post_import.cancelled`) y,
 // en "Volver a borrador", la casilla "Pausar también los avisos" (marcada; pausa de F0 tras el PATCH).
 // F4 §4.4: actividades vinculadas a la hoja (`activities_linked`).
+// F5a §4.3: "Comparte la agenda con tu equipo" (`ImportCrewLinks`) con las personas confirmadas, y
+// el enlace a Mi Gira › Crew pasa a "Gestionar enlaces".
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Translation, useI18n } from 'vue-i18n'
@@ -17,6 +19,7 @@ import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import NotificationsPauseToggle from '@/components/tour/NotificationsPauseToggle.vue'
+import ImportCrewLinks from '@/components/import/ImportCrewLinks.vue'
 import { BTN_PRIMARY_CLASS } from '@/components/ui/btnClasses'
 import {
   getImportJob,
@@ -252,6 +255,18 @@ const showSchedule = computed(() => activitiesTouched.value > 0 || cancelled.val
 const canSendPortal = computed(
   () => activitiesTouched.value > 0 && tour.value?.current_user_is_admin === true
 )
+
+/**
+ * Personas confirmadas a las que pasar su enlace del portal (solo quien administra la gira: la API
+ * de enlaces responde 403 al resto).
+ */
+const crewContactUuids = computed(() => result.value.contact_uuids ?? [])
+const showCrewLinks = computed(
+  () =>
+    !!props.job.tour &&
+    crewContactUuids.value.length > 0 &&
+    tour.value?.current_user_is_admin === true
+)
 </script>
 
 <template>
@@ -480,6 +495,13 @@ const canSendPortal = computed(
       {{ t('importer.result.confirmerOutside') }}
     </p>
 
+    <ImportCrewLinks
+      v-if="showCrewLinks && job.tour && tour"
+      :tour-uuid="job.tour"
+      :tour-name="tour.name"
+      :contact-uuids="crewContactUuids"
+    />
+
     <div class="flex flex-wrap items-center gap-2">
       <RouterLink
         v-if="showSchedule"
@@ -503,7 +525,7 @@ const canSendPortal = computed(
         class="inline-flex items-center min-h-[44px] lg:min-h-0 px-2 text-[14px] font-medium text-olive hover:text-olive-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
         data-test="import-result-portal"
       >
-        {{ t('importer.result.sendPortal') }}
+        {{ t('importer.crewLinks.manage') }}
       </RouterLink>
       <BtnSecondary
         type="button"

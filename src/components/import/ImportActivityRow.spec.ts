@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { activityRow } from '@/test/importJobs'
@@ -305,5 +305,67 @@ describe('ImportActivityRow · hoja de Google (F4)', () => {
     expect(w.find('[data-test="import-activity-edit"]').exists()).toBe(false)
     expect(w.find('[data-test="import-activity-skip"]').exists()).toBe(false)
     expect(w.find('[data-test="import-activity-restore"]').exists()).toBe(false)
+  })
+})
+
+describe('ImportActivityRow · deslizar para omitir (F5a)', () => {
+  type W = ReturnType<typeof mountRow>
+
+  /** Arrastre con el dedo sobre la tarjeta (jsdom no mide: el ancho sale de `innerWidth`). */
+  async function swipe(w: W, from: number, to: number, pointerType = 'touch') {
+    const el = w.get('[data-test="import-swipe-content"]')
+    await el.trigger('pointerdown', { pointerType, clientX: from, clientY: 100 })
+    await el.trigger('pointermove', { pointerType, clientX: (from + to) / 2, clientY: 101 })
+    await el.trigger('pointermove', { pointerType, clientX: to, clientY: 101 })
+    await el.trigger('pointerup', { pointerType, clientX: to, clientY: 101 })
+  }
+
+  beforeEach(() => {
+    vi.stubGlobal('innerWidth', 375)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('a la izquierda omite (omit + patch skip), igual que el botón', async () => {
+    const w = mountRow()
+    await swipe(w, 300, 100)
+    expect(w.emitted('omit')?.[0]?.[0]).toMatchObject({ client_id: 'a1' })
+    expect(w.emitted('patch')).toEqual([[{ client_id: 'a1', action: 'skip' }]])
+  })
+
+  it('el botón Omitir lleva el título en aria-label y emite lo mismo', async () => {
+    const w = mountRow()
+    const btn = w.get('[data-test="import-activity-skip"]')
+    expect(btn.attributes('aria-label')).toBe(`Omitir: ${activityRow().title}`)
+    await btn.trigger('click')
+    expect(w.emitted('omit')).toHaveLength(1)
+    expect(w.emitted('patch')).toEqual([[{ client_id: 'a1', action: 'skip' }]])
+  })
+
+  it('en una omitida, a la derecha recupera (sin omit)', async () => {
+    const w = mountRow({ row: activityRow({ action: 'skip' }) })
+    await swipe(w, 50, 300)
+    expect(w.emitted('omit')).toBeUndefined()
+    expect(w.emitted('patch')).toEqual([[{ client_id: 'a1', action: 'create' }]])
+  })
+
+  it('con ratón, recorrido corto o en escritorio no hace nada', async () => {
+    const w = mountRow()
+    await swipe(w, 300, 100, 'mouse')
+    await swipe(w, 300, 290)
+    vi.stubGlobal('innerWidth', 1280)
+    await swipe(w, 300, 100)
+    expect(w.emitted('patch')).toBeUndefined()
+  })
+
+  it('no se aplica a cancelaciones del calendario ni a filas que se vincularán', async () => {
+    for (const row of [calendarCancelledRow(), sheetLinkRow()]) {
+      const w = mountRow({ row })
+      await swipe(w, 300, 50)
+      expect(w.emitted('patch')).toBeUndefined()
+      expect(w.emitted('omit')).toBeUndefined()
+    }
   })
 })

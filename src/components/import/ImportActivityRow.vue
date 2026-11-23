@@ -10,10 +10,13 @@
 // F4 §4.4: en filas de hoja el origen es "Hoja de Google · {pestaña} · fila {n}" y los textos de
 // cambio y retirada son de la hoja. Una fila "Se vinculará" (`match.link` con `skip`) no se tacha ni
 // se edita: se decide en su resolutor (Vincular · No vincular).
+// F5a §4.2: en móvil la tarjeta se desliza para omitir o recuperar (`ImportSwipeItem`), por el mismo
+// camino que el botón; omitir emite además `omit` para que la vista ofrezca "Deshacer".
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import ImportSourcePeek from '@/components/import/ImportSourcePeek.vue'
+import ImportSwipeItem from '@/components/import/ImportSwipeItem.vue'
 import type {
   ImportActivityRow,
   ImportActivityRowPatch,
@@ -65,7 +68,11 @@ const props = withDefaults(
     sheet: null,
   }
 )
-const emit = defineEmits<{ patch: [patch: ImportActivityRowPatch]; edit: [row: ImportActivityRow] }>()
+const emit = defineEmits<{
+  patch: [patch: ImportActivityRowPatch]
+  edit: [row: ImportActivityRow]
+  omit: [row: ImportActivityRow]
+}>()
 
 const { t, locale } = useI18n()
 
@@ -156,8 +163,10 @@ const statusText = computed(() => {
  */
 function toggleSkip() {
   const id = props.row.client_id
-  if (!skipped.value) emit('patch', { client_id: id, action: 'skip' })
-  else if (isCalendarChangeRow(props.row) && props.row.match.activity_uuid) {
+  if (!skipped.value) {
+    emit('omit', props.row)
+    emit('patch', { client_id: id, action: 'skip' })
+  } else if (isCalendarChangeRow(props.row) && props.row.match.activity_uuid) {
     emit('patch', { client_id: id, action: 'replace', reviewed: true })
   } else emit('patch', { client_id: id, action: 'create' })
 }
@@ -167,15 +176,18 @@ const LINK_BTN =
 </script>
 
 <template>
-  <li
-    class="rounded border px-3 py-2.5"
-    :class="[
+  <ImportSwipeItem
+    :skipped="skipped"
+    :disabled="noActions || linkRow || saving"
+    :content-class="[
+      'rounded border px-3 py-2.5',
       pending ? 'border-failed-fg' : 'border-line',
       selected ? 'bg-glass-active' : 'bg-bg-3',
     ]"
     :data-row="row.client_id"
     :data-needs-action="pending ? 'true' : 'false'"
     data-test="import-activity-row"
+    @swipe="toggleSkip"
   >
     <div class="flex items-start gap-3">
       <div
@@ -292,6 +304,7 @@ const LINK_BTN =
         :class="LINK_BTN"
         :disabled="saving"
         :data-test="skipped ? 'import-activity-restore' : 'import-activity-skip'"
+        :aria-label="t(skipped ? 'importer.mobile.restoreLabel' : 'importer.mobile.skipLabel', { title: row.title })"
         @click="toggleSkip"
       >
         {{ skipped ? t('importer.activities.restore') : t('importer.activities.skip') }}
@@ -323,5 +336,5 @@ const LINK_BTN =
     </p>
 
     <slot />
-  </li>
+  </ImportSwipeItem>
 </template>

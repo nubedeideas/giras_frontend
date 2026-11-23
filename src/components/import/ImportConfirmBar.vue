@@ -8,6 +8,9 @@
 // borrador de calendario (`calendar`) con todo "Mantener" se confirma sin cambios: lo dice debajo.
 // F4 §4.4: `calendar` vale para cualquier fuente en vivo (también una hoja, con `sheet` para el
 // texto); "· se vincularán {n}" cuando `activities.to_link > 0` (vincular cuenta como cambio).
+// F5a §4.2: en móvil, con filas por resolver, "Te quedan {n} por resolver" se puede tocar y emite
+// `goPending` (la vista baja a la primera). El slot `notice` va encima, dentro de la barra fija
+// (el "Omitida: … · Deshacer" de la vista).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BtnPrimary from '@/components/ui/BtnPrimary.vue'
@@ -35,7 +38,8 @@ const props = withDefaults(
   }>(),
   { busy: false, estimate: null, pending: null, mode: 'confirm', calendar: false, sheet: false }
 )
-const emit = defineEmits<{ confirm: []; discard: []; notices: [] }>()
+const emit = defineEmits<{ confirm: []; discard: []; notices: []; goPending: [] }>()
+defineSlots<{ notice?: () => unknown }>()
 
 const { t } = useI18n()
 
@@ -68,6 +72,8 @@ const reason = computed(() => {
   return ''
 })
 /** Borrador de calendario que se confirma sin crear, cambiar ni cancelar nada. */
+/** Móvil: el motivo pasa a ser el botón "Te quedan {n} por resolver". */
+const pendingLeft = computed(() => !props.canConfirm && pendingCount.value > 0)
 const reviewedOnly = computed(() => props.calendar && props.canConfirm && toImport.value === 0)
 
 function onPrimary() {
@@ -81,6 +87,7 @@ function onPrimary() {
     class="fixed lg:sticky inset-x-0 bottom-[calc(63px+env(safe-area-inset-bottom))] lg:bottom-0 z-30 border-t border-line bg-bg-3 px-4 py-3 shadow-[0_-4px_16px_var(--shadow-sm)] lg:rounded-t lg:border-x"
     data-test="import-confirm-bar"
   >
+    <slot name="notice" />
     <div class="max-w-5xl mx-auto flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4">
       <div class="flex-1 min-w-0">
         <p
@@ -137,10 +144,21 @@ function onPrimary() {
           v-if="reason"
           id="import-confirm-reason"
           class="text-[13px] text-failed-fg"
+          :class="pendingLeft ? 'hidden lg:block' : ''"
           data-test="import-confirm-reason"
         >
           {{ reason }}
         </p>
+        <button
+          v-if="pendingLeft"
+          type="button"
+          class="lg:hidden inline-flex items-center gap-1 min-h-[44px] text-left text-[14px] font-semibold text-failed-fg bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive rounded-sm"
+          data-test="import-confirm-pending-left"
+          @click="emit('goPending')"
+        >
+          {{ t('importer.mobile.pendingLeft', { n: pendingCount }, pendingCount) }}
+          <span aria-hidden="true">↓</span>
+        </button>
       </div>
       <div class="flex items-center gap-2">
         <BtnSecondary

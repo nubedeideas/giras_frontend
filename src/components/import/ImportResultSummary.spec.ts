@@ -189,10 +189,37 @@ describe('ImportResultSummary', () => {
       )
     })
 
-    it('sin admin no hay "Enviar enlaces del portal"', () => {
+    it('sin admin no hay "Gestionar enlaces" ni "Comparte la agenda"', () => {
       useToursStore().tours = [tour({ current_user_is_admin: false })]
-      const w = mountWith(f2Result())
+      const fn = vi.fn<typeof fetch>()
+      vi.stubGlobal('fetch', fn)
+      const w = mountWith(f2Result({ contact_uuids: ['C1'] }))
       expect(w.find('[data-test="import-result-portal"]').exists()).toBe(false)
+      expect(w.find('[data-test="import-crew-links"]').exists()).toBe(false)
+      expect(fn).not.toHaveBeenCalled()
+    })
+
+    it('F5a: "Gestionar enlaces" y, con personas confirmadas, "Comparte la agenda con tu equipo"', async () => {
+      useToursStore().tours = [tour()]
+      const row = {
+        contact: { uuid: 'C1', display_name: 'Ana', has_phone: true, has_email: false },
+        sources: ['default_group'],
+        state: 'none',
+        link: null,
+      }
+      const fn = vi.fn<typeof fetch>(async () =>
+        jsonResponse({ count: 1, next: null, previous: null, results: [row] })
+      )
+      vi.stubGlobal('fetch', fn)
+      const w = mountWith(f2Result())
+      expect(w.get('[data-test="import-result-portal"]').text()).toBe('Gestionar enlaces')
+      // Sin contactos confirmados no se piden enlaces.
+      expect(w.find('[data-test="import-crew-links"]').exists()).toBe(false)
+      expect(fn).not.toHaveBeenCalled()
+      const withPeople = mountWith(f2Result({ contact_uuids: ['C1'] }))
+      await flushPromises()
+      expect(String(fn.mock.calls[0][0])).toContain('/tours/T1/crew-links/')
+      expect(withPeople.get('[data-test="import-crew-links"]').text()).toContain('Ana')
     })
 
     it('"Programando avisos…" mientras post_import está pending: sondea cada 2 s', async () => {
