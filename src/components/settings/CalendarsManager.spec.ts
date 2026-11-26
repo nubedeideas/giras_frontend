@@ -22,7 +22,7 @@ function status(calendar: boolean) {
     connected: true,
     account_email: 'tm@giras.pro',
     granted_scopes: [],
-    features: { calendar, calendar_write: calendar, contacts: false },
+    features: { calendar, contacts: false },
     connected_at: '2026-11-20T10:00:00Z',
   }
 }
@@ -105,7 +105,9 @@ describe('CalendarsManager', () => {
     expect(w.find('[data-testid="calendar-connect-form"]').exists()).toBe(false)
     expect(w.find('[data-testid="google-connect-calendar"]').exists()).toBe(true)
     // El estado sigue diciendo que hay Calendar: la tarjeta no enseña su CTA, aquí va completo.
-    expect(w.find('[data-testid="google-consent-text"]').exists()).toBe(true)
+    const consent = w.get('[data-testid="google-consent-text"]').text()
+    expect(consent).toContain('Solo los leemos')
+    expect(consent).not.toContain('marca')
     // Refresca el estado tras el 403.
     expect(urls(fn).filter((u) => u.endsWith('/google/status/')).length).toBe(2)
   })

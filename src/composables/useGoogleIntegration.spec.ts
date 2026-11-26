@@ -50,7 +50,7 @@ describe('useGoogleIntegration API', () => {
       connected: true,
       account_email: 'a@b.es',
       granted_scopes: [],
-      features: { calendar: true, calendar_write: false, contacts: false },
+      features: { calendar: true, contacts: false },
       connected_at: null,
     }
     const fn = mockFetch(

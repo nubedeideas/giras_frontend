@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const auth = useAuthStore()
 
 type Status = 'loading' | 'success' | 'error'
@@ -15,7 +17,7 @@ onMounted(async () => {
   const token = route.query.token as string | undefined
   if (!token) {
     status.value = 'error'
-    errorMsg.value = 'Link inválido. No se encontró el token de acceso.'
+    errorMsg.value = t('auth.magicLink.noToken')
     return
   }
   try {
@@ -24,7 +26,7 @@ onMounted(async () => {
     setTimeout(() => router.replace('/home'), 1500)
   } catch {
     status.value = 'error'
-    errorMsg.value = auth.error ?? 'El link de acceso es inválido o ha expirado.'
+    errorMsg.value = auth.error ?? t('auth.magicLink.invalidOrExpired')
   }
 })
 </script>
@@ -102,27 +104,27 @@ onMounted(async () => {
       <!-- Loading -->
       <template v-if="status === 'loading'">
         <p class="text-[15px] font-semibold text-ink mb-1">
-          Verificando link de acceso
+          {{ t('auth.magicLink.verifying') }}
         </p>
         <p class="text-[14px] text-ink-3">
-          Un momento...
+          {{ t('auth.magicLink.wait') }}
         </p>
       </template>
 
       <!-- Success -->
       <template v-else-if="status === 'success'">
         <p class="text-[15px] font-semibold text-ink mb-1">
-          ¡Acceso confirmado!
+          {{ t('auth.magicLink.successTitle') }}
         </p>
         <p class="text-[14px] text-ink-3">
-          Entrando a Giras...
+          {{ t('auth.magicLink.entering') }}
         </p>
       </template>
 
       <!-- Error -->
       <template v-else>
         <p class="text-[15px] font-semibold text-failed-fg mb-1">
-          Link inválido
+          {{ t('auth.magicLink.invalidTitle') }}
         </p>
         <p class="text-[14px] text-ink-3 max-w-[280px]">
           {{ errorMsg }}
@@ -131,7 +133,7 @@ onMounted(async () => {
           class="mt-4 text-[14px] text-acid-muted hover:text-olive transition-colors cursor-pointer border-none bg-transparent"
           @click="$router.replace('/login')"
         >
-          Volver al login →
+          {{ t('auth.magicLink.backToLogin') }}
         </button>
       </template>
     </div>

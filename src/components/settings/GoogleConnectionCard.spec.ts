@@ -16,7 +16,6 @@ vi.mock('@/utils/navigation', () => ({ redirectTo }))
 
 function status(features: {
   calendar: boolean
-  calendar_write: boolean
   contacts: boolean
   sheets?: boolean
 }) {
@@ -30,8 +29,8 @@ function status(features: {
   }
 }
 
-const NONE = status({ calendar: false, calendar_write: false, contacts: false })
-const CAL = status({ calendar: true, calendar_write: true, contacts: false })
+const NONE = status({ calendar: false, contacts: false })
+const CAL = status({ calendar: true, contacts: false })
 
 function setupFetch(initial: unknown, onDisconnect?: () => Response) {
   const fn = vi.fn<typeof fetch>(async (input, init) => {
@@ -84,6 +83,32 @@ describe('GoogleConnectionCard', () => {
     expect(w.get('[data-testid="google-connect-contacts"]').text()).toBe('Conectar Google Contactos')
     expect(w.findAll('[data-testid="google-consent-text"]')).toHaveLength(2)
     expect(w.find('[data-testid="google-disconnect"]').exists()).toBe(false)
+    const calendarConsent = w.findAll('[data-testid="google-consent-text"]')[0].text()
+    expect(calendarConsent).toContain('Solo los leemos')
+    expect(calendarConsent).not.toContain('marca')
+  })
+
+  it('usuario heredado con calendar.events concedido: solo las filas de lectura', async () => {
+    cfg.configured = true
+    setupFetch({
+      ...status({ calendar: true, contacts: true, sheets: true }),
+      granted_scopes: [
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/contacts.readonly',
+        'https://www.googleapis.com/auth/drive.file',
+      ],
+    })
+    const w = mountCard()
+    await flushPromises()
+    const rows = w
+      .findAll('[data-testid^="google-scope-"]')
+      .map((r) => r.attributes('data-testid'))
+    expect(rows).toEqual([
+      'google-scope-calendarRead',
+      'google-scope-contactsRead',
+      'google-scope-sheetsRead',
+    ])
   })
 
   it('con calendar y sin contactos: conectado como, permisos, solo Contactos y Desconectar', async () => {
@@ -95,6 +120,10 @@ describe('GoogleConnectionCard', () => {
     )
     expect(w.get('[data-testid="google-scope-calendarRead"]').attributes('data-granted')).toBe('true')
     expect(w.get('[data-testid="google-scope-contactsRead"]').attributes('data-granted')).toBe('false')
+    // Solo permisos de lectura: sin fila de escritura en Calendar.
+    expect(w.findAll('[data-testid^="google-scope-"]').map((r) => r.attributes('data-testid'))).toEqual(
+      ['google-scope-calendarRead', 'google-scope-contactsRead']
+    )
     expect(w.find('[data-testid="google-connect-calendar"]').exists()).toBe(false)
     expect(w.find('[data-testid="google-connect-contacts"]').exists()).toBe(true)
     expect(w.find('[data-testid="google-disconnect"]').exists()).toBe(true)
@@ -170,7 +199,7 @@ describe('GoogleConnectionCard', () => {
 
   it('F4: con el permiso concedido, la fila marcada y sin CTA; sin selector, ni fila ni CTA', async () => {
     cfg.configured = true
-    setupFetch(status({ calendar: true, calendar_write: true, contacts: true, sheets: true }))
+    setupFetch(status({ calendar: true, contacts: true, sheets: true }))
     const w = mountCard()
     await flushPromises()
     expect(w.get('[data-testid="google-scope-sheetsRead"]').attributes('data-granted')).toBe('true')

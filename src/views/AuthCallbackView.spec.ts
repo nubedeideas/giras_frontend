@@ -15,7 +15,7 @@ const STATUS = {
   connected: true,
   account_email: 'tm@giras.pro',
   granted_scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-  features: { calendar: true, calendar_write: true, contacts: false },
+  features: { calendar: true, contacts: false },
   connected_at: '2026-11-20T10:00:00Z',
 }
 

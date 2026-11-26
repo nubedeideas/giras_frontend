@@ -14,7 +14,8 @@ import {
 export type { GooglePurpose } from '@/utils/googleOAuth'
 export { isSafeReturnTo } from '@/utils/googleOAuth'
 
-// ─── Types (spec 2026-11-20-google-oauth-incremental §5.2) ────────────────────
+// ─── Types (spec 2026-11-20-google-oauth-incremental §5.2; `features` sin permiso de
+// escritura desde la spec quitar-scope-calendar-events, 2026-11-25) ─────────────
 
 /** GET /api/integrations/google/status/ (`google_status(user)`, sin llamadas a Google) */
 export interface GoogleStatus {
@@ -22,9 +23,10 @@ export interface GoogleStatus {
   connected: boolean
   /** Cuenta de Google conectada; '' si no hay. */
   account_email: string
+  /** Puede contener `calendar.events` en usuarios heredados: ignorar. */
   granted_scopes: string[]
   /** F4: `sheets` = permiso `drive.file` (leer las hojas que el usuario elige en el selector). */
-  features: { calendar: boolean; calendar_write: boolean; contacts: boolean; sheets: boolean }
+  features: { calendar: boolean; contacts: boolean; sheets: boolean }
   connected_at: string | null
 }
 
@@ -69,7 +71,7 @@ export const EMPTY_GOOGLE_STATUS: GoogleStatus = {
   connected: false,
   account_email: '',
   granted_scopes: [],
-  features: { calendar: false, calendar_write: false, contacts: false, sheets: false },
+  features: { calendar: false, contacts: false, sheets: false },
   connected_at: null,
 }
 

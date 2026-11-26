@@ -25,7 +25,7 @@ function status(contacts: boolean) {
     connected: true,
     account_email: 'tm@giras.pro',
     granted_scopes: [],
-    features: { calendar: true, calendar_write: true, contacts },
+    features: { calendar: true, contacts },
     connected_at: null,
   }
 }

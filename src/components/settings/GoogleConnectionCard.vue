@@ -25,7 +25,6 @@ const features = computed(
   () =>
     status.value?.features ?? {
       calendar: false,
-      calendar_write: false,
       contacts: false,
       sheets: false,
     }
@@ -43,7 +42,6 @@ const connectedSince = computed(() => {
 
 const scopes = computed(() => [
   { key: 'calendarRead', granted: features.value.calendar },
-  { key: 'calendarWrite', granted: features.value.calendar_write },
   { key: 'contactsRead', granted: features.value.contacts },
   // F4: la fila de hojas solo si la función está disponible o el permiso ya está concedido.
   ...(sheetsAvailable || features.value.sheets

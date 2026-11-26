@@ -5,6 +5,38 @@ export default {
   loginNote: 'Al continuar aceptas nuestros',
   terms: 'Términos de uso',
 
+  auth: {
+    login: {
+      back: 'Inicio',
+      emailRequired: 'Introduce tu email',
+      sentTitle: 'Revisa tu email',
+      sentTo: 'Te hemos enviado un enlace a',
+      useAnotherEmail: 'Usar otro email →',
+      emailLabel: 'Enlace de acceso por email',
+      emailPlaceholder: "tu{'@'}email.com",
+      send: 'Enviar',
+      languageLabel: 'Idioma',
+    },
+    magicLink: {
+      verifying: 'Verificando el enlace de acceso',
+      wait: 'Un momento…',
+      successTitle: '¡Acceso confirmado!',
+      entering: 'Entrando en Giras…',
+      invalidTitle: 'Enlace no válido',
+      noToken: 'Enlace no válido: no se ha encontrado el token de acceso.',
+      invalidOrExpired: 'El enlace de acceso no es válido o ha caducado.',
+      backToLogin: 'Volver al inicio de sesión →',
+    },
+    errors: {
+      accessPending: 'Tu acceso está pendiente de aprobación. Te contactaremos pronto.',
+      googleNotConfigured: 'El acceso con Google no está configurado.',
+      magicLinkSend: 'No se ha podido enviar el enlace',
+      invalidEmail: 'Introduce un email válido',
+      rateLimited: 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.',
+      unknown: 'Ha ocurrido un error inesperado. Vuelve a intentarlo.',
+    },
+  },
+
   consent: {
     message: 'Usamos cookies de analítica para entender cómo se usa la plataforma y mejorarla.',
     more: 'Más información',
@@ -1013,7 +1045,7 @@ export default {
   },
 
   privacy: {
-    lastUpdated: '23 de noviembre de 2026',
+    lastUpdated: '25 de noviembre de 2026',
     lastUpdatedLabel: 'Última actualización:',
     metaTitle: 'Política de privacidad — Giras',
     metaDescription:
@@ -1068,7 +1100,6 @@ export default {
         ],
         items: [
           'Google Calendar, lectura (calendar.readonly): leemos los eventos de los calendarios que eliges conectar (título, fechas, horas, ubicación y descripción) para crear y actualizar automáticamente las actividades de tu gira.',
-          'Google Calendar, eventos (calendar.events): escribimos en los eventos ya importados una marca interna privada que los vincula con su gira en Giras, para no procesarlos dos veces. No creamos ni borramos eventos en tu calendario.',
           'Google Contacts, lectura (contacts.readonly): leemos nombre, emails, teléfonos, organización, dirección y foto de tus contactos solo cuando decides importarlos, para añadirlos al crew de tus giras.',
           'Google Drive, archivos elegidos (drive.file): solo tenemos acceso a las hojas de cálculo que eliges en el selector de Google para vincularlas a una gira. Leemos su contenido (las pestañas que marcas) cada 6 horas para proponerte actividades y personas nuevas o cambiadas. Aunque el permiso lo permitiría, nunca modificamos, creamos ni borramos archivos, y no vemos el resto de tu Drive.',
         ],
@@ -1242,7 +1273,6 @@ export default {
     },
     scopes: {
       calendarRead: 'Ver tus calendarios y eventos',
-      calendarWrite: 'Marcar los eventos importados',
       contactsRead: 'Leer tus contactos',
       sheetsRead: 'Leer las hojas que eliges',
     },
@@ -1254,7 +1284,7 @@ export default {
     },
     consent: {
       calendar:
-        'Google te pedirá permiso para que Giras vea tus calendarios y eventos y añada una marca privada a los eventos que importes. Así creamos y actualizamos las actividades de tu gira. No creamos ni borramos eventos en tu calendario.',
+        'Google te pedirá permiso para que Giras vea tus calendarios y eventos. Así creamos y actualizamos las actividades de tu gira. Solo los leemos: no creamos, modificamos ni borramos eventos en tu calendario.',
       contacts:
         'Google te pedirá permiso para que Giras lea tus contactos. Solo los importamos cuando tú lo decides y eliges cuáles añadir al crew.',
       sheets:

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { redirectTo } from '@/utils/navigation'
 import { oauthRedirectUri, randomLoginState, savePending } from '@/utils/googleOAuth'
 import { useGoogleStore } from '@/stores/google'
@@ -31,6 +32,25 @@ interface LoginResponse {
   refresh_token: string
   user: AuthUser
   expires_in: number
+}
+
+// ─── Errores de login (texto traducido, nunca el código crudo del backend) ─────
+
+/** Error ya traducido; el resto (red, JSON roto) cae al genérico de cada acción. */
+class AuthMessageError extends Error {}
+
+/**
+ * Mensaje del fallo de un endpoint de login. `access_pending` (gate de acceso, 403) tiene texto
+ * propio; los `error` libres del backend vienen en español, así que se usa el texto i18n de la
+ * acción para que la pantalla salga entera en el idioma elegido.
+ */
+function authFailure(data: { error?: unknown } | null, fallbackKey: string): AuthMessageError {
+  const key = data?.error === 'access_pending' ? 'auth.errors.accessPending' : fallbackKey
+  return new AuthMessageError(i18n.global.t(key))
+}
+
+function authErrorMessage(e: unknown, fallbackKey: string): string {
+  return e instanceof AuthMessageError ? e.message : i18n.global.t(fallbackKey)
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -147,7 +167,7 @@ export const useAuthStore = defineStore('auth', () => {
   function startGoogleLogin() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
     if (!clientId) {
-      error.value = 'Google Client ID no configurado'
+      error.value = i18n.global.t('auth.errors.googleNotConfigured')
       return
     }
     const state = randomLoginState()
@@ -173,11 +193,11 @@ export const useAuthStore = defineStore('auth', () => {
         body: JSON.stringify({ code, redirect_uri: redirectUri }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Error al autenticar con Google')
+      if (!res.ok) throw authFailure(data, 'googleAuth.callback.loginError')
       applyLoginResponse(data as LoginResponse)
       trackLogin('google', (data as LoginResponse).user.uuid)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Error desconocido'
+      error.value = authErrorMessage(e, 'auth.errors.unknown')
       throw e
     } finally {
       loading.value = false
@@ -197,11 +217,19 @@ export const useAuthStore = defineStore('auth', () => {
       })
       const data = await res.json()
       if (!res.ok) {
-        const msg = data.error ?? data.email?.[0] ?? 'Error al enviar el link'
-        throw new Error(msg)
+        // 400 del serializer: el handler global lo envuelve (`error.details.email`); se acepta
+        // también la forma plana de DRF (`{ email: [...] }`). 429: throttle de 5 enlaces/hora.
+        const invalidEmail = Boolean(data?.error?.details?.email ?? (!data?.error && data?.email))
+        const key =
+          res.status === 429
+            ? 'auth.errors.rateLimited'
+            : invalidEmail
+              ? 'auth.errors.invalidEmail'
+              : 'auth.errors.magicLinkSend'
+        throw authFailure(data, key)
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Error desconocido'
+      error.value = authErrorMessage(e, 'auth.errors.unknown')
       throw e
     } finally {
       loading.value = false
@@ -218,11 +246,11 @@ export const useAuthStore = defineStore('auth', () => {
         body: JSON.stringify({ token }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Token inválido o expirado')
+      if (!res.ok) throw authFailure(data, 'auth.magicLink.invalidOrExpired')
       applyLoginResponse(data as LoginResponse)
       trackLogin('magic_link', (data as LoginResponse).user.uuid)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Error desconocido'
+      error.value = authErrorMessage(e, 'auth.errors.unknown')
       throw e
     } finally {
       loading.value = false

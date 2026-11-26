@@ -43,6 +43,14 @@ describe('privacy i18n', () => {
     expect(hrefs).toContain('https://myaccount.google.com/permissions')
   })
 
+  it('la sección de Google no menciona calendar.events (solo pedimos lectura)', () => {
+    for (const sections of [esSections, enSections]) {
+      const google = sections.find((s) => s.id === 'datos-de-google')
+      expect(google?.items?.length).toBeGreaterThan(0)
+      for (const item of google?.items ?? []) expect(item).not.toContain('calendar.events')
+    }
+  })
+
   it('las claves leídas con t() no usan sintaxis especial de vue-i18n', () => {
     // t() compila el mensaje: @ (linked), { } (interpolación) y | (plural) romperían el texto.
     const flat = Object.entries(es.privacy).filter(([, v]) => typeof v === 'string')

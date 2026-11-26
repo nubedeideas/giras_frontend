@@ -16,7 +16,7 @@ const CONNECTED = {
   connected: true,
   account_email: 'me@x.es',
   granted_scopes: [],
-  features: { calendar: true, calendar_write: true, contacts: true },
+  features: { calendar: true, contacts: true },
   connected_at: '2026-11-01T00:00:00Z',
 }
 

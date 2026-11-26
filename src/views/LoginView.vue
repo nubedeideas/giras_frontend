@@ -16,12 +16,12 @@ const magicError = ref('')
 
 async function sendMagicLink() {
   magicError.value = ''
-  if (!magicEmail.value.trim()) { magicError.value = 'Ingresa tu email'; return }
+  if (!magicEmail.value.trim()) { magicError.value = t('auth.login.emailRequired'); return }
   try {
     await auth.requestMagicLink(magicEmail.value.trim())
     magicSent.value = true
   } catch {
-    magicError.value = auth.error ?? 'No se pudo enviar el link'
+    magicError.value = auth.error ?? t('auth.errors.magicLinkSend')
   }
 }
 
@@ -65,7 +65,7 @@ function doGoogleLogin() {
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        Inicio
+        {{ t('auth.login.back') }}
       </a>
 
       <!-- Logo + heading -->
@@ -151,10 +151,10 @@ function doGoogleLogin() {
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-widest text-acid-green mb-1">
-              Revisa tu email
+              {{ t('auth.login.sentTitle') }}
             </p>
             <p class="text-[10px] text-white/50 leading-relaxed">
-              Enviamos un link a <span class="text-white font-bold">{{ magicEmail }}</span>
+              {{ t('auth.login.sentTo') }} <span class="text-white font-bold">{{ magicEmail }}</span>
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ function doGoogleLogin() {
           class="mt-3 text-[9px] uppercase tracking-[0.3em] text-white/30 hover:text-acid-green transition-colors cursor-pointer border-none bg-transparent font-bold"
           @click="resetMagicLink"
         >
-          Usar otro email →
+          {{ t('auth.login.useAnotherEmail') }}
         </button>
       </div>
 
@@ -172,13 +172,13 @@ function doGoogleLogin() {
         class="text-left"
       >
         <label class="text-[9px] font-bold uppercase tracking-[0.35em] text-white/40 block mb-2">
-          Link de acceso por email
+          {{ t('auth.login.emailLabel') }}
         </label>
         <div class="flex gap-2">
           <input
             v-model="magicEmail"
             type="email"
-            placeholder="tu@email.com"
+            :placeholder="t('auth.login.emailPlaceholder')"
             class="flex-1 bg-white/5 border border-white/10 px-3 py-3 text-white text-[12px] outline-none focus:border-acid-green transition-colors placeholder:text-white/20 uppercase font-mono disabled:opacity-40"
             :disabled="auth.loading"
             @keydown.enter="sendMagicLink"
@@ -206,7 +206,7 @@ function doGoogleLogin() {
                 stroke-linecap="round"
               />
             </svg>
-            <span v-else>Enviar</span>
+            <span v-else>{{ t('auth.login.send') }}</span>
           </button>
         </div>
         <p
@@ -219,7 +219,11 @@ function doGoogleLogin() {
 
       <!-- Lang toggle -->
       <div class="flex justify-center mt-6">
-        <div class="flex gap-px border border-white/10 p-px">
+        <div
+          class="flex gap-px border border-white/10 p-px"
+          role="group"
+          :aria-label="t('auth.login.languageLabel')"
+        >
           <button
             v-for="l in ['es', 'en']"
             :key="l"

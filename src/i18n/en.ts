@@ -5,6 +5,38 @@ export default {
   loginNote: 'By continuing you agree to our',
   terms: 'Terms of Service',
 
+  auth: {
+    login: {
+      back: 'Home',
+      emailRequired: 'Enter your email',
+      sentTitle: 'Check your email',
+      sentTo: 'We sent a sign-in link to',
+      useAnotherEmail: 'Use a different email →',
+      emailLabel: 'Sign-in link by email',
+      emailPlaceholder: "you{'@'}email.com",
+      send: 'Send',
+      languageLabel: 'Language',
+    },
+    magicLink: {
+      verifying: 'Verifying your sign-in link',
+      wait: 'One moment…',
+      successTitle: "You're in!",
+      entering: 'Opening Giras…',
+      invalidTitle: 'Invalid link',
+      noToken: 'Invalid link: the access token is missing.',
+      invalidOrExpired: 'This sign-in link is invalid or has expired.',
+      backToLogin: 'Back to sign in →',
+    },
+    errors: {
+      accessPending: 'Your access is pending approval. We will contact you soon.',
+      googleNotConfigured: 'Google sign-in is not configured.',
+      magicLinkSend: "We couldn't send the link",
+      invalidEmail: 'Enter a valid email',
+      rateLimited: 'Too many attempts. Wait a few minutes and try again.',
+      unknown: 'Something went wrong. Please try again.',
+    },
+  },
+
   consent: {
     message: 'We use analytics cookies to understand how the platform is used and improve it.',
     more: 'Learn more',
@@ -1009,7 +1041,7 @@ export default {
   },
 
   privacy: {
-    lastUpdated: 'November 23, 2026',
+    lastUpdated: 'November 25, 2026',
     lastUpdatedLabel: 'Last updated:',
     metaTitle: 'Privacy Policy — Giras',
     metaDescription:
@@ -1064,7 +1096,6 @@ export default {
         ],
         items: [
           'Google Calendar, read-only (calendar.readonly): we read events from the calendars you choose to connect (title, dates, times, location and description) to automatically create and update your tour activities.',
-          'Google Calendar, events (calendar.events): on events we have already imported, we write a private internal marker that links them to their tour in Giras, so they are not processed twice. We do not create or delete events in your calendar.',
           "Google Contacts, read-only (contacts.readonly): we read your contacts' names, emails, phone numbers, organization, address and photo only when you choose to import them, to add them to your tour crew.",
           "Google Drive, chosen files (drive.file): we only have access to the spreadsheets you choose in Google's picker to link them to a tour. We read their content (the tabs you select) every 6 hours to suggest new or changed activities and people. Although the permission would allow it, we never modify, create or delete files, and we can't see the rest of your Drive.",
         ],
@@ -1237,7 +1268,6 @@ export default {
     },
     scopes: {
       calendarRead: 'See your calendars and events',
-      calendarWrite: 'Mark imported events',
       contactsRead: 'Read your contacts',
       sheetsRead: 'Read the sheets you choose',
     },
@@ -1249,7 +1279,7 @@ export default {
     },
     consent: {
       calendar:
-        "Google will ask you to allow Giras to see your calendars and events and to add a private marker to the events you import. That's how we create and update your tour activities. We don't create or delete events in your calendar.",
+        "Google will ask you to allow Giras to see your calendars and events. That's how we create and update your tour activities. We only read them: we don't create, change or delete events in your calendar.",
       contacts:
         'Google will ask you to allow Giras to read your contacts. We only import them when you decide to, and you choose which ones to add to your crew.',
       sheets:

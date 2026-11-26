@@ -17,7 +17,7 @@ const NOT_CONNECTED = {
   connected: false,
   account_email: '',
   granted_scopes: [],
-  features: { calendar: false, calendar_write: false, contacts: false },
+  features: { calendar: false, contacts: false },
   connected_at: null,
 }
 

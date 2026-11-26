@@ -71,7 +71,7 @@ export function googleStatus(sheets: boolean) {
     connected: true,
     account_email: 'tm@giras.pro',
     granted_scopes: [],
-    features: { calendar: true, calendar_write: true, contacts: false, sheets },
+    features: { calendar: true, contacts: false, sheets },
     connected_at: '2026-11-20T10:00:00Z',
   }
 }
