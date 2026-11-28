@@ -29,17 +29,41 @@ function detail(item: NotificationGroupListItem, description: string): Notificat
 const DETAIL_A = detail(LIST[0], 'Todo el equipo de la gira')
 const DETAIL_B = detail(LIST[1], 'Producción local')
 
+/** Backend con `system_key`: Equipo de la gira bloqueado y un grupo manual. */
+const LOCKED_LIST: NotificationGroupListItem[] = [
+  { ...LIST[0], uuid: 'g-t', system_key: 'tour_team' },
+  { ...LIST[1], system_key: null },
+]
+const DETAIL_T = detail(LOCKED_LIST[0], 'Todo el equipo de la gira')
+const DETAIL_B_KEY = detail(LOCKED_LIST[1], 'Producción local')
+
+const LOCKED_403 = {
+  success: false,
+  error: {
+    message: 'Error en la solicitud',
+    status_code: 403,
+    details: {
+      group: ['El Equipo de la gira no se puede eliminar.'],
+      code: ['system_group_locked'],
+    },
+  },
+}
+
 type Handler = (url: string, method: string, init: RequestInit) => Response | Promise<Response> | undefined
 
 /** `fetch` por URL: la edición dispara `getGroup` además del listado. */
-function setupFetch(extra: Handler = () => undefined) {
+function setupFetch(extra: Handler = () => undefined, list: NotificationGroupListItem[] = LIST) {
   const fn = vi.fn<typeof fetch>(async (input, init) => {
     const url = String(input)
     const method = (init?.method ?? 'GET').toUpperCase()
     const custom = extra(url, method, init ?? {})
     if (custom) return custom
     if (method === 'GET' && /\/notifications\/groups\/(\?.*)?$/.test(url)) {
-      return jsonResponse({ count: LIST.length, next: null, previous: null, results: LIST })
+      return jsonResponse({ count: list.length, next: null, previous: null, results: list })
+    }
+    if (method === 'GET' && url.endsWith('/notifications/groups/g-t/')) return jsonResponse(DETAIL_T)
+    if (method === 'GET' && url.endsWith('/notifications/groups/g-b/') && list === LOCKED_LIST) {
+      return jsonResponse(DETAIL_B_KEY)
     }
     if (method === 'GET' && url.endsWith('/notifications/groups/g-a/')) return jsonResponse(DETAIL_A)
     if (method === 'GET' && url.endsWith('/notifications/groups/g-b/')) return jsonResponse(DETAIL_B)
@@ -224,5 +248,115 @@ describe('NotificationGroupsManager', () => {
       expect(buttons).toHaveLength(2)
       for (const b of buttons) expect(b.classes()).toContain('text-olive')
     }
+  })
+})
+
+describe('NotificationGroupsManager · Equipo de la gira', () => {
+  function rowOf(w: Awaited<ReturnType<typeof mountManager>>, name: string) {
+    return titleOf(w, name).element.closest('.group') as HTMLElement
+  }
+
+  it('fila del equipo: etiqueta Sistema y sin papelera; grupo manual: papelera y sin etiqueta', async () => {
+    setupFetch(undefined, LOCKED_LIST)
+    const w = await mountManager()
+    const team = rowOf(w, 'Equipo de la gira')
+    const manual = rowOf(w, 'Producción')
+    expect(team.querySelector('[data-test="group-row-delete"]')).toBeNull()
+    const badge = team.querySelector('[data-test="group-system-badge"]')
+    expect(badge?.textContent?.trim()).toBe('Sistema')
+    expect(badge?.getAttribute('title')).toContain('No se puede eliminar, renombrar ni mover de gira')
+    expect(manual.querySelector('[data-test="group-row-delete"]')).not.toBeNull()
+    expect(manual.querySelector('[data-test="group-system-badge"]')).toBeNull()
+  })
+
+  it('edición del equipo: sin Eliminar, con aviso, nombre y gira deshabilitados; guarda solo la descripción', async () => {
+    const fn = setupFetch((url, method) => {
+      if (method === 'PATCH' && url.endsWith('/notifications/groups/g-t/')) {
+        return jsonResponse({ ...DETAIL_T, description: 'Nueva' })
+      }
+    }, LOCKED_LIST)
+    const w = await mountManager()
+    await titleOf(w, 'Equipo de la gira').trigger('click')
+    await flushPromises()
+
+    expect(w.find('[data-test="group-edit-delete"]').exists()).toBe(false)
+    expect(w.get('[data-test="group-edit-locked-hint"]').text()).toContain(
+      'sí puedes cambiar sus contactos y su descripción'
+    )
+    expect(w.get('[data-test="group-edit-name"]').attributes('disabled')).toBeDefined()
+    expect(w.get('[data-test="group-edit-tour"]').attributes('disabled')).toBeDefined()
+    expect(w.get('[data-test="group-edit-description"]').attributes('disabled')).toBeUndefined()
+    expect(w.find('[data-test="group-edit-contacts"]').exists()).toBe(true)
+
+    await w.get('[data-test="group-edit-description"]').setValue('Nueva')
+    await w.get('[data-test="group-edit-save"]').trigger('click')
+    await flushPromises()
+    const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect(JSON.parse(String(patch?.[1]?.body))).toEqual({ description: 'Nueva' })
+    expect(w.find('[data-test="group-edit-save"]').exists()).toBe(false)
+    expect(rowOf(w, 'Equipo de la gira').querySelector('[data-test="group-system-badge"]')).not.toBeNull()
+  })
+
+  it('edición del grupo manual: con Eliminar y guarda nombre, descripción y gira', async () => {
+    const fn = setupFetch((url, method) => {
+      if (method === 'PATCH' && url.endsWith('/notifications/groups/g-b/')) {
+        return jsonResponse(DETAIL_B_KEY)
+      }
+    }, LOCKED_LIST)
+    const w = await mountManager()
+    await titleOf(w, 'Producción').trigger('click')
+    await flushPromises()
+    expect(w.find('[data-test="group-edit-delete"]').exists()).toBe(true)
+    expect(w.find('[data-test="group-edit-locked-hint"]').exists()).toBe(false)
+    expect(w.get('[data-test="group-edit-name"]').attributes('disabled')).toBeUndefined()
+
+    await w.get('[data-test="group-edit-save"]').trigger('click')
+    await flushPromises()
+    const patch = fn.mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect(JSON.parse(String(patch?.[1]?.body))).toEqual({
+      name: 'Producción',
+      description: 'Producción local',
+      tour: null,
+    })
+  })
+
+  it('listado sin system_key (backend viejo): la papelera se muestra en todas las filas', async () => {
+    setupFetch()
+    const w = await mountManager()
+    expect(w.findAll('[data-test="group-row-delete"]')).toHaveLength(2)
+    expect(w.find('[data-test="group-system-badge"]').exists()).toBe(false)
+  })
+
+  it('DELETE con 403 system_group_locked → mensaje traducido, sin código crudo', async () => {
+    setupFetch((url, method) => {
+      if (method === 'DELETE' && url.endsWith('/notifications/groups/g-a/')) {
+        return jsonResponse(LOCKED_403, 403)
+      }
+    })
+    const w = await mountManager()
+    await rowOf(w, 'Equipo de la gira')
+      .querySelector<HTMLButtonElement>('[data-test="group-row-delete"]')!
+      .click()
+    await flushPromises()
+    await w.findAll('button').find((b) => b.text() === 'Eliminar')!.trigger('click')
+    await flushPromises()
+    expect(w.text()).toContain('El Equipo de la gira no se puede eliminar, renombrar ni mover de gira.')
+    expect(w.text()).not.toContain('system_group_locked')
+  })
+
+  it('PATCH con 403 system_group_locked → mensaje traducido en la edición', async () => {
+    setupFetch((url, method) => {
+      if (method === 'PATCH' && url.endsWith('/notifications/groups/g-a/')) {
+        return jsonResponse(LOCKED_403, 403)
+      }
+    })
+    const w = await mountManager()
+    await titleOf(w, 'Equipo de la gira').trigger('click')
+    await flushPromises()
+    await w.get('[data-test="group-edit-save"]').trigger('click')
+    await flushPromises()
+    expect(w.get('[data-test="group-edit-error"]').text()).toBe(
+      'El Equipo de la gira no se puede eliminar, renombrar ni mover de gira.'
+    )
   })
 })

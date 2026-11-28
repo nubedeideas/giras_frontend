@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToursStore } from '@/stores/tours'
 import {
   useNotificationGroups,
+  isTourTeamGroup,
   type NotificationGroupListItem,
 } from '@/composables/useNotificationGroups'
 import ManageGroupContactsModal from '@/components/modals/ManageGroupContactsModal.vue'
 import { inUseErrorMessage } from '@/utils/notificationRules'
+import { hasApiErrorCode, SYSTEM_GROUP_LOCKED } from '@/utils/notificationErrors'
 import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
 const api = useNotificationGroups()
@@ -30,6 +32,11 @@ const editLoading = ref(false)
 const editLoadFailed = ref(false)
 // Guard de respuesta vieja: abrir otro grupo antes de que vuelva el detalle del anterior.
 let editRequest = 0
+// Equipo de la gira: nombre y gira bloqueados, sin borrado (403 `system_group_locked`).
+const editingLocked = computed(() => {
+  const g = groups.value.find((x) => x.uuid === editingUuid.value)
+  return !!g && isTourTeamGroup(g)
+})
 
 // Create state
 const showCreate = ref(false)
@@ -103,11 +110,13 @@ async function saveEdit() {
   editSaving.value = true
   editError.value = ''
   try {
-    const updated = await api.updateGroup(editingUuid.value, {
-      name: editForm.value.name.trim(),
-      description: editForm.value.description.trim(),
-      tour: editForm.value.tour || null,
-    })
+    const description = editForm.value.description.trim()
+    const updated = await api.updateGroup(
+      editingUuid.value,
+      editingLocked.value
+        ? { description }
+        : { name: editForm.value.name.trim(), description, tour: editForm.value.tour || null }
+    )
     const idx = groups.value.findIndex((g) => g.uuid === updated.uuid)
     if (idx >= 0) {
       groups.value[idx] = {
@@ -116,11 +125,16 @@ async function saveEdit() {
         tour: updated.tour,
         tour_name: updated.tour_name,
         contact_count: updated.contact_count,
+        system_key: updated.system_key ?? null,
       }
     }
     editingUuid.value = null
   } catch (e) {
-    editError.value = e instanceof Error ? e.message : 'Error al guardar'
+    if (hasApiErrorCode(e, SYSTEM_GROUP_LOCKED)) {
+      editError.value = t('settings.groupsManager.systemLocked')
+    } else {
+      editError.value = e instanceof Error ? e.message : 'Error al guardar'
+    }
   } finally {
     editSaving.value = false
   }
@@ -157,6 +171,7 @@ async function submitCreate() {
       tour: created.tour,
       tour_name: created.tour_name,
       contact_count: created.contact_count,
+      system_key: created.system_key ?? null,
     })
     showCreate.value = false
   } catch (e) {
@@ -169,6 +184,8 @@ async function submitCreate() {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 function startDelete(uuid: string) {
+  const group = groups.value.find((g) => g.uuid === uuid)
+  if (group && isTourTeamGroup(group)) return
   editRequest++
   deletingUuid.value = uuid
   deleteError.value = ''
@@ -186,8 +203,11 @@ async function confirmDelete() {
     groups.value = groups.value.filter((g) => g.uuid !== deletingUuid.value)
     deletingUuid.value = null
   } catch (e) {
+    // 403 `system_group_locked`: Equipo de la gira con un listado sin `system_key`.
     // 409 `group_in_use` (lo usan reglas activas): el mensaje del backend dice cuántas.
-    deleteError.value = inUseErrorMessage(e, 'group', 'Error al eliminar')
+    deleteError.value = hasApiErrorCode(e, SYSTEM_GROUP_LOCKED)
+      ? t('settings.groupsManager.systemLocked')
+      : inUseErrorMessage(e, 'group', 'Error al eliminar')
   } finally {
     deleteSaving.value = false
   }
@@ -291,6 +311,14 @@ function onContactsSaved(newCount: number) {
             >
               {{ group.tour_name ?? 'Global' }}
             </span>
+            <span
+              v-if="isTourTeamGroup(group)"
+              class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none flex-shrink-0"
+              :title="t('settings.groupsManager.systemHint')"
+              data-test="group-system-badge"
+            >
+              {{ t('settings.groupsManager.systemBadge') }}
+            </span>
             <span class="text-[12px] text-ink-4 flex-shrink-0">
               {{ group.contact_count }} contacto{{ group.contact_count !== 1 ? 's' : '' }}
             </span>
@@ -353,8 +381,10 @@ function onContactsSaved(newCount: number) {
               </svg>
             </button>
             <button
+              v-if="!isTourTeamGroup(group)"
               class="w-11 h-11 lg:w-6 lg:h-6 flex items-center justify-center rounded text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
               title="Eliminar"
+              data-test="group-row-delete"
               @click="startDelete(group.uuid)"
             >
               <svg
@@ -391,7 +421,8 @@ function onContactsSaved(newCount: number) {
             v-model="editForm.name"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors disabled:cursor-not-allowed"
             placeholder="Nombre del grupo"
-            :disabled="editLoading"
+            :disabled="editLoading || editingLocked"
+            data-test="group-edit-name"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
@@ -407,7 +438,8 @@ function onContactsSaved(newCount: number) {
           <select
             v-model="editForm.tour"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors disabled:cursor-not-allowed"
-            :disabled="editLoading"
+            :disabled="editLoading || editingLocked"
+            data-test="group-edit-tour"
           >
             <option value="">
               Global (todas las giras)
@@ -432,6 +464,7 @@ function onContactsSaved(newCount: number) {
               {{ t('settings.groupsManager.manageContacts', { n: group.contact_count }) }}
             </BtnSecondary>
             <button
+              v-if="!editingLocked"
               type="button"
               class="min-h-[44px] lg:min-h-0 px-2 text-[13px] font-medium text-failed-fg hover:underline bg-transparent border-none cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
               data-test="group-edit-delete"
@@ -440,6 +473,13 @@ function onContactsSaved(newCount: number) {
               {{ t('settings.groupsManager.delete') }}
             </button>
           </div>
+          <p
+            v-if="editingLocked"
+            class="text-[12px] text-ink-3"
+            data-test="group-edit-locked-hint"
+          >
+            {{ t('settings.groupsManager.systemHint') }}
+          </p>
 
           <p
             v-if="editError"
