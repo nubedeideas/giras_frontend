@@ -111,11 +111,12 @@ const activeTab = computed<SettingsTab>({
   set: (tab) => router.replace({ path: '/settings', query: { tab } }),
 })
 
+// Nombres por i18n, sin proveedores (Twilio, Mailgun, Apple): el usuario ve qué hace, no quién.
 const integrations = [
-  { name: 'Google Calendar', variant: 'g' as const, label: 'active' },
-  { name: 'WhatsApp (Twilio)', variant: 'g' as const, label: 'active' },
-  { name: 'Mailgun (Email)', variant: 'n' as const, label: 'configure' },
-  { name: 'Apple Wallet Pass', variant: 'o' as const, label: 'beta' },
+  { key: 'googleCalendar', variant: 'g' as const, label: 'active' },
+  { key: 'whatsapp', variant: 'g' as const, label: 'active' },
+  { key: 'email', variant: 'n' as const, label: 'configure' },
+  { key: 'wallet', variant: 'o' as const, label: 'beta' },
 ]
 
 // ─── Teléfono del usuario (C1.6): fallback de admins por WhatsApp y alertas de borradores ───
@@ -401,11 +402,11 @@ async function signOut() {
               <div class="bg-glass border border-line rounded-xl overflow-hidden">
                 <div
                   v-for="(int, idx) in integrations"
-                  :key="int.name"
+                  :key="int.key"
                   class="flex items-center justify-between px-4 py-3"
                   :class="idx < integrations.length - 1 ? 'border-b border-line' : ''"
                 >
-                  <span class="text-[15px] text-ink">{{ int.name }}</span>
+                  <span class="text-[15px] text-ink">{{ t(`settings.integrationNames.${int.key}`) }}</span>
                   <Pill :variant="int.variant">
                     {{ t(`settings.${int.label}`) }}
                   </Pill>

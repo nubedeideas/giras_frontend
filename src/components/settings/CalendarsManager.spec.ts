@@ -125,4 +125,20 @@ describe('CalendarsManager', () => {
     expect(w.get('[data-testid="calendar-disabled"]').text()).toBe('Desactivado')
     expect(w.text()).not.toContain('Sincronizar ahora')
   })
+
+  it('"(recomendado)" tras "calendario exclusivo por gira" en ES y EN', async () => {
+    setupFetch({ calendar: false })
+    const w = await mountAt()
+    expect(w.get('[data-test="calendars-recommended"]').text()).toBe('(recomendado)')
+    expect(w.get('[data-test="calendars-how"]').text()).toContain(
+      'calendario exclusivo por gira (recomendado) — útil si'
+    )
+
+    i18n.global.locale.value = 'en'
+    const en = await mountAt()
+    expect(en.get('[data-test="calendars-recommended"]').text()).toBe('(recommended)')
+    expect(en.get('[data-test="calendars-how"]').text()).toContain(
+      'tour-specific calendar (recommended)'
+    )
+  })
 })

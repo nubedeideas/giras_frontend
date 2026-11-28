@@ -4,7 +4,31 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '@/i18n'
 import { jsonResponse } from '@/test/http'
+import { useAuthStore, type AuthUser } from '@/stores/auth'
 import SettingsView from './SettingsView.vue'
+
+/** Usuario en el store antes de montar (en la app lo carga el guard con `fetchMe()`). */
+function setUser(overrides: Partial<AuthUser> = {}) {
+  useAuthStore().user = {
+    uuid: 'u1',
+    email: 'tm@giras.pro',
+    first_name: 'Tour',
+    last_name: 'Manager',
+    full_name: 'Tour Manager',
+    phone_number: null,
+    avatar: null,
+    bio: '',
+    timezone: 'Europe/Madrid',
+    language: 'es',
+    google_id: null,
+    telegram_id: null,
+    is_verified: true,
+    is_active: true,
+    is_staff: false,
+    is_superuser: false,
+    ...overrides,
+  }
+}
 
 async function mountTab(tab: string, extra: Record<string, string> = {}) {
   const router = createRouter({
@@ -66,5 +90,31 @@ describe('SettingsView › Calendarios (A11, F3)', () => {
     const w = await mountTab('general')
     expect(w.findComponent({ name: 'IcalSubscriptionsManager' }).exists()).toBe(false)
     expect(w.findComponent({ name: 'SheetSubscriptionsManager' }).exists()).toBe(false)
+  })
+})
+
+describe('SettingsView › General', () => {
+  it('ayuda del teléfono nueva en ES y EN', async () => {
+    setUser()
+    const w = await mountTab('general')
+    expect(w.text()).toContain('Lo usamos para avisarte de cambios en tus Giras.')
+
+    i18n.global.locale.value = 'en'
+    const en = await mountTab('general')
+    expect(en.text()).toContain('We use it to let you know about changes to your tours.')
+  })
+
+  it('integraciones sin proveedores (Twilio, Mailgun, Apple) en ES y EN', async () => {
+    setUser()
+    const w = await mountTab('general')
+    for (const name of ['Google Calendar', 'WhatsApp', 'Email', 'Pases de Wallet']) {
+      expect(w.text()).toContain(name)
+    }
+    for (const provider of ['Twilio', 'Mailgun', 'Apple']) expect(w.text()).not.toContain(provider)
+
+    i18n.global.locale.value = 'en'
+    const en = await mountTab('general')
+    expect(en.text()).toContain('Wallet passes')
+    for (const provider of ['Twilio', 'Mailgun', 'Apple']) expect(en.text()).not.toContain(provider)
   })
 })
