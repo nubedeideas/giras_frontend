@@ -790,6 +790,21 @@ export default {
       title: 'Activity types',
       sub: "Types classify your tour activities and decide which reminders are sent. System types (Flight, Show, Hotel check-in…) come with Giras and can't be edited; change their reminders in the Reminders tab. For everything else, create your own custom types.",
       systemLocked: "System types can't be edited.",
+      new: 'New activity type',
+      namePlaceholder: 'Name *',
+      create: 'Create type',
+      creating: 'Creating…',
+      cancel: 'Cancel',
+      active: 'Active',
+      systemBadge: 'system',
+    },
+    roles: {
+      new: 'New role',
+      namePlaceholder: 'Role name *',
+      create: 'Create role',
+      creating: 'Creating…',
+      cancel: 'Cancel',
+      systemBadge: 'system',
     },
     groupsManager: {
       loading: 'Loading group…',
@@ -805,6 +820,7 @@ export default {
 
   common: {
     cancel: 'Cancel',
+    close: 'Close',
     save: 'Save',
     create: 'Create',
     import: 'Import',
@@ -2108,8 +2124,8 @@ export default {
         when: 'Each activity type can have up to {max} reminders. Each one goes out as far ahead of the start as you choose, from {min} minutes to {days} days.',
         channels:
           'You pick the channel for each reminder: WhatsApp, email or in-app notice. In-app notices are only seen by people with a Giras account who are members of the tour.',
-        who: "They go to the groups you choose for that type in each tour (My Tour › Reminders). If you choose none, they go to the Tour team, and if it's empty, to the tour admins. You can add or remove people on each activity.",
-        quota: 'If the tour runs out of WhatsApp quota, the reminder goes out by email and in the app.',
+        who: "They go to the groups you choose for that type in each tour (My Tour › Reminders). If you choose none, they go to the tour's default group (the Tour team, unless you change it) and, if it's empty, to the tour admins. If the groups you choose are empty, nobody gets it and we let you know. You can add or remove people on each activity.",
+        quota: 'If the tour runs out of WhatsApp quota, the reminder goes out in the app to people with an account on the tour and by email to everyone else.',
       },
       reset: 'Restore Giras defaults',
       resetAll: 'Restore all',

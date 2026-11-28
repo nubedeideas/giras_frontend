@@ -79,4 +79,14 @@ describe('RolesManager', () => {
     expect(input.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(w.find('[data-test="roles-new"]').exists()).toBe(false)
   })
+
+  it('textos del alta y la etiqueta "sistema" por i18n (EN)', async () => {
+    i18n.global.locale.value = 'en'
+    const w = await mountManager()
+    expect(w.text()).toContain('system')
+    await w.get('[data-test="roles-new"]').trigger('click')
+    expect(w.text()).toContain('New role')
+    expect(w.text()).toContain('Create role')
+    expect(w.find('input[placeholder="Role name *"]').exists()).toBe(true)
+  })
 })

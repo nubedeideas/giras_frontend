@@ -214,7 +214,7 @@ async function confirmDelete() {
             y2="12"
           />
         </svg>
-        Nuevo rol
+        {{ t('settings.roles.new') }}
       </BtnPrimary>
     </div>
 
@@ -224,13 +224,13 @@ async function confirmDelete() {
       class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
     >
       <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
-        Nuevo rol
+        {{ t('settings.roles.new') }}
       </p>
 
       <input
         v-model="createForm.name"
         class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
-        placeholder="Nombre del rol *"
+        :placeholder="t('settings.roles.namePlaceholder')"
         autofocus
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
@@ -269,13 +269,13 @@ async function confirmDelete() {
           :disabled="createSaving || !createForm.name.trim()"
           @click="submitCreate"
         >
-          {{ createSaving ? 'Creando…' : 'Crear rol' }}
+          {{ createSaving ? t('settings.roles.creating') : t('settings.roles.create') }}
         </button>
         <button
           class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="cancelCreate"
         >
-          Cancelar
+          {{ t('settings.roles.cancel') }}
         </button>
       </div>
     </div>
@@ -316,7 +316,7 @@ async function confirmDelete() {
               v-if="role.is_system"
               class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none"
             >
-              sistema
+              {{ t('settings.roles.systemBadge') }}
             </span>
           </div>
 
@@ -420,7 +420,7 @@ async function confirmDelete() {
               class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="cancelEdit"
             >
-              Cancelar
+              {{ t('settings.roles.cancel') }}
             </button>
           </div>
         </div>
@@ -453,7 +453,7 @@ async function confirmDelete() {
               class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="deletingUuid = null"
             >
-              Cancelar
+              {{ t('settings.roles.cancel') }}
             </button>
           </div>
         </div>

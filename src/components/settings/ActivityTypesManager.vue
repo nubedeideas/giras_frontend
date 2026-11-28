@@ -260,7 +260,7 @@ async function confirmDelete() {
             y2="12"
           />
         </svg>
-        Nuevo tipo de actividad
+        {{ t('settings.activityTypes.new') }}
       </BtnPrimary>
     </div>
 
@@ -270,13 +270,13 @@ async function confirmDelete() {
       class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
     >
       <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
-        Nuevo tipo de actividad
+        {{ t('settings.activityTypes.new') }}
       </p>
 
       <input
         v-model="createForm.name"
         class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
-        placeholder="Nombre *"
+        :placeholder="t('settings.activityTypes.namePlaceholder')"
         autofocus
         @keydown.enter="submitCreate"
         @keydown.esc="cancelCreate"
@@ -325,7 +325,7 @@ async function confirmDelete() {
             :style="{ left: createForm.is_active ? '18px' : '2px' }"
           />
         </div>
-        <span class="text-[13px] text-ink-2">Activo</span>
+        <span class="text-[13px] text-ink-2">{{ t('settings.activityTypes.active') }}</span>
       </label>
 
       <p
@@ -342,13 +342,13 @@ async function confirmDelete() {
           :disabled="createSaving || !createForm.name.trim()"
           @click="submitCreate"
         >
-          {{ createSaving ? 'Creando…' : 'Crear tipo' }}
+          {{ createSaving ? t('settings.activityTypes.creating') : t('settings.activityTypes.create') }}
         </button>
         <button
           class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
           @click="cancelCreate"
         >
-          Cancelar
+          {{ t('settings.activityTypes.cancel') }}
         </button>
       </div>
     </div>
@@ -422,7 +422,7 @@ async function confirmDelete() {
               v-if="item.is_system"
               class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none"
             >
-              sistema
+              {{ t('settings.activityTypes.systemBadge') }}
             </span>
             <span
               v-if="!item.is_active"
@@ -489,7 +489,7 @@ async function confirmDelete() {
           <input
             v-model="editForm.name"
             class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
-            placeholder="Nombre *"
+            :placeholder="t('settings.activityTypes.namePlaceholder')"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
@@ -539,7 +539,7 @@ async function confirmDelete() {
                 :style="{ left: editForm.is_active ? '18px' : '2px' }"
               />
             </div>
-            <span class="text-[13px] text-ink-2">Activo</span>
+            <span class="text-[13px] text-ink-2">{{ t('settings.activityTypes.active') }}</span>
           </label>
 
           <p
@@ -562,7 +562,7 @@ async function confirmDelete() {
               class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="cancelEdit"
             >
-              Cancelar
+              {{ t('settings.activityTypes.cancel') }}
             </button>
           </div>
         </div>
@@ -595,7 +595,7 @@ async function confirmDelete() {
               class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
               @click="deletingUuid = null"
             >
-              Cancelar
+              {{ t('settings.activityTypes.cancel') }}
             </button>
           </div>
         </div>

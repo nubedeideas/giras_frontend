@@ -142,8 +142,10 @@ describe('SettingsView › Recordatorios', () => {
     expect(card).toContain('¿Cómo funcionan?')
     expect(card).toContain('hasta 5 recordatorios')
     expect(card).toContain('desde 5 minutos hasta 14 días')
-    expect(card).toContain('Equipo de la gira')
+    expect(card).toContain('grupo por defecto de la gira (el Equipo de la gira, salvo que lo cambies)')
+    expect(card).toContain('no se envía a nadie')
     expect(card).toContain('cupo de WhatsApp')
+    expect(card).toContain('por la app a quien tiene cuenta en la gira y por email al resto')
 
     i18n.global.locale.value = 'en'
     const en = await mountTab('reminders')
@@ -178,6 +180,28 @@ describe('SettingsView › Templates solo para superusers', () => {
     expect(navLabels(w)).toContain('Templates')
     expect(w.router.currentRoute.value.query.tab).toBe('templates')
     expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(true)
+  })
+
+  it('?tab=templates con auth.user aún null no redirige; al cargar el superuser monta las plantillas', async () => {
+    const w = await mountTab('templates')
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('templates')
+    expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(false)
+
+    setUser({ is_superuser: true })
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('templates')
+    expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(true)
+  })
+
+  it('?tab=templates con auth.user null y luego usuario normal → redirige a general', async () => {
+    const w = await mountTab('templates')
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('templates')
+    setUser({ is_superuser: false })
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('general')
+    expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(false)
   })
 
   it('?tab=foo → redirige a general', async () => {

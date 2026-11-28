@@ -794,6 +794,21 @@ export default {
       title: 'Tipos de actividad',
       sub: 'Los tipos clasifican las actividades de tus giras y deciden qué recordatorios se envían. Los tipos del sistema (Vuelo, Show, Check-in Hotel…) vienen con Giras y no se pueden editar; sus recordatorios se cambian en la pestaña Recordatorios. Para todo lo demás, crea tus propios tipos personalizados.',
       systemLocked: 'Los tipos del sistema no se pueden editar.',
+      new: 'Nuevo tipo de actividad',
+      namePlaceholder: 'Nombre *',
+      create: 'Crear tipo',
+      creating: 'Creando…',
+      cancel: 'Cancelar',
+      active: 'Activo',
+      systemBadge: 'sistema',
+    },
+    roles: {
+      new: 'Nuevo rol',
+      namePlaceholder: 'Nombre del rol *',
+      create: 'Crear rol',
+      creating: 'Creando…',
+      cancel: 'Cancelar',
+      systemBadge: 'sistema',
     },
     groupsManager: {
       loading: 'Cargando grupo…',
@@ -809,6 +824,7 @@ export default {
 
   common: {
     cancel: 'Cancelar',
+    close: 'Cerrar',
     save: 'Guardar',
     create: 'Crear',
     import: 'Importar',
@@ -2119,8 +2135,8 @@ export default {
         when: 'Cada tipo de actividad puede tener hasta {max} recordatorios. Cada uno sale con la antelación que elijas antes de que empiece la actividad, desde {min} minutos hasta {days} días.',
         channels:
           'Para cada recordatorio eliges el canal: WhatsApp, email o aviso en la app. El aviso en la app solo lo ven quienes tienen cuenta en Giras y son miembros de la gira.',
-        who: 'Llegan a los grupos que elijas para ese tipo en cada gira (Mi Gira › Recordatorios). Si no eliges ninguno, al Equipo de la gira, y si está vacío, a los administradores de la gira. En cada actividad puedes añadir o quitar personas.',
-        quota: 'Si la gira se queda sin cupo de WhatsApp, el recordatorio sale por email y en la app.',
+        who: 'Llegan a los grupos que elijas para ese tipo en cada gira (Mi Gira › Recordatorios). Si no eliges ninguno, van al grupo por defecto de la gira (el Equipo de la gira, salvo que lo cambies) y, si está vacío, a los administradores de la gira. Si los grupos que eliges están vacíos, no se envía a nadie y te avisamos. En cada actividad puedes añadir o quitar personas.',
+        quota: 'Si la gira se queda sin cupo de WhatsApp, el recordatorio sale por la app a quien tiene cuenta en la gira y por email al resto.',
       },
       reset: 'Restablecer valores de Giras',
       resetAll: 'Restablecer todos',

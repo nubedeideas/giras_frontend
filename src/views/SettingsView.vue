@@ -123,13 +123,15 @@ const activeTab = computed<SettingsTab>({
   set: (tab) => router.replace({ path: '/settings', query: { tab } }),
 })
 
-// `?tab=templates` sin permiso o una pestaña desconocida acaban en `?tab=general`.
+// `?tab=templates` sin permiso o una pestaña desconocida acaban en `?tab=general`. Mientras
+// `auth.user` sea null (`fetchMe` sin resolver o caído por red) no se sabe si es superuser:
+// `?tab=templates` se conserva (se pinta General sin montar las plantillas) y se decide al cargar.
 watch(
-  () => route.query.tab,
-  (tab) => {
-    if (tab !== undefined && !isVisibleTab(tab)) {
-      void router.replace({ path: '/settings', query: { tab: 'general' } })
-    }
+  [() => route.query.tab, () => auth.user],
+  ([tab, user]) => {
+    if (tab === undefined || isVisibleTab(tab)) return
+    if (tab === 'templates' && !user) return
+    void router.replace({ path: '/settings', query: { tab: 'general' } })
   },
   { immediate: true }
 )

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import { useBilling, type PublicPlan } from '@/composables/useBilling'
 import { useSubscription, type ChangePlanResult } from '@/composables/useSubscription'
@@ -9,6 +10,7 @@ import type { PlanCode } from '@/composables/useAdminSubscriptions'
 const props = defineProps<{ show: boolean; tourUuid: string; currentPlanCode: PlanCode | null }>()
 const emit = defineEmits<{ close: []; changed: [] }>()
 
+const { t } = useI18n()
 const billingApi = useBilling()
 const subApi = useSubscription()
 
@@ -57,9 +59,43 @@ async function choose(code: PlanCode) {
     :show="show"
     @close="emit('close')"
   >
-    <p class="text-base font-bold text-ink tracking-[-0.2px] mb-4">
-      Elegir plan
-    </p>
+    <!-- Cabecera: la X cierra en cualquier estado (cargando, catálogo o resultado). -->
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <p class="text-base font-bold text-ink tracking-[-0.2px]">
+        Elegir plan
+      </p>
+      <button
+        type="button"
+        class="w-11 h-11 lg:w-7 lg:h-7 flex items-center justify-center rounded-lg border border-line bg-glass text-ink-2 cursor-pointer hover:bg-glass-hover flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+        :aria-label="t('common.close')"
+        data-test="choose-plan-close"
+        @click="emit('close')"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line
+            x1="18"
+            y1="6"
+            x2="6"
+            y2="18"
+          /><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"
+          />
+        </svg>
+      </button>
+    </div>
 
     <div
       v-if="loading"

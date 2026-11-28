@@ -175,10 +175,14 @@ describe('ActivityTypesManager', () => {
         return jsonResponse(
           {
             success: false,
+            // Cuerpo real del handler de excepciones para el PermissionDenied del backend.
             error: {
-              message: 'Los tipos del sistema no se pueden editar; solo sus recordatorios.',
+              message: 'Error en la solicitud',
               status_code: 403,
-              details: { code: ['system_type_locked'] },
+              details: {
+                activity_type: ['Los tipos del sistema no se pueden editar; solo sus recordatorios.'],
+                code: ['system_type_locked'],
+              },
             },
           },
           403
@@ -191,5 +195,17 @@ describe('ActivityTypesManager', () => {
     await flushPromises()
     expect(w.text()).toContain('Los tipos del sistema no se pueden editar.')
     expect(w.text()).not.toContain('system_type_locked')
+  })
+
+  it('textos del alta y la etiqueta "sistema" por i18n (EN)', async () => {
+    i18n.global.locale.value = 'en'
+    setupFetch()
+    const w = await mountManager()
+    expect(rowOf(w, 'Vuelo').text()).toContain('system')
+    await w.get('[data-test="activity-types-new"]').trigger('click')
+    expect(w.text()).toContain('New activity type')
+    expect(w.text()).toContain('Create type')
+    expect(w.text()).toContain('Active')
+    expect(w.find('input[placeholder="Name *"]').exists()).toBe(true)
   })
 })
