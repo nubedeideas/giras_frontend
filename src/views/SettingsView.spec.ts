@@ -150,3 +150,41 @@ describe('SettingsView › Recordatorios', () => {
     expect(en.get('[data-test="reminders-how"]').text()).toContain('from 5 minutes to 14 days')
   })
 })
+
+describe('SettingsView › Templates solo para superusers', () => {
+  const navLabels = (w: Awaited<ReturnType<typeof mountTab>>) =>
+    w.findAll('nav button').map((b) => b.text())
+
+  it('usuario normal: la navegación no tiene "Templates"', async () => {
+    setUser({ is_superuser: false })
+    const w = await mountTab('general')
+    expect(navLabels(w)).not.toContain('Templates')
+    expect(navLabels(w)).toContain('General')
+  })
+
+  it('?tab=templates sin superuser → redirige a general y no monta las plantillas', async () => {
+    setUser({ is_superuser: false })
+    const w = await mountTab('templates')
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('general')
+    expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(false)
+    expect(w.text()).toContain('Lo usamos para avisarte de cambios en tus Giras.')
+  })
+
+  it('superuser: ve la pestaña y ?tab=templates monta las plantillas sin redirigir', async () => {
+    setUser({ is_superuser: true })
+    const w = await mountTab('templates')
+    await flushPromises()
+    expect(navLabels(w)).toContain('Templates')
+    expect(w.router.currentRoute.value.query.tab).toBe('templates')
+    expect(w.findComponent({ name: 'NotificationTemplatesView' }).exists()).toBe(true)
+  })
+
+  it('?tab=foo → redirige a general', async () => {
+    setUser()
+    const w = await mountTab('foo')
+    await flushPromises()
+    expect(w.router.currentRoute.value.query.tab).toBe('general')
+    expect(w.text()).toContain('Lo usamos para avisarte de cambios en tus Giras.')
+  })
+})

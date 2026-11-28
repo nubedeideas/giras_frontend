@@ -107,10 +107,32 @@ function onGoogleDisconnected() {
   calendarsKey.value++
 }
 
+// Templates solo para superusers (gate visual, mismo criterio que /admin). `auth.user` ya está
+// cargado al montar: el guard del router hace `fetchMe()` antes de resolver la ruta.
+const isSuperuser = computed(() => auth.user?.is_superuser === true)
+const visibleTabs = computed(() =>
+  TABS.value.filter((tab) => tab.key !== 'templates' || isSuperuser.value)
+)
+
+function isVisibleTab(tab: unknown): tab is SettingsTab {
+  return typeof tab === 'string' && visibleTabs.value.some((v) => v.key === tab)
+}
+
 const activeTab = computed<SettingsTab>({
-  get: () => (route.query.tab as SettingsTab | undefined) ?? 'general',
+  get: () => (isVisibleTab(route.query.tab) ? route.query.tab : 'general'),
   set: (tab) => router.replace({ path: '/settings', query: { tab } }),
 })
+
+// `?tab=templates` sin permiso o una pestaña desconocida acaban en `?tab=general`.
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (tab !== undefined && !isVisibleTab(tab)) {
+      void router.replace({ path: '/settings', query: { tab: 'general' } })
+    }
+  },
+  { immediate: true }
+)
 
 // Nombres por i18n, sin proveedores (Twilio, Mailgun, Apple): el usuario ve qué hace, no quién.
 const integrations = [
@@ -248,7 +270,7 @@ async function signOut() {
       <!-- Tab navigation: horizontal scroll on mobile, vertical list on desktop -->
       <nav class="flex lg:flex-col overflow-x-auto lg:overflow-y-auto lg:flex-1 gap-1 lg:gap-0 px-2 py-2">
         <button
-          v-for="tab in TABS"
+          v-for="tab in visibleTabs"
           :key="tab.key"
           class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 min-h-[44px] lg:min-h-0 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           :class="
