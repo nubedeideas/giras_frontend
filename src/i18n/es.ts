@@ -815,6 +815,10 @@ export default {
       loadError: 'No se ha podido cargar el grupo.',
       manageContacts: 'Añadir o quitar contactos ({n})',
       delete: 'Eliminar grupo',
+      systemBadge: 'Sistema',
+      systemHint:
+        'Recibe los recordatorios de la gira cuando no eliges otros grupos. No se puede eliminar, renombrar ni mover de gira; sí puedes cambiar sus contactos y su descripción.',
+      systemLocked: 'El Equipo de la gira no se puede eliminar, renombrar ni mover de gira.',
     },
   },
 

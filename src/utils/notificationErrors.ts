@@ -12,6 +12,8 @@ export const PLAN_LIMIT_REACHED = 'plan_limit_reached'
 /** 503 de `send` síncrono y `metadata.quota_error` de una notificación: el limitador no respondió. */
 export const PLAN_LIMIT_UNAVAILABLE = 'plan_limit_unavailable'
 export const SCHEDULED_AFTER_ACTIVITY = 'scheduled_after_activity'
+/** 403 al borrar, renombrar o mover de gira el Equipo de la gira (`system_key='tour_team'`). */
+export const SYSTEM_GROUP_LOCKED = 'system_group_locked'
 
 function asStrings(v: unknown): string[] {
   if (typeof v === 'string') return [v]

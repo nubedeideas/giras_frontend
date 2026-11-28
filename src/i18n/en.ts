@@ -811,6 +811,10 @@ export default {
       loadError: "Couldn't load the group.",
       manageContacts: 'Add or remove contacts ({n})',
       delete: 'Delete group',
+      systemBadge: 'System',
+      systemHint:
+        "It gets the tour's reminders when you don't choose other groups. It can't be deleted, renamed or moved to another tour; you can change its contacts and description.",
+      systemLocked: "The tour team can't be deleted, renamed or moved to another tour.",
     },
   },
 

@@ -10,6 +10,8 @@ export interface NotificationGroupListItem {
   tour: string | null
   tour_name: string | null
   contact_count: number
+  /** `tour_team`, `band`, `technicians`, `drivers`, `production` o null. Opcional: backend viejo. */
+  system_key?: string | null
 }
 
 /** Shape from GET/POST/PATCH /api/notifications/groups/{uuid}/ (detalle) */
@@ -21,6 +23,8 @@ export interface NotificationGroup {
   tour_name: string | null
   contacts: ContactListItem[]
   contact_count: number
+  /** Solo lectura: `tour_team`, grupos por rol o null. */
+  system_key?: string | null
   created_by_name: string | null
   created_at: string
   updated_at: string
@@ -44,6 +48,13 @@ export interface ContactsMutationResult {
   skipped: string[]
   not_found: string[]
   total_contacts: number
+}
+
+export const TOUR_TEAM_SYSTEM_KEY = 'tour_team'
+
+/** Equipo de la gira: no se puede borrar, renombrar ni mover de gira (403 `system_group_locked`). */
+export function isTourTeamGroup(g: { system_key?: string | null }): boolean {
+  return g.system_key === TOUR_TEAM_SYSTEM_KEY
 }
 
 // ─── Composable ───────────────────────────────────────────────────────────────
