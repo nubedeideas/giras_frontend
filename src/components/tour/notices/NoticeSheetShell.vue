@@ -8,7 +8,7 @@ import { useIsMobile } from '@/composables/useIsMobile'
  * el tour manager aprueba) y modal en escritorio. El pie (`footer`) queda fijo abajo en móvil
  * para que "Enviar ahora" esté siempre a mano.
  */
-defineProps<{ show: boolean; persistent?: boolean }>()
+defineProps<{ show: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { isMobile } = useIsMobile()
@@ -33,7 +33,6 @@ const { isMobile } = useIsMobile()
   <AppModal
     v-else
     :show="show"
-    :persistent="persistent"
     @close="emit('close')"
   >
     <slot />

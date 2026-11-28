@@ -45,7 +45,6 @@ const adminTours = computed(() =>
 <template>
   <AppModal
     :show="show"
-    persistent
     @close="close"
   >
     <button

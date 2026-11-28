@@ -213,7 +213,6 @@ function close() {
 <template>
   <NoticeSheetShell
     :show="show"
-    :persistent="dirty && !sent"
     @close="requestClose"
   >
     <div data-test="urgent-notice">

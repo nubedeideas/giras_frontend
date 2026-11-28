@@ -121,7 +121,6 @@ function onFailed(job: ImportJob) {
 <template>
   <AppModal
     :show="show"
-    persistent
     @close="emit('close')"
   >
     <button

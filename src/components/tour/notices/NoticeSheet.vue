@@ -261,7 +261,6 @@ async function saveAndClose() {
 <template>
   <NoticeSheetShell
     :show="show"
-    :persistent="hasTextDrafts"
     @close="requestClose"
   >
     <div data-test="notice-sheet">

@@ -468,12 +468,13 @@ async function confirmDelete(uuid: string) {
 
 <template>
   <Teleport to="body">
-    <!-- Backdrop -->
+    <!-- Backdrop: cierra solo en modo lista; en alta/edición se sale con Cancelar o la flecha -->
     <Transition name="tp-fade">
       <div
         v-if="show"
         class="fixed inset-0 z-[55]"
-        @click="emit('close')"
+        data-testid="tour-menu-backdrop"
+        @click="mode === 'list' && emit('close')"
       />
     </Transition>
 
