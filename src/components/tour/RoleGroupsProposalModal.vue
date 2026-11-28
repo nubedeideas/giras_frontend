@@ -257,7 +257,6 @@ function requestClose() {
 <template>
   <AppModal
     :show="show"
-    persistent
     @close="requestClose"
   >
     <div data-test="role-groups-modal">

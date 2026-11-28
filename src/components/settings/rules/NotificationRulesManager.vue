@@ -472,7 +472,6 @@ const sortedRules = computed(() =>
     <!-- Constructor -->
     <AppModal
       :show="builderOpen && !!options"
-      persistent
       @close="closeBuilder"
     >
       <RuleBuilder

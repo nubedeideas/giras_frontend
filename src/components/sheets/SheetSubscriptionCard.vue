@@ -656,7 +656,6 @@ const linkClass =
 
     <AppModal
       :show="showTabs"
-      persistent
       @close="showTabs = false"
     >
       <SheetTabsEditor

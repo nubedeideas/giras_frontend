@@ -1,14 +1,8 @@
 <script setup lang="ts">
-// `persistent`: disables closing by clicking the backdrop — for forms where
-// an accidental outside click would silently discard unsaved edits. Closing
-// still works via whatever explicit close/cancel control the modal's own
-// content provides (they all call `emit('close')` the same way).
-const props = defineProps<{ show: boolean; persistent?: boolean }>()
-const emit = defineEmits<{ close: [] }>()
-
-function onBackdropClick() {
-  if (!props.persistent) emit('close')
-}
+// El fondo no cierra el modal: solo el icono de cerrar o el botón Cancelar del contenido
+// (emiten `close`). Sin Escape a propósito.
+defineProps<{ show: boolean }>()
+defineEmits<{ close: [] }>()
 </script>
 
 <template>
@@ -16,7 +10,6 @@ function onBackdropClick() {
     <div
       v-if="show"
       class="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/50 backdrop-blur-[5px]"
-      @click.self="onBackdropClick"
     >
       <Transition name="up">
         <div

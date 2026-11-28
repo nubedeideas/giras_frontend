@@ -289,3 +289,27 @@ describe('TourMenuPanel: orden de las fechas (F5a)', () => {
     expect('date_order' in JSON.parse(String(patch![1]!.body))).toBe(false)
   })
 })
+
+describe('TourMenuPanel: clic fuera', () => {
+  it('en modo lista, el clic en el fondo emite close', async () => {
+    setupFetch()
+    const w = mountPanel()
+    await w.get('[data-testid="tour-menu-backdrop"]').trigger('click')
+    expect(w.emitted('close')).toHaveLength(1)
+  })
+
+  it('en modo alta, el clic en el fondo no cierra y "Cancelar" vuelve a la lista', async () => {
+    setupFetch()
+    const w = mountPanel()
+    await w.findAll('button').find((b) => b.text().includes(i18n.global.t('tours.newTour')))!.trigger('click')
+    expect(w.find('[data-testid="tour-form-timezone"]').exists()).toBe(true)
+    await w.get('[data-testid="tour-menu-backdrop"]').trigger('click')
+    expect(w.emitted('close')).toBeUndefined()
+    expect(w.find('[data-testid="tour-form-timezone"]').exists()).toBe(true)
+
+    await w.findAll('button').find((b) => b.text() === i18n.global.t('common.cancel'))!.trigger('click')
+    expect(w.find('[data-testid="tour-form-timezone"]').exists()).toBe(false)
+    expect(editButtons(w)).toHaveLength(2)
+    expect(w.emitted('close')).toBeUndefined()
+  })
+})
