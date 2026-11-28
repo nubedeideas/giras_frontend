@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { ApiError } from '@/utils/apiClient'
 import { userInitials } from '@/utils/userInitials'
+import { DEFAULT_REMINDER_LIMITS } from '@/utils/reminders'
 import { useAuthProfile } from '@/composables/useAuthProfile'
 import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
@@ -118,6 +119,13 @@ const integrations = [
   { key: 'email', variant: 'n' as const, label: 'configure' },
   { key: 'wallet', variant: 'o' as const, label: 'beta' },
 ]
+
+// Números de la card "¿Cómo funcionan?" de Recordatorios: los mismos límites que el editor.
+const reminderLimits = {
+  max: DEFAULT_REMINDER_LIMITS.max_steps,
+  min: DEFAULT_REMINDER_LIMITS.min_minutes,
+  days: DEFAULT_REMINDER_LIMITS.max_minutes / 1440,
+}
 
 // ─── Teléfono del usuario (C1.6): fallback de admins por WhatsApp y alertas de borradores ───
 
@@ -458,6 +466,26 @@ async function signOut() {
               </h2>
               <p class="text-[14px] text-ink-3 mt-1">
                 {{ t('reminders.templates.subtitle') }}
+              </p>
+            </div>
+            <div
+              class="bg-acid-dim border border-line-acid rounded-xl px-3.5 py-3 mb-4 space-y-1"
+              data-test="reminders-how"
+            >
+              <p class="text-[13px] font-semibold text-olive">
+                {{ t('reminders.templates.howItWorks.title') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.when', reminderLimits) }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.channels') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.who') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.quota') }}
               </p>
             </div>
             <ReminderTemplatesManager />

@@ -133,3 +133,20 @@ describe('SettingsView › Actividades', () => {
     expect(en.text()).toContain('create your own custom types')
   })
 })
+
+describe('SettingsView › Recordatorios', () => {
+  it('card "¿Cómo funcionan?" con límites, destinatarios y cupo', async () => {
+    setUser()
+    const w = await mountTab('reminders')
+    const card = w.get('[data-test="reminders-how"]').text()
+    expect(card).toContain('¿Cómo funcionan?')
+    expect(card).toContain('hasta 5 recordatorios')
+    expect(card).toContain('desde 5 minutos hasta 14 días')
+    expect(card).toContain('Equipo de la gira')
+    expect(card).toContain('cupo de WhatsApp')
+
+    i18n.global.locale.value = 'en'
+    const en = await mountTab('reminders')
+    expect(en.get('[data-test="reminders-how"]').text()).toContain('from 5 minutes to 14 days')
+  })
+})

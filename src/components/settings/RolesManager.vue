@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useContactRoles, type ContactRole } from '@/composables/useContactRoles'
+import BtnPrimary from '@/components/ui/BtnPrimary.vue'
 
 const api = useContactRoles()
+const { t } = useI18n()
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -178,8 +181,110 @@ async function confirmDelete() {
       {{ error }}
     </p>
 
+    <!-- Nuevo rol: arriba, encima de la lista; el alta se abre justo debajo -->
+    <div
+      v-if="!showCreate"
+      class="flex justify-end mb-3"
+    >
+      <BtnPrimary
+        small
+        data-test="roles-new"
+        @click="openCreate"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line
+            x1="12"
+            y1="5"
+            x2="12"
+            y2="19"
+          /><line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
+        </svg>
+        Nuevo rol
+      </BtnPrimary>
+    </div>
+
+    <!-- Create form -->
+    <div
+      v-if="showCreate"
+      class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
+    >
+      <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
+        Nuevo rol
+      </p>
+
+      <input
+        v-model="createForm.name"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
+        placeholder="Nombre del rol *"
+        autofocus
+        @keydown.enter="submitCreate"
+        @keydown.esc="cancelCreate"
+      >
+
+      <input
+        v-model="createForm.description"
+        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
+        placeholder="Descripción (opcional)"
+        @keydown.enter="submitCreate"
+        @keydown.esc="cancelCreate"
+      >
+
+      <!-- Color picker -->
+      <div class="flex flex-wrap gap-1.5">
+        <button
+          v-for="c in COLORS"
+          :key="c"
+          class="w-5 h-5 rounded-full border-2 transition-all cursor-pointer"
+          :style="{ background: c, borderColor: createForm.color === c ? 'white' : 'transparent' }"
+          @click="createForm.color = c"
+        />
+      </div>
+
+      <p
+        v-if="createError"
+        class="text-[12px] text-failed-fg"
+      >
+        {{ createError }}
+      </p>
+
+      <div class="flex gap-1.5">
+        <button
+          class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
+          :class="createSaving || !createForm.name.trim() ? 'opacity-50' : ''"
+          :disabled="createSaving || !createForm.name.trim()"
+          @click="submitCreate"
+        >
+          {{ createSaving ? 'Creando…' : 'Crear rol' }}
+        </button>
+        <button
+          class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
+          @click="cancelCreate"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+
     <!-- Roles list -->
-    <div class="bg-glass border border-line rounded px-3.5 py-1 mb-3">
+    <div
+      class="bg-glass border border-line rounded px-3.5 py-1 mb-3"
+      data-test="roles-list"
+    >
       <div
         v-for="role in roles"
         :key="role.uuid"
@@ -198,7 +303,15 @@ async function confirmDelete() {
 
           <!-- Name + badges -->
           <div class="flex-1 min-w-0 flex items-center gap-1.5">
-            <span class="text-[14px] text-ink truncate">{{ role.name }}</span>
+            <button
+              type="button"
+              class="text-[14px] text-ink text-left truncate underline decoration-line-2 underline-offset-2 hover:text-olive hover:decoration-olive cursor-pointer bg-transparent border-none p-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+              :aria-label="t('settings.editItem', { name: role.name })"
+              data-test="role-title"
+              @click="startEdit(role)"
+            >
+              {{ role.name }}
+            </button>
             <span
               v-if="role.is_system"
               class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none"
@@ -354,98 +467,5 @@ async function confirmDelete() {
         No hay roles definidos
       </div>
     </div>
-
-    <!-- Create form -->
-    <div
-      v-if="showCreate"
-      class="bg-glass border border-line-acid rounded px-3.5 py-3 mb-3 space-y-2"
-    >
-      <p class="text-[12px] font-bold text-ink-2 tracking-[0.5px] uppercase">
-        Nuevo rol
-      </p>
-
-      <input
-        v-model="createForm.name"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
-        placeholder="Nombre del rol *"
-        autofocus
-        @keydown.enter="submitCreate"
-        @keydown.esc="cancelCreate"
-      >
-
-      <input
-        v-model="createForm.description"
-        class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
-        placeholder="Descripción (opcional)"
-        @keydown.enter="submitCreate"
-        @keydown.esc="cancelCreate"
-      >
-
-      <!-- Color picker -->
-      <div class="flex flex-wrap gap-1.5">
-        <button
-          v-for="c in COLORS"
-          :key="c"
-          class="w-5 h-5 rounded-full border-2 transition-all cursor-pointer"
-          :style="{ background: c, borderColor: createForm.color === c ? 'white' : 'transparent' }"
-          @click="createForm.color = c"
-        />
-      </div>
-
-      <p
-        v-if="createError"
-        class="text-[12px] text-failed-fg"
-      >
-        {{ createError }}
-      </p>
-
-      <div class="flex gap-1.5">
-        <button
-          class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
-          :class="createSaving || !createForm.name.trim() ? 'opacity-50' : ''"
-          :disabled="createSaving || !createForm.name.trim()"
-          @click="submitCreate"
-        >
-          {{ createSaving ? 'Creando…' : 'Crear rol' }}
-        </button>
-        <button
-          class="px-3 py-1.5 rounded text-[13px] font-medium bg-glass border border-line text-ink-2 hover:bg-glass-hover cursor-pointer transition-colors"
-          @click="cancelCreate"
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-
-    <!-- Add role button -->
-    <button
-      v-if="!showCreate"
-      class="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-line-2 text-[13px] text-ink-4 hover:text-ink hover:border-line cursor-pointer bg-transparent transition-colors"
-      @click="openCreate"
-    >
-      <svg
-        width="10"
-        height="10"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <line
-          x1="12"
-          y1="5"
-          x2="12"
-          y2="19"
-        /><line
-          x1="5"
-          y1="12"
-          x2="19"
-          y2="12"
-        />
-      </svg>
-      Nuevo rol
-    </button>
   </div>
 </template>
