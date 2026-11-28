@@ -118,3 +118,18 @@ describe('SettingsView › General', () => {
     for (const provider of ['Twilio', 'Mailgun', 'Apple']) expect(en.text()).not.toContain(provider)
   })
 })
+
+describe('SettingsView › Actividades', () => {
+  it('título y subtítulo que explican los tipos del sistema y los propios (ES y EN)', async () => {
+    setUser()
+    const w = await mountTab('activities')
+    expect(w.text()).toContain('Tipos de actividad')
+    expect(w.text()).toContain('no se pueden editar')
+    expect(w.text()).toContain('crea tus propios tipos personalizados')
+
+    i18n.global.locale.value = 'en'
+    const en = await mountTab('activities')
+    expect(en.text()).toContain('Activity types')
+    expect(en.text()).toContain('create your own custom types')
+  })
+})

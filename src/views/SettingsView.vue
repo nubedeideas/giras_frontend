@@ -441,10 +441,10 @@ async function signOut() {
           <template v-else-if="activeTab === 'activities'">
             <div class="mb-6">
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
-                Tipos de actividad
+                {{ t('settings.activityTypes.title') }}
               </h2>
               <p class="text-[14px] text-ink-3 mt-1">
-                Define los tipos de actividades disponibles para las giras.
+                {{ t('settings.activityTypes.sub') }}
               </p>
             </div>
             <ActivityTypesManager />
