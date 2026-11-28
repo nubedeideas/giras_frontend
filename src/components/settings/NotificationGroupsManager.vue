@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToursStore } from '@/stores/tours'
 import {
   useNotificationGroups,
@@ -7,9 +8,11 @@ import {
 } from '@/composables/useNotificationGroups'
 import ManageGroupContactsModal from '@/components/modals/ManageGroupContactsModal.vue'
 import { inUseErrorMessage } from '@/utils/notificationRules'
+import BtnSecondary from '@/components/ui/BtnSecondary.vue'
 
 const api = useNotificationGroups()
 const toursStore = useToursStore()
+const { t } = useI18n()
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +25,11 @@ const editingUuid = ref<string | null>(null)
 const editForm = ref({ name: '', description: '', tour: '' })
 const editError = ref('')
 const editSaving = ref(false)
+// El listado no trae `description`: la edición carga el detalle antes de dejar guardar.
+const editLoading = ref(false)
+const editLoadFailed = ref(false)
+// Guard de respuesta vieja: abrir otro grupo antes de que vuelva el detalle del anterior.
+let editRequest = 0
 
 // Create state
 const showCreate = ref(false)
@@ -55,21 +63,43 @@ onMounted(load)
 
 // ─── Edit ─────────────────────────────────────────────────────────────────────
 
-function startEdit(group: NotificationGroupListItem) {
+async function startEdit(group: NotificationGroupListItem) {
+  const request = ++editRequest
   editingUuid.value = group.uuid
   editForm.value = { name: group.name, description: '', tour: group.tour ?? '' }
   editError.value = ''
+  editLoadFailed.value = false
+  editLoading.value = true
   showCreate.value = false
   deletingUuid.value = null
+  try {
+    const detail = await api.getGroup(group.uuid)
+    if (request !== editRequest) return
+    editForm.value = {
+      name: detail.name,
+      description: detail.description ?? '',
+      tour: detail.tour ?? '',
+    }
+  } catch {
+    if (request !== editRequest) return
+    editLoadFailed.value = true
+    editError.value = t('settings.groupsManager.loadError')
+  } finally {
+    if (request === editRequest) editLoading.value = false
+  }
 }
 
 function cancelEdit() {
+  editRequest++
   editingUuid.value = null
   editError.value = ''
+  editLoading.value = false
+  editLoadFailed.value = false
 }
 
 async function saveEdit() {
   if (!editingUuid.value || !editForm.value.name.trim()) return
+  if (editLoading.value || editLoadFailed.value) return
   editSaving.value = true
   editError.value = ''
   try {
@@ -139,9 +169,11 @@ async function submitCreate() {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 function startDelete(uuid: string) {
+  editRequest++
   deletingUuid.value = uuid
   deleteError.value = ''
   editingUuid.value = null
+  editLoading.value = false
   showCreate.value = false
 }
 
@@ -208,7 +240,10 @@ function onContactsSaved(newCount: number) {
     </p>
 
     <!-- Groups list -->
-    <div class="bg-glass border border-line rounded px-3.5 py-1 mb-3">
+    <div
+      class="bg-glass border border-line rounded px-3.5 py-1 mb-3"
+      data-test="groups-list"
+    >
       <div
         v-for="group in groups"
         :key="group.uuid"
@@ -242,7 +277,15 @@ function onContactsSaved(newCount: number) {
 
           <!-- Name + badges -->
           <div class="flex-1 min-w-0 flex items-center gap-1.5">
-            <span class="text-[14px] text-ink truncate">{{ group.name }}</span>
+            <button
+              type="button"
+              class="text-[14px] text-ink text-left truncate underline decoration-line-2 underline-offset-2 hover:text-olive hover:decoration-olive cursor-pointer bg-transparent border-none p-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+              :aria-label="t('settings.editItem', { name: group.name })"
+              data-test="group-title"
+              @click="startEdit(group)"
+            >
+              {{ group.name }}
+            </button>
             <span
               class="text-[12px] font-semibold px-1.5 py-px rounded-full border border-line text-ink-4 leading-none flex-shrink-0"
             >
@@ -253,11 +296,12 @@ function onContactsSaved(newCount: number) {
             </span>
           </div>
 
-          <!-- Actions (hover) -->
-          <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <!-- Actions: siempre visibles (color olive) y táctiles en móvil -->
+          <div class="flex items-center gap-0.5 flex-shrink-0">
             <button
-              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-ink hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+              class="w-11 h-11 lg:w-6 lg:h-6 flex items-center justify-center rounded text-olive hover:text-olive-strong hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
               title="Gestionar contactos"
+              data-test="group-row-contacts"
               @click="openManageContacts(group.uuid)"
             >
               <svg
@@ -289,8 +333,9 @@ function onContactsSaved(newCount: number) {
               </svg>
             </button>
             <button
-              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-ink hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+              class="w-11 h-11 lg:w-6 lg:h-6 flex items-center justify-center rounded text-olive hover:text-olive-strong hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
               title="Editar"
+              data-test="group-row-edit"
               @click="startEdit(group)"
             >
               <svg
@@ -308,7 +353,7 @@ function onContactsSaved(newCount: number) {
               </svg>
             </button>
             <button
-              class="w-6 h-6 flex items-center justify-center rounded text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent"
+              class="w-11 h-11 lg:w-6 lg:h-6 flex items-center justify-center rounded text-ink-4 hover:text-failed-fg hover:bg-glass-hover transition-colors cursor-pointer border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
               title="Eliminar"
               @click="startDelete(group.uuid)"
             >
@@ -335,48 +380,81 @@ function onContactsSaved(newCount: number) {
           v-else-if="editingUuid === group.uuid"
           class="py-2.5 space-y-2"
         >
+          <p
+            v-if="editLoading"
+            class="text-[12px] text-ink-3"
+            data-test="group-edit-loading"
+          >
+            {{ t('settings.groupsManager.loading') }}
+          </p>
           <input
             v-model="editForm.name"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors disabled:cursor-not-allowed"
             placeholder="Nombre del grupo"
+            :disabled="editLoading"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
           <input
             v-model="editForm.description"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-olive transition-colors disabled:cursor-not-allowed"
             placeholder="Descripción (opcional)"
+            :disabled="editLoading"
+            data-test="group-edit-description"
             @keydown.enter="saveEdit"
             @keydown.esc="cancelEdit"
           >
           <select
             v-model="editForm.tour"
-            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors"
+            class="w-full bg-bg-2 border border-line rounded px-2.5 py-1.5 text-ink text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-olive cursor-pointer transition-colors disabled:cursor-not-allowed"
+            :disabled="editLoading"
           >
             <option value="">
               Global (todas las giras)
             </option>
             <option
-              v-for="t in toursStore.tours"
-              :key="t.uuid"
-              :value="t.uuid"
+              v-for="tour in toursStore.tours"
+              :key="tour.uuid"
+              :value="tour.uuid"
             >
-              {{ t.artist_name }} — {{ t.name }}
+              {{ tour.artist_name }} — {{ tour.name }}
             </option>
           </select>
+
+          <!-- Miembros y borrado desde la propia edición -->
+          <div class="flex flex-wrap items-center gap-2">
+            <BtnSecondary
+              small
+              type="button"
+              data-test="group-edit-contacts"
+              @click="openManageContacts(group.uuid)"
+            >
+              {{ t('settings.groupsManager.manageContacts', { n: group.contact_count }) }}
+            </BtnSecondary>
+            <button
+              type="button"
+              class="min-h-[44px] lg:min-h-0 px-2 text-[13px] font-medium text-failed-fg hover:underline bg-transparent border-none cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
+              data-test="group-edit-delete"
+              @click="startDelete(group.uuid)"
+            >
+              {{ t('settings.groupsManager.delete') }}
+            </button>
+          </div>
 
           <p
             v-if="editError"
             class="text-[12px] text-failed-fg"
+            data-test="group-edit-error"
           >
             {{ editError }}
           </p>
 
           <div class="flex gap-1.5">
             <button
-              class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity"
-              :class="editSaving ? 'opacity-50' : ''"
-              :disabled="editSaving || !editForm.name.trim()"
+              class="flex-1 py-1.5 rounded text-[13px] font-semibold bg-acid text-ink cursor-pointer border-none transition-opacity disabled:cursor-not-allowed"
+              :class="editSaving || editLoading || editLoadFailed ? 'opacity-50' : ''"
+              :disabled="editSaving || editLoading || editLoadFailed || !editForm.name.trim()"
+              data-test="group-edit-save"
               @click="saveEdit"
             >
               {{ editSaving ? 'Guardando…' : 'Guardar' }}
@@ -465,11 +543,11 @@ function onContactsSaved(newCount: number) {
           Global (todas las giras)
         </option>
         <option
-          v-for="t in toursStore.tours"
-          :key="t.uuid"
-          :value="t.uuid"
+          v-for="tour in toursStore.tours"
+          :key="tour.uuid"
+          :value="tour.uuid"
         >
-          {{ t.artist_name }} — {{ t.name }}
+          {{ tour.artist_name }} — {{ tour.name }}
         </option>
       </select>
 
