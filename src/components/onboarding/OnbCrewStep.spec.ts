@@ -59,7 +59,7 @@ function setupFetch(opts: { googleContacts?: string[]; failLink?: string[] } = {
     if (path === '/contacts/google-contacts/') {
       return jsonResponse((opts.googleContacts ?? []).map(gContact))
     }
-    const link = path.match(/^\/contacts\/([^/]+)\/add-to-tour\/$/)
+    const link = path.match(/^\/contacts\/([^/]+)\/add_to_tour\/$/)
     if (link) {
       if (opts.failLink?.includes(link[1])) return jsonResponse({ error: 'x' }, 500)
       return jsonResponse({ message: 'ok', created: true, added_to_team: true })
@@ -105,7 +105,7 @@ afterEach(() => {
 })
 
 describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
-  it('manual: POST /contacts/ y después add-to-tour con tour_uuid y role_uuid', async () => {
+  it('manual: POST /contacts/ y después add_to_tour con tour_uuid y role_uuid', async () => {
     const log = setupFetch()
     const w = await mountStep()
     await w.findAll('div').find((d) => d.text() === `Manual${i18n.global.t('onboarding.crew.manualSub')}`)!.trigger('click')
@@ -116,7 +116,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     await flushPromises()
 
     const create = log.findIndex((c) => c.method === 'POST' && c.path === '/contacts/')
-    const link = log.findIndex((c) => c.path === '/contacts/NEW/add-to-tour/')
+    const link = log.findIndex((c) => c.path === '/contacts/NEW/add_to_tour/')
     expect(create).toBeGreaterThan(-1)
     expect(link).toBeGreaterThan(create)
     expect(log[link].method).toBe('POST')
@@ -140,7 +140,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     )
   })
 
-  it('Google: por contacto, el PATCH que lo confirma va antes que add-to-tour; un fallo no para al resto', async () => {
+  it('Google: por contacto, el PATCH que lo confirma va antes que add_to_tour; un fallo no para al resto', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const uuids = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6']
     const log = setupFetch({ googleContacts: uuids, failLink: ['C2'] })
@@ -153,7 +153,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
 
     for (const uuid of uuids) {
       const patch = log.findIndex((c) => c.method === 'PATCH' && c.path === `/contacts/${uuid}/`)
-      const link = log.findIndex((c) => c.path === `/contacts/${uuid}/add-to-tour/`)
+      const link = log.findIndex((c) => c.path === `/contacts/${uuid}/add_to_tour/`)
       expect(patch, uuid).toBeGreaterThan(-1)
       expect(link, uuid).toBeGreaterThan(patch)
       expect(log[patch].body).toMatchObject({ is_confirmed: true })
@@ -162,7 +162,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     // Lotes de 4: el quinto contacto no se confirma hasta que acaba el primer lote.
     const lastLinkOfFirstBatch = Math.max(
       ...['C1', 'C2', 'C3', 'C4'].map((u) =>
-        log.findIndex((c) => c.path === `/contacts/${u}/add-to-tour/`)
+        log.findIndex((c) => c.path === `/contacts/${u}/add_to_tour/`)
       )
     )
     const patchC5 = log.findIndex((c) => c.method === 'PATCH' && c.path === '/contacts/C5/')
@@ -175,7 +175,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     expect(w.text()).toContain('5 contactos añadidos')
   })
 
-  it('sin gira no llama a add-to-tour', async () => {
+  it('sin gira no llama a add_to_tour', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     useToursStore().tours = []
     const log = setupFetch()
@@ -185,7 +185,7 @@ describe('OnbCrewStep: vincular contactos a la gira (F0 A4)', () => {
     await w.get(`input[placeholder="${i18n.global.t('onboarding.crew.firstNamePlaceholder')}"]`).setValue('Ana')
     await w.get('[data-testid="crew-manual-create"]').trigger('click')
     await flushPromises()
-    expect(log.some((c) => c.path.includes('add-to-tour'))).toBe(false)
+    expect(log.some((c) => c.path.includes('add_to_tour'))).toBe(false)
     expect(console.warn).toHaveBeenCalled()
   })
 })

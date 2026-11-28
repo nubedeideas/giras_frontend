@@ -185,7 +185,7 @@ const linkFailed = ref(0)
 const importedOk = computed(() => Math.max(0, selectedUuids.value.length - linkFailed.value))
 
 /**
- * Confirma (PATCH, con su rol) y después vincula a la gira cada contacto elegido: `add-to-tour`
+ * Confirma (PATCH, con su rol) y después vincula a la gira cada contacto elegido: `add_to_tour`
  * no ve contactos sin confirmar. Por lotes de `LINK_CONCURRENCY`; un fallo no para al resto.
  */
 async function importOne(uuid: string): Promise<void> {
@@ -304,7 +304,7 @@ async function submitManual() {
     try {
       await linkToTour(created.uuid, form.role || undefined)
     } catch (e) {
-      console.error('[OnbCrewStep] add-to-tour', created.uuid, e)
+      console.error('[OnbCrewStep] add_to_tour', created.uuid, e)
       linkFailed.value = 1
     }
     await contactsStore.fetchContacts()

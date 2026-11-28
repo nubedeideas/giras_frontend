@@ -30,7 +30,7 @@ export function useContacts() {
   // linked — this is that link. Needed after creating/confirming a contact
   // while a tour is active, or it silently won't show up in that tour's
   // filtered list (GET /api/contacts/?tour=<uuid>).
-  // POST /api/contacts/{uuid}/add-to-tour/ → {message, created, added_to_team}. `add_to_team` se
+  // POST /api/contacts/{uuid}/add_to_tour/ → {message, created, added_to_team}. `add_to_team` se
   // omite (default true: si quien llama es admin, el contacto entra en el Equipo de la gira).
   // El contacto tiene que estar confirmado: con Google, el PATCH `is_confirmed` va antes.
   async function addToTour(
@@ -40,7 +40,7 @@ export function useContacts() {
   ): Promise<void> {
     const body: { tour_uuid: string; role_uuid?: string } = { tour_uuid: tourUuid }
     if (opts.roleUuid) body.role_uuid = opts.roleUuid
-    await apiClient.post(`/contacts/${uuid}/add-to-tour/`, body, {
+    await apiClient.post(`/contacts/${uuid}/add_to_tour/`, body, {
       fallback: 'Error al asociar el contacto con la gira',
     })
   }
