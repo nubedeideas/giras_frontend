@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { ApiError } from '@/utils/apiClient'
 import { userInitials } from '@/utils/userInitials'
+import { DEFAULT_REMINDER_LIMITS } from '@/utils/reminders'
 import { useAuthProfile } from '@/composables/useAuthProfile'
 import Pill from '@/components/ui/Pill.vue'
 import RolesManager from '@/components/settings/RolesManager.vue'
@@ -106,17 +107,47 @@ function onGoogleDisconnected() {
   calendarsKey.value++
 }
 
+// Templates solo para superusers (gate visual, mismo criterio que /admin). `auth.user` ya está
+// cargado al montar: el guard del router hace `fetchMe()` antes de resolver la ruta.
+const isSuperuser = computed(() => auth.user?.is_superuser === true)
+const visibleTabs = computed(() =>
+  TABS.value.filter((tab) => tab.key !== 'templates' || isSuperuser.value)
+)
+
+function isVisibleTab(tab: unknown): tab is SettingsTab {
+  return typeof tab === 'string' && visibleTabs.value.some((v) => v.key === tab)
+}
+
 const activeTab = computed<SettingsTab>({
-  get: () => (route.query.tab as SettingsTab | undefined) ?? 'general',
+  get: () => (isVisibleTab(route.query.tab) ? route.query.tab : 'general'),
   set: (tab) => router.replace({ path: '/settings', query: { tab } }),
 })
 
+// `?tab=templates` sin permiso o una pestaña desconocida acaban en `?tab=general`.
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (tab !== undefined && !isVisibleTab(tab)) {
+      void router.replace({ path: '/settings', query: { tab: 'general' } })
+    }
+  },
+  { immediate: true }
+)
+
+// Nombres por i18n, sin proveedores (Twilio, Mailgun, Apple): el usuario ve qué hace, no quién.
 const integrations = [
-  { name: 'Google Calendar', variant: 'g' as const, label: 'active' },
-  { name: 'WhatsApp (Twilio)', variant: 'g' as const, label: 'active' },
-  { name: 'Mailgun (Email)', variant: 'n' as const, label: 'configure' },
-  { name: 'Apple Wallet Pass', variant: 'o' as const, label: 'beta' },
+  { key: 'googleCalendar', variant: 'g' as const, label: 'active' },
+  { key: 'whatsapp', variant: 'g' as const, label: 'active' },
+  { key: 'email', variant: 'n' as const, label: 'configure' },
+  { key: 'wallet', variant: 'o' as const, label: 'beta' },
 ]
+
+// Números de la card "¿Cómo funcionan?" de Recordatorios: los mismos límites que el editor.
+const reminderLimits = {
+  max: DEFAULT_REMINDER_LIMITS.max_steps,
+  min: DEFAULT_REMINDER_LIMITS.min_minutes,
+  days: DEFAULT_REMINDER_LIMITS.max_minutes / 1440,
+}
 
 // ─── Teléfono del usuario (C1.6): fallback de admins por WhatsApp y alertas de borradores ───
 
@@ -239,7 +270,7 @@ async function signOut() {
       <!-- Tab navigation: horizontal scroll on mobile, vertical list on desktop -->
       <nav class="flex lg:flex-col overflow-x-auto lg:overflow-y-auto lg:flex-1 gap-1 lg:gap-0 px-2 py-2">
         <button
-          v-for="tab in TABS"
+          v-for="tab in visibleTabs"
           :key="tab.key"
           class="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-2.5 px-3 py-2 lg:py-2.5 min-h-[44px] lg:min-h-0 rounded-xl lg:mb-0.5 whitespace-nowrap text-left border-none relative cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive"
           :class="
@@ -401,11 +432,11 @@ async function signOut() {
               <div class="bg-glass border border-line rounded-xl overflow-hidden">
                 <div
                   v-for="(int, idx) in integrations"
-                  :key="int.name"
+                  :key="int.key"
                   class="flex items-center justify-between px-4 py-3"
                   :class="idx < integrations.length - 1 ? 'border-b border-line' : ''"
                 >
-                  <span class="text-[15px] text-ink">{{ int.name }}</span>
+                  <span class="text-[15px] text-ink">{{ t(`settings.integrationNames.${int.key}`) }}</span>
                   <Pill :variant="int.variant">
                     {{ t(`settings.${int.label}`) }}
                   </Pill>
@@ -440,10 +471,10 @@ async function signOut() {
           <template v-else-if="activeTab === 'activities'">
             <div class="mb-6">
               <h2 class="text-[16px] font-bold text-ink tracking-[-0.3px]">
-                Tipos de actividad
+                {{ t('settings.activityTypes.title') }}
               </h2>
               <p class="text-[14px] text-ink-3 mt-1">
-                Define los tipos de actividades disponibles para las giras.
+                {{ t('settings.activityTypes.sub') }}
               </p>
             </div>
             <ActivityTypesManager />
@@ -457,6 +488,26 @@ async function signOut() {
               </h2>
               <p class="text-[14px] text-ink-3 mt-1">
                 {{ t('reminders.templates.subtitle') }}
+              </p>
+            </div>
+            <div
+              class="bg-acid-dim border border-line-acid rounded-xl px-3.5 py-3 mb-4 space-y-1"
+              data-test="reminders-how"
+            >
+              <p class="text-[13px] font-semibold text-olive">
+                {{ t('reminders.templates.howItWorks.title') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.when', reminderLimits) }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.channels') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.who') }}
+              </p>
+              <p class="text-[12px] text-ink-3 leading-relaxed">
+                {{ t('reminders.templates.howItWorks.quota') }}
               </p>
             </div>
             <ReminderTemplatesManager />

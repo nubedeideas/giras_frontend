@@ -3,6 +3,12 @@ import type { ReminderStep } from '@/utils/reminders'
 
 export type { ReminderChannel, ReminderStep } from '@/utils/reminders'
 
+/**
+ * Icono de los tipos propios: el mismo default del modelo (`ActivityType.icon`). Se manda explícito
+ * en el alta para no depender del default del backend; la UI ya no pide icono.
+ */
+export const DEFAULT_ACTIVITY_TYPE_ICON = 'calendar'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ActivityCategory =
@@ -40,6 +46,7 @@ export interface ActivityType {
   updated_at?: string
 }
 
+/** POST /api/events/activity-types/: sin `code` (lo genera el servidor, `custom_<slug>`). */
 export interface CreateActivityTypePayload {
   name: string
   category: ActivityCategory

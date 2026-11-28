@@ -758,7 +758,7 @@ export default {
     signOut: 'Sign Out',
     profile: 'Tour Manager',
     phone: 'Your phone (WhatsApp)',
-    phoneHelp: 'We use it to alert you about flight changes waiting to be sent.',
+    phoneHelp: 'We use it to let you know about changes to your tours.',
     phonePlaceholder: '+34 600 000 000',
     phoneSave: 'Save phone',
     phoneSaving: 'Saving…',
@@ -768,6 +768,34 @@ export default {
     calendars: {
       title: 'Calendars and sheets',
       sub: 'Connect Google Calendar, subscribe to an iCal calendar or link a Google Sheet.',
+      howItWorks: {
+        title: 'How does it work?',
+        general:
+          'You can connect a {calendar} for all your tours — each event is automatically assigned to the right tour by its dates.',
+        generalName: 'general calendar',
+        perTour:
+          'You can also connect a {calendar} {recommended} — useful if you keep separate Google Calendars for each project.',
+        perTourName: 'tour-specific calendar',
+        recommended: '(recommended)',
+      },
+    },
+    integrationNames: {
+      googleCalendar: 'Google Calendar',
+      whatsapp: 'WhatsApp',
+      email: 'Email',
+      wallet: 'Wallet passes',
+    },
+    editItem: 'Edit {name}',
+    activityTypes: {
+      title: 'Activity types',
+      sub: "Types classify your tour activities and decide which reminders are sent. System types (Flight, Show, Hotel check-in…) come with Giras and can't be edited; change their reminders in the Reminders tab. For everything else, create your own custom types.",
+      systemLocked: "System types can't be edited.",
+    },
+    groupsManager: {
+      loading: 'Loading group…',
+      loadError: "Couldn't load the group.",
+      manageContacts: 'Add or remove contacts ({n})',
+      delete: 'Delete group',
     },
   },
 
@@ -2075,6 +2103,14 @@ export default {
     templates: {
       title: 'Your reminders by activity type',
       subtitle: 'This is your template: it applies to all your tours unless you change it in a tour.',
+      howItWorks: {
+        title: 'How do they work?',
+        when: 'Each activity type can have up to {max} reminders. Each one goes out as far ahead of the start as you choose, from {min} minutes to {days} days.',
+        channels:
+          'You pick the channel for each reminder: WhatsApp, email or in-app notice. In-app notices are only seen by people with a Giras account who are members of the tour.',
+        who: "They go to the groups you choose for that type in each tour (My Tour › Reminders). If you choose none, they go to the Tour team, and if it's empty, to the tour admins. You can add or remove people on each activity.",
+        quota: 'If the tour runs out of WhatsApp quota, the reminder goes out by email and in the app.',
+      },
       reset: 'Restore Giras defaults',
       resetAll: 'Restore all',
       resetConfirm: 'Go back to the Giras defaults? Pending reminders will be rescheduled.',

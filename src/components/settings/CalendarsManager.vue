@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { Translation as I18nT, useI18n } from 'vue-i18n'
 import { useCalendarImport, type CalendarSubscription, type GoogleCalendarItem } from '@/composables/useCalendarImport'
 import { isGoogleScopeMissing } from '@/composables/useGoogleIntegration'
 import { useToursStore } from '@/stores/tours'
@@ -188,11 +188,35 @@ defineExpose({ load })
   <!-- Info blurb -->
   <div class="bg-acid-dim border border-line-acid rounded-xl px-3.5 py-3 mb-4 space-y-1">
     <p class="text-[13px] font-semibold text-olive">
-      ¿Cómo funciona?
+      {{ t('settings.calendars.howItWorks.title') }}
     </p>
-    <p class="text-[12px] text-ink-3 leading-relaxed">
-      Puedes conectar un <span class="text-ink">calendario general</span> para todas las giras — el sistema asignará automáticamente cada evento a la gira correcta según las fechas.
-      También puedes conectar un <span class="text-ink">calendario exclusivo por gira</span> — útil si tienes Google Calendars separados para cada proyecto.
+    <p
+      class="text-[12px] text-ink-3 leading-relaxed"
+      data-test="calendars-how"
+    >
+      <I18nT
+        keypath="settings.calendars.howItWorks.general"
+        tag="span"
+      >
+        <template #calendar>
+          <span class="text-ink">{{ t('settings.calendars.howItWorks.generalName') }}</span>
+        </template>
+      </I18nT>
+      {{ ' ' }}
+      <I18nT
+        keypath="settings.calendars.howItWorks.perTour"
+        tag="span"
+      >
+        <template #calendar>
+          <span class="text-ink">{{ t('settings.calendars.howItWorks.perTourName') }}</span>
+        </template>
+        <template #recommended>
+          <span
+            class="font-semibold text-olive"
+            data-test="calendars-recommended"
+          >{{ t('settings.calendars.howItWorks.recommended') }}</span>
+        </template>
+      </I18nT>
     </p>
   </div>
 

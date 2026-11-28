@@ -762,7 +762,7 @@ export default {
     signOut: 'Cerrar Sesión',
     profile: 'Tour Manager',
     phone: 'Tu teléfono (WhatsApp)',
-    phoneHelp: 'Lo usamos para avisarte de cambios de vuelo pendientes de enviar.',
+    phoneHelp: 'Lo usamos para avisarte de cambios en tus Giras.',
     phonePlaceholder: '+34 600 000 000',
     phoneSave: 'Guardar teléfono',
     phoneSaving: 'Guardando…',
@@ -772,6 +772,34 @@ export default {
     calendars: {
       title: 'Calendarios y hojas',
       sub: 'Conecta Google Calendar, suscríbete a un calendario iCal o vincula una hoja de Google.',
+      howItWorks: {
+        title: '¿Cómo funciona?',
+        general:
+          'Puedes conectar un {calendar} para todas las giras — el sistema asignará automáticamente cada evento a la gira correcta según las fechas.',
+        generalName: 'calendario general',
+        perTour:
+          'También puedes conectar un {calendar} {recommended} — útil si tienes Google Calendars separados para cada proyecto.',
+        perTourName: 'calendario exclusivo por gira',
+        recommended: '(recomendado)',
+      },
+    },
+    integrationNames: {
+      googleCalendar: 'Google Calendar',
+      whatsapp: 'WhatsApp',
+      email: 'Email',
+      wallet: 'Pases de Wallet',
+    },
+    editItem: 'Editar {name}',
+    activityTypes: {
+      title: 'Tipos de actividad',
+      sub: 'Los tipos clasifican las actividades de tus giras y deciden qué recordatorios se envían. Los tipos del sistema (Vuelo, Show, Check-in Hotel…) vienen con Giras y no se pueden editar; sus recordatorios se cambian en la pestaña Recordatorios. Para todo lo demás, crea tus propios tipos personalizados.',
+      systemLocked: 'Los tipos del sistema no se pueden editar.',
+    },
+    groupsManager: {
+      loading: 'Cargando grupo…',
+      loadError: 'No se ha podido cargar el grupo.',
+      manageContacts: 'Añadir o quitar contactos ({n})',
+      delete: 'Eliminar grupo',
     },
   },
 
@@ -2086,6 +2114,14 @@ export default {
       title: 'Tus recordatorios por tipo de actividad',
       subtitle:
         'Es tu plantilla: se aplica a todas tus giras salvo que la cambies en una gira concreta.',
+      howItWorks: {
+        title: '¿Cómo funcionan?',
+        when: 'Cada tipo de actividad puede tener hasta {max} recordatorios. Cada uno sale con la antelación que elijas antes de que empiece la actividad, desde {min} minutos hasta {days} días.',
+        channels:
+          'Para cada recordatorio eliges el canal: WhatsApp, email o aviso en la app. El aviso en la app solo lo ven quienes tienen cuenta en Giras y son miembros de la gira.',
+        who: 'Llegan a los grupos que elijas para ese tipo en cada gira (Mi Gira › Recordatorios). Si no eliges ninguno, al Equipo de la gira, y si está vacío, a los administradores de la gira. En cada actividad puedes añadir o quitar personas.',
+        quota: 'Si la gira se queda sin cupo de WhatsApp, el recordatorio sale por email y en la app.',
+      },
       reset: 'Restablecer valores de Giras',
       resetAll: 'Restablecer todos',
       resetConfirm:
